@@ -1,0 +1,140 @@
+import ast
+import operator
+from datetime import datetime, timezone
+from typing import Any, Dict
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from azure.identity.aio import AzureCliCredential
+from agent_framework import ChatAgent
+from agent_framework.azure import AzureAIAgentClient
+from agent_framework.observability import setup_observability
+
+setup_observability(enable_sensitive_data=True)
+
+app = FastAPI(
+    title="Genesis A2A Service",
+    description="Agent-to-Agent communication service",
+    version="1.0.0"
+)
+
+def echo(text: str) -> str:
+    return text
+
+def time_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+def math_eval(expression: str) -> float:
+    allowed_ops = {
+        ast.Add: operator.add,
+        ast.Sub: operator.sub,
+        ast.Mult: operator.mul,
+        ast.Div: operator.truediv,
+        ast.USub: operator.neg,
+    }
+    
+    def eval_node(node):
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, (int, float)):
+                return node.value
+            raise ValueError("Only numeric constants allowed")
+        elif isinstance(node, ast.BinOp):
+            op_type = type(node.op)
+            if op_type not in allowed_ops:
+                raise ValueError(f"Operator {op_type.__name__} not allowed")
+            return allowed_ops[op_type](eval_node(node.left), eval_node(node.right))
+        elif isinstance(node, ast.UnaryOp):
+            op_type = type(node.op)
+            if op_type not in allowed_ops:
+                raise ValueError(f"Operator {op_type.__name__} not allowed")
+            return allowed_ops[op_type](eval_node(node.operand))
+        else:
+            raise ValueError(f"Node type {type(node).__name__} not allowed")
+    
+    try:
+        tree = ast.parse(expression, mode='eval')
+        return float(eval_node(tree.body))
+    except Exception as e:
+        raise ValueError(f"Invalid expression: {str(e)}")
+
+class InvokeRequest(BaseModel):
+    tool: str
+    arguments: Dict[str, Any]
+
+class InvokeResponse(BaseModel):
+    result: Any
+
+agent_instance = None
+
+@app.on_event("startup")
+async def startup_event():
+    global agent_instance
+    cred = AzureCliCredential()
+    client = AzureAIAgentClient(async_credential=cred)
+    agent_instance = ChatAgent(
+        chat_client=client,
+        instructions="You are the Genesis orchestrator agent.",
+        name="genesis-orchestrator",
+        tools=[echo, time_now, math_eval]
+    )
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    global agent_instance
+    agent_instance = None
+
+@app.get("/a2a/version")
+async def get_version():
+    return {
+        "name": "genesis-orchestrator",
+        "version": "1.0.0",
+        "framework": "Microsoft Agent Framework",
+        "status": "operational"
+    }
+
+@app.get("/a2a/card")
+async def get_card():
+    return {
+        "name": "genesis-orchestrator",
+        "version": "1.0.0",
+        "description": "Genesis orchestrator agent with A2A communication",
+        "protocol": "A2A",
+        "tools": [
+            {
+                "name": "echo",
+                "description": "Echo back the provided text",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {"text": {"type": "string", "description": "The text to echo back"}},
+                    "required": ["text"]
+                }
+            },
+            {
+                "name": "time_now",
+                "description": "Return current UTC time in ISO 8601 format",
+                "input_schema": {"type": "object", "properties": {}}
+            },
+            {
+                "name": "math_eval",
+                "description": "Safely evaluate a basic math expression (+ - * / ( ))",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {"expression": {"type": "string", "description": "The math expression to evaluate"}},
+                    "required": ["expression"]
+                }
+            }
+        ]
+    }
+
+@app.post("/a2a/invoke")
+async def invoke_tool(request: InvokeRequest) -> InvokeResponse:
+    tool_map = {"echo": echo, "time_now": time_now, "math_eval": math_eval}
+    
+    if request.tool not in tool_map:
+        raise HTTPException(status_code=404, detail=f"Tool {request.tool} not found")
+    
+    try:
+        result = tool_map[request.tool](**request.arguments)
+        return InvokeResponse(result=result)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Tool execution failed: {str(e)}")

@@ -1,0 +1,33 @@
+{
+  "name": "Genesis",
+  "version": "1.0.1",
+  "description": "Primary orchestrator agent for Genesis system. Three tools registered (echo, time_now, math_eval).",
+  "project_endpoint": "https://genesis-rebuild-resource.services.ai.azure.com/api/projects/genesis-rebuild",
+  "model_deployment": "gpt-4o",
+  "observability": { "otel_enabled": true },
+  "tools": [
+    {
+      "name": "echo",
+      "description": "Echo the given text back exactly.",
+      "input_schema": {
+        "type": "object",
+        "properties": { "text": { "type": "string" } },
+        "required": ["text"]
+      }
+    },
+    {
+      "name": "time_now",
+      "description": "Return current time in UTC ISO8601.",
+      "input_schema": { "type": "object", "properties": {}, "required": [] }
+    },
+    {
+      "name": "math_eval",
+      "description": "Safely evaluate (+ - * / ( )) over decimals.",
+      "input_schema": {
+        "type": "object",
+        "properties": { "expression": { "type": "string" } },
+        "required": ["expression"]
+      }
+    }
+  ]
+}

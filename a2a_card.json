@@ -1,0 +1,44 @@
+{
+  "name": "genesis-orchestrator",
+  "version": "1.0.0",
+  "description": "Genesis orchestrator agent with A2A communication capabilities",
+  "protocol": "A2A",
+  "tools": [
+    {
+      "name": "echo",
+      "description": "Echo back the provided text",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The text to echo back"
+          }
+        },
+        "required": ["text"]
+      }
+    },
+    {
+      "name": "time_now",
+      "description": "Return current UTC time in ISO 8601 format",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "math_eval",
+      "description": "Safely evaluate a basic math expression supporting +, -, *, /, and parentheses",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string",
+            "description": "The math expression to evaluate"
+          }
+        },
+        "required": ["expression"]
+      }
+    }
+  ]
+}

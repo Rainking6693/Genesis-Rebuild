@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "total": 1044,
+    "passed": 918,
+    "failed": 69,
+    "errors": 40,
+    "skipped": 17,
+    "pass_rate": 87.93,
+    "execution_time": 92.17
+  },
+  "failures_by_module": {
+    "concurrency": 7,
+    "error_handling": 3,
+    "failure_scenarios": 19,
+    "llm_integration": 1,
+    "orchestration_comprehensive": 23,
+    "performance": 2,
+    "reflection_agent": 3,
+    "reflection_harness": 2,
+    "reflection_integration": 2,
+    "security_adversarial": 1,
+    "security_fixes": 1,
+    "spec_agent": 2,
+    "swarm_edge_cases": 1,
+    "trajectory_pool": 2
+  },
+  "errors_by_module": {
+    "trajectory_operators_integration": 11,
+    "trajectory_pool": 29
+  }
+}

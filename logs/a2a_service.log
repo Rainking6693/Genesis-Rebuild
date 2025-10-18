@@ -1,0 +1,1 @@
+{"timestamp": "2025-10-14T21:50:25.259462", "level": "INFO", "logger": "a2a_service", "message": "A2A service test message", "module": "test_logging", "function": "<module>", "line": 92, "tool_name": "test_tool"}

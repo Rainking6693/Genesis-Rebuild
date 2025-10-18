@@ -1,0 +1,3048 @@
+
+
++===========================================================================================================================================================================================+
+
+
+DEPRECATED: this command (`check`) has been DEPRECATED, and will be unsupported beyond 01 June 2024.
+
+
+We highly encourage switching to the new `scan` command which is easier to use, more powerful, and can be set up to mimic the deprecated command if required.
+
+
++===========================================================================================================================================================================================+
+
+
+/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/safety/safety.py:1857: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+{
+    "report_meta": {
+        "scan_target": "environment",
+        "scanned": [
+            "/usr/lib/python3.12",
+            "/home/genesis/genesis-rebuild/venv/bin",
+            "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages",
+            "/usr/lib/python3.12/lib-dynload",
+            "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor",
+            "/usr/lib/python312.zip"
+        ],
+        "scanned_full_path": [
+            "/home/genesis/genesis-rebuild/venv/bin",
+            "/usr/lib/python312.zip",
+            "/usr/lib/python3.12",
+            "/usr/lib/python3.12/lib-dynload",
+            "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages",
+            "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+        ],
+        "target_languages": [
+            "python"
+        ],
+        "policy_file": null,
+        "policy_file_source": "local",
+        "audit_and_monitor": false,
+        "api_key": false,
+        "account": "",
+        "local_database_path": null,
+        "safety_version": "3.6.2",
+        "timestamp": "2025-10-17 19:45:03",
+        "packages_found": 181,
+        "vulnerabilities_found": 1,
+        "vulnerabilities_ignored": 0,
+        "remediations_recommended": 0,
+        "telemetry": {
+            "safety_options": {
+                "json": {
+                    "--json": 1
+                }
+            },
+            "safety_version": "3.6.2",
+            "safety_source": "cli",
+            "os_type": "Linux",
+            "os_release": "6.8.0-71-generic",
+            "os_description": "Linux-6.8.0-71-generic-x86_64-with-glibc2.39",
+            "python_version": "3.12.3",
+            "safety_command": "check"
+        },
+        "git": {
+            "error": "not-git-repo"
+        },
+        "project": null,
+        "json_version": "1.1",
+        "remediations_attempted": 0,
+        "remediations_completed": 0,
+        "remediation_mode": "NON_INTERACTIVE"
+    },
+    "scanned_packages": {
+        "pyjwt": {
+            "name": "pyjwt",
+            "version": "2.10.1",
+            "requirements": [
+                {
+                    "raw": "pyjwt==2.10.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pyjwt",
+                    "specifier": "==2.10.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "a2a-sdk": {
+            "name": "a2a-sdk",
+            "version": "0.3.8",
+            "requirements": [
+                {
+                    "raw": "a2a-sdk==0.3.8",
+                    "extras": [],
+                    "marker": null,
+                    "name": "a2a-sdk",
+                    "specifier": "==0.3.8",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "agent-framework": {
+            "name": "agent-framework",
+            "version": "1.0.0b251007",
+            "requirements": [
+                {
+                    "raw": "agent-framework==1.0.0b251007",
+                    "extras": [],
+                    "marker": null,
+                    "name": "agent-framework",
+                    "specifier": "==1.0.0b251007",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "agent-framework-a2a": {
+            "name": "agent-framework-a2a",
+            "version": "1.0.0b251007",
+            "requirements": [
+                {
+                    "raw": "agent-framework-a2a==1.0.0b251007",
+                    "extras": [],
+                    "marker": null,
+                    "name": "agent-framework-a2a",
+                    "specifier": "==1.0.0b251007",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "agent-framework-azure-ai": {
+            "name": "agent-framework-azure-ai",
+            "version": "1.0.0b251007",
+            "requirements": [
+                {
+                    "raw": "agent-framework-azure-ai==1.0.0b251007",
+                    "extras": [],
+                    "marker": null,
+                    "name": "agent-framework-azure-ai",
+                    "specifier": "==1.0.0b251007",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "agent-framework-copilotstudio": {
+            "name": "agent-framework-copilotstudio",
+            "version": "1.0.0b251007",
+            "requirements": [
+                {
+                    "raw": "agent-framework-copilotstudio==1.0.0b251007",
+                    "extras": [],
+                    "marker": null,
+                    "name": "agent-framework-copilotstudio",
+                    "specifier": "==1.0.0b251007",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "agent-framework-core": {
+            "name": "agent-framework-core",
+            "version": "1.0.0b251007",
+            "requirements": [
+                {
+                    "raw": "agent-framework-core==1.0.0b251007",
+                    "extras": [],
+                    "marker": null,
+                    "name": "agent-framework-core",
+                    "specifier": "==1.0.0b251007",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "agent-framework-devui": {
+            "name": "agent-framework-devui",
+            "version": "1.0.0b251007",
+            "requirements": [
+                {
+                    "raw": "agent-framework-devui==1.0.0b251007",
+                    "extras": [],
+                    "marker": null,
+                    "name": "agent-framework-devui",
+                    "specifier": "==1.0.0b251007",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "agent-framework-mem0": {
+            "name": "agent-framework-mem0",
+            "version": "1.0.0b251007",
+            "requirements": [
+                {
+                    "raw": "agent-framework-mem0==1.0.0b251007",
+                    "extras": [],
+                    "marker": null,
+                    "name": "agent-framework-mem0",
+                    "specifier": "==1.0.0b251007",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "agent-framework-redis": {
+            "name": "agent-framework-redis",
+            "version": "1.0.0b251007",
+            "requirements": [
+                {
+                    "raw": "agent-framework-redis==1.0.0b251007",
+                    "extras": [],
+                    "marker": null,
+                    "name": "agent-framework-redis",
+                    "specifier": "==1.0.0b251007",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "aiofiles": {
+            "name": "aiofiles",
+            "version": "25.1.0",
+            "requirements": [
+                {
+                    "raw": "aiofiles==25.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "aiofiles",
+                    "specifier": "==25.1.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "aiohappyeyeballs": {
+            "name": "aiohappyeyeballs",
+            "version": "2.6.1",
+            "requirements": [
+                {
+                    "raw": "aiohappyeyeballs==2.6.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "aiohappyeyeballs",
+                    "specifier": "==2.6.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "aiohttp": {
+            "name": "aiohttp",
+            "version": "3.13.0",
+            "requirements": [
+                {
+                    "raw": "aiohttp==3.13.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "aiohttp",
+                    "specifier": "==3.13.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "aiosignal": {
+            "name": "aiosignal",
+            "version": "1.4.0",
+            "requirements": [
+                {
+                    "raw": "aiosignal==1.4.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "aiosignal",
+                    "specifier": "==1.4.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "annotated-types": {
+            "name": "annotated-types",
+            "version": "0.7.0",
+            "requirements": [
+                {
+                    "raw": "annotated-types==0.7.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "annotated-types",
+                    "specifier": "==0.7.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "anthropic": {
+            "name": "anthropic",
+            "version": "0.70.0",
+            "requirements": [
+                {
+                    "raw": "anthropic==0.70.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "anthropic",
+                    "specifier": "==0.70.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "anyio": {
+            "name": "anyio",
+            "version": "4.11.0",
+            "requirements": [
+                {
+                    "raw": "anyio==4.11.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "anyio",
+                    "specifier": "==4.11.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "asgiref": {
+            "name": "asgiref",
+            "version": "3.10.0",
+            "requirements": [
+                {
+                    "raw": "asgiref==3.10.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "asgiref",
+                    "specifier": "==3.10.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "attrs": {
+            "name": "attrs",
+            "version": "25.4.0",
+            "requirements": [
+                {
+                    "raw": "attrs==25.4.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "attrs",
+                    "specifier": "==25.4.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "authlib": {
+            "name": "authlib",
+            "version": "1.6.5",
+            "requirements": [
+                {
+                    "raw": "authlib==1.6.5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "authlib",
+                    "specifier": "==1.6.5",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "azure-ai-agents": {
+            "name": "azure-ai-agents",
+            "version": "1.2.0b5",
+            "requirements": [
+                {
+                    "raw": "azure-ai-agents==1.2.0b5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "azure-ai-agents",
+                    "specifier": "==1.2.0b5",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "azure-ai-projects": {
+            "name": "azure-ai-projects",
+            "version": "1.1.0b4",
+            "requirements": [
+                {
+                    "raw": "azure-ai-projects==1.1.0b4",
+                    "extras": [],
+                    "marker": null,
+                    "name": "azure-ai-projects",
+                    "specifier": "==1.1.0b4",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "azure-core": {
+            "name": "azure-core",
+            "version": "1.35.1",
+            "requirements": [
+                {
+                    "raw": "azure-core==1.35.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "azure-core",
+                    "specifier": "==1.35.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "azure-core-tracing-opentelemetry": {
+            "name": "azure-core-tracing-opentelemetry",
+            "version": "1.0.0b12",
+            "requirements": [
+                {
+                    "raw": "azure-core-tracing-opentelemetry==1.0.0b12",
+                    "extras": [],
+                    "marker": null,
+                    "name": "azure-core-tracing-opentelemetry",
+                    "specifier": "==1.0.0b12",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "azure-identity": {
+            "name": "azure-identity",
+            "version": "1.25.1",
+            "requirements": [
+                {
+                    "raw": "azure-identity==1.25.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "azure-identity",
+                    "specifier": "==1.25.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "azure-monitor-opentelemetry": {
+            "name": "azure-monitor-opentelemetry",
+            "version": "1.8.1",
+            "requirements": [
+                {
+                    "raw": "azure-monitor-opentelemetry==1.8.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "azure-monitor-opentelemetry",
+                    "specifier": "==1.8.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "azure-monitor-opentelemetry-exporter": {
+            "name": "azure-monitor-opentelemetry-exporter",
+            "version": "1.0.0b43",
+            "requirements": [
+                {
+                    "raw": "azure-monitor-opentelemetry-exporter==1.0.0b43",
+                    "extras": [],
+                    "marker": null,
+                    "name": "azure-monitor-opentelemetry-exporter",
+                    "specifier": "==1.0.0b43",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "azure-storage-blob": {
+            "name": "azure-storage-blob",
+            "version": "12.27.0b1",
+            "requirements": [
+                {
+                    "raw": "azure-storage-blob==12.27.0b1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "azure-storage-blob",
+                    "specifier": "==12.27.0b1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "backoff": {
+            "name": "backoff",
+            "version": "2.2.1",
+            "requirements": [
+                {
+                    "raw": "backoff==2.2.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "backoff",
+                    "specifier": "==2.2.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "bandit": {
+            "name": "bandit",
+            "version": "1.8.6",
+            "requirements": [
+                {
+                    "raw": "bandit==1.8.6",
+                    "extras": [],
+                    "marker": null,
+                    "name": "bandit",
+                    "specifier": "==1.8.6",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "cachetools": {
+            "name": "cachetools",
+            "version": "6.2.1",
+            "requirements": [
+                {
+                    "raw": "cachetools==6.2.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "cachetools",
+                    "specifier": "==6.2.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "certifi": {
+            "name": "certifi",
+            "version": "2025.10.5",
+            "requirements": [
+                {
+                    "raw": "certifi==2025.10.5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "certifi",
+                    "specifier": "==2025.10.5",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "cffi": {
+            "name": "cffi",
+            "version": "2.0.0",
+            "requirements": [
+                {
+                    "raw": "cffi==2.0.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "cffi",
+                    "specifier": "==2.0.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "charset-normalizer": {
+            "name": "charset-normalizer",
+            "version": "3.4.3",
+            "requirements": [
+                {
+                    "raw": "charset-normalizer==3.4.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "charset-normalizer",
+                    "specifier": "==3.4.3",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "click": {
+            "name": "click",
+            "version": "8.3.0",
+            "requirements": [
+                {
+                    "raw": "click==8.3.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "click",
+                    "specifier": "==8.3.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "coverage": {
+            "name": "coverage",
+            "version": "7.11.0",
+            "requirements": [
+                {
+                    "raw": "coverage==7.11.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "coverage",
+                    "specifier": "==7.11.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "cryptography": {
+            "name": "cryptography",
+            "version": "46.0.2",
+            "requirements": [
+                {
+                    "raw": "cryptography==46.0.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "cryptography",
+                    "specifier": "==46.0.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "distro": {
+            "name": "distro",
+            "version": "1.9.0",
+            "requirements": [
+                {
+                    "raw": "distro==1.9.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "distro",
+                    "specifier": "==1.9.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "docker": {
+            "name": "docker",
+            "version": "7.1.0",
+            "requirements": [
+                {
+                    "raw": "docker==7.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "docker",
+                    "specifier": "==7.1.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "docstring-parser": {
+            "name": "docstring-parser",
+            "version": "0.17.0",
+            "requirements": [
+                {
+                    "raw": "docstring-parser==0.17.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "docstring-parser",
+                    "specifier": "==0.17.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "dparse": {
+            "name": "dparse",
+            "version": "0.6.4",
+            "requirements": [
+                {
+                    "raw": "dparse==0.6.4",
+                    "extras": [],
+                    "marker": null,
+                    "name": "dparse",
+                    "specifier": "==0.6.4",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "fastapi": {
+            "name": "fastapi",
+            "version": "0.119.0",
+            "requirements": [
+                {
+                    "raw": "fastapi==0.119.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "fastapi",
+                    "specifier": "==0.119.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "filelock": {
+            "name": "filelock",
+            "version": "3.20.0",
+            "requirements": [
+                {
+                    "raw": "filelock==3.20.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "filelock",
+                    "specifier": "==3.20.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "fixedint": {
+            "name": "fixedint",
+            "version": "0.1.6",
+            "requirements": [
+                {
+                    "raw": "fixedint==0.1.6",
+                    "extras": [],
+                    "marker": null,
+                    "name": "fixedint",
+                    "specifier": "==0.1.6",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "frozenlist": {
+            "name": "frozenlist",
+            "version": "1.8.0",
+            "requirements": [
+                {
+                    "raw": "frozenlist==1.8.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "frozenlist",
+                    "specifier": "==1.8.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "google-api-core": {
+            "name": "google-api-core",
+            "version": "2.26.0",
+            "requirements": [
+                {
+                    "raw": "google-api-core==2.26.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "google-api-core",
+                    "specifier": "==2.26.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "google-auth": {
+            "name": "google-auth",
+            "version": "2.41.1",
+            "requirements": [
+                {
+                    "raw": "google-auth==2.41.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "google-auth",
+                    "specifier": "==2.41.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "googleapis-common-protos": {
+            "name": "googleapis-common-protos",
+            "version": "1.70.0",
+            "requirements": [
+                {
+                    "raw": "googleapis-common-protos==1.70.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "googleapis-common-protos",
+                    "specifier": "==1.70.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "greenlet": {
+            "name": "greenlet",
+            "version": "3.2.4",
+            "requirements": [
+                {
+                    "raw": "greenlet==3.2.4",
+                    "extras": [],
+                    "marker": null,
+                    "name": "greenlet",
+                    "specifier": "==3.2.4",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "grpcio": {
+            "name": "grpcio",
+            "version": "1.76.0rc1",
+            "requirements": [
+                {
+                    "raw": "grpcio==1.76.0rc1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "grpcio",
+                    "specifier": "==1.76.0rc1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "h11": {
+            "name": "h11",
+            "version": "0.16.0",
+            "requirements": [
+                {
+                    "raw": "h11==0.16.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "h11",
+                    "specifier": "==0.16.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "h2": {
+            "name": "h2",
+            "version": "4.3.0",
+            "requirements": [
+                {
+                    "raw": "h2==4.3.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "h2",
+                    "specifier": "==4.3.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "hpack": {
+            "name": "hpack",
+            "version": "4.1.0",
+            "requirements": [
+                {
+                    "raw": "hpack==4.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "hpack",
+                    "specifier": "==4.1.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "httpcore": {
+            "name": "httpcore",
+            "version": "1.0.9",
+            "requirements": [
+                {
+                    "raw": "httpcore==1.0.9",
+                    "extras": [],
+                    "marker": null,
+                    "name": "httpcore",
+                    "specifier": "==1.0.9",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "httptools": {
+            "name": "httptools",
+            "version": "0.7.1",
+            "requirements": [
+                {
+                    "raw": "httptools==0.7.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "httptools",
+                    "specifier": "==0.7.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "httpx": {
+            "name": "httpx",
+            "version": "0.28.1",
+            "requirements": [
+                {
+                    "raw": "httpx==0.28.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "httpx",
+                    "specifier": "==0.28.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "httpx-sse": {
+            "name": "httpx-sse",
+            "version": "0.4.3",
+            "requirements": [
+                {
+                    "raw": "httpx-sse==0.4.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "httpx-sse",
+                    "specifier": "==0.4.3",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "hyperframe": {
+            "name": "hyperframe",
+            "version": "6.1.0",
+            "requirements": [
+                {
+                    "raw": "hyperframe==6.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "hyperframe",
+                    "specifier": "==6.1.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "idna": {
+            "name": "idna",
+            "version": "3.11",
+            "requirements": [
+                {
+                    "raw": "idna==3.11",
+                    "extras": [],
+                    "marker": null,
+                    "name": "idna",
+                    "specifier": "==3.11",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "importlib-metadata": {
+            "name": "importlib-metadata",
+            "version": "8.7.0",
+            "requirements": [
+                {
+                    "raw": "importlib-metadata==8.7.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "importlib-metadata",
+                    "specifier": "==8.7.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "iniconfig": {
+            "name": "iniconfig",
+            "version": "2.1.0",
+            "requirements": [
+                {
+                    "raw": "iniconfig==2.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "iniconfig",
+                    "specifier": "==2.1.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "isodate": {
+            "name": "isodate",
+            "version": "0.7.2",
+            "requirements": [
+                {
+                    "raw": "isodate==0.7.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "isodate",
+                    "specifier": "==0.7.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "jinja2": {
+            "name": "jinja2",
+            "version": "3.1.6",
+            "requirements": [
+                {
+                    "raw": "jinja2==3.1.6",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jinja2",
+                    "specifier": "==3.1.6",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "jiter": {
+            "name": "jiter",
+            "version": "0.11.0",
+            "requirements": [
+                {
+                    "raw": "jiter==0.11.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jiter",
+                    "specifier": "==0.11.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "joblib": {
+            "name": "joblib",
+            "version": "1.5.2",
+            "requirements": [
+                {
+                    "raw": "joblib==1.5.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "joblib",
+                    "specifier": "==1.5.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "jsonpath-ng": {
+            "name": "jsonpath-ng",
+            "version": "1.7.0",
+            "requirements": [
+                {
+                    "raw": "jsonpath-ng==1.7.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jsonpath-ng",
+                    "specifier": "==1.7.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "jsonschema": {
+            "name": "jsonschema",
+            "version": "4.25.1",
+            "requirements": [
+                {
+                    "raw": "jsonschema==4.25.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jsonschema",
+                    "specifier": "==4.25.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "jsonschema-specifications": {
+            "name": "jsonschema-specifications",
+            "version": "2025.9.1",
+            "requirements": [
+                {
+                    "raw": "jsonschema-specifications==2025.9.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jsonschema-specifications",
+                    "specifier": "==2025.9.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "markdown-it-py": {
+            "name": "markdown-it-py",
+            "version": "4.0.0",
+            "requirements": [
+                {
+                    "raw": "markdown-it-py==4.0.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "markdown-it-py",
+                    "specifier": "==4.0.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "markupsafe": {
+            "name": "markupsafe",
+            "version": "3.0.3",
+            "requirements": [
+                {
+                    "raw": "markupsafe==3.0.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "markupsafe",
+                    "specifier": "==3.0.3",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "marshmallow": {
+            "name": "marshmallow",
+            "version": "4.0.1",
+            "requirements": [
+                {
+                    "raw": "marshmallow==4.0.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "marshmallow",
+                    "specifier": "==4.0.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "mcp": {
+            "name": "mcp",
+            "version": "1.17.0",
+            "requirements": [
+                {
+                    "raw": "mcp==1.17.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "mcp",
+                    "specifier": "==1.17.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "mdurl": {
+            "name": "mdurl",
+            "version": "0.1.2",
+            "requirements": [
+                {
+                    "raw": "mdurl==0.1.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "mdurl",
+                    "specifier": "==0.1.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "mem0ai": {
+            "name": "mem0ai",
+            "version": "1.0.0b0",
+            "requirements": [
+                {
+                    "raw": "mem0ai==1.0.0b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "mem0ai",
+                    "specifier": "==1.0.0b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "microsoft-agents-activity": {
+            "name": "microsoft-agents-activity",
+            "version": "0.5.0.dev5",
+            "requirements": [
+                {
+                    "raw": "microsoft-agents-activity==0.5.0.dev5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "microsoft-agents-activity",
+                    "specifier": "==0.5.0.dev5",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "microsoft-agents-copilotstudio-client": {
+            "name": "microsoft-agents-copilotstudio-client",
+            "version": "0.5.0.dev5",
+            "requirements": [
+                {
+                    "raw": "microsoft-agents-copilotstudio-client==0.5.0.dev5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "microsoft-agents-copilotstudio-client",
+                    "specifier": "==0.5.0.dev5",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "microsoft-agents-hosting-core": {
+            "name": "microsoft-agents-hosting-core",
+            "version": "0.5.0.dev5",
+            "requirements": [
+                {
+                    "raw": "microsoft-agents-hosting-core==0.5.0.dev5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "microsoft-agents-hosting-core",
+                    "specifier": "==0.5.0.dev5",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "ml-dtypes": {
+            "name": "ml-dtypes",
+            "version": "0.5.3",
+            "requirements": [
+                {
+                    "raw": "ml-dtypes==0.5.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "ml-dtypes",
+                    "specifier": "==0.5.3",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "msal": {
+            "name": "msal",
+            "version": "1.34.0",
+            "requirements": [
+                {
+                    "raw": "msal==1.34.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "msal",
+                    "specifier": "==1.34.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "msal-extensions": {
+            "name": "msal-extensions",
+            "version": "1.3.1",
+            "requirements": [
+                {
+                    "raw": "msal-extensions==1.3.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "msal-extensions",
+                    "specifier": "==1.3.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "msrest": {
+            "name": "msrest",
+            "version": "0.7.1",
+            "requirements": [
+                {
+                    "raw": "msrest==0.7.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "msrest",
+                    "specifier": "==0.7.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "multidict": {
+            "name": "multidict",
+            "version": "6.7.0",
+            "requirements": [
+                {
+                    "raw": "multidict==6.7.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "multidict",
+                    "specifier": "==6.7.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "networkx": {
+            "name": "networkx",
+            "version": "3.5",
+            "requirements": [
+                {
+                    "raw": "networkx==3.5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "networkx",
+                    "specifier": "==3.5",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "nltk": {
+            "name": "nltk",
+            "version": "3.9.2",
+            "requirements": [
+                {
+                    "raw": "nltk==3.9.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "nltk",
+                    "specifier": "==3.9.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "numpy": {
+            "name": "numpy",
+            "version": "2.3.3",
+            "requirements": [
+                {
+                    "raw": "numpy==2.3.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "numpy",
+                    "specifier": "==2.3.3",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "oauthlib": {
+            "name": "oauthlib",
+            "version": "3.3.1",
+            "requirements": [
+                {
+                    "raw": "oauthlib==3.3.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "oauthlib",
+                    "specifier": "==3.3.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "openai": {
+            "name": "openai",
+            "version": "1.109.1",
+            "requirements": [
+                {
+                    "raw": "openai==1.109.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "openai",
+                    "specifier": "==1.109.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-api": {
+            "name": "opentelemetry-api",
+            "version": "1.37.0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-api==1.37.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-api",
+                    "specifier": "==1.37.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-exporter-otlp-proto-common": {
+            "name": "opentelemetry-exporter-otlp-proto-common",
+            "version": "1.37.0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-exporter-otlp-proto-common==1.37.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-exporter-otlp-proto-common",
+                    "specifier": "==1.37.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-exporter-otlp-proto-grpc": {
+            "name": "opentelemetry-exporter-otlp-proto-grpc",
+            "version": "1.37.0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-exporter-otlp-proto-grpc==1.37.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-exporter-otlp-proto-grpc",
+                    "specifier": "==1.37.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-instrumentation": {
+            "name": "opentelemetry-instrumentation",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-instrumentation==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-instrumentation",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-instrumentation-asgi": {
+            "name": "opentelemetry-instrumentation-asgi",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-instrumentation-asgi==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-instrumentation-asgi",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-instrumentation-dbapi": {
+            "name": "opentelemetry-instrumentation-dbapi",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-instrumentation-dbapi==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-instrumentation-dbapi",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-instrumentation-django": {
+            "name": "opentelemetry-instrumentation-django",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-instrumentation-django==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-instrumentation-django",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-instrumentation-fastapi": {
+            "name": "opentelemetry-instrumentation-fastapi",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-instrumentation-fastapi==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-instrumentation-fastapi",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-instrumentation-flask": {
+            "name": "opentelemetry-instrumentation-flask",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-instrumentation-flask==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-instrumentation-flask",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-instrumentation-psycopg2": {
+            "name": "opentelemetry-instrumentation-psycopg2",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-instrumentation-psycopg2==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-instrumentation-psycopg2",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-instrumentation-requests": {
+            "name": "opentelemetry-instrumentation-requests",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-instrumentation-requests==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-instrumentation-requests",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-instrumentation-urllib": {
+            "name": "opentelemetry-instrumentation-urllib",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-instrumentation-urllib==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-instrumentation-urllib",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-instrumentation-urllib3": {
+            "name": "opentelemetry-instrumentation-urllib3",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-instrumentation-urllib3==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-instrumentation-urllib3",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-instrumentation-wsgi": {
+            "name": "opentelemetry-instrumentation-wsgi",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-instrumentation-wsgi==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-instrumentation-wsgi",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-proto": {
+            "name": "opentelemetry-proto",
+            "version": "1.37.0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-proto==1.37.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-proto",
+                    "specifier": "==1.37.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-resource-detector-azure": {
+            "name": "opentelemetry-resource-detector-azure",
+            "version": "0.1.5",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-resource-detector-azure==0.1.5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-resource-detector-azure",
+                    "specifier": "==0.1.5",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-sdk": {
+            "name": "opentelemetry-sdk",
+            "version": "1.37.0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-sdk==1.37.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-sdk",
+                    "specifier": "==1.37.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-semantic-conventions": {
+            "name": "opentelemetry-semantic-conventions",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-semantic-conventions==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-semantic-conventions",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-semantic-conventions-ai": {
+            "name": "opentelemetry-semantic-conventions-ai",
+            "version": "0.4.13",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-semantic-conventions-ai==0.4.13",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-semantic-conventions-ai",
+                    "specifier": "==0.4.13",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "opentelemetry-util-http": {
+            "name": "opentelemetry-util-http",
+            "version": "0.58b0",
+            "requirements": [
+                {
+                    "raw": "opentelemetry-util-http==0.58b0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "opentelemetry-util-http",
+                    "specifier": "==0.58b0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "packaging": {
+            "name": "packaging",
+            "version": "25.0",
+            "requirements": [
+                {
+                    "raw": "packaging==25.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "packaging",
+                    "specifier": "==25.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pip": {
+            "name": "pip",
+            "version": "24.0",
+            "requirements": [
+                {
+                    "raw": "pip==24.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pip",
+                    "specifier": "==24.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pluggy": {
+            "name": "pluggy",
+            "version": "1.6.0",
+            "requirements": [
+                {
+                    "raw": "pluggy==1.6.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pluggy",
+                    "specifier": "==1.6.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "ply": {
+            "name": "ply",
+            "version": "3.11",
+            "requirements": [
+                {
+                    "raw": "ply==3.11",
+                    "extras": [],
+                    "marker": null,
+                    "name": "ply",
+                    "specifier": "==3.11",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "portalocker": {
+            "name": "portalocker",
+            "version": "3.2.0",
+            "requirements": [
+                {
+                    "raw": "portalocker==3.2.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "portalocker",
+                    "specifier": "==3.2.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "posthog": {
+            "name": "posthog",
+            "version": "6.7.6",
+            "requirements": [
+                {
+                    "raw": "posthog==6.7.6",
+                    "extras": [],
+                    "marker": null,
+                    "name": "posthog",
+                    "specifier": "==6.7.6",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "propcache": {
+            "name": "propcache",
+            "version": "0.4.1",
+            "requirements": [
+                {
+                    "raw": "propcache==0.4.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "propcache",
+                    "specifier": "==0.4.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "proto-plus": {
+            "name": "proto-plus",
+            "version": "1.26.1",
+            "requirements": [
+                {
+                    "raw": "proto-plus==1.26.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "proto-plus",
+                    "specifier": "==1.26.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "protobuf": {
+            "name": "protobuf",
+            "version": "5.29.5",
+            "requirements": [
+                {
+                    "raw": "protobuf==5.29.5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "protobuf",
+                    "specifier": "==5.29.5",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "psutil": {
+            "name": "psutil",
+            "version": "7.1.0",
+            "requirements": [
+                {
+                    "raw": "psutil==7.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "psutil",
+                    "specifier": "==7.1.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pyasn1": {
+            "name": "pyasn1",
+            "version": "0.6.1",
+            "requirements": [
+                {
+                    "raw": "pyasn1==0.6.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pyasn1",
+                    "specifier": "==0.6.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pyasn1-modules": {
+            "name": "pyasn1-modules",
+            "version": "0.4.2",
+            "requirements": [
+                {
+                    "raw": "pyasn1-modules==0.4.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pyasn1-modules",
+                    "specifier": "==0.4.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pycparser": {
+            "name": "pycparser",
+            "version": "2.23",
+            "requirements": [
+                {
+                    "raw": "pycparser==2.23",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pycparser",
+                    "specifier": "==2.23",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pydantic": {
+            "name": "pydantic",
+            "version": "2.12.0",
+            "requirements": [
+                {
+                    "raw": "pydantic==2.12.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pydantic",
+                    "specifier": "==2.12.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pydantic-core": {
+            "name": "pydantic-core",
+            "version": "2.41.1",
+            "requirements": [
+                {
+                    "raw": "pydantic-core==2.41.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pydantic-core",
+                    "specifier": "==2.41.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pydantic-settings": {
+            "name": "pydantic-settings",
+            "version": "2.11.0",
+            "requirements": [
+                {
+                    "raw": "pydantic-settings==2.11.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pydantic-settings",
+                    "specifier": "==2.11.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pygments": {
+            "name": "pygments",
+            "version": "2.19.2",
+            "requirements": [
+                {
+                    "raw": "pygments==2.19.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pygments",
+                    "specifier": "==2.19.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pytest": {
+            "name": "pytest",
+            "version": "8.4.2",
+            "requirements": [
+                {
+                    "raw": "pytest==8.4.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pytest",
+                    "specifier": "==8.4.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pytest-asyncio": {
+            "name": "pytest-asyncio",
+            "version": "1.2.0",
+            "requirements": [
+                {
+                    "raw": "pytest-asyncio==1.2.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pytest-asyncio",
+                    "specifier": "==1.2.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pytest-cov": {
+            "name": "pytest-cov",
+            "version": "7.0.0",
+            "requirements": [
+                {
+                    "raw": "pytest-cov==7.0.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pytest-cov",
+                    "specifier": "==7.0.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "python-dateutil": {
+            "name": "python-dateutil",
+            "version": "2.9.0.post0",
+            "requirements": [
+                {
+                    "raw": "python-dateutil==2.9.0.post0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "python-dateutil",
+                    "specifier": "==2.9.0.post0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "python-dotenv": {
+            "name": "python-dotenv",
+            "version": "1.1.1",
+            "requirements": [
+                {
+                    "raw": "python-dotenv==1.1.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "python-dotenv",
+                    "specifier": "==1.1.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "python-multipart": {
+            "name": "python-multipart",
+            "version": "0.0.20",
+            "requirements": [
+                {
+                    "raw": "python-multipart==0.0.20",
+                    "extras": [],
+                    "marker": null,
+                    "name": "python-multipart",
+                    "specifier": "==0.0.20",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "python-ulid": {
+            "name": "python-ulid",
+            "version": "3.1.0",
+            "requirements": [
+                {
+                    "raw": "python-ulid==3.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "python-ulid",
+                    "specifier": "==3.1.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pytz": {
+            "name": "pytz",
+            "version": "2025.2",
+            "requirements": [
+                {
+                    "raw": "pytz==2025.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pytz",
+                    "specifier": "==2025.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "pyyaml": {
+            "name": "pyyaml",
+            "version": "6.0.3",
+            "requirements": [
+                {
+                    "raw": "pyyaml==6.0.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pyyaml",
+                    "specifier": "==6.0.3",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "qdrant-client": {
+            "name": "qdrant-client",
+            "version": "1.15.1",
+            "requirements": [
+                {
+                    "raw": "qdrant-client==1.15.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "qdrant-client",
+                    "specifier": "==1.15.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "redis": {
+            "name": "redis",
+            "version": "6.4.0",
+            "requirements": [
+                {
+                    "raw": "redis==6.4.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "redis",
+                    "specifier": "==6.4.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "redisvl": {
+            "name": "redisvl",
+            "version": "0.9.1",
+            "requirements": [
+                {
+                    "raw": "redisvl==0.9.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "redisvl",
+                    "specifier": "==0.9.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "referencing": {
+            "name": "referencing",
+            "version": "0.37.0",
+            "requirements": [
+                {
+                    "raw": "referencing==0.37.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "referencing",
+                    "specifier": "==0.37.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "regex": {
+            "name": "regex",
+            "version": "2025.9.18",
+            "requirements": [
+                {
+                    "raw": "regex==2025.9.18",
+                    "extras": [],
+                    "marker": null,
+                    "name": "regex",
+                    "specifier": "==2025.9.18",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "requests": {
+            "name": "requests",
+            "version": "2.32.5",
+            "requirements": [
+                {
+                    "raw": "requests==2.32.5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "requests",
+                    "specifier": "==2.32.5",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "requests-oauthlib": {
+            "name": "requests-oauthlib",
+            "version": "2.0.0",
+            "requirements": [
+                {
+                    "raw": "requests-oauthlib==2.0.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "requests-oauthlib",
+                    "specifier": "==2.0.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "rich": {
+            "name": "rich",
+            "version": "14.2.0",
+            "requirements": [
+                {
+                    "raw": "rich==14.2.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "rich",
+                    "specifier": "==14.2.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "rpds-py": {
+            "name": "rpds-py",
+            "version": "0.27.1",
+            "requirements": [
+                {
+                    "raw": "rpds-py==0.27.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "rpds-py",
+                    "specifier": "==0.27.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "rsa": {
+            "name": "rsa",
+            "version": "4.9.1",
+            "requirements": [
+                {
+                    "raw": "rsa==4.9.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "rsa",
+                    "specifier": "==4.9.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "ruamel.yaml": {
+            "name": "ruamel.yaml",
+            "version": "0.18.15",
+            "requirements": [
+                {
+                    "raw": "ruamel.yaml==0.18.15",
+                    "extras": [],
+                    "marker": null,
+                    "name": "ruamel.yaml",
+                    "specifier": "==0.18.15",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "ruamel.yaml.clib": {
+            "name": "ruamel.yaml.clib",
+            "version": "0.2.14",
+            "requirements": [
+                {
+                    "raw": "ruamel.yaml.clib==0.2.14",
+                    "extras": [],
+                    "marker": null,
+                    "name": "ruamel.yaml.clib",
+                    "specifier": "==0.2.14",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "safety": {
+            "name": "safety",
+            "version": "3.6.2",
+            "requirements": [
+                {
+                    "raw": "safety==3.6.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "safety",
+                    "specifier": "==3.6.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "safety-schemas": {
+            "name": "safety-schemas",
+            "version": "0.0.16",
+            "requirements": [
+                {
+                    "raw": "safety-schemas==0.0.16",
+                    "extras": [],
+                    "marker": null,
+                    "name": "safety-schemas",
+                    "specifier": "==0.0.16",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "setuptools": {
+            "name": "setuptools",
+            "version": "80.9.0",
+            "requirements": [
+                {
+                    "raw": "setuptools==80.9.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "setuptools",
+                    "specifier": "==80.9.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "shellingham": {
+            "name": "shellingham",
+            "version": "1.5.4",
+            "requirements": [
+                {
+                    "raw": "shellingham==1.5.4",
+                    "extras": [],
+                    "marker": null,
+                    "name": "shellingham",
+                    "specifier": "==1.5.4",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "six": {
+            "name": "six",
+            "version": "1.17.0",
+            "requirements": [
+                {
+                    "raw": "six==1.17.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "six",
+                    "specifier": "==1.17.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "sniffio": {
+            "name": "sniffio",
+            "version": "1.3.1",
+            "requirements": [
+                {
+                    "raw": "sniffio==1.3.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "sniffio",
+                    "specifier": "==1.3.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "sqlalchemy": {
+            "name": "sqlalchemy",
+            "version": "2.0.44",
+            "requirements": [
+                {
+                    "raw": "sqlalchemy==2.0.44",
+                    "extras": [],
+                    "marker": null,
+                    "name": "sqlalchemy",
+                    "specifier": "==2.0.44",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "sse-starlette": {
+            "name": "sse-starlette",
+            "version": "3.0.2",
+            "requirements": [
+                {
+                    "raw": "sse-starlette==3.0.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "sse-starlette",
+                    "specifier": "==3.0.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "starlette": {
+            "name": "starlette",
+            "version": "0.48.0",
+            "requirements": [
+                {
+                    "raw": "starlette==0.48.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "starlette",
+                    "specifier": "==0.48.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "stevedore": {
+            "name": "stevedore",
+            "version": "5.5.0",
+            "requirements": [
+                {
+                    "raw": "stevedore==5.5.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "stevedore",
+                    "specifier": "==5.5.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "tenacity": {
+            "name": "tenacity",
+            "version": "9.1.2",
+            "requirements": [
+                {
+                    "raw": "tenacity==9.1.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "tenacity",
+                    "specifier": "==9.1.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "tomlkit": {
+            "name": "tomlkit",
+            "version": "0.13.3",
+            "requirements": [
+                {
+                    "raw": "tomlkit==0.13.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "tomlkit",
+                    "specifier": "==0.13.3",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "tqdm": {
+            "name": "tqdm",
+            "version": "4.67.1",
+            "requirements": [
+                {
+                    "raw": "tqdm==4.67.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "tqdm",
+                    "specifier": "==4.67.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "typer": {
+            "name": "typer",
+            "version": "0.19.2",
+            "requirements": [
+                {
+                    "raw": "typer==0.19.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "typer",
+                    "specifier": "==0.19.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "typing-extensions": {
+            "name": "typing-extensions",
+            "version": "4.15.0",
+            "requirements": [
+                {
+                    "raw": "typing-extensions==4.15.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "typing-extensions",
+                    "specifier": "==4.15.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "typing-inspection": {
+            "name": "typing-inspection",
+            "version": "0.4.2",
+            "requirements": [
+                {
+                    "raw": "typing-inspection==0.4.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "typing-inspection",
+                    "specifier": "==0.4.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "urllib3": {
+            "name": "urllib3",
+            "version": "2.5.0",
+            "requirements": [
+                {
+                    "raw": "urllib3==2.5.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "urllib3",
+                    "specifier": "==2.5.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "uvicorn": {
+            "name": "uvicorn",
+            "version": "0.37.0",
+            "requirements": [
+                {
+                    "raw": "uvicorn==0.37.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "uvicorn",
+                    "specifier": "==0.37.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "uvloop": {
+            "name": "uvloop",
+            "version": "0.21.0",
+            "requirements": [
+                {
+                    "raw": "uvloop==0.21.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "uvloop",
+                    "specifier": "==0.21.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "watchfiles": {
+            "name": "watchfiles",
+            "version": "1.1.0",
+            "requirements": [
+                {
+                    "raw": "watchfiles==1.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "watchfiles",
+                    "specifier": "==1.1.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "websockets": {
+            "name": "websockets",
+            "version": "15.0.1",
+            "requirements": [
+                {
+                    "raw": "websockets==15.0.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "websockets",
+                    "specifier": "==15.0.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "wrapt": {
+            "name": "wrapt",
+            "version": "1.17.3",
+            "requirements": [
+                {
+                    "raw": "wrapt==1.17.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "wrapt",
+                    "specifier": "==1.17.3",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "yarl": {
+            "name": "yarl",
+            "version": "1.22.0",
+            "requirements": [
+                {
+                    "raw": "yarl==1.22.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "yarl",
+                    "specifier": "==1.22.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "zipp": {
+            "name": "zipp",
+            "version": "3.23.0",
+            "requirements": [
+                {
+                    "raw": "zipp==3.23.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "zipp",
+                    "specifier": "==3.23.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ]
+        },
+        "autocommand": {
+            "name": "autocommand",
+            "version": "2.2.2",
+            "requirements": [
+                {
+                    "raw": "autocommand==2.2.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "autocommand",
+                    "specifier": "==2.2.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "backports.tarfile": {
+            "name": "backports.tarfile",
+            "version": "1.2.0",
+            "requirements": [
+                {
+                    "raw": "backports.tarfile==1.2.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "backports.tarfile",
+                    "specifier": "==1.2.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "inflect": {
+            "name": "inflect",
+            "version": "7.3.1",
+            "requirements": [
+                {
+                    "raw": "inflect==7.3.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "inflect",
+                    "specifier": "==7.3.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "jaraco.collections": {
+            "name": "jaraco.collections",
+            "version": "5.1.0",
+            "requirements": [
+                {
+                    "raw": "jaraco.collections==5.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jaraco.collections",
+                    "specifier": "==5.1.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "jaraco.context": {
+            "name": "jaraco.context",
+            "version": "5.3.0",
+            "requirements": [
+                {
+                    "raw": "jaraco.context==5.3.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jaraco.context",
+                    "specifier": "==5.3.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "jaraco.functools": {
+            "name": "jaraco.functools",
+            "version": "4.0.1",
+            "requirements": [
+                {
+                    "raw": "jaraco.functools==4.0.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jaraco.functools",
+                    "specifier": "==4.0.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "jaraco.text": {
+            "name": "jaraco.text",
+            "version": "3.12.1",
+            "requirements": [
+                {
+                    "raw": "jaraco.text==3.12.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jaraco.text",
+                    "specifier": "==3.12.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "more-itertools": {
+            "name": "more-itertools",
+            "version": "10.3.0",
+            "requirements": [
+                {
+                    "raw": "more-itertools==10.3.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "more-itertools",
+                    "specifier": "==10.3.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "platformdirs": {
+            "name": "platformdirs",
+            "version": "4.2.2",
+            "requirements": [
+                {
+                    "raw": "platformdirs==4.2.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "platformdirs",
+                    "specifier": "==4.2.2",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "tomli": {
+            "name": "tomli",
+            "version": "2.0.1",
+            "requirements": [
+                {
+                    "raw": "tomli==2.0.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "tomli",
+                    "specifier": "==2.0.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "typeguard": {
+            "name": "typeguard",
+            "version": "4.3.0",
+            "requirements": [
+                {
+                    "raw": "typeguard==4.3.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "typeguard",
+                    "specifier": "==4.3.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "wheel": {
+            "name": "wheel",
+            "version": "0.45.1",
+            "requirements": [
+                {
+                    "raw": "wheel==0.45.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "wheel",
+                    "specifier": "==0.45.1",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/setuptools/_vendor"
+                }
+            ]
+        }
+    },
+    "affected_packages": {
+        "pip": {
+            "name": "pip",
+            "version": "24.0",
+            "requirements": [
+                {
+                    "raw": "pip==24.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pip",
+                    "specifier": "==24.0",
+                    "url": null,
+                    "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                }
+            ],
+            "found": null,
+            "insecure_versions": [
+                "0.2",
+                "0.2.1",
+                "0.3",
+                "0.3.1",
+                "0.4",
+                "0.5",
+                "0.5.1",
+                "0.6",
+                "0.6.1",
+                "0.6.2",
+                "0.6.3",
+                "0.7",
+                "0.7.1",
+                "0.7.2",
+                "0.8",
+                "0.8.1",
+                "0.8.2",
+                "0.8.3",
+                "1.0",
+                "10.0.0",
+                "10.0.0b1",
+                "10.0.0b2",
+                "10.0.1",
+                "1.0.1",
+                "1.0.2",
+                "1.1",
+                "1.2",
+                "1.2.1",
+                "1.3",
+                "1.3.1",
+                "1.4",
+                "1.4.1",
+                "1.5",
+                "1.5.1",
+                "1.5.2",
+                "1.5.3",
+                "1.5.4",
+                "1.5.5",
+                "1.5.6",
+                "18.0",
+                "18.1",
+                "19.0",
+                "19.0.1",
+                "19.0.2",
+                "19.0.3",
+                "19.1",
+                "19.1.1",
+                "19.2",
+                "19.2.1",
+                "19.2.2",
+                "19.2.3",
+                "19.3",
+                "19.3.1",
+                "20.0",
+                "20.0.1",
+                "20.0.2",
+                "20.1",
+                "20.1.1",
+                "20.1b1",
+                "20.2",
+                "20.2.1",
+                "20.2.2",
+                "20.2.3",
+                "20.2.4",
+                "20.2b1",
+                "20.3",
+                "20.3.1",
+                "20.3.2",
+                "20.3.3",
+                "20.3.4",
+                "20.3b1",
+                "21.0",
+                "21.0.1",
+                "21.1",
+                "21.1.1",
+                "21.1.2",
+                "21.1.3",
+                "21.2",
+                "21.2.1",
+                "21.2.2",
+                "21.2.3",
+                "21.2.4",
+                "21.3",
+                "21.3.1",
+                "22.0",
+                "22.0.1",
+                "22.0.2",
+                "22.0.3",
+                "22.0.4",
+                "22.1",
+                "22.1.1",
+                "22.1.2",
+                "22.1b1",
+                "22.2",
+                "22.2.1",
+                "22.2.2",
+                "22.3",
+                "22.3.1",
+                "23.0",
+                "23.0.1",
+                "23.1",
+                "23.1.1",
+                "23.1.2",
+                "23.2",
+                "23.2.1",
+                "23.3",
+                "23.3.1",
+                "23.3.2",
+                "24.0",
+                "24.1",
+                "24.1.1",
+                "24.1.2",
+                "24.1b1",
+                "24.1b2",
+                "24.2",
+                "24.3",
+                "24.3.1",
+                "25.0",
+                "25.0.1",
+                "25.1",
+                "25.1.1",
+                "6.0",
+                "6.0.1",
+                "6.0.2",
+                "6.0.3",
+                "6.0.4",
+                "6.0.5",
+                "6.0.6",
+                "6.0.7",
+                "6.0.8",
+                "6.1.0",
+                "6.1.1",
+                "7.0.0",
+                "7.0.1",
+                "7.0.2",
+                "7.0.3",
+                "7.1.0",
+                "7.1.1",
+                "7.1.2",
+                "8.0.0",
+                "8.0.1",
+                "8.0.2",
+                "8.0.3",
+                "8.1.0",
+                "8.1.1",
+                "8.1.2",
+                "9.0.0",
+                "9.0.1",
+                "9.0.2",
+                "9.0.3"
+            ],
+            "secure_versions": [
+                "25.2"
+            ],
+            "latest_version_without_known_vulnerabilities": "25.2",
+            "latest_version": "25.2",
+            "more_info_url": "https://data.safetycli.com/p/pypi/pip/97c/"
+        }
+    },
+    "announcements": [],
+    "vulnerabilities": [
+        {
+            "vulnerability_id": "75180",
+            "package_name": "pip",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": [
+                "<25.0"
+            ],
+            "all_vulnerable_specs": [
+                "<25.0"
+            ],
+            "analyzed_version": "24.0",
+            "analyzed_requirement": {
+                "raw": "pip==24.0",
+                "extras": [],
+                "marker": null,
+                "name": "pip",
+                "specifier": "==24.0",
+                "url": null,
+                "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+            },
+            "advisory": "Pip solves a security vulnerability that previously allowed maliciously crafted wheel files to execute unauthorized code during installation.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": null,
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://data.safetycli.com/v/75180/97c"
+        }
+    ],
+    "ignored_vulnerabilities": [],
+    "remediations": {
+        "pip": {
+            "requirements": {
+                "==24.0": {
+                    "vulnerabilities_found": 1,
+                    "version": "24.0",
+                    "requirement": {
+                        "raw": "pip==24.0",
+                        "extras": [],
+                        "marker": null,
+                        "name": "pip",
+                        "specifier": "==24.0",
+                        "url": null,
+                        "found": "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages"
+                    },
+                    "more_info_url": "https://data.safetycli.com/p/pypi/pip/97c/"
+                }
+            },
+            "current_version": null,
+            "vulnerabilities_found": null,
+            "recommended_version": null,
+            "other_recommended_versions": [],
+            "more_info_url": null
+        }
+    },
+    "remediations_results": {
+        "vulnerabilities_fixed": [],
+        "remediations_applied": {},
+        "remediations_skipped": {}
+    }
+}
+
+
++===========================================================================================================================================================================================+
+
+
+DEPRECATED: this command (`check`) has been DEPRECATED, and will be unsupported beyond 01 June 2024.
+
+
+We highly encourage switching to the new `scan` command which is easier to use, more powerful, and can be set up to mimic the deprecated command if required.
+
+
++===========================================================================================================================================================================================+
+
+

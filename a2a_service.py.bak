@@ -1,0 +1,72 @@
+from fastapi import FastAPI, Request
+from datetime import datetime, timezone
+import os
+from agent_framework.azure import AzureOpenAIChatClient
+from agent_framework import Agent
+
+# --- tools -------------------------------------------------
+def echo(text: str) -> str:
+    return text
+
+def time_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+def math_eval(expression: str) -> str:
+    # simple, safe eval of + - * / and parentheses
+    import ast, operator as op
+    allowed = {ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv, ast.USub: op.neg}
+    def eval_(node):
+        if isinstance(node, ast.Num): return node.n
+        if isinstance(node, ast.UnaryOp) and type(node.op) in allowed: return allowed[type(node.op)](eval_(node.operand))
+        if isinstance(node, ast.BinOp) and type(node.op) in allowed: return allowed[type(node.op)](eval_(node.left), eval_(node.right))
+        if isinstance(node, ast.Expression): return eval_(node.body)
+        raise ValueError("unsupported")
+    return str(eval_(ast.parse(expression, mode="eval")))
+
+# --- agent -------------------------------------------------
+client = AzureOpenAIChatClient(
+    endpoint=os.environ["AZURE_AI_PROJECT_ENDPOINT"],
+    model=os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"]
+)
+agent = Agent(
+    name="Genesis",
+    chat_client=client,
+    system_message="You are an orchestrator. Use tools when appropriate. If user says TIME, call time_now.",
+    tools=[echo, time_now, math_eval],
+)
+
+# --- api ---------------------------------------------------
+app = FastAPI()
+
+@app.get("/a2a/version")
+def version():
+    return {
+        "name": "Genesis",
+        "version": "1.0.1",
+        "tools": sorted([t.__name__ for t in [echo, time_now, math_eval]])
+    }
+
+@app.get("/a2a/card")
+def card():
+    import json
+    with open("a2a_card.json", "r") as f:
+        return json.load(f)
+
+@app.post("/a2a/invoke")
+async def invoke(req: Request):
+    body = await req.json()
+    msg = (body.get("message") or "").strip()
+
+    # Fast paths to keep testing simple/deterministic:
+    if msg.upper() == "TIME":
+        # return current UTC time
+        return {"reply": time_now()}
+    if msg.startswith("ECHO:"):
+        return {"reply": echo(msg.split(":",1)[1].strip())}
+    if msg.upper().startswith("MATH:"):
+        expr = msg.split(":",1)[1].strip()
+        return {"reply": math_eval(expr)}
+
+    # Otherwise let the agent handle it (may choose tools)
+    resp = await agent.run(msg)
+    return {"reply": str(resp)}

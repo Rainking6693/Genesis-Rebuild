@@ -1,0 +1,17 @@
+{
+  "archive_id": "archive_test_evolution_agent_b38e81b6",
+  "agent_name": "test_evolution_agent",
+  "generations": [
+    0
+  ],
+  "successful_attempts": [
+    "gen0_attempt0_7508d4e8"
+  ],
+  "failed_attempts": [],
+  "best_version": "initial",
+  "best_score": 0.7416336942866462,
+  "total_attempts": 1,
+  "acceptance_rate": 1.0,
+  "created_at": "2025-10-18T13:41:46.792348+00:00",
+  "updated_at": "2025-10-18T13:41:46.792355+00:00"
+}
