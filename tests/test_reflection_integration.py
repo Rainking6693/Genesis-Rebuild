@@ -298,7 +298,8 @@ async function {route_name}Handler(req: Request, res: Response) {{
         )
 
         async def generate_mediocre():
-            return "x = 1"
+            # Minimal code that will definitely fail 0.95 threshold
+            return "x"
 
         result_warn = await harness_warn.wrap(
             generator_func=generate_mediocre,

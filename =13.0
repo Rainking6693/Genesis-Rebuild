@@ -1,0 +1,6 @@
+Requirement already satisfied: pytest-rerunfailures in ./venv/lib/python3.12/site-packages (16.1)
+Requirement already satisfied: packaging>=17.1 in ./venv/lib/python3.12/site-packages (from pytest-rerunfailures) (25.0)
+Requirement already satisfied: pytest!=8.2.2,>=7.4 in ./venv/lib/python3.12/site-packages (from pytest-rerunfailures) (8.4.2)
+Requirement already satisfied: iniconfig>=1 in ./venv/lib/python3.12/site-packages (from pytest!=8.2.2,>=7.4->pytest-rerunfailures) (2.1.0)
+Requirement already satisfied: pluggy<2,>=1.5 in ./venv/lib/python3.12/site-packages (from pytest!=8.2.2,>=7.4->pytest-rerunfailures) (1.6.0)
+Requirement already satisfied: pygments>=2.7.2 in ./venv/lib/python3.12/site-packages (from pytest!=8.2.2,>=7.4->pytest-rerunfailures) (2.19.2)

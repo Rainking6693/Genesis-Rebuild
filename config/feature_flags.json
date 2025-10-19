@@ -1,0 +1,151 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-10-18T23:33:21.418226+00:00",
+  "flags": {
+    "orchestration_enabled": {
+      "name": "orchestration_enabled",
+      "enabled": true,
+      "default_value": true,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "Master switch for orchestration system"
+    },
+    "security_hardening_enabled": {
+      "name": "security_hardening_enabled",
+      "enabled": true,
+      "default_value": true,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "Security hardening features (prompt protection, auth, DoS)"
+    },
+    "llm_integration_enabled": {
+      "name": "llm_integration_enabled",
+      "enabled": true,
+      "default_value": true,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "LLM-based orchestration decisions"
+    },
+    "aatc_system_enabled": {
+      "name": "aatc_system_enabled",
+      "enabled": false,
+      "default_value": false,
+      "rollout_strategy": "progressive",
+      "rollout_percentage": 0.0,
+      "progressive_config": {
+        "initial_percentage": 0,
+        "end_percentage": 100,
+        "start_date": "2025-10-20T00:00:00Z",
+        "end_date": "2025-10-27T00:00:00Z"
+      },
+      "description": "Dynamic tool/agent creation (high security risk - gradual rollout)"
+    },
+    "reward_learning_enabled": {
+      "name": "reward_learning_enabled",
+      "enabled": true,
+      "default_value": true,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "Adaptive reward model learning"
+    },
+    "error_handling_enabled": {
+      "name": "error_handling_enabled",
+      "enabled": true,
+      "default_value": true,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "Circuit breaker, retry, graceful degradation"
+    },
+    "otel_enabled": {
+      "name": "otel_enabled",
+      "enabled": true,
+      "default_value": true,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "OpenTelemetry tracing and metrics"
+    },
+    "performance_optimizations_enabled": {
+      "name": "performance_optimizations_enabled",
+      "enabled": true,
+      "default_value": true,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "Caching, indexing, batching, pooling (46.3% faster)"
+    },
+    "phase_1_complete": {
+      "name": "phase_1_complete",
+      "enabled": true,
+      "default_value": true,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "Phase 1: HTDAG + HALO + AOP complete"
+    },
+    "phase_2_complete": {
+      "name": "phase_2_complete",
+      "enabled": true,
+      "default_value": true,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "Phase 2: Security, LLM, AATC, Reward Model complete"
+    },
+    "phase_3_complete": {
+      "name": "phase_3_complete",
+      "enabled": true,
+      "default_value": true,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "Phase 3: Error Handling, OTEL, Performance complete"
+    },
+    "phase_4_deployment": {
+      "name": "phase_4_deployment",
+      "enabled": false,
+      "default_value": false,
+      "rollout_strategy": "progressive",
+      "rollout_percentage": 0.0,
+      "progressive_config": {
+        "initial_percentage": 0,
+        "end_percentage": 100,
+        "start_date": "2025-10-18T00:00:00Z",
+        "end_date": "2025-10-25T00:00:00Z"
+      },
+      "description": "Phase 4: Production deployment (0% \u2192 100% over 7 days)"
+    },
+    "emergency_shutdown": {
+      "name": "emergency_shutdown",
+      "enabled": false,
+      "default_value": false,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "Emergency shutdown flag (kills all operations)"
+    },
+    "read_only_mode": {
+      "name": "read_only_mode",
+      "enabled": false,
+      "default_value": false,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "Read-only mode (no writes/modifications)"
+    },
+    "maintenance_mode": {
+      "name": "maintenance_mode",
+      "enabled": false,
+      "default_value": false,
+      "rollout_strategy": "all_at_once",
+      "rollout_percentage": 0.0,
+      "progressive_config": {},
+      "description": "Maintenance mode (reject new requests)"
+    }
+  }
+}

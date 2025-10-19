@@ -396,12 +396,17 @@ class TestSecurityWithLLM:
 
         planner = HTDAGPlanner(llm_client=dangerous_mock)
 
-        # Should validate and reject dangerous task types
-        with pytest.raises(Exception):  # SecurityError
-            dag = await planner.decompose_task(
-                user_request="test dangerous output",
-                context={}
-            )
+        # Should validate and use safe fallback (graceful degradation)
+        dag = await planner.decompose_task(
+            user_request="test dangerous output",
+            context={}
+        )
+
+        # Verify fallback was used: single safe task with generic type
+        assert len(dag.tasks) == 1
+        task = list(dag.tasks.values())[0]
+        assert task.task_type == "generic"  # Safe fallback type
+        assert task.description == "test dangerous output"  # Sanitized request
 
     @pytest.mark.asyncio
     async def test_recursion_limits_with_llm(self):

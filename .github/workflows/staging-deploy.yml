@@ -1,0 +1,420 @@
+name: Deploy to Staging
+
+# Auto-deploy to staging when main branch tests pass
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even if tests did not run recently'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: '3.12'
+  MIN_TEST_PASS_RATE: 95
+  DEPLOYMENT_TIMEOUT: 900
+  # Feature Flags for Staging
+  ORCHESTRATION_ENABLED: 'true'
+  SECURITY_HARDENING_ENABLED: 'true'
+  LLM_INTEGRATION_ENABLED: 'true'
+  ERROR_HANDLING_ENABLED: 'true'
+  OTEL_ENABLED: 'true'
+  PERFORMANCE_OPTIMIZATIONS_ENABLED: 'true'
+  PHASE_4_DEPLOYMENT: 'true'  # Staging uses Phase 4
+  # Monitoring
+  PROMETHEUS_ENABLED: 'true'
+  GRAFANA_ENABLED: 'true'
+
+jobs:
+  # Pre-deployment validation
+  pre-deployment:
+    name: Pre-Deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    outputs:
+      should_deploy: ${{ steps.gate.outputs.should_deploy }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[test]"
+
+      - name: Run critical tests
+        id: critical_tests
+        run: |
+          set +e
+          pytest tests/ \
+            -m "critical or smoke" \
+            --maxfail=1 \
+            -v \
+            --timeout=300 \
+            --junit-xml=critical-tests.xml
+          TEST_EXIT_CODE=$?
+          set -e
+
+          echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
+          exit $TEST_EXIT_CODE
+
+      - name: Calculate test metrics
+        if: always()
+        id: metrics
+        run: |
+          # Run all tests to get pass rate
+          set +e
+          pytest tests/ \
+            -m "not performance and not slow" \
+            --junit-xml=all-tests.xml \
+            -v \
+            --timeout=300 > test_output.txt 2>&1
+          set -e
+
+          # Extract pass rate from pytest output
+          PASS_RATE=$(grep -oP '\d+(?=% passed)' test_output.txt | tail -1 || echo "0")
+          echo "pass_rate=$PASS_RATE" >> $GITHUB_OUTPUT
+          echo "Test pass rate: $PASS_RATE%"
+
+      - name: Deployment gate
+        id: gate
+        if: always()
+        run: |
+          PASS_RATE=${{ steps.metrics.outputs.pass_rate }}
+          FORCE=${{ inputs.force_deploy }}
+
+          echo "Test pass rate: $PASS_RATE%"
+          echo "Minimum required: ${{ env.MIN_TEST_PASS_RATE }}%"
+          echo "Force deployment: $FORCE"
+
+          if [[ "$FORCE" == "true" ]]; then
+            echo "⚠️ Force deployment enabled - bypassing test gate"
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          elif [[ $PASS_RATE -ge ${{ env.MIN_TEST_PASS_RATE }} ]]; then
+            echo "✅ Test pass rate ($PASS_RATE%) meets threshold"
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Test pass rate ($PASS_RATE%) below threshold (${{ env.MIN_TEST_PASS_RATE }}%)"
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Generate version
+        id: version
+        run: |
+          VERSION="staging-$(date +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deployment version: $VERSION"
+
+      - name: Validate critical files
+        run: |
+          python -c "
+          import sys
+          from pathlib import Path
+
+          critical_files = [
+              'infrastructure/htdag_planner.py',
+              'infrastructure/halo_router.py',
+              'infrastructure/aop_validator.py',
+              'infrastructure/observability.py',
+              'infrastructure/error_handling.py',
+              'pytest.ini',
+              'pyproject.toml'
+          ]
+
+          missing = [f for f in critical_files if not Path(f).exists()]
+
+          if missing:
+              print(f'❌ Missing critical files: {missing}')
+              sys.exit(1)
+
+          print('✅ All critical files present')
+          "
+
+  # Build deployment package
+  build:
+    name: Build Deployment Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: pre-deployment
+    if: needs.pre-deployment.outputs.should_deploy == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Create deployment package
+        run: |
+          VERSION="${{ needs.pre-deployment.outputs.version }}"
+          ARTIFACT_NAME="genesis-rebuild-${VERSION}"
+
+          echo "Creating deployment package: $ARTIFACT_NAME"
+
+          # Create package structure
+          mkdir -p package/{agents,infrastructure,tests,config,docs,scripts}
+
+          # Copy application code
+          cp -r agents/* package/agents/ 2>/dev/null || true
+          cp -r infrastructure/* package/infrastructure/
+          cp -r tests/* package/tests/
+          cp -r docs/* package/docs/ 2>/dev/null || true
+          cp -r config/* package/config/ 2>/dev/null || true
+          cp -r scripts/* package/scripts/ 2>/dev/null || true
+
+          # Copy configuration files
+          cp requirements*.txt package/ 2>/dev/null || true
+          cp pyproject.toml package/
+          cp pytest.ini package/
+
+          # Create VERSION file
+          echo "$VERSION" > package/VERSION
+
+          # Generate deployment manifest securely using Python script
+          cd package
+          python ../scripts/generate_manifest.py \
+            "$VERSION" \
+            "staging" \
+            "${{ github.sha }}" \
+            "${{ github.ref_name }}" \
+            "${{ github.run_number }}" \
+            "${{ github.workflow }}" \
+            "${{ needs.pre-deployment.outputs.pass_rate }}%"
+          cd ..
+
+          # Create tarball
+          tar -czf ${ARTIFACT_NAME}.tar.gz -C package .
+
+          echo "Package created: ${ARTIFACT_NAME}.tar.gz"
+          ls -lh ${ARTIFACT_NAME}.tar.gz
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: genesis-rebuild-${{ needs.pre-deployment.outputs.version }}
+          path: genesis-rebuild-${{ needs.pre-deployment.outputs.version }}.tar.gz
+          retention-days: 30
+
+  # Deploy to staging environment
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [pre-deployment, build]
+    environment:
+      name: staging
+      url: https://staging.genesis-rebuild.example.com
+
+    steps:
+      - name: Download deployment package
+        uses: actions/download-artifact@v4
+        with:
+          name: genesis-rebuild-${{ needs.pre-deployment.outputs.version }}
+
+      - name: Extract package
+        run: |
+          mkdir -p deployment
+          tar -xzf genesis-rebuild-${{ needs.pre-deployment.outputs.version }}.tar.gz -C deployment
+          ls -la deployment/
+
+      - name: Display deployment manifest
+        run: |
+          echo "=== Deployment Manifest ==="
+          cat deployment/MANIFEST.json
+          echo "=========================="
+
+      - name: Deploy to staging (Docker)
+        run: |
+          echo "🚀 Deploying to staging environment..."
+
+          # TODO: Replace with actual deployment commands
+          # Example Docker deployment:
+          # cd deployment
+          # docker build -t genesis-rebuild:staging .
+          # docker stop genesis-staging || true
+          # docker rm genesis-staging || true
+          # docker run -d --name genesis-staging \
+          #   -p 8000:8000 \
+          #   -e ENVIRONMENT=staging \
+          #   -e VERSION=${{ needs.pre-deployment.outputs.version }} \
+          #   genesis-rebuild:staging
+
+          # Example Kubernetes deployment:
+          # kubectl apply -f k8s/staging/
+          # kubectl set image deployment/genesis-staging genesis=genesis-rebuild:${{ needs.pre-deployment.outputs.version }}
+          # kubectl rollout status deployment/genesis-staging
+
+          echo "✅ Deployment initiated (placeholder)"
+
+      - name: Wait for service to start
+        run: |
+          echo "Waiting for service to become ready..."
+          sleep 10
+          # TODO: Add actual health check
+          # for i in {1..30}; do
+          #   if curl -f http://staging.genesis-rebuild.example.com/health; then
+          #     echo "✅ Service is healthy"
+          #     exit 0
+          #   fi
+          #   sleep 2
+          # done
+          # echo "❌ Service failed to become healthy"
+          # exit 1
+
+      - name: Run smoke tests against staging
+        run: |
+          echo "Running smoke tests against staging environment..."
+
+          # TODO: Add actual smoke tests
+          # pytest tests/ \
+          #   -m "smoke" \
+          #   --base-url=https://staging.genesis-rebuild.example.com \
+          #   -v \
+          #   --timeout=60
+
+          echo "✅ Smoke tests passed (placeholder)"
+
+      - name: Run health checks
+        run: |
+          echo "Performing comprehensive health checks..."
+
+          # Run health check script
+          bash scripts/health_check.sh || {
+            echo "❌ Health check script failed"
+            exit 1
+          }
+
+          # Validate monitoring endpoints (if deployed)
+          # curl -f http://staging.genesis-rebuild.example.com/health/live || echo "Health endpoint not available yet"
+          # curl -f http://staging.genesis-rebuild.example.com/health/ready || echo "Ready endpoint not available yet"
+          # curl -f http://staging.genesis-rebuild.example.com/metrics || echo "Metrics endpoint not available yet"
+
+          echo "✅ Health checks completed"
+
+  # Post-deployment validation
+  post-deployment:
+    name: Post-Deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [pre-deployment, deploy-staging]
+
+    steps:
+      - name: Checkout code (for tests)
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[test]"
+
+      - name: Integration tests against staging
+        run: |
+          echo "Running integration tests against staging..."
+
+          # TODO: Add actual integration tests
+          # pytest tests/ \
+          #   -m "integration and not slow" \
+          #   --base-url=https://staging.genesis-rebuild.example.com \
+          #   -v \
+          #   --timeout=300
+
+          echo "✅ Integration tests passed (placeholder)"
+
+      - name: Performance baseline check
+        run: |
+          echo "Checking performance baselines..."
+
+          # TODO: Add performance checks
+          # pytest tests/ \
+          #   -m "performance" \
+          #   --benchmark-only \
+          #   --base-url=https://staging.genesis-rebuild.example.com
+
+          echo "✅ Performance within acceptable range (placeholder)"
+
+      - name: Record deployment metrics
+        run: |
+          cat > deployment-metrics.json << EOF
+          {
+            "version": "${{ needs.pre-deployment.outputs.version }}",
+            "environment": "staging",
+            "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "commit": "${{ github.sha }}",
+            "test_pass_rate": "${{ needs.pre-deployment.outputs.pass_rate }}%",
+            "deployment_duration": "${{ github.run_time }}s",
+            "status": "success"
+          }
+          EOF
+          cat deployment-metrics.json
+
+      - name: Upload deployment record
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-deployment-record
+          path: deployment-metrics.json
+
+  # Notification
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, deploy-staging, post-deployment]
+    if: always()
+
+    steps:
+      - name: Deployment success notification
+        if: needs.post-deployment.result == 'success'
+        run: |
+          echo "🎉 Staging deployment successful!"
+          echo "Version: ${{ needs.pre-deployment.outputs.version }}"
+          echo "URL: https://staging.genesis-rebuild.example.com"
+
+          # TODO: Add actual notification
+          # curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+          #   -H 'Content-Type: application/json' \
+          #   -d '{"text":"✅ Staging deployment successful: ${{ needs.pre-deployment.outputs.version }}"}'
+
+      - name: Deployment failure notification
+        if: needs.post-deployment.result == 'failure' || needs.deploy-staging.result == 'failure'
+        run: |
+          echo "❌ Staging deployment failed!"
+          echo "Version: ${{ needs.pre-deployment.outputs.version }}"
+          echo "Check logs for details"
+
+          # TODO: Add actual notification
+          # curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+          #   -H 'Content-Type: application/json' \
+          #   -d '{"text":"❌ Staging deployment failed: ${{ needs.pre-deployment.outputs.version }}"}'
+
+# Deployment flow:
+# 1. Pre-deployment validation (critical tests + gate check)
+# 2. Build deployment package
+# 3. Deploy to staging environment
+# 4. Post-deployment validation (smoke + integration tests)
+# 5. Notification
+#
+# Auto-deploy trigger: Push to main with test pass rate ≥ 95%
+# Manual override: workflow_dispatch with force_deploy flag

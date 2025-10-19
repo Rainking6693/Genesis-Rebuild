@@ -7,10 +7,14 @@ Features:
 - Cost optimization (36-98% savings)
 - Multi-agent task orchestration
 - Production observability
+- Feature flag system for safe deployment with rollback
+
+Version: 2.0 (with v1.0 fallback capability)
 """
 
 import asyncio
 import logging
+import os
 from typing import Dict, List, Optional
 
 from agent_framework import ChatAgent
@@ -19,6 +23,7 @@ from agent_framework.observability import setup_observability
 from azure.identity.aio import AzureCliCredential
 
 from infrastructure.daao_router import get_daao_router, RoutingDecision
+from infrastructure.feature_flags import is_feature_enabled, get_feature_flag_manager
 
 # Setup logging
 logging.basicConfig(
@@ -37,15 +42,57 @@ class GenesisOrchestrator:
     """
 
     def __init__(self):
-        """Initialize Genesis orchestrator with DAAO router"""
-        self.router = get_daao_router()
-        logger.info("Genesis Orchestrator initialized with DAAO routing")
+        """Initialize Genesis orchestrator with feature flags and DAAO router"""
+        # Load feature flags
+        self.flag_manager = get_feature_flag_manager()
+
+        # Check if v2.0 orchestration is enabled
+        self.use_v2 = is_feature_enabled('orchestration_enabled')
+
+        if self.use_v2:
+            logger.info("Genesis Orchestrator v2.0 initialized (HTDAG+HALO+AOP+DAAO)")
+            self.router = get_daao_router()
+        else:
+            logger.info("Genesis Orchestrator v1.0 fallback mode (basic routing)")
+            self.router = None
 
         # Model client mapping (to be populated with actual clients)
         self.model_clients = {}
 
         # Task execution history
         self.execution_history: List[Dict] = []
+
+        # Log feature flag status
+        self._log_feature_status()
+
+    def _log_feature_status(self):
+        """Log current feature flag status"""
+        logger.info("=" * 80)
+        logger.info("FEATURE FLAGS STATUS")
+        logger.info("=" * 80)
+
+        # Get all flags
+        all_flags = self.flag_manager.get_all_flags()
+
+        # Log critical flags
+        critical_flags = [
+            'orchestration_enabled',
+            'security_hardening_enabled',
+            'llm_integration_enabled',
+            'aatc_system_enabled',
+            'error_handling_enabled',
+            'otel_enabled',
+            'performance_optimizations_enabled',
+            'phase_4_deployment'
+        ]
+
+        for flag_name in critical_flags:
+            if flag_name in all_flags:
+                flag_info = all_flags[flag_name]
+                status = "ENABLED" if flag_info['enabled'] else "DISABLED"
+                logger.info(f"  {flag_name}: {status}")
+
+        logger.info("=" * 80)
 
     async def route_and_execute_task(
         self,
@@ -62,6 +109,28 @@ class GenesisOrchestrator:
         Returns:
             Dictionary with routing decision and execution result
         """
+        # Check if orchestration v2.0 is enabled
+        if not self.use_v2 or self.router is None:
+            logger.info("Using v1.0 fallback routing (no DAAO)")
+            return self._fallback_route_v1(task)
+
+        # Check emergency flags
+        if is_feature_enabled('emergency_shutdown'):
+            logger.error("EMERGENCY SHUTDOWN ACTIVE - Rejecting all tasks")
+            return {
+                'task': task,
+                'status': 'rejected',
+                'message': 'Emergency shutdown active'
+            }
+
+        if is_feature_enabled('maintenance_mode'):
+            logger.warning("MAINTENANCE MODE ACTIVE - Rejecting new tasks")
+            return {
+                'task': task,
+                'status': 'rejected',
+                'message': 'Maintenance mode active'
+            }
+
         # Route task using DAAO
         decision = self.router.route_task(task, budget_conscious=budget_conscious)
 
@@ -129,6 +198,49 @@ class GenesisOrchestrator:
 
         return savings
 
+    def _fallback_route_v1(self, task: Dict) -> Dict:
+        """
+        Fallback routing for v1.0 (no DAAO, simple routing)
+
+        This provides instant rollback capability by using basic routing
+        without HTDAG/HALO/AOP/DAAO complexity.
+
+        Args:
+            task: Task dictionary
+
+        Returns:
+            Dictionary with basic routing result
+        """
+        logger.info("v1.0 FALLBACK ROUTING")
+
+        # Simple priority-based model selection
+        priority = task.get('priority', 0.5)
+
+        if priority > 0.7:
+            model = 'gpt-4o'  # High priority = premium model
+        elif priority > 0.3:
+            model = 'gpt-4o-mini'  # Medium priority = standard model
+        else:
+            model = 'gemini-flash'  # Low priority = budget model
+
+        result = {
+            'task': task,
+            'routing_decision': {
+                'model': model,
+                'difficulty': 'unknown',
+                'estimated_cost': 0.0,
+                'confidence': 0.5,
+                'reasoning': f'v1.0 fallback: priority-based routing to {model}'
+            },
+            'status': 'routed_v1',
+            'message': f"Task routed to {model} (v1.0 fallback mode)"
+        }
+
+        # Store in execution history
+        self.execution_history.append(result)
+
+        return result
+
     def get_execution_summary(self) -> Dict:
         """
         Get summary of execution history
@@ -171,12 +283,20 @@ class GenesisOrchestrator:
 
 
 async def main():
-    """Main entry point - demonstrates DAAO-enhanced Genesis"""
-    setup_observability(enable_sensitive_data=True)
+    """Main entry point - demonstrates feature-flag-controlled Genesis"""
+    # Enable observability if feature flag is set
+    if is_feature_enabled('otel_enabled'):
+        setup_observability(enable_sensitive_data=True)
+        logger.info("OpenTelemetry observability ENABLED")
+    else:
+        logger.info("OpenTelemetry observability DISABLED")
 
-    # Initialize orchestrator
+    # Initialize orchestrator (will check feature flags internally)
     orchestrator = GenesisOrchestrator()
-    logger.info("Genesis Orchestrator started with DAAO routing")
+
+    # Determine version mode
+    version = "v2.0 (HTDAG+HALO+AOP+DAAO)" if orchestrator.use_v2 else "v1.0 (Fallback)"
+    logger.info(f"Genesis Orchestrator started in {version} mode")
 
     # Example tasks to demonstrate routing
     example_tasks = [
@@ -207,7 +327,9 @@ async def main():
     ]
 
     print("=" * 80)
-    print("GENESIS ORCHESTRATOR - DAAO ROUTING DEMONSTRATION")
+    print(f"GENESIS ORCHESTRATOR - {version}")
+    print("=" * 80)
+    print(f"Feature Flag Mode: {'ENABLED' if orchestrator.use_v2 else 'FALLBACK v1.0'}")
     print("=" * 80)
 
     # Route and execute each task
@@ -221,18 +343,25 @@ async def main():
         print(f"  → Confidence: {result['routing_decision']['confidence']:.2f}")
         print(f"  → Reasoning: {result['routing_decision']['reasoning']}")
 
-    # Analyze cost savings
-    print("\n" + "=" * 80)
-    print("COST SAVINGS ANALYSIS")
-    print("=" * 80)
+    # Analyze cost savings (only if v2.0 enabled)
+    if orchestrator.use_v2:
+        print("\n" + "=" * 80)
+        print("COST SAVINGS ANALYSIS (DAAO)")
+        print("=" * 80)
 
-    savings = await orchestrator.analyze_cost_savings(example_tasks)
-    print(f"Tasks Analyzed: {savings['num_tasks']}")
-    print(f"Baseline Cost (GPT-4o for all): ${savings['baseline_cost']:.6f}")
-    print(f"DAAO Cost (optimized): ${savings['daao_cost']:.6f}")
-    print(f"Savings: ${savings['savings']:.6f} ({savings['savings_percent']:.1f}%)")
-    print(f"\nExpected from research: 36% cost reduction")
-    print(f"Achieved in demo: {savings['savings_percent']:.1f}% cost reduction")
+        savings = await orchestrator.analyze_cost_savings(example_tasks)
+        print(f"Tasks Analyzed: {savings['num_tasks']}")
+        print(f"Baseline Cost (GPT-4o for all): ${savings['baseline_cost']:.6f}")
+        print(f"DAAO Cost (optimized): ${savings['daao_cost']:.6f}")
+        print(f"Savings: ${savings['savings']:.6f} ({savings['savings_percent']:.1f}%)")
+        print(f"\nExpected from research: 36% cost reduction")
+        print(f"Achieved in demo: {savings['savings_percent']:.1f}% cost reduction")
+    else:
+        print("\n" + "=" * 80)
+        print("COST SAVINGS ANALYSIS")
+        print("=" * 80)
+        print("DAAO cost optimization DISABLED (v1.0 fallback mode)")
+        print("Enable 'orchestration_enabled' flag to use DAAO routing")
 
     # Execution summary
     print("\n" + "=" * 80)
@@ -250,7 +379,17 @@ async def main():
         print(f"  - {difficulty}: {count} tasks")
 
     print("\n" + "=" * 80)
-    print("GENESIS ORCHESTRATOR - DAAO INTEGRATION COMPLETE ✅")
+    if orchestrator.use_v2:
+        print("GENESIS ORCHESTRATOR v2.0 - FEATURE FLAG SYSTEM ACTIVE ✅")
+    else:
+        print("GENESIS ORCHESTRATOR v1.0 - FALLBACK MODE (Safe Mode)")
+    print("=" * 80)
+    print("\nTo toggle between v1.0 and v2.0:")
+    print("  1. Edit config/feature_flags.json")
+    print("  2. Set 'orchestration_enabled' to true/false")
+    print("  3. Restart orchestrator")
+    print("\nFor instant rollback:")
+    print("  export ORCHESTRATION_ENABLED=false")
     print("=" * 80)
 
 if __name__ == "__main__":

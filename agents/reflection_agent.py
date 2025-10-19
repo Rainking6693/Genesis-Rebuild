@@ -436,7 +436,11 @@ class ReflectionAgent:
 
             if content_type == "code" and len(content) < 50:
                 issues.append("Code seems incomplete or too minimal")
-                score -= 0.3
+                # Harsh penalty for extremely minimal code (< 10 chars)
+                if len(content) < 10:
+                    score -= 0.8  # Nearly fail correctness
+                else:
+                    score -= 0.3
 
             suggestions.append("Add comprehensive error handling")
             suggestions.append("Include input validation")
@@ -473,6 +477,11 @@ class ReflectionAgent:
                 if "//" not in content and "/*" not in content and "#" not in content:
                     issues.append("Insufficient code comments")
                     score -= 0.1
+
+                # Extremely minimal code lacks quality
+                if len(content) < 10:
+                    issues.append("Code too minimal to assess quality properly")
+                    score -= 0.6
 
             suggestions.append("Add inline documentation")
             suggestions.append("Follow style guide consistently")

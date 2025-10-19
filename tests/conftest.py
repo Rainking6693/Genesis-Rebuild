@@ -6,16 +6,24 @@ Provides:
 - Shared fixtures (temp files, agents)
 - Test data generators
 - CI/CD compatibility
+- Custom retry decorator with exponential backoff for performance tests
 """
 
 import asyncio
+import functools
 import json
+import logging
 import tempfile
+import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Callable, Dict
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -33,6 +41,164 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "integration: marks tests as integration tests"
     )
+    config.addinivalue_line(
+        "markers", "retry_exponential: mark test for exponential backoff retry (performance tests)"
+    )
+
+
+# ============================================================================
+# CUSTOM RETRY DECORATOR WITH EXPONENTIAL BACKOFF
+# ============================================================================
+
+def retry_with_exponential_backoff(
+    max_retries: int = 3,
+    initial_delay: float = 1.0,
+    backoff_factor: float = 2.0,
+    max_delay: float = 10.0,
+    only_on_assertion: bool = True
+):
+    """
+    Custom retry decorator with exponential backoff for performance tests.
+
+    This decorator provides more sophisticated retry logic than pytest-rerunfailures
+    for tests that are sensitive to system contention (CPU, memory, I/O).
+
+    Args:
+        max_retries: Maximum number of retry attempts (default: 3)
+        initial_delay: Initial delay in seconds before first retry (default: 1.0)
+        backoff_factor: Multiplier for delay between retries (default: 2.0)
+        max_delay: Maximum delay cap in seconds (default: 10.0)
+        only_on_assertion: Only retry on AssertionError (default: True)
+
+    Example:
+        @retry_with_exponential_backoff(max_retries=3, initial_delay=2.0)
+        async def test_performance():
+            # Retry sequence: 0s → fail → 2s → fail → 4s → fail → 8s
+            assert measure_performance() < threshold
+
+    Why exponential backoff helps:
+        - Linear backoff (1s, 1s, 1s): May not give system enough time to settle
+        - Exponential (1s, 2s, 4s): Progressively allows more time for contention to clear
+        - Reduces false positives from transient system load spikes
+
+    Why this is better than pytest-rerunfailures for performance tests:
+        - pytest-rerunfailures uses fixed delay between retries
+        - Performance tests need longer delays as retries increase (contention may persist)
+        - Exponential backoff is standard practice for retry logic in distributed systems
+
+    When to use:
+        - Performance tests measuring wall-clock time (affected by OS scheduling)
+        - Tests sensitive to CPU/memory contention
+        - Tests that pass in isolation but fail under load
+        - Tests with strict timing thresholds (< Xms)
+
+    When NOT to use:
+        - Unit tests (should be deterministic)
+        - Integration tests (failures indicate real issues)
+        - Tests that fail deterministically (fix the code, not the test)
+    """
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        async def async_wrapper(*args, **kwargs) -> Any:
+            """Wrapper for async test functions"""
+            attempt = 0
+            delay = initial_delay
+            last_exception = None
+
+            while attempt <= max_retries:
+                try:
+                    if attempt > 0:
+                        logger.warning(
+                            f"🔄 Retry {attempt}/{max_retries} for {func.__name__} "
+                            f"after {delay:.1f}s delay"
+                        )
+
+                    # Run the test
+                    result = await func(*args, **kwargs)
+
+                    if attempt > 0:
+                        logger.info(f"✅ {func.__name__} passed on retry {attempt}")
+
+                    return result
+
+                except Exception as e:
+                    last_exception = e
+
+                    # Only retry on AssertionError if only_on_assertion is True
+                    if only_on_assertion and not isinstance(e, AssertionError):
+                        raise
+
+                    if attempt < max_retries:
+                        logger.warning(
+                            f"❌ {func.__name__} failed on attempt {attempt + 1}: {str(e)}"
+                        )
+                        # Wait before retrying (exponential backoff)
+                        await asyncio.sleep(delay)
+                        # Increase delay for next retry (capped at max_delay)
+                        delay = min(delay * backoff_factor, max_delay)
+
+                    attempt += 1
+
+            # All retries exhausted
+            logger.error(
+                f"💥 {func.__name__} failed after {max_retries + 1} attempts"
+            )
+            raise last_exception
+
+        @functools.wraps(func)
+        def sync_wrapper(*args, **kwargs) -> Any:
+            """Wrapper for sync test functions"""
+            attempt = 0
+            delay = initial_delay
+            last_exception = None
+
+            while attempt <= max_retries:
+                try:
+                    if attempt > 0:
+                        logger.warning(
+                            f"🔄 Retry {attempt}/{max_retries} for {func.__name__} "
+                            f"after {delay:.1f}s delay"
+                        )
+
+                    # Run the test
+                    result = func(*args, **kwargs)
+
+                    if attempt > 0:
+                        logger.info(f"✅ {func.__name__} passed on retry {attempt}")
+
+                    return result
+
+                except Exception as e:
+                    last_exception = e
+
+                    # Only retry on AssertionError if only_on_assertion is True
+                    if only_on_assertion and not isinstance(e, AssertionError):
+                        raise
+
+                    if attempt < max_retries:
+                        logger.warning(
+                            f"❌ {func.__name__} failed on attempt {attempt + 1}: {str(e)}"
+                        )
+                        # Wait before retrying (exponential backoff)
+                        time.sleep(delay)
+                        # Increase delay for next retry (capped at max_delay)
+                        delay = min(delay * backoff_factor, max_delay)
+
+                    attempt += 1
+
+            # All retries exhausted
+            logger.error(
+                f"💥 {func.__name__} failed after {max_retries + 1} attempts"
+            )
+            raise last_exception
+
+        # Return appropriate wrapper based on function type
+        if asyncio.iscoroutinefunction(func):
+            return async_wrapper
+        else:
+            return sync_wrapper
+
+    return decorator
 
 
 # ============================================================================

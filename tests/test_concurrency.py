@@ -35,10 +35,11 @@ from infrastructure.replay_buffer import ReplayBuffer
 @pytest.fixture
 def orchestration_components():
     """Create orchestration components for concurrency testing"""
+    router = HALORouter()
     return {
         "planner": HTDAGPlanner(),
-        "router": HALORouter(),
-        "validator": AOPValidator(),
+        "router": router,
+        "validator": AOPValidator(agent_registry=router.agent_registry),
         "reward_model": LearnedRewardModel(),
         "trajectory_pool": TrajectoryPool(agent_name="test_agent"),
         "replay_buffer": ReplayBuffer(mongo_uri=None, redis_host=None)  # In-memory mode
@@ -120,17 +121,15 @@ class TestParallelOrchestrationRequests:
             plan = await router.route_tasks([task])
             routing_plans.append(plan)
 
-        # Validate concurrently
+        # Validate concurrently - use async method directly
         validation_tasks = [
-            asyncio.create_task(
-                asyncio.to_thread(validator.validate_plan, dag, plan)
-            )
+            validator.validate_routing_plan(plan, dag)
             for dag, plan in zip(dags, routing_plans)
         ]
         results = await asyncio.gather(*validation_tasks)
 
         # All should be valid
-        assert all(r.is_valid for r in results)
+        assert all(r.passed for r in results)
 
     @pytest.mark.asyncio
     async def test_full_pipeline_concurrent_requests(self, orchestration_components, simple_task_requests):
@@ -211,12 +210,12 @@ class TestParallelOrchestrationRequests:
         async def store_trajectory(i):
             traj = Trajectory(
                 trajectory_id=f"traj_{i}",
-                code_snapshot=f"def test_{i}(): pass",
+                generation=i % 10,
+                agent_name="test_agent",
+                code_changes=f"def test_{i}(): pass",
                 test_results={"score": 0.8},
-                generation=1,
-                parent_id=None,
-                operator=OperatorType.CROSSOVER,
-                timestamp=None
+                operator_applied=OperatorType.RECOMBINATION.value,
+                success_score=0.8
             )
             return await asyncio.to_thread(pool.add_trajectory, traj)
 
@@ -235,7 +234,7 @@ class TestParallelOrchestrationRequests:
         from datetime import datetime
 
         # Concurrent add operations
-        async def add_experience(i):
+        def add_experience(i):
             traj = Trajectory(
                 trajectory_id=f"traj_{i}",
                 agent_id="test_agent",
@@ -383,12 +382,12 @@ class TestThreadSafety:
         def store_trajectory(i):
             traj = Trajectory(
                 trajectory_id=f"traj_{i}",
-                code_snapshot=f"def test_{i}(): pass",
+                generation=i % 10,
+                agent_name="test_agent",
+                code_changes=f"def test_{i}(): pass",
                 test_results={"score": 0.8},
-                generation=1,
-                parent_id=None,
-                operator=OperatorType.MUTATION,
-                timestamp=None
+                operator_applied=OperatorType.REVISION.value,
+                success_score=0.8
             )
             pool.add_trajectory(traj)
 
@@ -468,27 +467,14 @@ class TestThreadSafety:
 
             # Note: router.route_tasks is async, so we need to handle it differently
             # For thread-safety testing, we'll just test the validator itself
-            from infrastructure.halo_router import RoutingPlan, TaskAssignment
+            from infrastructure.halo_router import RoutingPlan
             routing_plan = RoutingPlan(
-                assignments=[TaskAssignment(
-                    task_id="test",
-                    agent_name="builder_agent",
-                    reasoning="Test",
-                    estimated_cost=0.1,
-                    estimated_time=1.0,
-                    success_probability=0.8,
-                    score=0.8,
-                    cost_tier="medium",
-                    success_rate=0.8,
-                    max_retries=3
-                )],
-                total_estimated_cost=0.1,
-                total_estimated_time=1.0,
-                explanation="Test"
+                assignments={"test": "builder_agent"},
+                explanations={"test": "Test routing"}
             )
 
             # Run async function in sync context
-            return asyncio.run(validator.validate_routing_plan(dag, routing_plan))
+            return asyncio.run(validator.validate_routing_plan(routing_plan, dag))
 
         # 20 concurrent validations
         with ThreadPoolExecutor(max_workers=5) as executor:
@@ -496,7 +482,7 @@ class TestThreadSafety:
             results = [f.result() for f in as_completed(futures)]
 
         # All should succeed
-        assert all(r.is_valid for r in results)
+        assert all(r.passed for r in results)
 
     def test_concurrent_llm_calls(self, orchestration_components):
         """Test: Concurrent LLM API calls are handled safely"""
@@ -799,12 +785,12 @@ class TestResourceContention:
             def create_traj(idx):
                 return Trajectory(
                     trajectory_id=f"traj_{idx}",
-                    code_snapshot=f"def test_{idx}(): pass" + "x" * 100,
+                    generation=idx % 10,
+                    agent_name="test_agent",
+                    code_changes=f"def test_{idx}(): pass" + "x" * 100,
                     test_results={"score": 0.8},
-                    generation=1,
-                    parent_id=None,
-                    operator=OperatorType.CROSSOVER,
-                    timestamp=None
+                    operator_applied=OperatorType.RECOMBINATION.value,
+                    success_score=0.8
                 )
 
             task = asyncio.to_thread(pool.add_trajectory, create_traj(i))

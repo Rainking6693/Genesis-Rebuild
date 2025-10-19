@@ -126,7 +126,8 @@ function safe(x: number): number {
         )
 
         async def always_bad_code():
-            return "eval(x); TODO: incomplete"
+            # Minimal code - will score low on correctness (< 50 chars = -0.3 penalty)
+            return "x"
 
         result = await harness.wrap(
             generator_func=always_bad_code,
@@ -141,7 +142,7 @@ function safe(x: number): number {
     @pytest.mark.asyncio
     async def test_wrap_max_attempts_exhausted_fail(self):
         """Test FAIL fallback raises exception"""
-        agent = ReflectionAgent(quality_threshold=0.90, use_llm=False)  # High threshold
+        agent = ReflectionAgent(quality_threshold=0.95, use_llm=False)  # Very high threshold
         harness = ReflectionHarness(
             reflection_agent=agent,
             max_attempts=2,
@@ -149,7 +150,8 @@ function safe(x: number): number {
         )
 
         async def always_bad_code():
-            return "x"  # Minimal code, won't pass 0.90 threshold
+            # Minimal code with no redeeming qualities - will definitely fail 0.95 threshold
+            return "x"
 
         with pytest.raises(Exception) as exc_info:
             await harness.wrap(

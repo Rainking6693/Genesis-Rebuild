@@ -1,0 +1,357 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop, 'feature/**' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+  schedule:
+    # Run tests daily at 2 AM UTC to catch environmental drift
+    - cron: '0 2 * * *'
+
+env:
+  PYTHON_VERSION: '3.12'
+  PYTEST_TIMEOUT: 600
+  COVERAGE_THRESHOLD: 85
+
+jobs:
+  # Fast syntax and linting checks
+  lint:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_infrastructure.txt
+          pip install -r requirements_app.txt
+          pip install ruff black isort mypy pylint pytest-cov
+
+      - name: Run Ruff linting
+        run: ruff check . --output-format=github
+        continue-on-error: true
+
+      - name: Run Black formatting check
+        run: black --check --diff .
+        continue-on-error: true
+
+      - name: Run isort import check
+        run: isort --check-only --diff .
+        continue-on-error: true
+
+      - name: Run type checking with mypy
+        run: mypy --install-types --non-interactive --ignore-missing-imports .
+        continue-on-error: true
+
+  # Unit tests - fast, isolated tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: lint
+
+    strategy:
+      fail-fast: false
+      matrix:
+        test-group:
+          - infrastructure
+          - agents
+          - orchestration
+          - integration
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_infrastructure.txt
+          pip install -r requirements_app.txt
+          pip install pytest-cov pytest-xdist pytest-timeout
+
+      - name: Run unit tests - ${{ matrix.test-group }}
+        env:
+          PYTEST_TIMEOUT: ${{ env.PYTEST_TIMEOUT }}
+        run: |
+          pytest tests/ \
+            -m "not performance and not slow" \
+            -k "${{ matrix.test-group }}" \
+            --cov=. \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --junit-xml=test-results-${{ matrix.test-group }}.xml \
+            -v \
+            --timeout=300 \
+            --tb=short
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unit-${{ matrix.test-group }}
+          name: unit-${{ matrix.test-group }}
+          fail_ci_if_error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-unit-${{ matrix.test-group }}
+          path: test-results-${{ matrix.test-group }}.xml
+
+  # Performance tests - separate to avoid impacting unit test speed
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: unit-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_infrastructure.txt
+          pip install -r requirements_app.txt
+          pip install pytest pytest-benchmark pytest-timeout
+
+      - name: Run performance tests
+        run: |
+          pytest tests/ \
+            -m "performance" \
+            --benchmark-only \
+            --benchmark-autosave \
+            --benchmark-save-data \
+            -v \
+            --timeout=600 \
+            --tb=short
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-results
+          path: .benchmarks/
+
+  # Integration tests - slower tests that require full system
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    needs: unit-tests
+
+    strategy:
+      fail-fast: false
+      matrix:
+        test-suite:
+          - orchestration
+          - darwin
+          - swarm
+          - error-handling
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_infrastructure.txt
+          pip install -r requirements_app.txt
+          pip install pytest-cov pytest-timeout pytest-xdist
+
+      - name: Run integration tests - ${{ matrix.test-suite }}
+        env:
+          PYTEST_TIMEOUT: ${{ env.PYTEST_TIMEOUT }}
+        run: |
+          pytest tests/ \
+            -m "integration" \
+            -k "${{ matrix.test-suite }}" \
+            --cov=. \
+            --cov-report=xml \
+            --junit-xml=test-results-integration-${{ matrix.test-suite }}.xml \
+            -v \
+            --timeout=600 \
+            --tb=short
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: integration-${{ matrix.test-suite }}
+          name: integration-${{ matrix.test-suite }}
+          fail_ci_if_error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-integration-${{ matrix.test-suite }}
+          path: test-results-integration-${{ matrix.test-suite }}.xml
+
+  # Coverage analysis and enforcement
+  coverage:
+    name: Coverage Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [unit-tests, integration-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_infrastructure.txt
+          pip install -r requirements_app.txt
+          pip install pytest-cov coverage
+
+      - name: Run full test suite with coverage
+        run: |
+          pytest tests/ \
+            -m "not performance" \
+            --cov=. \
+            --cov-report=html \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --cov-fail-under=${{ env.COVERAGE_THRESHOLD }} \
+            -v
+
+      - name: Generate coverage badge
+        run: |
+          coverage json
+          python -c "
+          import json
+          with open('coverage.json') as f:
+              data = json.load(f)
+              percent = data['totals']['percent_covered']
+              print(f'Coverage: {percent:.1f}%')
+              with open('coverage.txt', 'w') as out:
+                  out.write(f'{percent:.1f}')
+          "
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            htmlcov/
+            coverage.xml
+            coverage.json
+            coverage.txt
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          MINIMUM_GREEN: ${{ env.COVERAGE_THRESHOLD }}
+          MINIMUM_ORANGE: 70
+
+  # Security scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
+
+      - name: Run Bandit security scan
+        run: bandit -r . -f json -o bandit-report.json
+        continue-on-error: true
+
+      - name: Run Safety dependency scan
+        run: safety check --json --output safety-report.json
+        continue-on-error: true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+
+  # Test result aggregation and status
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [unit-tests, integration-tests, performance-tests, coverage, security]
+    if: always()
+
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          path: test-results/
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            test-results/**/*.xml
+          check_name: Test Results Summary
+          comment_mode: always
+
+      - name: Test status check
+        run: |
+          echo "All test jobs completed"
+          echo "Check individual job results for detailed status"

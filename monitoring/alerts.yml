@@ -1,0 +1,162 @@
+# Prometheus Alert Rules for Genesis Deployment
+# SLOs: Pass rate >=98%, Error rate <0.1%, P95 latency <200ms
+
+groups:
+  - name: genesis_critical
+    interval: 15s
+    rules:
+      # Critical: Test pass rate drops below 98%
+      - alert: TestPassRateLow
+        expr: (genesis_tests_passed_total / genesis_tests_total_total) < 0.98
+        for: 5m
+        labels:
+          severity: critical
+          priority: P1
+        annotations:
+          summary: "Test pass rate below 98% (current: {{ $value | humanizePercentage }})"
+          description: "Test suite pass rate has dropped to {{ $value | humanizePercentage }}. SLO requires >=98%."
+          runbook_url: "https://github.com/genesis-rebuild/docs/INCIDENT_RESPONSE.md#testpassratelow"
+
+      # Critical: Error rate exceeds 0.1%
+      - alert: HighErrorRate
+        expr: rate(genesis_errors_total[5m]) > 0.001
+        for: 2m
+        labels:
+          severity: critical
+          priority: P1
+        annotations:
+          summary: "Error rate above 0.1% (current: {{ $value | humanizePercentage }})"
+          description: "System error rate is {{ $value | humanizePercentage }}, exceeding 0.1% SLO."
+          runbook_url: "https://github.com/genesis-rebuild/docs/INCIDENT_RESPONSE.md#higherrorrate"
+
+      # Critical: P95 latency exceeds 200ms
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, rate(genesis_operation_duration_seconds_bucket[5m])) > 0.2
+        for: 5m
+        labels:
+          severity: critical
+          priority: P1
+        annotations:
+          summary: "P95 latency above 200ms (current: {{ $value | humanizeDuration }})"
+          description: "95th percentile latency is {{ $value | humanizeDuration }}, exceeding 200ms SLO."
+          runbook_url: "https://github.com/genesis-rebuild/docs/INCIDENT_RESPONSE.md#highlatencyp95"
+
+  - name: genesis_warnings
+    interval: 30s
+    rules:
+      # Warning: Test pass rate drops below 99% (still above SLO but trending down)
+      - alert: TestPassRateDegrading
+        expr: (genesis_tests_passed_total / genesis_tests_total_total) < 0.99
+        for: 10m
+        labels:
+          severity: warning
+          priority: P2
+        annotations:
+          summary: "Test pass rate degrading (current: {{ $value | humanizePercentage }})"
+          description: "Test pass rate at {{ $value | humanizePercentage }}, still above 98% SLO but trending down."
+
+      # Warning: Memory usage above 80%
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          priority: P2
+        annotations:
+          summary: "Memory usage above 80% (current: {{ $value | humanizePercentage }})"
+          description: "System memory usage is {{ $value | humanizePercentage }}. Consider scaling."
+
+      # Warning: CPU usage above 80%
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          priority: P2
+        annotations:
+          summary: "CPU usage above 80% (current: {{ $value }}%)"
+          description: "System CPU usage is {{ $value }}%. Monitor for sustained load."
+
+      # Warning: Intermittent test failures (P4 performance test pattern)
+      - alert: IntermittentTestFailures
+        expr: rate(genesis_tests_failed_total{test="test_halo_routing_performance_large_dag"}[30m]) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          priority: P4
+        annotations:
+          summary: "Intermittent test failures detected"
+          description: "Performance test failing intermittently. Known P4 issue from deployment validation."
+
+  - name: genesis_performance
+    interval: 30s
+    rules:
+      # Performance: HTDAG decomposition slower than baseline
+      - alert: HTDAGDecompositionSlow
+        expr: rate(genesis_htdag_decomposition_duration_seconds_sum[5m]) / rate(genesis_htdag_decomposition_duration_seconds_count[5m]) > 0.15
+        for: 10m
+        labels:
+          severity: warning
+          priority: P3
+        annotations:
+          summary: "HTDAG decomposition slower than baseline"
+          description: "Average decomposition time {{ $value | humanizeDuration }}, baseline is ~0.11s."
+
+      # Performance: HALO routing slower than baseline
+      - alert: HALORoutingSlow
+        expr: rate(genesis_halo_routing_duration_seconds_sum[5m]) / rate(genesis_halo_routing_duration_seconds_count[5m]) > 0.13
+        for: 10m
+        labels:
+          severity: warning
+          priority: P3
+        annotations:
+          summary: "HALO routing slower than baseline"
+          description: "Average routing time {{ $value | humanizeDuration }}, baseline is ~0.11s (51.2% faster than pre-optimization)."
+
+      # Performance: Overall system slower than baseline
+      - alert: SystemThroughputDegraded
+        expr: rate(genesis_operations_total[5m]) < 4
+        for: 10m
+        labels:
+          severity: warning
+          priority: P3
+        annotations:
+          summary: "System throughput degraded"
+          description: "System processing {{ $value }} ops/sec, baseline is ~7.6 ops/sec (46.3% faster than pre-optimization)."
+
+  - name: genesis_health
+    interval: 60s
+    rules:
+      # Health: Genesis service down
+      - alert: GenesisServiceDown
+        expr: up{job="genesis-orchestration"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          priority: P0
+        annotations:
+          summary: "Genesis orchestration service is down"
+          description: "Genesis orchestration service has been down for 1 minute."
+          runbook_url: "https://github.com/genesis-rebuild/docs/INCIDENT_RESPONSE.md#genesisservicedown"
+
+      # Health: Test suite not running
+      - alert: TestSuiteNotRunning
+        expr: absent(genesis_tests_total_total) or rate(genesis_tests_total_total[30m]) == 0
+        for: 15m
+        labels:
+          severity: warning
+          priority: P2
+        annotations:
+          summary: "Test suite not reporting metrics"
+          description: "Test suite has not reported metrics in 15 minutes. Check automated test runner."
+
+      # Health: Observability metrics missing
+      - alert: ObservabilityMetricsMissing
+        expr: absent(genesis_operation_duration_seconds_count)
+        for: 5m
+        labels:
+          severity: warning
+          priority: P2
+        annotations:
+          summary: "Observability metrics not being reported"
+          description: "OTEL metrics missing. Check observability.py integration."

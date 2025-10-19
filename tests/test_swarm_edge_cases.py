@@ -277,11 +277,10 @@ class TestErrorHandling:
     """Test error handling and robustness"""
 
     def test_empty_agent_list(self):
-        """Creating swarm with empty agent list should handle gracefully"""
-        # Should not crash, but might not be useful
-        swarm = get_inclusive_fitness_swarm([])
-        assert swarm is not None
-        assert len(swarm.agents) == 0
+        """Creating swarm with empty agent list should raise ValueError"""
+        # Empty agent list is invalid - should raise ValueError
+        with pytest.raises(ValueError, match="agents list cannot be empty"):
+            swarm = get_inclusive_fitness_swarm([])
 
     def test_task_with_no_required_capabilities(self):
         """Task with empty required capabilities"""

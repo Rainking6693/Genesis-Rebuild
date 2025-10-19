@@ -1,0 +1,370 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      skip_tests:
+        description: 'Skip test suite (use with caution)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: '3.12'
+  DEPLOYMENT_TIMEOUT: 900
+
+jobs:
+  # Pre-deployment validation
+  pre-deployment-checks:
+    name: Pre-Deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_infrastructure.txt
+          pip install -r requirements_app.txt
+          pip install pytest pytest-cov
+
+      - name: Run critical tests only
+        if: ${{ !inputs.skip_tests }}
+        run: |
+          pytest tests/ \
+            -m "critical or smoke" \
+            --maxfail=1 \
+            -v \
+            --timeout=300
+
+      - name: Validate configuration
+        run: |
+          python -c "
+          import sys
+          from pathlib import Path
+
+          # Check critical files exist
+          critical_files = [
+              'infrastructure/htdag_planner.py',
+              'infrastructure/halo_router.py',
+              'infrastructure/aop_validator.py',
+              'infrastructure/observability.py',
+              'infrastructure/error_handling.py'
+          ]
+
+          missing = []
+          for file in critical_files:
+              if not Path(file).exists():
+                  missing.append(file)
+
+          if missing:
+              print(f'Missing critical files: {missing}')
+              sys.exit(1)
+
+          print('All critical files present')
+          "
+
+      - name: Security scan
+        run: |
+          pip install bandit
+          bandit -r . -ll -f json -o bandit-deploy.json
+          cat bandit-deploy.json
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+  # Build and package
+  build:
+    name: Build and Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: pre-deployment-checks
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      artifact_name: ${{ steps.package.outputs.artifact_name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION="dev-$(git rev-parse --short HEAD)"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deploying version: $VERSION"
+
+      - name: Create deployment package
+        id: package
+        run: |
+          ARTIFACT_NAME="genesis-rebuild-${{ steps.version.outputs.version }}"
+
+          # Create package directory
+          mkdir -p package/{agents,infrastructure,tests,docs}
+
+          # Copy application files
+          cp -r agents/* package/agents/
+          cp -r infrastructure/* package/infrastructure/
+          cp -r tests/* package/tests/
+          cp -r docs/* package/docs/
+
+          # Copy configuration
+          cp requirements*.txt package/
+          cp pytest.ini package/
+
+          # Create version file
+          echo "${{ steps.version.outputs.version }}" > package/VERSION
+
+          # Create deployment manifest
+          cat > package/MANIFEST.json << EOF
+          {
+            "version": "${{ steps.version.outputs.version }}",
+            "commit": "${{ github.sha }}",
+            "build_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "build_number": "${{ github.run_number }}",
+            "branch": "${{ github.ref_name }}",
+            "workflow": "${{ github.workflow }}"
+          }
+          EOF
+
+          # Create tarball
+          tar -czf ${ARTIFACT_NAME}.tar.gz -C package .
+
+          echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.artifact_name }}
+          path: ${{ steps.package.outputs.artifact_name }}.tar.gz
+          retention-days: 30
+
+  # Deploy to staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: build
+    environment:
+      name: staging
+      url: https://staging.genesis-rebuild.example.com
+    if: github.ref == 'refs/heads/main' || inputs.environment == 'staging'
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifact_name }}
+
+      - name: Extract package
+        run: |
+          mkdir -p deployment
+          tar -xzf ${{ needs.build.outputs.artifact_name }}.tar.gz -C deployment
+
+      - name: Deploy to staging environment
+        run: |
+          echo "Deploying version ${{ needs.build.outputs.version }} to staging"
+          # TODO: Add actual deployment commands
+          # Example: kubectl apply -f k8s/staging/
+          # Example: ansible-playbook deploy-staging.yml
+          # Example: terraform apply -var="env=staging"
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests against staging"
+          # TODO: Add smoke test commands
+          # Example: pytest tests/ -m "smoke" --base-url=https://staging.genesis-rebuild.example.com
+
+      - name: Health check
+        run: |
+          echo "Performing health check"
+          # TODO: Add health check commands
+          # Example: curl -f https://staging.genesis-rebuild.example.com/health || exit 1
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "Deployment to staging: ${{ job.status }}"
+          # TODO: Add notification (Slack, email, etc.)
+
+  # Deploy to production (requires approval)
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [build, deploy-staging]
+    environment:
+      name: production
+      url: https://genesis-rebuild.example.com
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.environment == 'production'
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifact_name }}
+
+      - name: Extract package
+        run: |
+          mkdir -p deployment
+          tar -xzf ${{ needs.build.outputs.artifact_name }}.tar.gz -C deployment
+
+      - name: Pre-deployment backup
+        run: |
+          echo "Creating pre-deployment backup"
+          # TODO: Add backup commands
+          # Example: kubectl exec -it backup-pod -- /backup.sh
+          # Example: pg_dump production_db > backup-$(date +%Y%m%d-%H%M%S).sql
+
+      - name: Deploy to production (blue-green)
+        run: |
+          echo "Deploying version ${{ needs.build.outputs.version }} to production"
+
+          # Blue-Green deployment strategy
+          # 1. Deploy to green environment
+          # 2. Run smoke tests on green
+          # 3. Switch traffic from blue to green
+          # 4. Monitor for issues
+          # 5. Keep blue as rollback option
+
+          # TODO: Add actual deployment commands
+          # Example: kubectl apply -f k8s/production/deployment-green.yml
+          # Example: ansible-playbook deploy-production.yml --extra-vars "slot=green"
+
+      - name: Run production smoke tests
+        run: |
+          echo "Running smoke tests against production green slot"
+          # TODO: Add smoke test commands
+          # Example: pytest tests/ -m "smoke" --base-url=https://green.genesis-rebuild.example.com
+
+      - name: Switch traffic to new version
+        run: |
+          echo "Switching traffic to new version"
+          # TODO: Add traffic switching commands
+          # Example: kubectl patch service genesis -p '{"spec":{"selector":{"slot":"green"}}}'
+
+      - name: Monitor deployment health
+        run: |
+          echo "Monitoring deployment for 5 minutes"
+          # Monitor error rates, latency, etc.
+          # If issues detected, trigger rollback
+          sleep 300
+          # TODO: Add actual monitoring checks
+
+      - name: Finalize deployment
+        run: |
+          echo "Deployment successful, cleaning up old version"
+          # TODO: Add cleanup commands
+          # Keep old version for 24 hours in case rollback needed
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "Production deployment: ${{ job.status }}"
+          # TODO: Add notification (Slack, PagerDuty, etc.)
+
+  # Rollback capability
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: failure() && github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Trigger rollback
+        run: |
+          echo "Rolling back to previous version"
+          # TODO: Add rollback commands
+          # Example: kubectl rollout undo deployment/genesis
+          # Example: Switch traffic back to blue slot
+
+      - name: Verify rollback
+        run: |
+          echo "Verifying rollback successful"
+          # TODO: Add verification
+
+      - name: Notify rollback
+        run: |
+          echo "ALERT: Production rollback executed"
+          # TODO: Send alerts
+
+  # Post-deployment monitoring
+  post-deployment:
+    name: Post-Deployment Monitoring
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: [deploy-production]
+    if: success()
+
+    steps:
+      - name: 48-hour monitoring setup
+        run: |
+          echo "Setting up 48-hour monitoring window"
+          # Monitor: Test pass rate >= 98%, Error rate < 0.1%, P95 latency < 200ms
+          # Alert on: Pass rate <95%, Error rate >1%, P95 >500ms, Critical incident
+
+      - name: Record deployment metrics
+        run: |
+          cat > deployment-metrics.json << EOF
+          {
+            "version": "${{ needs.build.outputs.version }}",
+            "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "commit": "${{ github.sha }}",
+            "monitoring_window": "48h",
+            "success_criteria": {
+              "test_pass_rate": ">=98%",
+              "error_rate": "<0.1%",
+              "p95_latency": "<200ms"
+            }
+          }
+          EOF
+          cat deployment-metrics.json
+
+      - name: Upload deployment record
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-record-${{ needs.build.outputs.version }}
+          path: deployment-metrics.json
+
+# Deployment Decision Tree:
+# - main branch push → staging only
+# - v*.*.* tag → staging → production (with approval)
+# - Manual trigger → choose environment
+# - Failed tests → block deployment
+# - Critical failure → auto-rollback available

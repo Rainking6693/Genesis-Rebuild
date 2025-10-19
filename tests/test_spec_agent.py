@@ -429,13 +429,14 @@ class TestSpecAgentResourceManagement:
         """Test that context manager properly closes resources"""
         agent = SpecAgent(business_id="test")
 
-        # Mock credential
+        # Mock credential with async close method
         mock_credential = AsyncMock()
-        agent.credential = mock_credential
+        mock_credential.close = AsyncMock()
 
-        # Use context manager
+        # Use context manager (initialize happens in __aenter__)
         async with agent:
-            pass
+            # Set mock AFTER initialization creates the credential
+            agent.credential = mock_credential
 
         # Verify close was called
         mock_credential.close.assert_called_once()
@@ -461,12 +462,15 @@ class TestSpecAgentErrorHandling:
         """Test that create_spec handles exceptions and records failure trajectory"""
         agent = SpecAgent(business_id="test")
 
-        # Mock agent to raise exception
-        mock_agent = AsyncMock()
-        mock_agent.run = AsyncMock(side_effect=Exception("Test exception"))
-        agent.agent = mock_agent
+        # Initialize agent first to ensure agent.agent exists
+        await agent.initialize()
 
-        # Execute and expect exception
+        # Mock the reflection harness to raise exception immediately
+        mock_harness = AsyncMock()
+        mock_harness.wrap = AsyncMock(side_effect=Exception("Test exception"))
+        agent.reflection_harness = mock_harness
+
+        # Execute and expect exception (reflection harness raises, create_spec catches and re-raises)
         with pytest.raises(Exception, match="Test exception"):
             await agent.create_spec("Test idea")
 
@@ -476,6 +480,9 @@ class TestSpecAgentErrorHandling:
         # Verify trajectory is a failure
         # (Can't easily check this without accessing replay_buffer internals,
         # but the trajectory recording code was executed based on stats)
+
+        # Clean up
+        await agent.close()
 
 
 class TestFactoryFunction:

@@ -362,12 +362,14 @@ class ReflectionHarness:
         def wrapper(func: Callable[..., Awaitable[str]]):
             @wraps(func)
             async def wrapped(*args, **kwargs) -> HarnessResult[str]:
+                # Create a wrapper that calls the original function
+                async def call_func():
+                    return await func(*args, **kwargs)
+
                 return await self.wrap(
-                    generator_func=func,
+                    generator_func=call_func,
                     content_type=content_type,
-                    context=context,
-                    *args,
-                    **kwargs
+                    context=context
                 )
             return wrapped
         return wrapper

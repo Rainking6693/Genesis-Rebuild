@@ -1,0 +1,583 @@
+# Genesis Rebuild - Production Alert Configuration
+# Comprehensive alert rules for production monitoring
+# Compatible with Prometheus Alertmanager, Grafana, and PagerDuty
+#
+# Author: Cora (Orchestration & Architecture Specialist)
+# Date: 2025-10-18
+# Version: 1.1.0 (Metrics validation completed)
+#
+# METRICS IMPLEMENTATION STATUS:
+# ================================
+# ✅ IMPLEMENTED (2 metrics):
+#   - up{job="genesis-orchestrator"} - Prometheus standard metric
+#   - process_resident_memory_bytes, node_memory_MemTotal_bytes - Node/process exporters
+#
+# TODO: REQUIRES IMPLEMENTATION (8 metrics):
+#   1. genesis_errors_total - Error rate tracking (add to observability.py)
+#   2. genesis_circuit_breaker_state - Circuit breaker state (add to error_handler.py)
+#   3. up{job=~"llm-.*"} - LLM provider health (add Prometheus scrape targets)
+#   4. genesis_deployment_status - Deployment status tracking (add to deployment scripts)
+#   5. genesis_database_connections_* - Connection pool metrics (add to DB wrapper)
+#   6. genesis_security_prompt_injection_blocked - Security metrics (add to security_utils.py)
+#   7. genesis_llm_cost_usd - LLM cost tracking (add to llm_client.py)
+#   8. genesis_task_execution_duration_seconds - Task latency metrics (add to orchestrator)
+#
+# PRIORITY ORDER FOR IMPLEMENTATION:
+#   P0 (Critical): 1, 8 (error rate, latency)
+#   P1 (High): 2, 4 (circuit breaker, deployments)
+#   P2 (Medium): 6, 7 (security, costs)
+#   P3 (Low): 3, 5 (LLM health, DB connections)
+#
+# See docs/MONITORING_PLAN.md for detailed implementation guide.
+
+version: "1.0"
+
+# Global alert settings
+global:
+  evaluation_interval: 60s
+  resolve_timeout: 5m
+
+  # Notification channels
+  notification_channels:
+    critical:
+      - pagerduty
+      - slack_critical
+      - email_oncall
+
+    warning:
+      - slack_alerts
+      - email_team
+
+    info:
+      - email_team
+
+# Alert groups
+groups:
+  # ==========================================================================
+  # CRITICAL ALERTS (PagerDuty + Slack + Email)
+  # ==========================================================================
+  - name: critical_alerts
+    interval: 60s
+
+    rules:
+      # High Error Rate
+      # TODO: Implement genesis_errors_total metric in observability.py
+      # Current: Not implemented (OTEL tracing only)
+      # Required: Counter metric tracking error occurrences by component
+      - alert: HighErrorRate
+        expr: rate(genesis_errors_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: orchestration
+        annotations:
+          summary: "Error rate exceeds 5%"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%) for the last 5 minutes. Automatic rollback may be triggered."
+          runbook: "https://docs.genesis.ai/runbooks/high-error-rate"
+          dashboard: "https://grafana.genesis.ai/d/errors"
+
+      # All Health Checks Failing
+      # ✅ IMPLEMENTED: Prometheus 'up' metric (standard, no custom code needed)
+      - alert: AllHealthChecksFailing
+        expr: up{job="genesis-orchestrator"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "All health checks are failing"
+          description: "Genesis orchestrator is not responding to health checks. Service may be down."
+          runbook: "https://docs.genesis.ai/runbooks/health-check-failure"
+          action: "Investigate immediately. Check logs at /var/log/genesis/orchestrator.log"
+
+      # Circuit Breaker Open Too Long
+      # TODO: Implement genesis_circuit_breaker_state metric in error_handler.py
+      # Current: CircuitBreaker class exists but doesn't expose metrics
+      # Required: Gauge metric showing circuit breaker state (0=closed, 1=open, 2=half-open)
+      - alert: CircuitBreakerOpenTooLong
+        expr: genesis_circuit_breaker_state{state="open"} == 1
+        for: 5m
+        labels:
+          severity: critical
+          component: error_handling
+        annotations:
+          summary: "Circuit breaker has been open for >5 minutes"
+          description: "Circuit breaker for {{ $labels.component }} is open, indicating sustained failures."
+          runbook: "https://docs.genesis.ai/runbooks/circuit-breaker"
+
+      # LLM Provider Total Outage
+      # TODO: Implement LLM provider health check metrics
+      # Current: Not implemented (would require separate health check jobs)
+      # Required: Prometheus scrape targets for each LLM provider endpoint
+      # Alternative: Track LLM API success rate in llm_client.py
+      - alert: AllLLMProvidersDown
+        expr: |
+          sum(up{job=~"llm-.*"}) == 0
+        for: 3m
+        labels:
+          severity: critical
+          component: llm_integration
+        annotations:
+          summary: "All LLM providers are unavailable"
+          description: "GPT-4o, Claude, and Gemini are all unreachable. System should fallback to heuristics."
+          runbook: "https://docs.genesis.ai/runbooks/llm-outage"
+          action: "Verify fallback to heuristic decomposition is working"
+
+      # Deployment Failure
+      # TODO: Implement genesis_deployment_status metric in deployment scripts
+      # Current: Not implemented (deployments tracked via GitHub Actions only)
+      # Required: Gauge metric updated by deployment jobs (0=success, 1=failed, 2=rollback)
+      - alert: DeploymentFailed
+        expr: genesis_deployment_status{status="failed"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          component: deployment
+        annotations:
+          summary: "Production deployment failed"
+          description: "Deployment to {{ $labels.environment }} failed. Rollback may be required."
+          runbook: "https://docs.genesis.ai/runbooks/deployment-failure"
+          action: "Review deployment logs. Initiate rollback if necessary."
+
+      # Rollback Initiated
+      # TODO: Implement genesis_deployment_status metric (same as DeploymentFailed alert)
+      - alert: RollbackInitiated
+        expr: genesis_deployment_status{status="rollback"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          component: deployment
+        annotations:
+          summary: "Production rollback initiated"
+          description: "Rollback to previous deployment has been triggered for {{ $labels.environment }}."
+          runbook: "https://docs.genesis.ai/runbooks/rollback"
+          action: "Monitor rollback progress. Expected completion: <15 minutes."
+
+      # Memory Exhaustion
+      # ✅ IMPLEMENTED: Prometheus standard metrics (process_resident_memory_bytes, node_memory_MemTotal_bytes)
+      # These are provided by node_exporter and process exporter
+      - alert: MemoryExhaustion
+        expr: |
+          (process_resident_memory_bytes{job="genesis-orchestrator"}
+           / node_memory_MemTotal_bytes) > 0.95
+        for: 10m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Memory usage >95%"
+          description: "Memory usage is {{ $value | humanizePercentage }}. Risk of OOM kill."
+          runbook: "https://docs.genesis.ai/runbooks/memory-exhaustion"
+          action: "Check for memory leaks. Restart service if necessary."
+
+      # Database Connection Pool Exhausted
+      # TODO: Implement database connection pool metrics
+      # Current: Not implemented (no database wrapper exposing metrics)
+      # Required: Gauge metrics for active/idle/max connections
+      # Implementation: Add to database client wrapper in infrastructure/
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          genesis_database_connections_active
+          / genesis_database_connections_max > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool exhausted"
+          description: "{{ $value | humanizePercentage }} of database connections in use. May cause request failures."
+          runbook: "https://docs.genesis.ai/runbooks/db-connection-pool"
+
+      # Security: High Rate of Prompt Injection Attempts
+      # TODO: Implement genesis_security_prompt_injection_blocked metric
+      # Current: security_utils.py has sanitize_for_prompt() but no metrics
+      # Required: Counter metric incremented when injection detected
+      # Implementation: Add metrics to security_utils.sanitize_for_prompt()
+      - alert: HighPromptInjectionAttempts
+        expr: rate(genesis_security_prompt_injection_blocked[5m]) > 10
+        for: 5m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "High rate of prompt injection attempts"
+          description: "{{ $value }} prompt injection attempts per second. Possible attack in progress."
+          runbook: "https://docs.genesis.ai/runbooks/security-attack"
+          action: "Review security logs. Consider IP blocking if attack confirmed."
+
+      # Cost Budget Exceeded
+      # TODO: Implement genesis_llm_cost_usd metric
+      # Current: Not implemented (LLM usage tracked but not exposed as metrics)
+      # Required: Counter metric tracking cumulative LLM API costs in USD
+      # Implementation: Add cost tracking to llm_client.py (calculate from token usage)
+      - alert: DailyCostBudgetExceeded
+        expr: |
+          sum(increase(genesis_llm_cost_usd[24h])) > 200
+        for: 5m
+        labels:
+          severity: critical
+          component: cost_management
+        annotations:
+          summary: "Daily LLM cost budget exceeded"
+          description: "LLM costs are ${{ $value }} in last 24 hours (budget: $200/day)."
+          runbook: "https://docs.genesis.ai/runbooks/cost-overrun"
+          action: "Review LLM usage. Consider disabling non-essential features."
+
+  # ==========================================================================
+  # WARNING ALERTS (Slack + Email)
+  # ==========================================================================
+  - name: warning_alerts
+    interval: 60s
+
+    rules:
+      # Elevated Error Rate
+      - alert: ElevatedErrorRate
+        expr: rate(genesis_errors_total[15m]) > 0.02
+        for: 15m
+        labels:
+          severity: warning
+          component: orchestration
+        annotations:
+          summary: "Error rate elevated (>2%)"
+          description: "Error rate is {{ $value | humanizePercentage }} for the last 15 minutes."
+          dashboard: "https://grafana.genesis.ai/d/errors"
+
+      # High Response Latency
+      - alert: HighResponseLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(genesis_task_execution_duration_seconds_bucket[5m])
+          ) > 1.0
+        for: 10m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "P95 response latency >1 second"
+          description: "95th percentile response time is {{ $value }}s (target: <0.5s)."
+          runbook: "https://docs.genesis.ai/runbooks/high-latency"
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          rate(process_cpu_seconds_total{job="genesis-orchestrator"}[5m]) > 0.8
+        for: 15m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "CPU usage >80%"
+          description: "CPU usage is {{ $value | humanizePercentage }} for 15 minutes."
+          action: "Check for inefficient queries or processes."
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          (process_resident_memory_bytes{job="genesis-orchestrator"}
+           / node_memory_MemTotal_bytes) > 0.80
+        for: 15m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Memory usage >80%"
+          description: "Memory usage is {{ $value | humanizePercentage }}."
+          action: "Monitor for memory leaks. May need to increase capacity."
+
+      # Low Cache Hit Rate
+      - alert: LowCacheHitRate
+        expr: |
+          rate(genesis_cache_hits_total[15m])
+          / (rate(genesis_cache_hits_total[15m])
+             + rate(genesis_cache_misses_total[15m])) < 0.5
+        for: 15m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Cache hit rate <50%"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (target: >60%)."
+          action: "Review cache configuration. May need to increase TTL."
+
+      # LLM Provider Degraded
+      - alert: LLMProviderDegraded
+        expr: |
+          histogram_quantile(0.95,
+            rate(genesis_llm_response_time_seconds_bucket[5m])
+          ) > 10
+        for: 10m
+        labels:
+          severity: warning
+          component: llm_integration
+        annotations:
+          summary: "LLM provider response time degraded"
+          description: "P95 LLM response time is {{ $value }}s (normal: <5s)."
+          action: "Check LLM provider status pages. Consider fallback."
+
+      # High Queue Depth
+      - alert: HighQueueDepth
+        expr: genesis_queue_depth > 100
+        for: 10m
+        labels:
+          severity: warning
+          component: orchestration
+        annotations:
+          summary: "Task queue depth >100"
+          description: "{{ $value }} tasks queued. System may be overloaded."
+          action: "Consider scaling up or enabling rate limiting."
+
+      # Approaching Daily Cost Budget
+      - alert: ApproachingDailyCostBudget
+        expr: |
+          sum(increase(genesis_llm_cost_usd[24h])) > 150
+        for: 5m
+        labels:
+          severity: warning
+          component: cost_management
+        annotations:
+          summary: "Approaching daily cost budget"
+          description: "LLM costs are ${{ $value }} in last 24 hours (budget: $200/day, alert at $150)."
+          action: "Monitor cost trends. Optimize if approaching limit."
+
+      # Health Check Degraded
+      - alert: HealthCheckDegraded
+        expr: |
+          avg_over_time(up{job="genesis-orchestrator"}[5m]) < 0.95
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Health check success rate <95%"
+          description: "Health checks are passing {{ $value | humanizePercentage }} of the time."
+          action: "Investigate intermittent failures."
+
+      # Deployment Running Long
+      - alert: DeploymentTakingTooLong
+        expr: |
+          time() - genesis_deployment_start_time_seconds > 600
+        for: 1m
+        labels:
+          severity: warning
+          component: deployment
+        annotations:
+          summary: "Deployment taking >10 minutes"
+          description: "Deployment started {{ $value | humanizeDuration }} ago (target: <10 min)."
+          action: "Check deployment logs. May need manual intervention."
+
+  # ==========================================================================
+  # INFO ALERTS (Email Only)
+  # ==========================================================================
+  - name: info_alerts
+    interval: 300s  # Check every 5 minutes
+
+    rules:
+      # Deployment Started
+      - alert: DeploymentStarted
+        expr: genesis_deployment_status{status="started"} == 1
+        for: 1m
+        labels:
+          severity: info
+          component: deployment
+        annotations:
+          summary: "Deployment started"
+          description: "Deployment to {{ $labels.environment }} has started."
+
+      # Deployment Completed
+      - alert: DeploymentCompleted
+        expr: genesis_deployment_status{status="completed"} == 1
+        for: 1m
+        labels:
+          severity: info
+          component: deployment
+        annotations:
+          summary: "Deployment completed successfully"
+          description: "Deployment to {{ $labels.environment }} completed in {{ $labels.duration }}s."
+
+      # Feature Flag Changed
+      - alert: FeatureFlagChanged
+        expr: changes(genesis_feature_flag_state[5m]) > 0
+        for: 1m
+        labels:
+          severity: info
+          component: feature_flags
+        annotations:
+          summary: "Feature flag changed"
+          description: "Feature flag '{{ $labels.flag_name }}' changed to {{ $labels.state }}."
+
+      # Phase 4 Rollout Progress
+      - alert: Phase4RolloutProgress
+        expr: genesis_feature_flag_percentage{flag_name="phase_4_deployment"} % 25 == 0
+        for: 1m
+        labels:
+          severity: info
+          component: deployment
+        annotations:
+          summary: "Phase 4 rollout progress"
+          description: "Phase 4 deployment now at {{ $value }}% traffic."
+
+      # Daily Metrics Summary (once per day)
+      - alert: DailyMetricsSummary
+        expr: |
+          hour() == 9 and minute() < 5
+        for: 1m
+        labels:
+          severity: info
+          component: monitoring
+        annotations:
+          summary: "Daily metrics summary"
+          description: |
+            Error rate: {{ query "avg_over_time(genesis_error_rate[24h])" | humanizePercentage }}
+            P95 latency: {{ query "quantile_over_time(0.95, genesis_task_duration_seconds[24h])" }}s
+            Total tasks: {{ query "sum(increase(genesis_tasks_total[24h]))" }}
+            LLM cost: ${{ query "sum(increase(genesis_llm_cost_usd[24h]))" }}
+
+# ==========================================================================
+# NOTIFICATION ROUTING
+# ==========================================================================
+notification_routing:
+  # PagerDuty (critical only)
+  - name: pagerduty
+    match:
+      severity: critical
+    receiver: pagerduty
+    group_by: [alertname, component]
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 1h
+
+  # Slack Critical Channel
+  - name: slack_critical
+    match:
+      severity: critical
+    receiver: slack_critical
+    group_by: [alertname]
+    group_wait: 10s
+    group_interval: 1m
+    repeat_interval: 30m
+
+  # Slack Alerts Channel
+  - name: slack_alerts
+    match:
+      severity: warning
+    receiver: slack_alerts
+    group_by: [component]
+    group_wait: 2m
+    group_interval: 5m
+    repeat_interval: 4h
+
+  # Email On-Call
+  - name: email_oncall
+    match:
+      severity: critical
+    receiver: email_oncall
+    group_by: [alertname]
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 1h
+
+  # Email Team
+  - name: email_team
+    match:
+      severity: [warning, info]
+    receiver: email_team
+    group_by: [component]
+    group_wait: 5m
+    group_interval: 15m
+    repeat_interval: 12h
+
+# ==========================================================================
+# RECEIVER CONFIGURATION
+# ==========================================================================
+receivers:
+  - name: pagerduty
+    pagerduty_configs:
+      - service_key: ${PAGERDUTY_ROUTING_KEY}
+        description: "{{ .GroupLabels.alertname }}: {{ .Annotations.summary }}"
+        severity: "{{ .Labels.severity }}"
+        details:
+          firing: "{{ .Alerts.Firing | len }}"
+          resolved: "{{ .Alerts.Resolved | len }}"
+          description: "{{ .Annotations.description }}"
+          runbook: "{{ .Annotations.runbook }}"
+          action: "{{ .Annotations.action }}"
+
+  - name: slack_critical
+    slack_configs:
+      - api_url: ${SLACK_WEBHOOK_URL_CRITICAL}
+        channel: "#genesis-critical"
+        username: "Genesis Alerts"
+        icon_emoji: ":rotating_light:"
+        title: "🚨 CRITICAL: {{ .GroupLabels.alertname }}"
+        text: |
+          {{ range .Alerts }}
+          *Summary:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Component:* {{ .Labels.component }}
+          *Runbook:* {{ .Annotations.runbook }}
+          *Action:* {{ .Annotations.action }}
+          {{ end }}
+
+  - name: slack_alerts
+    slack_configs:
+      - api_url: ${SLACK_WEBHOOK_URL_ALERTS}
+        channel: "#genesis-alerts"
+        username: "Genesis Monitoring"
+        icon_emoji: ":warning:"
+        title: "⚠️ {{ .GroupLabels.alertname }}"
+        text: |
+          {{ range .Alerts }}
+          *Summary:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Component:* {{ .Labels.component }}
+          {{ end }}
+
+  - name: email_oncall
+    email_configs:
+      - to: ${ONCALL_EMAIL}
+        from: "genesis-alerts@example.com"
+        smarthost: "smtp.example.com:587"
+        auth_username: ${SMTP_USERNAME}
+        auth_password: ${SMTP_PASSWORD}
+        headers:
+          Subject: "[CRITICAL] {{ .GroupLabels.alertname }}"
+        html: |
+          <h2>🚨 Genesis Critical Alert</h2>
+          {{ range .Alerts }}
+          <h3>{{ .Annotations.summary }}</h3>
+          <p><strong>Description:</strong> {{ .Annotations.description }}</p>
+          <p><strong>Component:</strong> {{ .Labels.component }}</p>
+          <p><strong>Runbook:</strong> <a href="{{ .Annotations.runbook }}">{{ .Annotations.runbook }}</a></p>
+          <p><strong>Action:</strong> {{ .Annotations.action }}</p>
+          <hr>
+          {{ end }}
+
+  - name: email_team
+    email_configs:
+      - to: ${TEAM_EMAIL}
+        from: "genesis-alerts@example.com"
+        smarthost: "smtp.example.com:587"
+        auth_username: ${SMTP_USERNAME}
+        auth_password: ${SMTP_PASSWORD}
+        headers:
+          Subject: "[{{ .Labels.severity | toUpper }}] {{ .GroupLabels.alertname }}"
+        html: |
+          <h2>Genesis {{ .Labels.severity | toUpper }} Alert</h2>
+          {{ range .Alerts }}
+          <h3>{{ .Annotations.summary }}</h3>
+          <p><strong>Description:</strong> {{ .Annotations.description }}</p>
+          <p><strong>Component:</strong> {{ .Labels.component }}</p>
+          {{ if .Annotations.dashboard }}
+          <p><strong>Dashboard:</strong> <a href="{{ .Annotations.dashboard }}">View Dashboard</a></p>
+          {{ end }}
+          <hr>
+          {{ end }}
+
+# ==========================================================================
+# ENVIRONMENT-SPECIFIC OVERRIDES
+# ==========================================================================
+# For staging/development environments, adjust thresholds:
+# - Higher error rate thresholds (5% → 10%)
+# - Longer evaluation windows (5m → 15m)
+# - Fewer notification channels (no PagerDuty)
+# ==========================================================================

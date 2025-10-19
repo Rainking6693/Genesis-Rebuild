@@ -1,0 +1,58 @@
+# Code Owners for Genesis Rebuild
+#
+# This file defines who must approve changes to specific parts of the codebase.
+# Reviews are automatically requested from code owners when PRs touch their areas.
+#
+# More info: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+# Unless a later match takes precedence, these users will be requested for review
+*       @genesis-team
+
+# Infrastructure and orchestration (Layer 1)
+/infrastructure/                @genesis-team @platform-leads
+/infrastructure/htdag_planner.py        @platform-leads @orchestration-experts
+/infrastructure/halo_router.py          @platform-leads @orchestration-experts
+/infrastructure/aop_validator.py        @platform-leads @orchestration-experts
+/infrastructure/observability.py        @platform-leads @monitoring-experts
+/infrastructure/error_handling.py       @platform-leads @reliability-experts
+
+# Agent implementations (Layer 2, 5)
+/agents/                        @agent-developers
+/agents/darwin_agent.py         @agent-developers @evolution-experts
+/agents/reflection_agent.py     @agent-developers @ai-researchers
+
+# CI/CD and deployment
+/.github/workflows/             @platform-leads @devops-team
+/.github/workflows/production-deploy.yml  @platform-leads @devops-team @security-team
+
+# Configuration files (require extra scrutiny)
+/pyproject.toml                 @platform-leads
+/pytest.ini                     @platform-leads @qa-team
+/.pre-commit-config.yaml        @platform-leads @devops-team
+/requirements*.txt              @platform-leads @security-team
+
+# Security-sensitive files
+/infrastructure/security_*.py   @security-team @platform-leads
+/tests/test_security*.py        @security-team @qa-team
+
+# Documentation
+/docs/                          @tech-writers @platform-leads
+/docs/PRODUCTION_*.md           @platform-leads @devops-team
+/docs/DEPLOYMENT_*.md           @platform-leads @devops-team
+README.md                       @tech-writers @platform-leads
+CLAUDE.md                       @platform-leads
+PROJECT_STATUS.md               @platform-leads
+
+# Test files
+/tests/                         @qa-team
+/tests/test_production_*.py     @qa-team @platform-leads
+/tests/test_security_*.py       @qa-team @security-team
+
+# Critical production files (require multiple approvals)
+/monitoring/                    @monitoring-experts @devops-team @platform-leads
+/scripts/deploy_*.sh            @devops-team @platform-leads @security-team
+
+# Config directories
+/config/                        @platform-leads @devops-team
+/config/production/             @platform-leads @devops-team @security-team

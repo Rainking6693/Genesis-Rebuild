@@ -304,22 +304,27 @@ class TestVULN003_UnboundedRecursion:
     @pytest.mark.asyncio
     async def test_subtasks_per_update_limited(self):
         """Test that subtasks per update are limited"""
+        from unittest.mock import AsyncMock
+
         planner = HTDAGPlanner()
 
-        # Create a mock method that generates many subtasks
-        async def generate_many_subtasks(task_id, new_info):
-            # Generate 30 subtasks (exceeds MAX_SUBTASKS_PER_UPDATE = 20)
+        # Create DAG
+        dag = await planner.decompose_task("Create a business")
+        dag_id = id(dag)
+        initial_count = planner.dag_lifetime_counters[dag_id]
+
+        # Save original method
+        original_method = planner._generate_subtasks_from_results
+
+        # Create async mock that returns 30 tasks
+        async def mock_generate(task_id, new_info, dag_arg):
             return [
                 Task(f"sub_{i}", "generic", f"Subtask {i}")
                 for i in range(30)
             ]
 
-        # Replace method temporarily
-        original_method = planner._generate_subtasks_from_results
-        planner._generate_subtasks_from_results = generate_many_subtasks
-
-        # Create DAG
-        dag = await planner.decompose_task("Create a business")
+        # Replace with mock (AsyncMock wraps the async function)
+        planner._generate_subtasks_from_results = AsyncMock(side_effect=mock_generate)
 
         # Update should truncate to 20 subtasks
         dag = await planner.update_dag_dynamic(
@@ -328,15 +333,13 @@ class TestVULN003_UnboundedRecursion:
             new_info={}
         )
 
-        # Restore original method
+        # Restore
         planner._generate_subtasks_from_results = original_method
 
-        # Verify truncation occurred (logged warning) and task count is reasonable
-        # DAG lifetime counter should reflect original + max 20 new
-        dag_id = id(dag)
+        # Verify truncation occurred
         lifetime_count = planner.dag_lifetime_counters[dag_id]
-        # Should be original tasks + 20 (truncated from 30)
-        assert lifetime_count <= 30  # Reasonable limit check
+        # Should be original tasks + max 20 (truncated from 30)
+        assert lifetime_count == initial_count + 20, f"Expected {initial_count + 20}, got {lifetime_count}"
 
     @pytest.mark.asyncio
     async def test_counters_initialized_correctly(self):
