@@ -271,3 +271,13 @@
 {"timestamp": "2025-10-19T15:53:37.856079+00:00", "level": "INFO", "logger": "world_model", "message": "WorldModel initialized (PyTorch: False)", "module": "world_model", "function": "__init__", "line": 131}
 {"timestamp": "2025-10-19T15:53:37.856539+00:00", "level": "INFO", "logger": "world_model", "message": "\ud83c\udf93 Training world model on historical data...", "module": "world_model", "function": "train", "line": 224}
 {"timestamp": "2025-10-19T15:53:37.857003+00:00", "level": "WARNING", "logger": "world_model", "message": "No trajectories available for training", "module": "world_model", "function": "train", "line": 230}
+{"timestamp": "2025-10-20T19:22:51.020964+00:00", "level": "INFO", "logger": "world_model", "message": "WorldModel initialized (PyTorch: False)", "module": "world_model", "function": "__init__", "line": 131}
+{"timestamp": "2025-10-20T19:22:51.028164+00:00", "level": "INFO", "logger": "world_model", "message": "WorldModel initialized (PyTorch: False)", "module": "world_model", "function": "__init__", "line": 131}
+{"timestamp": "2025-10-20T19:22:51.042221+00:00", "level": "INFO", "logger": "world_model", "message": "WorldModel initialized (PyTorch: False)", "module": "world_model", "function": "__init__", "line": 131}
+{"timestamp": "2025-10-20T19:22:51.042489+00:00", "level": "INFO", "logger": "world_model", "message": "\ud83c\udf93 Training world model on historical data...", "module": "world_model", "function": "train", "line": 224}
+{"timestamp": "2025-10-20T19:22:51.042697+00:00", "level": "WARNING", "logger": "world_model", "message": "No trajectories available for training", "module": "world_model", "function": "train", "line": 230}
+{"timestamp": "2025-10-20T19:32:42.428464+00:00", "level": "INFO", "logger": "world_model", "message": "WorldModel initialized (PyTorch: False)", "module": "world_model", "function": "__init__", "line": 131}
+{"timestamp": "2025-10-20T19:32:42.435432+00:00", "level": "INFO", "logger": "world_model", "message": "WorldModel initialized (PyTorch: False)", "module": "world_model", "function": "__init__", "line": 131}
+{"timestamp": "2025-10-20T19:32:42.451967+00:00", "level": "INFO", "logger": "world_model", "message": "WorldModel initialized (PyTorch: False)", "module": "world_model", "function": "__init__", "line": 131}
+{"timestamp": "2025-10-20T19:32:42.452245+00:00", "level": "INFO", "logger": "world_model", "message": "\ud83c\udf93 Training world model on historical data...", "module": "world_model", "function": "train", "line": 224}
+{"timestamp": "2025-10-20T19:32:42.452446+00:00", "level": "WARNING", "logger": "world_model", "message": "No trajectories available for training", "module": "world_model", "function": "train", "line": 230}

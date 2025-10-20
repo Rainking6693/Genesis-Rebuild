@@ -19,5 +19,19 @@
     "memory_percent": 24.7,
     "cpu_percent": 0.9,
     "disk_percent": 6.1
+  },
+  {
+    "timestamp": "2025-10-20T19:30:53.451618",
+    "total_metrics": 3,
+    "memory_percent": 25.2,
+    "cpu_percent": 0.4,
+    "disk_percent": 6.4
+  },
+  {
+    "timestamp": "2025-10-20T19:40:43.947603",
+    "total_metrics": 3,
+    "memory_percent": 36.5,
+    "cpu_percent": 0.3,
+    "disk_percent": 6.4
   }
 ]

@@ -20,3 +20,24 @@ Log: /home/genesis/genesis-rebuild/logs/health_check.log
 2025-10-18T23:38:56.192208 - CPU: 1.9%, Memory: 23.2%, Disk: 6.1%
 2025-10-18T23:39:23.030302 - CPU: 0.9%, Memory: 23.4%, Disk: 6.1%
 2025-10-18T23:39:42.239592 - CPU: 0.9%, Memory: 24.7%, Disk: 6.1%
+=== Genesis Health Check - 2025-10-20T19:14:52Z ===
+Checking Python environment... [0;32mOK[0m (Python 3.12.3)
+Checking virtual environment... [0;32mOK[0m
+Checking dependencies... [0;31mMISSING[0m: opentelemetry-api
+[0;31mMISSING[0m: opentelemetry-sdk
+[0;31mMISSING[0m: prometheus_client
+[0;31mFAILED[0m (3 missing)
+Checking infrastructure modules... [0;32mOK[0m
+Checking test suite... [0;32mOK[0m (60 test files)
+Checking configuration files... [0;32mOK[0m
+Checking disk space... [0;32mOK[0m (7% used)
+Checking memory... [0;32mOK[0m (13095MB available)
+Running quick smoke test... [0;32mOK[0m
+
+=== Health Check Summary ===
+Status: [0;31mUNHEALTHY[0m
+One or more critical checks failed. Review logs before deployment.
+Timestamp: 2025-10-20T19:14:52Z
+Log: /home/genesis/genesis-rebuild/logs/health_check.log
+2025-10-20T19:30:53.451618 - CPU: 0.4%, Memory: 25.2%, Disk: 6.4%
+2025-10-20T19:40:43.947603 - CPU: 0.3%, Memory: 36.5%, Disk: 6.4%
