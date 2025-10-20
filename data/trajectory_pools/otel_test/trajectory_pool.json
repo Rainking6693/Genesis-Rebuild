@@ -1,0 +1,73 @@
+{
+  "agent_name": "otel_test",
+  "max_trajectories": 50,
+  "success_threshold": 0.7,
+  "failure_threshold": 0.3,
+  "total_added": 2,
+  "total_pruned": 0,
+  "trajectories": {
+    "otel_test_g0_baseline_0_69ef6664": {
+      "trajectory_id": "otel_test_g0_baseline_0_69ef6664",
+      "generation": 0,
+      "agent_name": "otel_test",
+      "parent_trajectories": [],
+      "operator_applied": "baseline",
+      "code_changes": "",
+      "problem_diagnosis": "",
+      "proposed_strategy": "Baseline approach 0 for: Test OTEL tracing",
+      "status": "failure",
+      "success_score": 0.499298906207791,
+      "test_results": {
+        "tasks_total": 10,
+        "tasks_passed": 4,
+        "tasks_failed": 6
+      },
+      "metrics": {
+        "accuracy": 0.499298906207791,
+        "speed": 0.8343357593343552,
+        "robustness": 0.6189176824675867
+      },
+      "failure_reasons": [],
+      "tools_used": [],
+      "reasoning_pattern": "direct_implementation",
+      "key_insights": [],
+      "assumptions_made": [],
+      "modified_files": [],
+      "created_at": "2025-10-20T14:57:01.751294+00:00",
+      "execution_time_seconds": 0.0003001689910888672,
+      "cost_dollars": 0.0
+    },
+    "otel_test_g0_baseline_1_9b10877f": {
+      "trajectory_id": "otel_test_g0_baseline_1_9b10877f",
+      "generation": 0,
+      "agent_name": "otel_test",
+      "parent_trajectories": [],
+      "operator_applied": "baseline",
+      "code_changes": "",
+      "problem_diagnosis": "",
+      "proposed_strategy": "Baseline approach 1 for: Test OTEL tracing",
+      "status": "failure",
+      "success_score": 0.6751184789277547,
+      "test_results": {
+        "tasks_total": 10,
+        "tasks_passed": 6,
+        "tasks_failed": 4
+      },
+      "metrics": {
+        "accuracy": 0.6751184789277547,
+        "speed": 0.8668966237194795,
+        "robustness": 0.8601486680879811
+      },
+      "failure_reasons": [],
+      "tools_used": [],
+      "reasoning_pattern": "direct_implementation",
+      "key_insights": [],
+      "assumptions_made": [],
+      "modified_files": [],
+      "created_at": "2025-10-20T14:57:01.751734+00:00",
+      "execution_time_seconds": 0.0001544952392578125,
+      "cost_dollars": 0.0
+    }
+  },
+  "saved_at": "2025-10-20T14:57:01.755810+00:00"
+}

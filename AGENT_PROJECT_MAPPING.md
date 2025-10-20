@@ -668,55 +668,284 @@ Forge: Production validation
 
 ---
 
-## 📋 POST-DEPLOYMENT: SE-DARWIN INTEGRATION
+## 📋 PHASE 5: LAYER 6 MEMORY IMPLEMENTATION (October 26-November 9, 2025)
 
-### 5.1 SE-Darwin Integration with Orchestration
+**Status:** 🚧 **RESEARCH COMPLETE (October 20, 2025)** - Implementation pending after production deployment
+
+### 5.1 LangGraph Store API Integration (Week 1)
 **Assigned:** River (lead), Cora (support)
-**Why:** River for multi-agent memory; Cora for agent integration design
+**Timeline:** October 26-November 1, 2025 (1 week)
+**Why:** River for memory engineering; Cora for agent integration design
+**Research Complete:** ✅ October 20, 2025 (DEEP_RESEARCH_ANALYSIS.md)
 **Steps:**
 ```
-River: Integrate SE-Darwin with memory (MongoDB)
-- Connect trajectory pool to shared memory
-- Enable cross-business learning (business #100 learns from #1-99)
-- Implement consensus memory for verified procedures
-- Add persona libraries for agent characteristics
+River: Implement Store abstraction with MongoDB backend
+- Install LangGraph dependencies (pip install langgraph langsmith)
+- Implement `Store` class wrapping MongoDB
+- Code pattern: await store.put(namespace=("user", user_id), key="prefs", value=data)
+- Add memory persistence to Darwin evolution logs
+- Test memory retrieval across agent sessions
 
-Cora: Adapt for business domains
-- Integrate SE-Darwin agents with orchestration v2.0
-- Use HTDAG to decompose evolution tasks
-- Use HALO to route to appropriate Darwin agents
-- Test full evolution loop with orchestration
+Cora: Design memory schema for Genesis
+- Define namespaces: ("agent", agent_name), ("business", business_id), ("evolution", generation_id)
+- Design key structure for different memory types
+- Integrate with existing agent architecture
+- Document memory access patterns
 ```
 
 **Deliverables:**
-- SE-Darwin + Orchestration v2.0 integration
-- Cross-business learning validation
-- Evolution loop with HTDAG+HALO
+- `infrastructure/langgraph_store.py` (~300 lines)
+- MongoDB memory persistence operational
+- Test suite: `tests/test_langgraph_store.py` (~200 lines)
+- Memory retrieval across agent sessions validated
+- Documentation: `docs/LANGGRAPH_STORE_INTEGRATION.md`
 
 ---
 
-### 5.2 Full System Testing
-**Assigned:** Forge (lead), Nova (support)
-**Why:** Forge for comprehensive testing; Nova for production validation
+### 5.2 DeepSeek-OCR Memory Compression (Week 2)
+**Assigned:** Thon (lead), Nova (support)
+**Timeline:** November 2-8, 2025 (1 week)
+**Why:** Thon for Python implementation; Nova for Vertex AI model integration
+**Research Complete:** ✅ October 20, 2025 (DEEP_RESEARCH_ANALYSIS.md)
 **Steps:**
 ```
-Forge: Test SE-Darwin + Orchestration integration
-- Create test suite for evolution + orchestration
-- Test multi-generation evolution with dynamic DAGs
-- Validate trajectory pool works with orchestration
-- Benchmark: Evolution speed, success rate
+Thon: Implement DeepSeek-OCR compression pipeline
+- Install dependencies: Python 3.12.9, CUDA 11.8, transformers==4.46.3, flash-attn==2.7.3
+- Implement text→image rendering (Pillow/matplotlib)
+- Add age-based compression logic:
+  if age_days < 1: keep_as_text()
+  elif age_days < 7: compress_base_mode(256_tokens)
+  elif age_days < 30: compress_small_mode(100_tokens)
+  else: compress_tiny_mode(64_tokens)
+- Load DeepSeek-OCR model with transformers
+- Test on 1,000+ agent logs
 
-Nova: Production validation with Vertex AI
-- Run 10-business evolution loop
-- Track: Evolution time, trajectory quality, business success
-- Compare to baseline (evolution without orchestration)
-- Expected: 20-30% faster evolution cycles
+Nova: Integrate with Vertex AI Feature Store
+- Store compressed vision tokens in Feature Store
+- Add retrieval API for compressed memories
+- Monitor compression ratios and quality
+- Validate cost savings (target: 71% reduction)
 ```
 
 **Deliverables:**
-- `tests/test_se_darwin_orchestration.py` (~400 lines)
-- Production evolution benchmarks
+- `infrastructure/deepseek_ocr_compressor.py` (~400 lines)
+- Text→image→vision tokens pipeline operational
+- Forgetting mechanism implemented (time-based)
+- Test suite: `tests/test_deepseek_ocr.py` (~250 lines)
+- 10-20x compression validated on real logs
+- Cost analysis report: Before/after comparison
+- Documentation: `docs/DEEPSEEK_OCR_INTEGRATION.md`
+
+**Expected Cost Savings:**
+- 71% memory cost reduction (validated in paper)
+- Monthly: $240 → $70 (on memory costs specifically)
+
+---
+
+### 5.3 Vector Database + Hybrid RAG (Week 3)
+**Assigned:** River (lead), Vanguard (support)
+**Timeline:** November 9-15, 2025 (1 week)
+**Why:** River for memory architecture; Vanguard for MLOps feature stores
+**Research Complete:** ✅ October 20, 2025 (Paper 1: Agentic RAG)
+**Steps:**
+```
+River: Implement hybrid vector-graph RAG
+- Set up Pinecone/Weaviate vector database
+- Implement vector embeddings for agent memories
+- Add MongoDB graph relationships (business dependencies)
+- Implement hybrid retrieval:
+  1. Vector search for semantic similarity
+  2. Graph traversal for relationship exploration
+  3. Combine results with weighted ranking
+- Test on 100+ business memories
+
+Vanguard: Integrate with Vertex AI monitoring
+- Track retrieval accuracy (target: 94.8% from Paper 1)
+- Monitor query latency (<100ms target)
+- Set up cost tracking for embeddings
+- Validate 35% cost savings on retrieval
+```
+
+**Deliverables:**
+- `infrastructure/hybrid_rag.py` (~500 lines)
+- Vector database operational (Pinecone/Weaviate)
+- Graph relationships in MongoDB
+- Hybrid retrieval algorithm implemented
+- Test suite: `tests/test_hybrid_rag.py` (~300 lines)
+- 94.8% accuracy baseline achieved (Paper 1)
+- Retrieval latency <100ms validated
+- Documentation: `docs/HYBRID_RAG_ARCHITECTURE.md`
+
+**Expected Impact:**
+- 35% retrieval cost savings (Paper 1 baseline)
+- 94.8% memory retrieval accuracy
+- Cross-business learning operational
+
+---
+
+### 5.4 Full System Testing & Integration
+**Assigned:** Forge (lead), Nova (support)
+**Timeline:** November 9-15, 2025 (parallel with 5.3)
+**Why:** Forge for comprehensive testing; Nova for production validation
+**Steps:**
+```
+Forge: Create comprehensive test suite for Layer 6
+- Test LangGraph Store API with all agents
+- Test DeepSeek-OCR compression on 1,000+ logs
+- Test hybrid RAG retrieval accuracy
+- Test forgetting mechanism (time-based compression)
+- Integration tests: Store → Compress → Retrieve flow
+- Benchmark: Memory costs before/after
+
+Nova: Production validation with Vertex AI
+- Run 10-business memory integration test
+- Track: Memory costs, retrieval accuracy, compression ratios
+- Compare to baseline (no Layer 6 optimizations)
+- Expected: 75% total cost reduction (52% current + 23% new)
+- Validate $45k/year savings at 1000 businesses
+```
+
+**Deliverables:**
+- `tests/test_layer6_comprehensive.py` (~500 lines)
+- Production memory benchmarks
+- Cost analysis: Before/after Layer 6
 - Integration validation report
+- Documentation: `docs/LAYER6_VALIDATION_REPORT.md`
+
+**Expected Results:**
+- 75% total cost reduction validated (52% → 75%)
+- Monthly: $500 → $125 (at current scale)
+- At 1000 businesses: $45,000/year savings
+- 94.8% memory retrieval accuracy
+- 10-20x compression ratio on agent logs
+
+---
+
+## 📋 POST-PHASE 5: SE-DARWIN COMPLETION ✅ **100% COMPLETE** (October 16-20, 2025)
+
+**Status:** ✅ **100% COMPLETE - PRODUCTION APPROVED** - Full integration + triple approval
+
+**Timeline:**
+- October 16, 2025: Core components (TrajectoryPool + Operators) - 70% complete
+- October 19, 2025: Benchmark scenarios (270 scenarios) - 85% complete
+- October 20, 2025: Agent + SICA + Triple approval - ✅ **100% COMPLETE**
+
+**What's Complete:**
+- ✅ `infrastructure/trajectory_pool.py` (597 lines, 37/37 tests passing) - October 16, 2025
+- ✅ `infrastructure/se_operators.py` (450 lines, 49/49 tests passing) - October 16, 2025
+  - Revision, Recombination, Refinement operators
+- ✅ **Benchmark scenarios (270 scenarios, 15 agents × 18 each)** - October 19, 2025
+  - All JSON valid, all structures match benchmark classes
+  - Production-ready validation for Darwin evolution
+  - Created by Thon in ~50 minutes using hybrid approach
+- ✅ `agents/se_darwin_agent.py` (1,267 lines, 44/44 tests passing) - October 20, 2025 (Thon)
+  - Multi-trajectory evolution loop
+  - BenchmarkScenarioLoader (270 real scenarios)
+  - CodeQualityValidator (AST-based deterministic scoring)
+  - Parallel execution + TUMIX early stopping
+- ✅ `infrastructure/sica_integration.py` (863 lines, 35/35 tests passing) - October 20, 2025 (Cora)
+  - Reasoning-heavy mode
+  - Complete type hints (71.2% param, 100% return)
+  - TUMIX early stopping (51% cost savings)
+- ✅ **Triple Approval Process** - October 20, 2025
+  - Hudson (Code Review): 9.2/10 - All P2 blockers resolved
+  - Alex (Integration): 9.4/10 - 11/11 integration points validated, zero regressions
+  - Forge (E2E Testing): 9.5/10 - 31/31 tests passing, performance targets exceeded
+
+**Total Deliverables:**
+- **Production Code:** 2,130 lines (agent 1,267 + SICA 863)
+- **Test Code:** 4,566 lines (5 test files: unit + integration + E2E + performance)
+- **Benchmark Scenarios:** 270 real scenarios
+- **Documentation:** ~2,000 lines (guides, audits, reports)
+- **Total Tests:** 119 tests (242/244 passing system-wide, 99.3%)
+
+### 6.1 SE-Darwin Agent Implementation ✅ **COMPLETE** (October 20, 2025)
+**Assigned:** Thon (lead), Cora (support)
+**Completed:** October 20, 2025
+**Deliverables:**
+- ✅ `agents/se_darwin_agent.py` (1,267 lines - exceeds target of ~600)
+- ✅ `tests/test_se_darwin_agent.py` (1,295 lines, 44 tests - 100% passing)
+- ✅ `tests/test_se_darwin_integration.py` (646 lines, 13 tests - 100% passing)
+- ✅ `tests/test_se_darwin_comprehensive_e2e.py` (1,185 lines, 23 tests - 100% passing)
+- ✅ BenchmarkScenarioLoader (220 lines - 270 real scenarios)
+- ✅ CodeQualityValidator (195 lines - AST-based deterministic scoring)
+- ✅ Multi-trajectory generation logic (baseline + operator-based)
+- ✅ Operator pipeline integration (Revision → Recombination → Refinement)
+- ✅ Parallel trajectory execution (asyncio, 3X speedup)
+- ✅ Full evolution loop with TUMIX early stopping
+- ✅ Integration with HTDAG orchestration validated
+
+**Approval:** Hudson 9.2/10 (Code Review) - All P2 blockers resolved
+
+---
+
+### 6.2 SICA Integration ✅ **COMPLETE** (October 20, 2025)
+**Assigned:** Cora (lead), Thon (support)
+**Completed:** October 20, 2025
+**Deliverables:**
+- ✅ `infrastructure/sica_integration.py` (863 lines - exceeds target of ~150)
+- ✅ `tests/test_sica_integration.py` (769 lines, 35 tests - 100% passing)
+- ✅ `tests/test_se_darwin_performance_benchmarks.py` (572 lines, 8 tests - 100% passing)
+- ✅ `docs/SICA_INTEGRATION_GUIDE.md` (comprehensive documentation)
+- ✅ SICAComplexityDetector (automatic task complexity classification)
+- ✅ SICAReasoningLoop (iterative CoT reasoning with self-critique)
+- ✅ TUMIX early stopping (51% compute savings validated)
+- ✅ Complete type hints (71.2% param coverage, 100% return coverage)
+- ✅ LLM routing (GPT-4o for complex, Claude Haiku for simple)
+- ✅ Reasoning pipeline operational (validated on 270 benchmark scenarios)
+
+**Approval:** Hudson 9.2/10 (Type hints verified), Alex 9.4/10 (Integration validated)
+
+**Note:** Benchmark scenarios completed October 19, 2025:
+- ✅ 270 scenarios across 15 agents (18 each)
+- ✅ All JSON valid, all structures validated
+- ✅ Integrated with BenchmarkScenarioLoader
+
+---
+
+### 6.3 Integration & E2E Testing ✅ **COMPLETE** (October 20, 2025)
+**Assigned:** Alex (integration), Forge (E2E)
+**Completed:** October 20, 2025
+**Deliverables:**
+- ✅ **Alex Integration Audit:** 9.4/10 score
+  - 11/11 integration points validated
+  - 242/244 tests passing (99.3% system-wide)
+  - Zero regressions on Phase 1-3 systems (147/147 tests passing)
+  - SE-Darwin ↔ TrajectoryPool, Operators, SICA, Benchmarks, OTEL, HTDAG, HALO all operational
+- ✅ **Forge E2E Testing:** 9.5/10 score
+  - 31/31 comprehensive E2E tests passing (100%)
+  - Performance targets exceeded (3X parallel speedup, 0.3% overhead)
+  - Security validated (65/65 tests passing)
+  - Evolution workflows, error handling, orchestration integration all validated
+
+**Total System Validation:**
+- ✅ Code coverage: 90.64% (exceeds 85% target)
+- ✅ Production readiness: 9.2-9.5/10 (all approvals)
+- ✅ Zero critical bugs
+- ✅ Zero regressions
+
+---
+
+### 6.4 Future Work: SE-Darwin + Layer 6 Memory Integration
+**Status:** ⏭️ **DEFERRED** to Phase 5 (after production deployment)
+**Assigned:** River (lead), Cora (support)
+**Timeline:** Post-deployment (estimated November 2025)
+**Dependencies:** Layer 6 implementation, production deployment complete
+
+**Planned Integration:**
+- Connect trajectory pool to LangGraph Store (persistent memory)
+- Use DeepSeek-OCR to compress old trajectories (10-20x compression)
+- Enable cross-business learning via hybrid RAG
+- Implement consensus memory for verified evolution patterns
+- Expected: 75% total cost reduction (current 52% + 23% from memory optimization)
+
+**Expected Results:**
+- 50% → 80% SWE-bench improvement (Darwin evolution operational in production first)
+- Trajectory compression operational (10-20x via DeepSeek-OCR)
+- Cross-business learning (business #100 learns from #1-99)
+- 75% total cost reduction validated
+
+**Note:** SE-Darwin is production-ready NOW (October 20, 2025) without Layer 6. Memory integration is an optimization to be added post-deployment.
 
 ---
 
