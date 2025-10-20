@@ -11,7 +11,7 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets:
-            - alertmanager:9093
+            - localhost:9093
 
 # Load rules once and periodically evaluate them
 rule_files:
@@ -22,22 +22,22 @@ scrape_configs:
   # Genesis orchestration metrics
   - job_name: 'genesis-orchestration'
     static_configs:
-      - targets: ['host.docker.internal:8000']
+      - targets: ['localhost:8000']
     metrics_path: '/metrics'
     scrape_interval: 5s  # More frequent for critical orchestration metrics
 
   # Python application metrics
   - job_name: 'genesis-python-app'
     static_configs:
-      - targets: ['host.docker.internal:8001']
+      - targets: ['localhost:8001']
 
   # System metrics (node_exporter)
   - job_name: 'node'
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: ['localhost:9100']
 
   # Test suite metrics
   - job_name: 'genesis-tests'
     static_configs:
-      - targets: ['host.docker.internal:8002']
+      - targets: ['localhost:8002']
     scrape_interval: 60s  # Tests run less frequently

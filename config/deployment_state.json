@@ -1,0 +1,42 @@
+{
+  "current_percentage": 100.0,
+  "deployment_started": "2025-10-20T21:32:57.247341+00:00",
+  "last_step_time": "2025-10-20T21:57:57.256288+00:00",
+  "rollout_history": [
+    {
+      "action": "deploy_step",
+      "percentage": 0.0,
+      "timestamp": "2025-10-20T21:32:57.247343+00:00"
+    },
+    {
+      "action": "deploy_step",
+      "percentage": 5.0,
+      "timestamp": "2025-10-20T21:32:57.248122+00:00"
+    },
+    {
+      "action": "deploy_step",
+      "percentage": 10.0,
+      "timestamp": "2025-10-20T21:37:57.249557+00:00"
+    },
+    {
+      "action": "deploy_step",
+      "percentage": 25.0,
+      "timestamp": "2025-10-20T21:42:57.251521+00:00"
+    },
+    {
+      "action": "deploy_step",
+      "percentage": 50.0,
+      "timestamp": "2025-10-20T21:47:57.253081+00:00"
+    },
+    {
+      "action": "deploy_step",
+      "percentage": 75.0,
+      "timestamp": "2025-10-20T21:52:57.254667+00:00"
+    },
+    {
+      "action": "deploy_step",
+      "percentage": 100.0,
+      "timestamp": "2025-10-20T21:57:57.256294+00:00"
+    }
+  ]
+}

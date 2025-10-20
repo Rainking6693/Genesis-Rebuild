@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "last_updated": "2025-10-18T23:33:21.418226+00:00",
+  "last_updated": "2025-10-20T21:57:57.255526+00:00",
   "flags": {
     "orchestration_enabled": {
       "name": "orchestration_enabled",
@@ -108,10 +108,10 @@
     },
     "phase_4_deployment": {
       "name": "phase_4_deployment",
-      "enabled": false,
+      "enabled": true,
       "default_value": false,
       "rollout_strategy": "progressive",
-      "rollout_percentage": 0.0,
+      "rollout_percentage": 100,
       "progressive_config": {
         "initial_percentage": 0,
         "end_percentage": 100,
