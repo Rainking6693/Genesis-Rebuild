@@ -82,10 +82,11 @@ class TestHALORouter:
     def test_initialization(self):
         """Test router initializes with default Genesis agents"""
         router = HALORouter()
-        assert len(router.agent_registry) == 15  # Genesis 15-agent ensemble
+        assert len(router.agent_registry) == 16  # Genesis 15-agent ensemble + darwin_agent
         assert len(router.routing_rules) > 0
         assert "spec_agent" in router.agent_registry
         assert "builder_agent" in router.agent_registry
+        assert "darwin_agent" in router.agent_registry  # SE-Darwin integration
 
     def test_custom_agent_registry(self):
         """Test initialization with custom agent registry"""

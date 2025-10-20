@@ -1,0 +1,548 @@
+[
+  {
+    "id": "legal_1",
+    "description": "Privacy policy review for GDPR compliance",
+    "inputs": {
+      "document_type": "privacy_policy",
+      "jurisdiction": "EU",
+      "regulations": [
+        "GDPR",
+        "ePrivacy"
+      ],
+      "company_type": "SaaS",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_sections": [
+        "data_collection",
+        "data_usage",
+        "user_rights",
+        "data_retention",
+        "transfers"
+      ],
+      "compliance_check": true,
+      "issues_identified_min": 3,
+      "recommendations": true
+    },
+    "scoring": {
+      "compliance_weight": 0.5,
+      "thoroughness_weight": 0.3,
+      "clarity_weight": 0.2
+    }
+  },
+  {
+    "id": "legal_2",
+    "description": "Terms of service creation",
+    "inputs": {
+      "document_type": "terms_of_service",
+      "jurisdiction": "US",
+      "regulations": [
+        "consumer_protection"
+      ],
+      "company_type": "marketplace",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_sections": [
+        "service_description",
+        "user_obligations",
+        "payment_terms",
+        "liability",
+        "dispute_resolution"
+      ],
+      "compliance_check": true,
+      "enforceable": true,
+      "clear_language": true
+    },
+    "scoring": {
+      "compliance_weight": 0.4,
+      "completeness_weight": 0.3,
+      "enforceability_weight": 0.3
+    }
+  },
+  {
+    "id": "legal_3",
+    "description": "GDPR compliance audit",
+    "inputs": {
+      "document_type": "compliance_audit",
+      "jurisdiction": "EU",
+      "regulations": [
+        "GDPR"
+      ],
+      "company_type": "data_processor",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_checks": [
+        "lawful_basis",
+        "consent",
+        "data_subject_rights",
+        "security_measures",
+        "dpia"
+      ],
+      "compliance_check": true,
+      "gaps_identified_min": 5,
+      "remediation_plan": true
+    },
+    "scoring": {
+      "compliance_weight": 0.5,
+      "risk_assessment_weight": 0.3,
+      "remediation_weight": 0.2
+    }
+  },
+  {
+    "id": "legal_4",
+    "description": "Contract review for SaaS agreement",
+    "inputs": {
+      "document_type": "saas_contract",
+      "jurisdiction": "US",
+      "contract_value": 100000,
+      "duration_years": 3,
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_clauses": [
+        "scope",
+        "pricing",
+        "sla",
+        "termination",
+        "liability",
+        "ip_rights"
+      ],
+      "risks_identified_min": 4,
+      "negotiation_points": true,
+      "recommendations": true
+    },
+    "scoring": {
+      "thoroughness_weight": 0.4,
+      "risk_identification_weight": 0.3,
+      "recommendations_weight": 0.3
+    }
+  },
+  {
+    "id": "legal_5",
+    "description": "Intellectual property assessment",
+    "inputs": {
+      "document_type": "ip_assessment",
+      "jurisdiction": "US",
+      "ip_types": [
+        "trademark",
+        "copyright",
+        "patent"
+      ],
+      "company_type": "tech_startup",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_sections": [
+        "ip_inventory",
+        "ownership",
+        "protection_strategy",
+        "infringement_risks"
+      ],
+      "ip_assets_identified": true,
+      "protection_recommendations": true,
+      "risk_mitigation": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "risk_assessment_weight": 0.3,
+      "strategy_weight": 0.3
+    }
+  },
+  {
+    "id": "legal_6",
+    "description": "Employment agreement review",
+    "inputs": {
+      "document_type": "employment_agreement",
+      "jurisdiction": "US",
+      "position": "senior_engineer",
+      "equity_included": true,
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_clauses": [
+        "compensation",
+        "equity",
+        "ip_assignment",
+        "non_compete",
+        "termination"
+      ],
+      "compliance_check": true,
+      "risks_identified": true,
+      "fairness_assessment": true
+    },
+    "scoring": {
+      "compliance_weight": 0.4,
+      "fairness_weight": 0.3,
+      "thoroughness_weight": 0.3
+    }
+  },
+  {
+    "id": "legal_7",
+    "description": "HIPAA compliance check",
+    "inputs": {
+      "document_type": "compliance_check",
+      "jurisdiction": "US",
+      "regulations": [
+        "HIPAA"
+      ],
+      "company_type": "healthtech",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_checks": [
+        "phi_protection",
+        "access_controls",
+        "breach_notification",
+        "baa",
+        "training"
+      ],
+      "compliance_check": true,
+      "gaps_identified_min": 3,
+      "remediation_timeline": true
+    },
+    "scoring": {
+      "compliance_weight": 0.5,
+      "risk_assessment_weight": 0.3,
+      "remediation_weight": 0.2
+    }
+  },
+  {
+    "id": "legal_8",
+    "description": "SOC 2 compliance documentation review",
+    "inputs": {
+      "document_type": "compliance_documentation",
+      "jurisdiction": "US",
+      "regulations": [
+        "SOC2"
+      ],
+      "company_type": "cloud_service",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_sections": [
+        "security",
+        "availability",
+        "processing_integrity",
+        "confidentiality",
+        "privacy"
+      ],
+      "compliance_check": true,
+      "controls_documented": true,
+      "audit_readiness": true
+    },
+    "scoring": {
+      "compliance_weight": 0.45,
+      "completeness_weight": 0.3,
+      "audit_readiness_weight": 0.25
+    }
+  },
+  {
+    "id": "legal_9",
+    "description": "CCPA compliance assessment",
+    "inputs": {
+      "document_type": "compliance_assessment",
+      "jurisdiction": "California",
+      "regulations": [
+        "CCPA"
+      ],
+      "company_type": "consumer_app",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_checks": [
+        "data_inventory",
+        "consumer_rights",
+        "opt_out",
+        "privacy_notice",
+        "third_parties"
+      ],
+      "compliance_check": true,
+      "gaps_identified_min": 4,
+      "implementation_plan": true
+    },
+    "scoring": {
+      "compliance_weight": 0.5,
+      "risk_assessment_weight": 0.3,
+      "implementation_weight": 0.2
+    }
+  },
+  {
+    "id": "legal_10",
+    "description": "Cookie consent implementation review",
+    "inputs": {
+      "document_type": "cookie_policy",
+      "jurisdiction": "EU",
+      "regulations": [
+        "GDPR",
+        "ePrivacy"
+      ],
+      "website_type": "e_commerce",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_sections": [
+        "cookie_types",
+        "purposes",
+        "consent_mechanism",
+        "opt_out",
+        "third_parties"
+      ],
+      "compliance_check": true,
+      "consent_valid": true,
+      "granular_controls": true
+    },
+    "scoring": {
+      "compliance_weight": 0.45,
+      "implementation_weight": 0.3,
+      "user_experience_weight": 0.25
+    }
+  },
+  {
+    "id": "legal_11",
+    "description": "Data processing agreement (DPA) review",
+    "inputs": {
+      "document_type": "dpa",
+      "jurisdiction": "EU",
+      "regulations": [
+        "GDPR"
+      ],
+      "relationship": "processor_subprocessor",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_clauses": [
+        "processing_details",
+        "security_measures",
+        "subprocessors",
+        "data_subject_rights",
+        "liability"
+      ],
+      "compliance_check": true,
+      "gdpr_compliant": true,
+      "risks_identified": true
+    },
+    "scoring": {
+      "compliance_weight": 0.5,
+      "thoroughness_weight": 0.3,
+      "risk_assessment_weight": 0.2
+    }
+  },
+  {
+    "id": "legal_12",
+    "description": "Open source license compliance check",
+    "inputs": {
+      "document_type": "license_compliance",
+      "jurisdiction": "global",
+      "licenses": [
+        "MIT",
+        "Apache",
+        "GPL"
+      ],
+      "project_type": "commercial_software",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_checks": [
+        "license_inventory",
+        "compatibility",
+        "attribution",
+        "copyleft_risks"
+      ],
+      "compliance_check": true,
+      "conflicts_identified": true,
+      "remediation_steps": true
+    },
+    "scoring": {
+      "compliance_weight": 0.45,
+      "risk_assessment_weight": 0.3,
+      "remediation_weight": 0.25
+    }
+  },
+  {
+    "id": "legal_13",
+    "description": "Privacy policy review for GDPR compliance",
+    "inputs": {
+      "document_type": "privacy_policy",
+      "jurisdiction": "EU",
+      "regulations": [
+        "GDPR",
+        "ePrivacy"
+      ],
+      "company_type": "SaaS",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_sections": [
+        "data_collection",
+        "data_usage",
+        "user_rights",
+        "data_retention",
+        "transfers"
+      ],
+      "compliance_check": true,
+      "issues_identified_min": 3,
+      "recommendations": true
+    },
+    "scoring": {
+      "compliance_weight": 0.5,
+      "thoroughness_weight": 0.3,
+      "clarity_weight": 0.2
+    }
+  },
+  {
+    "id": "legal_14",
+    "description": "Terms of service creation",
+    "inputs": {
+      "document_type": "terms_of_service",
+      "jurisdiction": "US",
+      "regulations": [
+        "consumer_protection"
+      ],
+      "company_type": "marketplace",
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "required_sections": [
+        "service_description",
+        "user_obligations",
+        "payment_terms",
+        "liability",
+        "dispute_resolution"
+      ],
+      "compliance_check": true,
+      "enforceable": true,
+      "clear_language": true
+    },
+    "scoring": {
+      "compliance_weight": 0.4,
+      "completeness_weight": 0.3,
+      "enforceability_weight": 0.3
+    }
+  },
+  {
+    "id": "legal_15",
+    "description": "GDPR compliance audit",
+    "inputs": {
+      "document_type": "compliance_audit",
+      "jurisdiction": "EU",
+      "regulations": [
+        "GDPR"
+      ],
+      "company_type": "data_processor",
+      "complexity": "high",
+      "data_size": "extra_large"
+    },
+    "expected_outputs": {
+      "required_checks": [
+        "lawful_basis",
+        "consent",
+        "data_subject_rights",
+        "security_measures",
+        "dpia"
+      ],
+      "compliance_check": true,
+      "gaps_identified_min": 5,
+      "remediation_plan": true
+    },
+    "scoring": {
+      "compliance_weight": 0.5,
+      "risk_assessment_weight": 0.3,
+      "remediation_weight": 0.2
+    }
+  },
+  {
+    "id": "legal_16",
+    "description": "Contract review for SaaS agreement",
+    "inputs": {
+      "document_type": "saas_contract",
+      "jurisdiction": "US",
+      "contract_value": 100000,
+      "duration_years": 3,
+      "complexity": "high",
+      "time_period": "realtime"
+    },
+    "expected_outputs": {
+      "required_clauses": [
+        "scope",
+        "pricing",
+        "sla",
+        "termination",
+        "liability",
+        "ip_rights"
+      ],
+      "risks_identified_min": 4,
+      "negotiation_points": true,
+      "recommendations": true
+    },
+    "scoring": {
+      "thoroughness_weight": 0.4,
+      "risk_identification_weight": 0.3,
+      "recommendations_weight": 0.3
+    }
+  },
+  {
+    "id": "legal_17",
+    "description": "Intellectual property assessment",
+    "inputs": {
+      "document_type": "ip_assessment",
+      "jurisdiction": "US",
+      "ip_types": [
+        "trademark",
+        "copyright",
+        "patent"
+      ],
+      "company_type": "tech_startup",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_sections": [
+        "ip_inventory",
+        "ownership",
+        "protection_strategy",
+        "infringement_risks"
+      ],
+      "ip_assets_identified": true,
+      "protection_recommendations": true,
+      "risk_mitigation": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "risk_assessment_weight": 0.3,
+      "strategy_weight": 0.3
+    }
+  },
+  {
+    "id": "legal_18",
+    "description": "Employment agreement review",
+    "inputs": {
+      "document_type": "employment_agreement",
+      "jurisdiction": "US",
+      "position": "senior_engineer",
+      "equity_included": true,
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "required_clauses": [
+        "compensation",
+        "equity",
+        "ip_assignment",
+        "non_compete",
+        "termination"
+      ],
+      "compliance_check": true,
+      "risks_identified": true,
+      "fairness_assessment": true
+    },
+    "scoring": {
+      "compliance_weight": 0.4,
+      "fairness_weight": 0.3,
+      "thoroughness_weight": 0.3
+    }
+  }
+]

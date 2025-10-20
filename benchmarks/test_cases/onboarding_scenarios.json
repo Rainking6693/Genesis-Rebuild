@@ -1,0 +1,562 @@
+[
+  {
+    "id": "onboarding_1",
+    "description": "SaaS product onboarding flow",
+    "inputs": {
+      "product_type": "SaaS",
+      "features": [
+        "account_setup",
+        "feature_discovery",
+        "first_use",
+        "team_invite"
+      ],
+      "target_users": "business_users",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "welcome",
+        "setup",
+        "tutorial",
+        "action",
+        "completion"
+      ],
+      "time_to_value_max": 300,
+      "completion_rate_min": 0.7,
+      "personalization": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_2",
+    "description": "Mobile app onboarding",
+    "inputs": {
+      "product_type": "mobile_app",
+      "features": [
+        "permissions",
+        "tutorial_slides",
+        "signup",
+        "profile_setup"
+      ],
+      "target_users": "mobile_users",
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "splash",
+        "permissions",
+        "tutorial",
+        "signup",
+        "first_action"
+      ],
+      "time_to_value_max": 180,
+      "completion_rate_min": 0.75,
+      "skip_option": true
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "ux_quality_weight": 0.35,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_3",
+    "description": "API client onboarding",
+    "inputs": {
+      "product_type": "API_service",
+      "features": [
+        "api_key_generation",
+        "docs",
+        "quickstart",
+        "test_environment"
+      ],
+      "target_users": "developers",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "signup",
+        "api_key",
+        "documentation",
+        "first_call",
+        "success_confirmation"
+      ],
+      "time_to_value_max": 600,
+      "completion_rate_min": 0.65,
+      "code_examples": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_4",
+    "description": "Enterprise customer onboarding",
+    "inputs": {
+      "product_type": "enterprise_SaaS",
+      "features": [
+        "sso_setup",
+        "team_migration",
+        "custom_integrations",
+        "training"
+      ],
+      "target_users": "enterprise_admins",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "kickoff",
+        "technical_setup",
+        "data_migration",
+        "training",
+        "go_live"
+      ],
+      "time_to_value_max": 2592000,
+      "completion_rate_min": 0.9,
+      "white_glove_support": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_5",
+    "description": "Self-service onboarding",
+    "inputs": {
+      "product_type": "web_app",
+      "features": [
+        "quick_signup",
+        "guided_tour",
+        "templates",
+        "help_resources"
+      ],
+      "target_users": "individual_users",
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "signup",
+        "tour",
+        "template_selection",
+        "customization",
+        "first_save"
+      ],
+      "time_to_value_max": 240,
+      "completion_rate_min": 0.8,
+      "in_app_help": true
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "ux_quality_weight": 0.35,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_6",
+    "description": "Freemium to paid upgrade onboarding",
+    "inputs": {
+      "product_type": "SaaS",
+      "features": [
+        "plan_comparison",
+        "payment_setup",
+        "feature_unlock",
+        "migration"
+      ],
+      "target_users": "existing_free_users",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "plan_selection",
+        "payment",
+        "confirmation",
+        "feature_discovery"
+      ],
+      "time_to_value_max": 300,
+      "completion_rate_min": 0.7,
+      "seamless_transition": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_7",
+    "description": "Multi-user team onboarding",
+    "inputs": {
+      "product_type": "collaboration_tool",
+      "features": [
+        "workspace_setup",
+        "team_invites",
+        "roles_permissions",
+        "first_project"
+      ],
+      "target_users": "team_leaders",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "workspace",
+        "invite_team",
+        "setup_permissions",
+        "create_project",
+        "collaboration"
+      ],
+      "time_to_value_max": 600,
+      "completion_rate_min": 0.75,
+      "team_collaboration": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_8",
+    "description": "Role-based onboarding",
+    "inputs": {
+      "product_type": "enterprise_platform",
+      "features": [
+        "role_selection",
+        "customized_tour",
+        "role_specific_features"
+      ],
+      "target_users": "various_roles",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "role_selection",
+        "personalized_tour",
+        "relevant_features",
+        "first_task"
+      ],
+      "time_to_value_max": 360,
+      "completion_rate_min": 0.75,
+      "personalization": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_9",
+    "description": "Feature discovery flow",
+    "inputs": {
+      "product_type": "complex_SaaS",
+      "features": [
+        "feature_highlights",
+        "use_case_examples",
+        "interactive_demos"
+      ],
+      "target_users": "new_users",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "feature_overview",
+        "interactive_demo",
+        "use_case_selection",
+        "first_use"
+      ],
+      "time_to_value_max": 420,
+      "completion_rate_min": 0.7,
+      "interactive_elements": true
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "ux_quality_weight": 0.35,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_10",
+    "description": "Compliance training onboarding",
+    "inputs": {
+      "product_type": "regulated_industry_tool",
+      "features": [
+        "compliance_overview",
+        "required_training",
+        "certification"
+      ],
+      "target_users": "regulated_users",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "compliance_overview",
+        "training_modules",
+        "quiz",
+        "certification",
+        "tool_access"
+      ],
+      "time_to_value_max": 1800,
+      "completion_rate_min": 0.95,
+      "certification_required": true
+    },
+    "scoring": {
+      "completeness_weight": 0.5,
+      "ux_quality_weight": 0.25,
+      "ttv_weight": 0.25
+    }
+  },
+  {
+    "id": "onboarding_11",
+    "description": "Enterprise SaaS onboarding",
+    "inputs": {
+      "product_type": "Enterprise SaaS",
+      "features": [
+        "sso_setup",
+        "admin_training",
+        "data_migration"
+      ],
+      "target_users": "business_users",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "welcome",
+        "setup",
+        "tutorial",
+        "action",
+        "completion"
+      ],
+      "time_to_value_max": 300,
+      "completion_rate_min": 0.7,
+      "personalization": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_12",
+    "description": "Mobile App onboarding",
+    "inputs": {
+      "product_type": "Mobile App",
+      "features": [
+        "permissions",
+        "push_notifications",
+        "profile_setup"
+      ],
+      "target_users": "mobile_users",
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "splash",
+        "permissions",
+        "tutorial",
+        "signup",
+        "first_action"
+      ],
+      "time_to_value_max": 180,
+      "completion_rate_min": 0.75,
+      "skip_option": true
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "ux_quality_weight": 0.35,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_13",
+    "description": "API Platform onboarding",
+    "inputs": {
+      "product_type": "API Platform",
+      "features": [
+        "api_keys",
+        "documentation",
+        "first_request"
+      ],
+      "target_users": "developers",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "signup",
+        "api_key",
+        "documentation",
+        "first_call",
+        "success_confirmation"
+      ],
+      "time_to_value_max": 600,
+      "completion_rate_min": 0.65,
+      "code_examples": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_14",
+    "description": "E-commerce onboarding",
+    "inputs": {
+      "product_type": "E-commerce",
+      "features": [
+        "account_creation",
+        "first_purchase",
+        "wishlist"
+      ],
+      "target_users": "enterprise_admins",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "kickoff",
+        "technical_setup",
+        "data_migration",
+        "training",
+        "go_live"
+      ],
+      "time_to_value_max": 2592000,
+      "completion_rate_min": 0.9,
+      "white_glove_support": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_15",
+    "description": "Developer Tools onboarding",
+    "inputs": {
+      "product_type": "Developer Tools",
+      "features": [
+        "installation",
+        "config",
+        "hello_world"
+      ],
+      "target_users": "individual_users",
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "signup",
+        "tour",
+        "template_selection",
+        "customization",
+        "first_save"
+      ],
+      "time_to_value_max": 240,
+      "completion_rate_min": 0.8,
+      "in_app_help": true
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "ux_quality_weight": 0.35,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_16",
+    "description": "Analytics Platform onboarding",
+    "inputs": {
+      "product_type": "Analytics Platform",
+      "features": [
+        "tracking_setup",
+        "dashboard",
+        "first_report"
+      ],
+      "target_users": "existing_free_users",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "plan_selection",
+        "payment",
+        "confirmation",
+        "feature_discovery"
+      ],
+      "time_to_value_max": 300,
+      "completion_rate_min": 0.7,
+      "seamless_transition": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_17",
+    "description": "CRM System onboarding",
+    "inputs": {
+      "product_type": "CRM System",
+      "features": [
+        "data_import",
+        "team_setup",
+        "workflow"
+      ],
+      "target_users": "team_leaders",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "workspace",
+        "invite_team",
+        "setup_permissions",
+        "create_project",
+        "collaboration"
+      ],
+      "time_to_value_max": 600,
+      "completion_rate_min": 0.75,
+      "team_collaboration": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  },
+  {
+    "id": "onboarding_18",
+    "description": "Project Management onboarding",
+    "inputs": {
+      "product_type": "Project Management",
+      "features": [
+        "workspace",
+        "first_project",
+        "collaboration"
+      ],
+      "target_users": "various_roles",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "role_selection",
+        "personalized_tour",
+        "relevant_features",
+        "first_task"
+      ],
+      "time_to_value_max": 360,
+      "completion_rate_min": 0.75,
+      "personalization": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "ux_quality_weight": 0.3,
+      "ttv_weight": 0.3
+    }
+  }
+]

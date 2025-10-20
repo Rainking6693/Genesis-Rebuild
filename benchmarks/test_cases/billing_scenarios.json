@@ -1,0 +1,579 @@
+[
+  {
+    "id": "billing_1",
+    "description": "Set up Stripe subscription",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "subscription",
+        "invoicing",
+        "webhooks",
+        "payment_methods"
+      ],
+      "billing_model": "recurring",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "payment_method",
+        "subscription",
+        "invoice",
+        "webhook_handling"
+      ],
+      "error_handling": true,
+      "test_mode": true,
+      "pci_compliance": true
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "security_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_2",
+    "description": "Implement usage-based billing",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "metered_billing",
+        "usage_tracking",
+        "reporting"
+      ],
+      "billing_model": "usage_based",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "usage_reporting",
+        "proration",
+        "invoicing",
+        "usage_limits"
+      ],
+      "error_handling": true,
+      "real_time_tracking": true,
+      "overage_handling": true
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "accuracy_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_3",
+    "description": "Configure invoicing system",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "auto_invoicing",
+        "custom_fields",
+        "pdf_generation",
+        "email_delivery"
+      ],
+      "billing_model": "subscription",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "invoice_generation",
+        "customization",
+        "delivery",
+        "tracking"
+      ],
+      "error_handling": true,
+      "branding": true,
+      "multi_currency": false
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "quality_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_4",
+    "description": "Set up multiple payment methods",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "credit_card",
+        "bank_transfer",
+        "paypal",
+        "apple_pay"
+      ],
+      "billing_model": "flexible",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "payment_method_storage",
+        "default_method",
+        "fallback",
+        "updates"
+      ],
+      "error_handling": true,
+      "payment_methods_min": 3,
+      "security": true
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "security_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_5",
+    "description": "Handle failed payments and dunning",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "retry_logic",
+        "customer_notification",
+        "grace_period",
+        "cancellation"
+      ],
+      "billing_model": "subscription",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "retry_schedule",
+        "notifications",
+        "grace_period",
+        "status_updates"
+      ],
+      "error_handling": true,
+      "retry_attempts_min": 3,
+      "notification_channels": [
+        "email",
+        "in_app"
+      ]
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "customer_experience_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_6",
+    "description": "Implement refund logic",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "full_refund",
+        "partial_refund",
+        "refund_tracking",
+        "notifications"
+      ],
+      "billing_model": "any",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "refund_api",
+        "validation",
+        "tracking",
+        "customer_notification"
+      ],
+      "error_handling": true,
+      "partial_refund_support": true,
+      "audit_trail": true
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "compliance_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_7",
+    "description": "Configure tax calculation",
+    "inputs": {
+      "platform": "Stripe_Tax",
+      "features": [
+        "auto_tax_calculation",
+        "multi_jurisdiction",
+        "reporting"
+      ],
+      "billing_model": "any",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "tax_calculation",
+        "jurisdiction_detection",
+        "reporting",
+        "exemptions"
+      ],
+      "error_handling": true,
+      "jurisdictions_min": 3,
+      "accuracy": 0.99
+    },
+    "scoring": {
+      "correctness_weight": 0.5,
+      "completeness_weight": 0.25,
+      "accuracy_weight": 0.25
+    }
+  },
+  {
+    "id": "billing_8",
+    "description": "Set up proration for plan changes",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "upgrade_proration",
+        "downgrade_proration",
+        "mid_cycle_changes"
+      ],
+      "billing_model": "subscription",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "proration_calculation",
+        "invoice_adjustment",
+        "customer_communication"
+      ],
+      "error_handling": true,
+      "proration_accuracy": 0.99,
+      "transparent_pricing": true
+    },
+    "scoring": {
+      "correctness_weight": 0.45,
+      "completeness_weight": 0.3,
+      "transparency_weight": 0.25
+    }
+  },
+  {
+    "id": "billing_9",
+    "description": "Implement dunning management",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "email_campaigns",
+        "retry_schedules",
+        "pause_subscriptions",
+        "recovery_tracking"
+      ],
+      "billing_model": "subscription",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "dunning_campaigns",
+        "retry_logic",
+        "recovery_metrics",
+        "automation"
+      ],
+      "error_handling": true,
+      "campaigns_min": 3,
+      "recovery_rate_target": 0.3
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "effectiveness_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_10",
+    "description": "Configure billing notifications",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "payment_success",
+        "payment_failure",
+        "upcoming_invoice",
+        "receipt"
+      ],
+      "channels": [
+        "email",
+        "webhook"
+      ],
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "email_templates",
+        "webhook_endpoints",
+        "notification_triggers",
+        "customization"
+      ],
+      "error_handling": true,
+      "notification_types_min": 5,
+      "delivery_rate_min": 0.98
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "reliability_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_11",
+    "description": "Set up multi-currency support",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "currency_conversion",
+        "localized_pricing",
+        "settlement"
+      ],
+      "currencies": [
+        "USD",
+        "EUR",
+        "GBP",
+        "JPY"
+      ],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "currency_detection",
+        "conversion",
+        "pricing_display",
+        "settlement"
+      ],
+      "error_handling": true,
+      "currencies_min": 4,
+      "exchange_rate_updates": "daily"
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "accuracy_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_12",
+    "description": "Implement billing analytics dashboard",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "mrr_tracking",
+        "churn_analysis",
+        "revenue_forecasting",
+        "customer_lifetime_value"
+      ],
+      "metrics": [
+        "mrr",
+        "arr",
+        "churn",
+        "ltv"
+      ],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "metrics_calculation",
+        "visualization",
+        "trends",
+        "alerts"
+      ],
+      "error_handling": true,
+      "metrics_min": 8,
+      "update_frequency": "real_time"
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "usefulness_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_13",
+    "description": "Set up Stripe subscription",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "subscription",
+        "invoicing",
+        "webhooks",
+        "payment_methods"
+      ],
+      "billing_model": "recurring",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "payment_method",
+        "subscription",
+        "invoice",
+        "webhook_handling"
+      ],
+      "error_handling": true,
+      "test_mode": true,
+      "pci_compliance": true
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "security_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_14",
+    "description": "Implement usage-based billing",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "metered_billing",
+        "usage_tracking",
+        "reporting"
+      ],
+      "billing_model": "usage_based",
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "usage_reporting",
+        "proration",
+        "invoicing",
+        "usage_limits"
+      ],
+      "error_handling": true,
+      "real_time_tracking": true,
+      "overage_handling": true
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "accuracy_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_15",
+    "description": "Configure invoicing system",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "auto_invoicing",
+        "custom_fields",
+        "pdf_generation",
+        "email_delivery"
+      ],
+      "billing_model": "subscription",
+      "complexity": "medium",
+      "data_size": "extra_large"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "invoice_generation",
+        "customization",
+        "delivery",
+        "tracking"
+      ],
+      "error_handling": true,
+      "branding": true,
+      "multi_currency": false
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "quality_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_16",
+    "description": "Set up multiple payment methods",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "credit_card",
+        "bank_transfer",
+        "paypal",
+        "apple_pay"
+      ],
+      "billing_model": "flexible",
+      "complexity": "medium",
+      "time_period": "realtime"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "payment_method_storage",
+        "default_method",
+        "fallback",
+        "updates"
+      ],
+      "error_handling": true,
+      "payment_methods_min": 3,
+      "security": true
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "security_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_17",
+    "description": "Handle failed payments and dunning",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "retry_logic",
+        "customer_notification",
+        "grace_period",
+        "cancellation"
+      ],
+      "billing_model": "subscription",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "retry_schedule",
+        "notifications",
+        "grace_period",
+        "status_updates"
+      ],
+      "error_handling": true,
+      "retry_attempts_min": 3,
+      "notification_channels": [
+        "email",
+        "in_app"
+      ]
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "customer_experience_weight": 0.3
+    }
+  },
+  {
+    "id": "billing_18",
+    "description": "Implement refund logic",
+    "inputs": {
+      "platform": "Stripe",
+      "features": [
+        "full_refund",
+        "partial_refund",
+        "refund_tracking",
+        "notifications"
+      ],
+      "billing_model": "any",
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "refund_api",
+        "validation",
+        "tracking",
+        "customer_notification"
+      ],
+      "error_handling": true,
+      "partial_refund_support": true,
+      "audit_trail": true
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "compliance_weight": 0.3
+    }
+  }
+]

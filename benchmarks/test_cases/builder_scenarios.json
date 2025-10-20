@@ -1,0 +1,406 @@
+[
+  {
+    "id": "frontend_1",
+    "description": "React UserProfile component with avatar and bio",
+    "inputs": {
+      "component_type": "UserProfile",
+      "framework": "React",
+      "features": ["avatar", "bio", "social_links", "edit_mode"],
+      "styling": "Tailwind CSS",
+      "typescript": true
+    },
+    "expected_outputs": {
+      "required_imports": ["React", "useState", "useEffect"],
+      "required_elements": ["component", "props", "interface", "return", "jsx"],
+      "required_patterns": ["error_handling", "loading_state", "prop_validation"],
+      "code_quality_min": 0.7,
+      "file_structure": ["component", "types", "styles"]
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "quality_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "frontend_2",
+    "description": "Next.js dashboard with data visualization",
+    "inputs": {
+      "component_type": "Dashboard",
+      "framework": "Next.js",
+      "features": ["charts", "filters", "real_time_data", "responsive"],
+      "styling": "Tailwind CSS",
+      "typescript": true
+    },
+    "expected_outputs": {
+      "required_imports": ["React", "useState", "useEffect", "Chart"],
+      "required_elements": ["async", "api_call", "error_handling", "loading"],
+      "required_patterns": ["data_fetching", "state_management", "responsive_design"],
+      "code_quality_min": 0.8,
+      "file_structure": ["component", "api", "types", "utils"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.35,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "frontend_3",
+    "description": "React form with real-time validation",
+    "inputs": {
+      "component_type": "RegistrationForm",
+      "framework": "React",
+      "features": ["validation", "async_checks", "error_display", "submission"],
+      "styling": "Material-UI",
+      "typescript": true
+    },
+    "expected_outputs": {
+      "required_imports": ["React", "useState", "useCallback"],
+      "required_elements": ["component", "validation", "error", "async", "submit"],
+      "required_patterns": ["debouncing", "error_handling", "accessibility"],
+      "code_quality_min": 0.75,
+      "file_structure": ["component", "validation", "types"]
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "quality_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "frontend_4",
+    "description": "Next.js infinite scroll component with virtualization",
+    "inputs": {
+      "component_type": "InfiniteList",
+      "framework": "Next.js",
+      "features": ["virtualization", "lazy_loading", "caching", "skeleton"],
+      "styling": "Tailwind CSS",
+      "typescript": true
+    },
+    "expected_outputs": {
+      "required_imports": ["React", "useState", "useEffect", "useRef"],
+      "required_elements": ["intersection_observer", "cache", "loading", "error"],
+      "required_patterns": ["performance_optimization", "memory_management"],
+      "code_quality_min": 0.8,
+      "file_structure": ["component", "hooks", "types", "utils"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.35,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "frontend_5",
+    "description": "React context provider with state management",
+    "inputs": {
+      "component_type": "ThemeProvider",
+      "framework": "React",
+      "features": ["context", "persistence", "dark_mode", "custom_themes"],
+      "styling": "CSS-in-JS",
+      "typescript": true
+    },
+    "expected_outputs": {
+      "required_imports": ["React", "createContext", "useContext", "useState"],
+      "required_elements": ["provider", "context", "hook", "persistence"],
+      "required_patterns": ["context_optimization", "memoization"],
+      "code_quality_min": 0.75,
+      "file_structure": ["context", "provider", "hooks", "types"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.35,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "frontend_6",
+    "description": "Next.js SSR page with SEO optimization",
+    "inputs": {
+      "component_type": "BlogPostPage",
+      "framework": "Next.js",
+      "features": ["ssr", "seo_meta", "og_tags", "json_ld"],
+      "styling": "Tailwind CSS",
+      "typescript": true
+    },
+    "expected_outputs": {
+      "required_imports": ["React", "GetServerSideProps", "Head"],
+      "required_elements": ["ssr_function", "meta_tags", "structured_data"],
+      "required_patterns": ["seo_optimization", "performance"],
+      "code_quality_min": 0.8,
+      "file_structure": ["page", "components", "types", "seo"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.35,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "backend_1",
+    "description": "Next.js API route for user authentication",
+    "inputs": {
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "framework": "Next.js",
+      "features": ["jwt_auth", "validation", "rate_limiting"],
+      "database": "PostgreSQL"
+    },
+    "expected_outputs": {
+      "required_imports": ["NextApiRequest", "NextApiResponse"],
+      "required_elements": ["async", "try_catch", "validation", "response", "status_codes"],
+      "required_patterns": ["input_validation", "error_handling", "security"],
+      "code_quality_min": 0.8,
+      "security_checks": ["sql_injection", "xss", "rate_limiting"]
+    },
+    "scoring": {
+      "correctness_weight": 0.3,
+      "quality_weight": 0.3,
+      "best_practices_weight": 0.4
+    }
+  },
+  {
+    "id": "backend_2",
+    "description": "REST API for e-commerce product management",
+    "inputs": {
+      "endpoints": ["/api/products", "/api/products/:id"],
+      "methods": ["GET", "POST", "PUT", "DELETE"],
+      "framework": "Express.js",
+      "features": ["crud", "pagination", "filtering", "validation"],
+      "database": "MongoDB"
+    },
+    "expected_outputs": {
+      "required_imports": ["express", "mongoose"],
+      "required_elements": ["router", "middleware", "controller", "model", "error_handling"],
+      "required_patterns": ["rest_conventions", "validation", "pagination", "error_responses"],
+      "code_quality_min": 0.75,
+      "api_design": ["consistent_naming", "proper_status_codes", "error_messages"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.3,
+      "best_practices_weight": 0.35
+    }
+  },
+  {
+    "id": "backend_3",
+    "description": "GraphQL API with subscription support",
+    "inputs": {
+      "endpoint": "/graphql",
+      "framework": "Apollo Server",
+      "features": ["queries", "mutations", "subscriptions", "caching"],
+      "database": "PostgreSQL"
+    },
+    "expected_outputs": {
+      "required_imports": ["apollo-server", "graphql"],
+      "required_elements": ["schema", "resolvers", "subscriptions", "dataloaders"],
+      "required_patterns": ["n_plus_one_prevention", "batching", "caching"],
+      "code_quality_min": 0.8,
+      "api_design": ["schema_design", "resolver_structure", "error_handling"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.35,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "backend_4",
+    "description": "WebSocket server for real-time chat",
+    "inputs": {
+      "protocol": "WebSocket",
+      "framework": "Socket.io",
+      "features": ["rooms", "private_messages", "typing_indicators", "presence"],
+      "database": "Redis"
+    },
+    "expected_outputs": {
+      "required_imports": ["socket.io", "redis"],
+      "required_elements": ["connection_handler", "rooms", "events", "middleware"],
+      "required_patterns": ["connection_management", "error_handling", "scaling"],
+      "code_quality_min": 0.75,
+      "real_time": ["event_handling", "room_management", "persistence"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.3,
+      "best_practices_weight": 0.35
+    }
+  },
+  {
+    "id": "backend_5",
+    "description": "Serverless function with external API integration",
+    "inputs": {
+      "endpoint": "/api/weather",
+      "framework": "Vercel Serverless",
+      "features": ["api_integration", "caching", "error_handling", "retry"],
+      "external_apis": ["OpenWeather"]
+    },
+    "expected_outputs": {
+      "required_imports": ["fetch", "cache"],
+      "required_elements": ["async", "try_catch", "cache_strategy", "timeout"],
+      "required_patterns": ["api_key_management", "error_handling", "retry_logic"],
+      "code_quality_min": 0.75,
+      "integration": ["rate_limiting", "caching", "fallbacks"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.3,
+      "best_practices_weight": 0.35
+    }
+  },
+  {
+    "id": "backend_6",
+    "description": "Background job processor with queue management",
+    "inputs": {
+      "system": "Job Queue",
+      "framework": "Bull/Redis",
+      "features": ["job_scheduling", "retry_logic", "monitoring", "priorities"],
+      "database": "Redis"
+    },
+    "expected_outputs": {
+      "required_imports": ["bull", "redis"],
+      "required_elements": ["queue", "processor", "retry_config", "monitoring"],
+      "required_patterns": ["error_handling", "job_lifecycle", "concurrency"],
+      "code_quality_min": 0.8,
+      "queue_design": ["job_priorities", "retry_strategy", "failure_handling"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.35,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "database_1",
+    "description": "Database schema for multi-tenant SaaS",
+    "inputs": {
+      "database_type": "PostgreSQL",
+      "entities": ["users", "organizations", "subscriptions", "projects"],
+      "features": ["multi_tenancy", "soft_delete", "audit_trail"],
+      "relationships": ["one_to_many", "many_to_many"]
+    },
+    "expected_outputs": {
+      "required_elements": ["tables", "indexes", "constraints", "migrations"],
+      "required_patterns": ["foreign_keys", "unique_constraints", "timestamps"],
+      "code_quality_min": 0.8,
+      "database_design": ["normalization", "indexing_strategy", "data_types"]
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "quality_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "database_2",
+    "description": "Database migration system with rollback",
+    "inputs": {
+      "database_type": "PostgreSQL",
+      "migration_tool": "Prisma",
+      "features": ["versioning", "rollback", "seed_data", "schema_validation"],
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": ["up_migration", "down_migration", "validation"],
+      "required_patterns": ["transaction_safety", "idempotency", "error_handling"],
+      "code_quality_min": 0.75,
+      "migration_design": ["reversibility", "data_safety", "ordering"]
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "quality_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "integration_1",
+    "description": "Payment gateway integration with Stripe",
+    "inputs": {
+      "service": "Payment Processing",
+      "provider": "Stripe",
+      "features": ["checkout", "webhooks", "refunds", "subscriptions"],
+      "framework": "Next.js"
+    },
+    "expected_outputs": {
+      "required_imports": ["stripe", "webhook"],
+      "required_elements": ["checkout_session", "webhook_handler", "idempotency"],
+      "required_patterns": ["webhook_verification", "error_handling", "logging"],
+      "code_quality_min": 0.8,
+      "integration_design": ["security", "idempotency", "webhook_handling"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.3,
+      "best_practices_weight": 0.35
+    }
+  },
+  {
+    "id": "integration_2",
+    "description": "OAuth 2.0 authentication provider integration",
+    "inputs": {
+      "service": "Authentication",
+      "providers": ["Google", "GitHub", "Microsoft"],
+      "features": ["oauth_flow", "token_management", "user_sync"],
+      "framework": "Next.js"
+    },
+    "expected_outputs": {
+      "required_imports": ["next-auth", "oauth"],
+      "required_elements": ["provider_config", "callbacks", "session_handling"],
+      "required_patterns": ["security", "state_validation", "token_refresh"],
+      "code_quality_min": 0.8,
+      "oauth_design": ["pkce", "state_parameter", "token_storage"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.3,
+      "best_practices_weight": 0.35
+    }
+  },
+  {
+    "id": "fullstack_1",
+    "description": "Complete CRUD feature for blog posts",
+    "inputs": {
+      "feature": "Blog Management",
+      "framework": "Next.js",
+      "components": ["post_list", "post_editor", "post_view"],
+      "features": ["create", "read", "update", "delete", "draft_mode"],
+      "database": "PostgreSQL"
+    },
+    "expected_outputs": {
+      "required_files": ["component", "api_route", "types", "hooks", "utils"],
+      "required_elements": ["crud_operations", "form_validation", "error_handling", "optimistic_updates"],
+      "required_patterns": ["separation_of_concerns", "reusability", "type_safety"],
+      "code_quality_min": 0.75,
+      "architecture": ["component_hierarchy", "data_flow", "error_boundaries"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.35,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "fullstack_2",
+    "description": "E-commerce shopping cart with checkout flow",
+    "inputs": {
+      "feature": "Shopping Cart",
+      "framework": "Next.js",
+      "components": ["cart", "checkout", "payment", "confirmation"],
+      "features": ["cart_management", "inventory_check", "payment_processing"],
+      "database": "PostgreSQL"
+    },
+    "expected_outputs": {
+      "required_files": ["components", "api_routes", "types", "context", "hooks"],
+      "required_elements": ["state_management", "transaction_handling", "validation"],
+      "required_patterns": ["optimistic_ui", "error_recovery", "atomic_operations"],
+      "code_quality_min": 0.8,
+      "architecture": ["state_flow", "error_handling", "performance"]
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "quality_weight": 0.35,
+      "best_practices_weight": 0.3
+    }
+  }
+]

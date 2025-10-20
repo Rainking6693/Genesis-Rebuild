@@ -1,0 +1,372 @@
+[
+  {
+    "id": "test_gen_1",
+    "description": "Test case generation for user authentication module",
+    "inputs": {
+      "module": "user_authentication",
+      "functions": ["login", "logout", "register", "reset_password"],
+      "complexity": "medium",
+      "coverage_target": 0.85
+    },
+    "expected_outputs": {
+      "min_test_cases": 8,
+      "required_scenarios": ["success", "failure", "edge_case", "security"],
+      "coverage_min": 0.8,
+      "test_types": ["unit", "integration"]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "test_gen_2",
+    "description": "Test case generation for payment processing",
+    "inputs": {
+      "module": "payment_processor",
+      "functions": ["process_payment", "refund", "verify_card"],
+      "complexity": "high",
+      "coverage_target": 0.9
+    },
+    "expected_outputs": {
+      "min_test_cases": 12,
+      "required_scenarios": ["success", "failure", "timeout", "retry", "edge_case"],
+      "coverage_min": 0.85,
+      "test_types": ["unit", "integration", "end_to_end"]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "quality_weight": 0.35,
+      "coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "test_gen_3",
+    "description": "Unit test suite for React components",
+    "inputs": {
+      "module": "react_components",
+      "components": ["Button", "Form", "Modal", "Table"],
+      "complexity": "medium",
+      "coverage_target": 0.85
+    },
+    "expected_outputs": {
+      "min_test_cases": 10,
+      "required_scenarios": ["rendering", "props", "events", "state_changes"],
+      "coverage_min": 0.8,
+      "test_types": ["unit", "snapshot"]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "test_gen_4",
+    "description": "API endpoint test generation",
+    "inputs": {
+      "module": "api_endpoints",
+      "endpoints": ["/users", "/products", "/orders"],
+      "methods": ["GET", "POST", "PUT", "DELETE"],
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_test_cases": 16,
+      "required_scenarios": ["success", "auth_failure", "validation_errors", "not_found"],
+      "coverage_min": 0.85,
+      "test_types": ["integration", "contract"]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "quality_weight": 0.35,
+      "coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "test_gen_5",
+    "description": "Database operation test cases",
+    "inputs": {
+      "module": "database_layer",
+      "operations": ["create", "read", "update", "delete", "query"],
+      "complexity": "medium",
+      "coverage_target": 0.9
+    },
+    "expected_outputs": {
+      "min_test_cases": 10,
+      "required_scenarios": ["success", "constraint_violation", "race_condition", "transaction"],
+      "coverage_min": 0.85,
+      "test_types": ["unit", "integration"]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "test_gen_6",
+    "description": "WebSocket real-time feature tests",
+    "inputs": {
+      "module": "websocket_server",
+      "features": ["connection", "rooms", "broadcast", "disconnect"],
+      "complexity": "high",
+      "coverage_target": 0.8
+    },
+    "expected_outputs": {
+      "min_test_cases": 12,
+      "required_scenarios": ["connect", "disconnect", "reconnect", "message_delivery"],
+      "coverage_min": 0.75,
+      "test_types": ["integration", "load"]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "quality_weight": 0.35,
+      "coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "bug_detection_1",
+    "description": "Bug detection in e-commerce checkout flow",
+    "inputs": {
+      "code_module": "checkout_flow",
+      "known_bugs": 3,
+      "bug_types": ["null_pointer", "race_condition", "validation_error"],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "bugs_found_min": 2,
+      "false_positive_max": 1,
+      "bug_severity_classification": true,
+      "reproduction_steps": true
+    },
+    "scoring": {
+      "detection_rate_weight": 0.5,
+      "false_positive_weight": 0.25,
+      "classification_weight": 0.25
+    }
+  },
+  {
+    "id": "bug_detection_2",
+    "description": "Security vulnerability detection in API endpoints",
+    "inputs": {
+      "code_module": "api_endpoints",
+      "known_vulnerabilities": 4,
+      "vulnerability_types": ["sql_injection", "xss", "authentication_bypass", "rate_limiting"],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "bugs_found_min": 3,
+      "false_positive_max": 2,
+      "severity_classification": ["critical", "high", "medium"],
+      "remediation_suggestions": true
+    },
+    "scoring": {
+      "detection_rate_weight": 0.45,
+      "false_positive_weight": 0.3,
+      "remediation_weight": 0.25
+    }
+  },
+  {
+    "id": "bug_detection_3",
+    "description": "Memory leak detection in long-running processes",
+    "inputs": {
+      "code_module": "background_jobs",
+      "known_bugs": 2,
+      "bug_types": ["memory_leak", "connection_pool_exhaustion"],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "bugs_found_min": 1,
+      "false_positive_max": 1,
+      "performance_impact_analysis": true,
+      "remediation_suggestions": true
+    },
+    "scoring": {
+      "detection_rate_weight": 0.5,
+      "false_positive_weight": 0.25,
+      "impact_analysis_weight": 0.25
+    }
+  },
+  {
+    "id": "bug_detection_4",
+    "description": "Concurrency bug detection in multi-threaded code",
+    "inputs": {
+      "code_module": "concurrent_processor",
+      "known_bugs": 3,
+      "bug_types": ["race_condition", "deadlock", "data_corruption"],
+      "complexity": "very_high"
+    },
+    "expected_outputs": {
+      "bugs_found_min": 2,
+      "false_positive_max": 2,
+      "concurrency_analysis": true,
+      "reproduction_conditions": true
+    },
+    "scoring": {
+      "detection_rate_weight": 0.5,
+      "false_positive_weight": 0.25,
+      "analysis_weight": 0.25
+    }
+  },
+  {
+    "id": "edge_case_1",
+    "description": "Edge case identification for data validation",
+    "inputs": {
+      "module": "form_validation",
+      "fields": ["email", "phone", "date", "currency", "password"],
+      "validation_rules": ["format", "length", "required", "custom"]
+    },
+    "expected_outputs": {
+      "min_edge_cases": 15,
+      "edge_case_types": ["boundary", "null", "empty", "special_chars", "overflow"],
+      "test_data_provided": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "diversity_weight": 0.3,
+      "realism_weight": 0.3
+    }
+  },
+  {
+    "id": "edge_case_2",
+    "description": "Boundary condition tests for pagination",
+    "inputs": {
+      "module": "pagination_logic",
+      "operations": ["first_page", "last_page", "next", "prev"],
+      "data_sizes": ["empty", "single", "exact_page_size", "large"]
+    },
+    "expected_outputs": {
+      "min_edge_cases": 12,
+      "edge_case_types": ["empty_dataset", "single_item", "boundary_values", "overflow"],
+      "test_data_provided": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "diversity_weight": 0.3,
+      "realism_weight": 0.3
+    }
+  },
+  {
+    "id": "integration_test_1",
+    "description": "Integration test suite for microservices",
+    "inputs": {
+      "services": ["auth", "payment", "notification", "inventory"],
+      "interactions": ["service_to_service", "event_driven", "api_calls"],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "min_test_cases": 10,
+      "test_scenarios": ["happy_path", "service_failure", "timeout", "retry", "rollback"],
+      "mocking_strategy": ["external_apis", "databases"],
+      "coverage_min": 0.75
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "realism_weight": 0.35,
+      "coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "integration_test_2",
+    "description": "Third-party API integration tests",
+    "inputs": {
+      "integrations": ["stripe", "sendgrid", "twilio", "aws_s3"],
+      "operations": ["create", "read", "update", "webhook"],
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_test_cases": 12,
+      "test_scenarios": ["success", "api_failure", "timeout", "rate_limit", "invalid_credentials"],
+      "mocking_strategy": ["api_mocks", "webhook_simulation"],
+      "coverage_min": 0.8
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "realism_weight": 0.35,
+      "coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "e2e_test_1",
+    "description": "End-to-end user journey tests",
+    "inputs": {
+      "user_flows": ["signup", "login", "purchase", "support"],
+      "platforms": ["web", "mobile"],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "min_test_cases": 8,
+      "test_scenarios": ["happy_path", "error_recovery", "edge_cases"],
+      "assertions": ["ui_state", "data_persistence", "notifications"],
+      "coverage_min": 0.75
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "realism_weight": 0.4,
+      "coverage_weight": 0.25
+    }
+  },
+  {
+    "id": "regression_test_1",
+    "description": "Regression test suite for critical features",
+    "inputs": {
+      "features": ["authentication", "payment", "data_export", "notifications"],
+      "previous_bugs": ["auth_bypass", "payment_double_charge", "data_leak"],
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_test_cases": 15,
+      "test_scenarios": ["previous_bugs", "related_features", "integration_points"],
+      "automation_ready": true,
+      "coverage_min": 0.85
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "automation_weight": 0.3,
+      "coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "performance_test_1",
+    "description": "Performance test strategy for API endpoints",
+    "inputs": {
+      "endpoints": ["/api/users", "/api/products", "/api/orders"],
+      "expected_load": "1000 requests per second",
+      "response_time_target": "200ms",
+      "test_types": ["load", "stress", "spike", "endurance"]
+    },
+    "expected_outputs": {
+      "test_scenarios": ["normal_load", "peak_load", "sustained_load", "spike"],
+      "metrics_tracked": ["response_time", "throughput", "error_rate", "resource_usage"],
+      "thresholds_defined": true,
+      "reporting_strategy": true
+    },
+    "scoring": {
+      "scenario_coverage_weight": 0.35,
+      "metrics_weight": 0.35,
+      "strategy_weight": 0.3
+    }
+  },
+  {
+    "id": "coverage_analysis_1",
+    "description": "Code coverage gap analysis",
+    "inputs": {
+      "modules": ["auth", "payment", "api", "database"],
+      "current_coverage": 0.65,
+      "target_coverage": 0.85,
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "uncovered_lines": true,
+      "critical_paths_identified": true,
+      "test_recommendations": true,
+      "priority_ranking": true
+    },
+    "scoring": {
+      "analysis_depth_weight": 0.4,
+      "recommendation_quality_weight": 0.3,
+      "prioritization_weight": 0.3
+    }
+  }
+]

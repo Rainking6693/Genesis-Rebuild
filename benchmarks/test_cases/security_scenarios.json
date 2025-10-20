@@ -1,0 +1,459 @@
+[
+  {
+    "id": "security_1",
+    "description": "SQL injection vulnerability detection",
+    "inputs": {
+      "code_module": "database_queries",
+      "vulnerability_type": "sql_injection",
+      "code_language": "Python",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 2,
+      "false_positives_max": 1,
+      "required_checks": [
+        "parameterized_queries",
+        "input_validation",
+        "prepared_statements"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_2",
+    "description": "Cross-site scripting (XSS) detection",
+    "inputs": {
+      "code_module": "user_input_handling",
+      "vulnerability_type": "xss",
+      "code_language": "JavaScript",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 2,
+      "false_positives_max": 1,
+      "required_checks": [
+        "input_sanitization",
+        "output_encoding",
+        "content_security_policy"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_3",
+    "description": "Authentication bypass vulnerability",
+    "inputs": {
+      "code_module": "authentication_system",
+      "vulnerability_type": "authentication_bypass",
+      "code_language": "Python",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 1,
+      "false_positives_max": 0,
+      "required_checks": [
+        "password_hashing",
+        "session_management",
+        "multi_factor_auth"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.5,
+      "false_positive_weight": 0.25,
+      "best_practices_weight": 0.25
+    }
+  },
+  {
+    "id": "security_4",
+    "description": "Insecure dependencies audit",
+    "inputs": {
+      "code_module": "package_dependencies",
+      "vulnerability_type": "vulnerable_dependencies",
+      "dependency_file": "requirements.txt",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 3,
+      "false_positives_max": 2,
+      "required_checks": [
+        "version_checking",
+        "cve_database",
+        "update_recommendations"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_5",
+    "description": "Hardcoded credentials detection",
+    "inputs": {
+      "code_module": "configuration_files",
+      "vulnerability_type": "hardcoded_secrets",
+      "code_language": "Python",
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 2,
+      "false_positives_max": 1,
+      "required_checks": [
+        "password_detection",
+        "api_key_detection",
+        "environment_variables"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_6",
+    "description": "Path traversal vulnerability detection",
+    "inputs": {
+      "code_module": "file_operations",
+      "vulnerability_type": "path_traversal",
+      "code_language": "Python",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 1,
+      "false_positives_max": 0,
+      "required_checks": [
+        "path_validation",
+        "input_sanitization",
+        "chroot_jail"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_7",
+    "description": "CSRF protection audit",
+    "inputs": {
+      "code_module": "web_forms",
+      "vulnerability_type": "csrf",
+      "code_language": "JavaScript",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 1,
+      "false_positives_max": 1,
+      "required_checks": [
+        "csrf_token",
+        "same_origin_policy",
+        "http_only_cookies"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_8",
+    "description": "Rate limiting vulnerabilities",
+    "inputs": {
+      "code_module": "api_endpoints",
+      "vulnerability_type": "missing_rate_limiting",
+      "code_language": "Python",
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 2,
+      "false_positives_max": 1,
+      "required_checks": [
+        "rate_limiter",
+        "request_throttling",
+        "ip_blocking"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_9",
+    "description": "Weak cryptography detection",
+    "inputs": {
+      "code_module": "encryption_utilities",
+      "vulnerability_type": "weak_cryptography",
+      "code_language": "Python",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 2,
+      "false_positives_max": 1,
+      "required_checks": [
+        "strong_algorithms",
+        "key_management",
+        "random_generation"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_10",
+    "description": "Access control vulnerabilities",
+    "inputs": {
+      "code_module": "authorization_system",
+      "vulnerability_type": "broken_access_control",
+      "code_language": "Python",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 2,
+      "false_positives_max": 1,
+      "required_checks": [
+        "role_based_access",
+        "resource_permissions",
+        "privilege_escalation"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.5,
+      "false_positive_weight": 0.25,
+      "best_practices_weight": 0.25
+    }
+  },
+  {
+    "id": "security_11",
+    "description": "API security best practices audit",
+    "inputs": {
+      "code_module": "rest_api",
+      "vulnerability_type": "api_security",
+      "code_language": "Python",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 3,
+      "false_positives_max": 2,
+      "required_checks": [
+        "authentication",
+        "authorization",
+        "input_validation",
+        "rate_limiting"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_12",
+    "description": "Container security scanning",
+    "inputs": {
+      "code_module": "docker_configuration",
+      "vulnerability_type": "container_security",
+      "configuration_file": "Dockerfile",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 2,
+      "false_positives_max": 1,
+      "required_checks": [
+        "base_image_vulnerabilities",
+        "privilege_escalation",
+        "secret_management"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_13",
+    "description": "SQL injection vulnerability detection",
+    "inputs": {
+      "code_module": "database_queries",
+      "vulnerability_type": "sql_injection",
+      "code_language": "Python",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 2,
+      "false_positives_max": 1,
+      "required_checks": [
+        "parameterized_queries",
+        "input_validation",
+        "prepared_statements"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_14",
+    "description": "Cross-site scripting (XSS) detection",
+    "inputs": {
+      "code_module": "user_input_handling",
+      "vulnerability_type": "xss",
+      "code_language": "JavaScript",
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 2,
+      "false_positives_max": 1,
+      "required_checks": [
+        "input_sanitization",
+        "output_encoding",
+        "content_security_policy"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_15",
+    "description": "Authentication bypass vulnerability",
+    "inputs": {
+      "code_module": "authentication_system",
+      "vulnerability_type": "authentication_bypass",
+      "code_language": "Python",
+      "complexity": "high",
+      "data_size": "extra_large"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 1,
+      "false_positives_max": 0,
+      "required_checks": [
+        "password_hashing",
+        "session_management",
+        "multi_factor_auth"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.5,
+      "false_positive_weight": 0.25,
+      "best_practices_weight": 0.25
+    }
+  },
+  {
+    "id": "security_16",
+    "description": "Insecure dependencies audit",
+    "inputs": {
+      "code_module": "package_dependencies",
+      "vulnerability_type": "vulnerable_dependencies",
+      "dependency_file": "requirements.txt",
+      "complexity": "medium",
+      "time_period": "realtime"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 3,
+      "false_positives_max": 2,
+      "required_checks": [
+        "version_checking",
+        "cve_database",
+        "update_recommendations"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_17",
+    "description": "Hardcoded credentials detection",
+    "inputs": {
+      "code_module": "configuration_files",
+      "vulnerability_type": "hardcoded_secrets",
+      "code_language": "Python",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 2,
+      "false_positives_max": 1,
+      "required_checks": [
+        "password_detection",
+        "api_key_detection",
+        "environment_variables"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  },
+  {
+    "id": "security_18",
+    "description": "Path traversal vulnerability detection",
+    "inputs": {
+      "code_module": "file_operations",
+      "vulnerability_type": "path_traversal",
+      "code_language": "Python",
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "vulnerabilities_found_min": 1,
+      "false_positives_max": 0,
+      "required_checks": [
+        "path_validation",
+        "input_sanitization",
+        "chroot_jail"
+      ],
+      "severity_classification": true
+    },
+    "scoring": {
+      "detection_accuracy_weight": 0.4,
+      "false_positive_weight": 0.3,
+      "best_practices_weight": 0.3
+    }
+  }
+]

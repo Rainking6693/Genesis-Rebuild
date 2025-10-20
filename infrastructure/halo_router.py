@@ -295,6 +295,16 @@ class HALORouter:
                 cost_tier="medium",
                 success_rate=0.88
             ),
+
+            # Self-Improvement & Evolution (expensive, meta-programming)
+            "darwin_agent": AgentCapability(
+                agent_name="darwin_agent",
+                supported_task_types=["evolution", "improve_agent", "fix_bug", "optimize"],
+                skills=["self_improvement", "code_generation", "benchmark_validation", "agent_evolution", "meta_programming"],
+                cost_tier="expensive",  # Uses GPT-4o/Claude for meta-programming
+                success_rate=0.0,  # Will learn over time
+                max_concurrent_tasks=3  # Evolution is resource-intensive
+            ),
         }
 
     def _initialize_routing_rules(self) -> List[RoutingRule]:
@@ -483,6 +493,36 @@ class HALORouter:
                 target_agent="builder_agent",
                 priority=5,
                 explanation="Generic tasks route to Builder Agent as default handler"
+            ),
+
+            # Darwin Evolution Rules (SE-Darwin Integration)
+            RoutingRule(
+                rule_id="evolution_general",
+                condition={"task_type": "evolution"},
+                target_agent="darwin_agent",
+                priority=20,
+                explanation="General evolution tasks route to Darwin for self-improvement"
+            ),
+            RoutingRule(
+                rule_id="evolution_agent_improvement",
+                condition={"task_type": "improve_agent"},
+                target_agent="darwin_agent",
+                priority=20,
+                explanation="Agent improvement requests route to Darwin"
+            ),
+            RoutingRule(
+                rule_id="evolution_bug_fix",
+                condition={"task_type": "fix_bug", "target": "agent_code"},
+                target_agent="darwin_agent",
+                priority=15,
+                explanation="Agent bug fixes route to Darwin for code evolution"
+            ),
+            RoutingRule(
+                rule_id="evolution_performance",
+                condition={"task_type": "optimize", "target": "agent_performance"},
+                target_agent="darwin_agent",
+                priority=15,
+                explanation="Agent performance optimization routes to Darwin"
             ),
         ]
 

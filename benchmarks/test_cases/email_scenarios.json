@@ -1,0 +1,521 @@
+[
+  {
+    "id": "email_1",
+    "description": "Welcome email series (3 emails)",
+    "inputs": {
+      "campaign_type": "welcome_series",
+      "emails_count": 3,
+      "goal": "activation",
+      "target_audience": "new_signups",
+      "industry": "SaaS"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "preheader",
+        "body",
+        "cta",
+        "footer"
+      ],
+      "personalization": true,
+      "emails_min": 3,
+      "timing_schedule": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.35,
+      "engagement_weight": 0.35,
+      "effectiveness_weight": 0.3
+    }
+  },
+  {
+    "id": "email_2",
+    "description": "Product launch announcement",
+    "inputs": {
+      "campaign_type": "announcement",
+      "emails_count": 1,
+      "goal": "awareness",
+      "target_audience": "existing_customers",
+      "urgency": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "hero_image",
+        "announcement",
+        "features",
+        "cta"
+      ],
+      "personalization": false,
+      "mobile_optimized": true,
+      "social_sharing": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.3,
+      "engagement_weight": 0.4,
+      "clarity_weight": 0.3
+    }
+  },
+  {
+    "id": "email_3",
+    "description": "Cart abandonment recovery",
+    "inputs": {
+      "campaign_type": "cart_abandonment",
+      "emails_count": 2,
+      "goal": "conversion",
+      "target_audience": "abandoned_carts",
+      "discount_offered": true
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "cart_items",
+        "urgency",
+        "cta",
+        "discount"
+      ],
+      "personalization": true,
+      "product_images": true,
+      "timing_hours": [
+        1,
+        24
+      ]
+    },
+    "scoring": {
+      "deliverability_weight": 0.3,
+      "engagement_weight": 0.35,
+      "conversion_weight": 0.35
+    }
+  },
+  {
+    "id": "email_4",
+    "description": "Re-engagement campaign",
+    "inputs": {
+      "campaign_type": "reengagement",
+      "emails_count": 3,
+      "goal": "reactivation",
+      "target_audience": "inactive_users",
+      "special_offer": true
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "win_back_message",
+        "value_proposition",
+        "incentive",
+        "cta"
+      ],
+      "personalization": true,
+      "a_b_testing": true,
+      "unsubscribe_option": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.35,
+      "engagement_weight": 0.35,
+      "effectiveness_weight": 0.3
+    }
+  },
+  {
+    "id": "email_5",
+    "description": "Newsletter campaign",
+    "inputs": {
+      "campaign_type": "newsletter",
+      "emails_count": 1,
+      "goal": "engagement",
+      "target_audience": "subscribers",
+      "frequency": "monthly"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "header",
+        "content_sections",
+        "links",
+        "footer"
+      ],
+      "personalization": true,
+      "content_variety": true,
+      "mobile_responsive": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.35,
+      "engagement_weight": 0.35,
+      "content_quality_weight": 0.3
+    }
+  },
+  {
+    "id": "email_6",
+    "description": "Promotional campaign with discount",
+    "inputs": {
+      "campaign_type": "promotional",
+      "emails_count": 1,
+      "goal": "sales",
+      "target_audience": "active_users",
+      "discount_percentage": 20
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "discount_code",
+        "product_showcase",
+        "urgency",
+        "cta"
+      ],
+      "personalization": true,
+      "countdown_timer": true,
+      "clear_value": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.3,
+      "engagement_weight": 0.35,
+      "conversion_weight": 0.35
+    }
+  },
+  {
+    "id": "email_7",
+    "description": "Event invitation campaign",
+    "inputs": {
+      "campaign_type": "event_invitation",
+      "emails_count": 2,
+      "goal": "registrations",
+      "target_audience": "prospects_and_customers",
+      "event_type": "webinar"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "event_details",
+        "speakers",
+        "agenda",
+        "registration_cta"
+      ],
+      "personalization": true,
+      "calendar_invite": true,
+      "reminder_schedule": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.35,
+      "engagement_weight": 0.35,
+      "conversion_weight": 0.3
+    }
+  },
+  {
+    "id": "email_8",
+    "description": "Customer feedback request",
+    "inputs": {
+      "campaign_type": "feedback_request",
+      "emails_count": 1,
+      "goal": "survey_completion",
+      "target_audience": "recent_customers",
+      "incentive": "gift_card"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "request",
+        "survey_link",
+        "incentive",
+        "thank_you"
+      ],
+      "personalization": true,
+      "brevity": true,
+      "easy_access": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.35,
+      "engagement_weight": 0.35,
+      "response_rate_weight": 0.3
+    }
+  },
+  {
+    "id": "email_9",
+    "description": "Referral program campaign",
+    "inputs": {
+      "campaign_type": "referral",
+      "emails_count": 1,
+      "goal": "referrals",
+      "target_audience": "happy_customers",
+      "reward": "credit"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "program_benefits",
+        "referral_link",
+        "rewards",
+        "cta"
+      ],
+      "personalization": true,
+      "shareable_links": true,
+      "tracking_enabled": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.3,
+      "engagement_weight": 0.35,
+      "viral_potential_weight": 0.35
+    }
+  },
+  {
+    "id": "email_10",
+    "description": "Milestone celebration email",
+    "inputs": {
+      "campaign_type": "milestone",
+      "emails_count": 1,
+      "goal": "engagement",
+      "target_audience": "long_term_customers",
+      "milestone_type": "anniversary"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "celebration_message",
+        "personalized_stats",
+        "special_offer",
+        "gratitude"
+      ],
+      "personalization": true,
+      "celebratory_tone": true,
+      "exclusive_offer": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.3,
+      "engagement_weight": 0.4,
+      "emotional_connection_weight": 0.3
+    }
+  },
+  {
+    "id": "email_11",
+    "description": "Educational drip campaign (5 emails)",
+    "inputs": {
+      "campaign_type": "educational_drip",
+      "emails_count": 5,
+      "goal": "education",
+      "target_audience": "new_users",
+      "topic": "product_mastery"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "educational_content",
+        "examples",
+        "resources",
+        "next_steps"
+      ],
+      "personalization": true,
+      "emails_min": 5,
+      "progressive_learning": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.35,
+      "engagement_weight": 0.35,
+      "educational_value_weight": 0.3
+    }
+  },
+  {
+    "id": "email_12",
+    "description": "Flash sale campaign",
+    "inputs": {
+      "campaign_type": "flash_sale",
+      "emails_count": 1,
+      "goal": "immediate_sales",
+      "target_audience": "subscribers",
+      "duration_hours": 24
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "urgency",
+        "product_highlight",
+        "countdown",
+        "cta"
+      ],
+      "personalization": true,
+      "mobile_first": true,
+      "scarcity_messaging": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.3,
+      "engagement_weight": 0.35,
+      "urgency_weight": 0.35
+    }
+  },
+  {
+    "id": "email_13",
+    "description": "Welcome email series (3 emails)",
+    "inputs": {
+      "campaign_type": "welcome_series",
+      "emails_count": 3,
+      "goal": "activation",
+      "target_audience": "new_signups",
+      "industry": "SaaS",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "preheader",
+        "body",
+        "cta",
+        "footer"
+      ],
+      "personalization": true,
+      "emails_min": 3,
+      "timing_schedule": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.35,
+      "engagement_weight": 0.35,
+      "effectiveness_weight": 0.3
+    }
+  },
+  {
+    "id": "email_14",
+    "description": "Product launch announcement",
+    "inputs": {
+      "campaign_type": "announcement",
+      "emails_count": 1,
+      "goal": "awareness",
+      "target_audience": "existing_customers",
+      "urgency": "low",
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "hero_image",
+        "announcement",
+        "features",
+        "cta"
+      ],
+      "personalization": false,
+      "mobile_optimized": true,
+      "social_sharing": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.3,
+      "engagement_weight": 0.4,
+      "clarity_weight": 0.3
+    }
+  },
+  {
+    "id": "email_15",
+    "description": "Cart abandonment recovery",
+    "inputs": {
+      "campaign_type": "cart_abandonment",
+      "emails_count": 2,
+      "goal": "conversion",
+      "target_audience": "abandoned_carts",
+      "discount_offered": true,
+      "data_size": "extra_large"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "cart_items",
+        "urgency",
+        "cta",
+        "discount"
+      ],
+      "personalization": true,
+      "product_images": true,
+      "timing_hours": [
+        1,
+        24
+      ]
+    },
+    "scoring": {
+      "deliverability_weight": 0.3,
+      "engagement_weight": 0.35,
+      "conversion_weight": 0.35
+    }
+  },
+  {
+    "id": "email_16",
+    "description": "Re-engagement campaign",
+    "inputs": {
+      "campaign_type": "reengagement",
+      "emails_count": 3,
+      "goal": "reactivation",
+      "target_audience": "inactive_users",
+      "special_offer": true,
+      "time_period": "realtime"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "win_back_message",
+        "value_proposition",
+        "incentive",
+        "cta"
+      ],
+      "personalization": true,
+      "a_b_testing": true,
+      "unsubscribe_option": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.35,
+      "engagement_weight": 0.35,
+      "effectiveness_weight": 0.3
+    }
+  },
+  {
+    "id": "email_17",
+    "description": "Newsletter campaign",
+    "inputs": {
+      "campaign_type": "newsletter",
+      "emails_count": 1,
+      "goal": "engagement",
+      "target_audience": "subscribers",
+      "frequency": "monthly",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "header",
+        "content_sections",
+        "links",
+        "footer"
+      ],
+      "personalization": true,
+      "content_variety": true,
+      "mobile_responsive": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.35,
+      "engagement_weight": 0.35,
+      "content_quality_weight": 0.3
+    }
+  },
+  {
+    "id": "email_18",
+    "description": "Promotional campaign with discount",
+    "inputs": {
+      "campaign_type": "promotional",
+      "emails_count": 1,
+      "goal": "sales",
+      "target_audience": "active_users",
+      "discount_percentage": 20,
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "subject",
+        "discount_code",
+        "product_showcase",
+        "urgency",
+        "cta"
+      ],
+      "personalization": true,
+      "countdown_timer": true,
+      "clear_value": true
+    },
+    "scoring": {
+      "deliverability_weight": 0.3,
+      "engagement_weight": 0.35,
+      "conversion_weight": 0.35
+    }
+  }
+]

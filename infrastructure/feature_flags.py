@@ -274,6 +274,38 @@ class FeatureFlagManager:
                 rollout_strategy=RolloutStrategy.ALL_AT_ONCE,
                 description="Maintenance mode (reject new requests)"
             ),
+
+            # Layer 2: SE-Darwin Self-Improvement Integration
+            FeatureFlagConfig(
+                name="darwin_integration_enabled",
+                enabled=False,
+                default_value=False,
+                rollout_strategy=RolloutStrategy.PROGRESSIVE,
+                rollout_percentage=0.0,
+                progressive_config={
+                    "initial_percentage": 0,
+                    "end_percentage": 100,
+                    "start_date": "2025-10-19T00:00:00Z",
+                    "end_date": "2025-10-26T00:00:00Z"
+                },
+                description="SE-Darwin self-improvement integration (150% improvement potential)"
+            ),
+
+            # Layer 3: Agent-to-Agent (A2A) Protocol Integration
+            FeatureFlagConfig(
+                name="a2a_integration_enabled",
+                enabled=False,
+                default_value=False,
+                rollout_strategy=RolloutStrategy.PROGRESSIVE,
+                rollout_percentage=0.0,
+                progressive_config={
+                    "initial_percentage": 0,
+                    "end_percentage": 100,
+                    "start_date": "2025-10-19T00:00:00Z",
+                    "end_date": "2025-10-26T00:00:00Z"
+                },
+                description="Agent-to-Agent (A2A) protocol integration for inter-agent communication"
+            ),
         ]
 
         for flag in production_flags:

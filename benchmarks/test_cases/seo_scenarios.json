@@ -1,0 +1,538 @@
+[
+  {
+    "id": "seo_1",
+    "description": "On-page SEO audit for blog post",
+    "inputs": {
+      "page_type": "blog_post",
+      "target_keyword": "AI trends 2025",
+      "seo_elements": [
+        "title",
+        "meta",
+        "headers",
+        "content",
+        "images"
+      ],
+      "word_count": 1500,
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_checks": [
+        "title_optimization",
+        "meta_description",
+        "header_structure",
+        "keyword_placement",
+        "image_alt_text"
+      ],
+      "keyword_density_check": true,
+      "issues_identified_min": 5,
+      "recommendations": true
+    },
+    "scoring": {
+      "practices_weight": 0.4,
+      "technical_weight": 0.3,
+      "content_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_2",
+    "description": "Keyword research for SaaS product",
+    "inputs": {
+      "industry": "project_management",
+      "target_audience": "business_owners",
+      "keyword_intent": "commercial",
+      "competitors": 5,
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "keywords_min": 50,
+      "metrics": [
+        "search_volume",
+        "difficulty",
+        "cpc",
+        "intent"
+      ],
+      "competitor_analysis": true,
+      "keyword_clustering": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "relevance_weight": 0.3,
+      "opportunity_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_3",
+    "description": "Meta tag optimization",
+    "inputs": {
+      "page_type": "product_page",
+      "target_keyword": "smart home device",
+      "brand_name": "TechCo",
+      "character_limits": true,
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "title_tag",
+        "meta_description",
+        "og_tags",
+        "twitter_cards"
+      ],
+      "title_length_check": true,
+      "description_length_check": true,
+      "keyword_inclusion": true
+    },
+    "scoring": {
+      "optimization_weight": 0.4,
+      "compliance_weight": 0.3,
+      "quality_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_4",
+    "description": "Internal linking strategy",
+    "inputs": {
+      "site_type": "blog",
+      "pages_count": 100,
+      "content_categories": [
+        "tutorials",
+        "guides",
+        "news"
+      ],
+      "priority_pages": 10,
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "link_structure",
+        "anchor_text_strategy",
+        "priority_distribution",
+        "orphan_pages"
+      ],
+      "internal_links_min": 50,
+      "depth_analysis": true,
+      "recommendations": true
+    },
+    "scoring": {
+      "strategy_weight": 0.4,
+      "implementation_weight": 0.3,
+      "effectiveness_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_5",
+    "description": "Schema markup implementation",
+    "inputs": {
+      "page_type": "e_commerce_product",
+      "schema_types": [
+        "Product",
+        "Offer",
+        "Review",
+        "BreadcrumbList"
+      ],
+      "platform": "custom",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_schemas": [
+        "Product",
+        "Offer",
+        "AggregateRating",
+        "BreadcrumbList"
+      ],
+      "validation": true,
+      "rich_snippets_enabled": true,
+      "implementation_guide": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "correctness_weight": 0.3,
+      "effectiveness_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_6",
+    "description": "Sitemap generation and optimization",
+    "inputs": {
+      "site_type": "e_commerce",
+      "pages_count": 5000,
+      "update_frequency": "daily",
+      "priority_levels": 5,
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "sitemap_types": [
+        "main",
+        "image",
+        "video",
+        "news"
+      ],
+      "xml_valid": true,
+      "priorities_assigned": true,
+      "submission_guide": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "technical_correctness_weight": 0.3,
+      "optimization_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_7",
+    "description": "Robots.txt configuration",
+    "inputs": {
+      "site_type": "SaaS_app",
+      "restricted_areas": [
+        "admin",
+        "api",
+        "user_data"
+      ],
+      "crawl_budget_optimization": true,
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_directives": [
+        "User-agent",
+        "Disallow",
+        "Allow",
+        "Sitemap"
+      ],
+      "validation": true,
+      "crawl_optimization": true,
+      "security_considerations": true
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "security_weight": 0.3,
+      "optimization_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_8",
+    "description": "Canonical URL implementation",
+    "inputs": {
+      "site_type": "e_commerce",
+      "duplicate_content_issues": [
+        "pagination",
+        "filters",
+        "sorting"
+      ],
+      "pages_affected": 500,
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "canonical_tags",
+        "self_referencing",
+        "cross_domain",
+        "parameter_handling"
+      ],
+      "issues_resolved": true,
+      "implementation_guide": true,
+      "validation": true
+    },
+    "scoring": {
+      "correctness_weight": 0.45,
+      "completeness_weight": 0.3,
+      "impact_weight": 0.25
+    }
+  },
+  {
+    "id": "seo_9",
+    "description": "Page speed optimization audit",
+    "inputs": {
+      "page_type": "landing_page",
+      "current_speed_score": 45,
+      "target_score": 90,
+      "metrics": [
+        "lcp",
+        "fid",
+        "cls"
+      ],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_checks": [
+        "image_optimization",
+        "code_minification",
+        "caching",
+        "cdn",
+        "critical_css"
+      ],
+      "issues_identified_min": 8,
+      "prioritized_recommendations": true,
+      "estimated_impact": true
+    },
+    "scoring": {
+      "thoroughness_weight": 0.4,
+      "impact_weight": 0.3,
+      "actionability_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_10",
+    "description": "Content gap analysis",
+    "inputs": {
+      "industry": "digital_marketing",
+      "competitors": 5,
+      "target_keywords": 100,
+      "content_types": [
+        "blog",
+        "guide",
+        "tool"
+      ],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "gaps_identified_min": 20,
+      "opportunity_score": true,
+      "content_recommendations": true,
+      "prioritization": true
+    },
+    "scoring": {
+      "analysis_quality_weight": 0.4,
+      "opportunity_identification_weight": 0.3,
+      "actionability_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_11",
+    "description": "Backlink strategy development",
+    "inputs": {
+      "site_type": "SaaS",
+      "current_backlinks": 50,
+      "target_increase": "200%",
+      "tactics": [
+        "guest_posting",
+        "digital_pr",
+        "content_marketing"
+      ],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "target_sites",
+        "outreach_strategy",
+        "content_angles",
+        "link_building_timeline"
+      ],
+      "target_sites_min": 30,
+      "outreach_templates": true,
+      "tracking_setup": true
+    },
+    "scoring": {
+      "strategy_quality_weight": 0.4,
+      "feasibility_weight": 0.3,
+      "expected_impact_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_12",
+    "description": "Local SEO optimization",
+    "inputs": {
+      "business_type": "dental_practice",
+      "locations": 3,
+      "target_area": "10_mile_radius",
+      "competitors_local": 10,
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "gmb_optimization",
+        "local_citations",
+        "reviews_strategy",
+        "local_content"
+      ],
+      "citations_min": 50,
+      "gmb_optimized": true,
+      "schema_markup": "LocalBusiness"
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "local_relevance_weight": 0.3,
+      "implementation_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_13",
+    "description": "On-page SEO audit for blog post",
+    "inputs": {
+      "page_type": "blog_post",
+      "target_keyword": "AI trends 2025",
+      "seo_elements": [
+        "title",
+        "meta",
+        "headers",
+        "content",
+        "images"
+      ],
+      "word_count": 1500,
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_checks": [
+        "title_optimization",
+        "meta_description",
+        "header_structure",
+        "keyword_placement",
+        "image_alt_text"
+      ],
+      "keyword_density_check": true,
+      "issues_identified_min": 5,
+      "recommendations": true
+    },
+    "scoring": {
+      "practices_weight": 0.4,
+      "technical_weight": 0.3,
+      "content_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_14",
+    "description": "Keyword research for SaaS product",
+    "inputs": {
+      "industry": "project_management",
+      "target_audience": "business_owners",
+      "keyword_intent": "commercial",
+      "competitors": 5,
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "keywords_min": 50,
+      "metrics": [
+        "search_volume",
+        "difficulty",
+        "cpc",
+        "intent"
+      ],
+      "competitor_analysis": true,
+      "keyword_clustering": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "relevance_weight": 0.3,
+      "opportunity_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_15",
+    "description": "Meta tag optimization",
+    "inputs": {
+      "page_type": "product_page",
+      "target_keyword": "smart home device",
+      "brand_name": "TechCo",
+      "character_limits": true,
+      "complexity": "low",
+      "data_size": "extra_large"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "title_tag",
+        "meta_description",
+        "og_tags",
+        "twitter_cards"
+      ],
+      "title_length_check": true,
+      "description_length_check": true,
+      "keyword_inclusion": true
+    },
+    "scoring": {
+      "optimization_weight": 0.4,
+      "compliance_weight": 0.3,
+      "quality_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_16",
+    "description": "Internal linking strategy",
+    "inputs": {
+      "site_type": "blog",
+      "pages_count": 100,
+      "content_categories": [
+        "tutorials",
+        "guides",
+        "news"
+      ],
+      "priority_pages": 10,
+      "complexity": "high",
+      "time_period": "realtime"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "link_structure",
+        "anchor_text_strategy",
+        "priority_distribution",
+        "orphan_pages"
+      ],
+      "internal_links_min": 50,
+      "depth_analysis": true,
+      "recommendations": true
+    },
+    "scoring": {
+      "strategy_weight": 0.4,
+      "implementation_weight": 0.3,
+      "effectiveness_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_17",
+    "description": "Schema markup implementation",
+    "inputs": {
+      "page_type": "e_commerce_product",
+      "schema_types": [
+        "Product",
+        "Offer",
+        "Review",
+        "BreadcrumbList"
+      ],
+      "platform": "custom",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_schemas": [
+        "Product",
+        "Offer",
+        "AggregateRating",
+        "BreadcrumbList"
+      ],
+      "validation": true,
+      "rich_snippets_enabled": true,
+      "implementation_guide": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "correctness_weight": 0.3,
+      "effectiveness_weight": 0.3
+    }
+  },
+  {
+    "id": "seo_18",
+    "description": "Sitemap generation and optimization",
+    "inputs": {
+      "site_type": "e_commerce",
+      "pages_count": 5000,
+      "update_frequency": "daily",
+      "priority_levels": 5,
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "sitemap_types": [
+        "main",
+        "image",
+        "video",
+        "news"
+      ],
+      "xml_valid": true,
+      "priorities_assigned": true,
+      "submission_guide": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "technical_correctness_weight": 0.3,
+      "optimization_weight": 0.3
+    }
+  }
+]

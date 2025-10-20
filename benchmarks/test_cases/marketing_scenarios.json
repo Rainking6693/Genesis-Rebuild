@@ -1,0 +1,470 @@
+[
+  {
+    "id": "campaign_1",
+    "description": "E-commerce product launch - Smart home device",
+    "inputs": {
+      "product": "Smart home device",
+      "product_category": "IoT",
+      "budget": 50000,
+      "timeline": "3 months",
+      "target_audience": "tech-savvy homeowners aged 30-50",
+      "key_features": ["voice control", "energy monitoring", "mobile app"],
+      "competition_level": "high"
+    },
+    "expected_outputs": {
+      "channels": ["social_media", "influencer", "content_marketing", "google_ads"],
+      "min_conversion_rate": 0.03,
+      "required_keywords": ["smart", "home", "automation", "IoT", "energy"],
+      "strategy_elements": ["targeting", "messaging", "timeline", "budget_allocation"],
+      "content_types": ["blog", "social", "video"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.3,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.25,
+      "content_diversity_weight": 0.2
+    }
+  },
+  {
+    "id": "campaign_2",
+    "description": "SaaS B2B product - Project management tool",
+    "inputs": {
+      "product": "Project management SaaS",
+      "product_category": "productivity",
+      "budget": 100000,
+      "timeline": "6 months",
+      "target_audience": "enterprise teams 50-500 employees",
+      "key_features": ["collaboration", "reporting", "integrations"],
+      "competition_level": "very_high"
+    },
+    "expected_outputs": {
+      "channels": ["linkedin", "content_marketing", "webinars", "email", "partnerships"],
+      "min_conversion_rate": 0.05,
+      "required_keywords": ["productivity", "collaboration", "teams", "enterprise", "workflow"],
+      "strategy_elements": ["targeting", "lead_nurturing", "content_calendar", "roi_tracking"],
+      "content_types": ["case_studies", "whitepapers", "demos", "webinars"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.35,
+      "keyword_relevance_weight": 0.2,
+      "strategy_completeness_weight": 0.3,
+      "content_diversity_weight": 0.15
+    }
+  },
+  {
+    "id": "campaign_3",
+    "description": "Mobile app launch - Fitness tracking",
+    "inputs": {
+      "product": "Fitness tracking app",
+      "product_category": "health_wellness",
+      "budget": 30000,
+      "timeline": "2 months",
+      "target_audience": "fitness enthusiasts aged 18-35",
+      "key_features": ["workout_tracking", "nutrition", "social_features"],
+      "competition_level": "high"
+    },
+    "expected_outputs": {
+      "channels": ["instagram", "tiktok", "youtube", "app_store_optimization", "fitness_communities"],
+      "min_conversion_rate": 0.08,
+      "required_keywords": ["fitness", "workout", "health", "nutrition", "tracking"],
+      "strategy_elements": ["influencer_partnerships", "ugc_campaign", "app_store_strategy"],
+      "content_types": ["short_form_video", "testimonials", "challenges"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.4,
+      "keyword_relevance_weight": 0.2,
+      "strategy_completeness_weight": 0.2,
+      "content_diversity_weight": 0.2
+    }
+  },
+  {
+    "id": "campaign_4",
+    "description": "Local service business - Dental practice",
+    "inputs": {
+      "product": "Dental services",
+      "product_category": "local_services",
+      "budget": 10000,
+      "timeline": "3 months",
+      "target_audience": "local residents within 10 mile radius",
+      "key_features": ["family_dentistry", "cosmetic", "emergency_services"],
+      "competition_level": "medium"
+    },
+    "expected_outputs": {
+      "channels": ["google_my_business", "facebook", "local_seo", "email", "direct_mail"],
+      "min_conversion_rate": 0.15,
+      "required_keywords": ["dentist", "dental", "local", "family", "affordable"],
+      "strategy_elements": ["local_targeting", "reviews_management", "appointment_booking"],
+      "content_types": ["educational", "testimonials", "offers"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.35,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.25,
+      "content_diversity_weight": 0.15
+    }
+  },
+  {
+    "id": "campaign_5",
+    "description": "E-learning platform launch",
+    "inputs": {
+      "product": "Online coding bootcamp",
+      "product_category": "education",
+      "budget": 75000,
+      "timeline": "4 months",
+      "target_audience": "career changers aged 25-40",
+      "key_features": ["live_instruction", "job_placement", "mentorship"],
+      "competition_level": "high"
+    },
+    "expected_outputs": {
+      "channels": ["facebook_ads", "google_ads", "content_marketing", "reddit", "youtube", "partnerships"],
+      "min_conversion_rate": 0.04,
+      "required_keywords": ["coding", "bootcamp", "career", "tech", "training"],
+      "strategy_elements": ["funnel_optimization", "retargeting", "success_stories", "webinar_series"],
+      "content_types": ["free_courses", "success_stories", "career_guides", "live_sessions"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.3,
+      "keyword_relevance_weight": 0.2,
+      "strategy_completeness_weight": 0.3,
+      "content_diversity_weight": 0.2
+    }
+  },
+  {
+    "id": "campaign_6",
+    "description": "Subscription box service launch",
+    "inputs": {
+      "product": "Monthly beauty subscription box",
+      "product_category": "subscription_commerce",
+      "budget": 40000,
+      "timeline": "3 months",
+      "target_audience": "beauty enthusiasts aged 25-45",
+      "key_features": ["curated_products", "personalization", "flexible_plans"],
+      "competition_level": "high"
+    },
+    "expected_outputs": {
+      "channels": ["instagram", "pinterest", "influencer", "facebook_ads", "youtube"],
+      "min_conversion_rate": 0.05,
+      "required_keywords": ["beauty", "subscription", "curated", "monthly", "personalized"],
+      "strategy_elements": ["influencer_partnerships", "referral_program", "unboxing_content"],
+      "content_types": ["unboxing_videos", "reviews", "tutorials", "social_posts"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.35,
+      "keyword_relevance_weight": 0.2,
+      "strategy_completeness_weight": 0.25,
+      "content_diversity_weight": 0.2
+    }
+  },
+  {
+    "id": "campaign_7",
+    "description": "Fintech app customer acquisition",
+    "inputs": {
+      "product": "Personal finance management app",
+      "product_category": "fintech",
+      "budget": 120000,
+      "timeline": "6 months",
+      "target_audience": "millennials aged 25-40",
+      "key_features": ["budgeting", "investment_tracking", "financial_insights"],
+      "competition_level": "very_high"
+    },
+    "expected_outputs": {
+      "channels": ["facebook_ads", "google_ads", "content_marketing", "podcast_sponsorship", "reddit"],
+      "min_conversion_rate": 0.06,
+      "required_keywords": ["finance", "budgeting", "savings", "investment", "money_management"],
+      "strategy_elements": ["trust_building", "educational_content", "app_store_optimization"],
+      "content_types": ["financial_guides", "webinars", "calculators", "testimonials"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.3,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.3,
+      "content_diversity_weight": 0.15
+    }
+  },
+  {
+    "id": "campaign_8",
+    "description": "Restaurant grand opening",
+    "inputs": {
+      "product": "New restaurant launch",
+      "product_category": "hospitality",
+      "budget": 15000,
+      "timeline": "6 weeks",
+      "target_audience": "local foodies and families",
+      "key_features": ["unique_cuisine", "atmosphere", "chef_reputation"],
+      "competition_level": "medium"
+    },
+    "expected_outputs": {
+      "channels": ["instagram", "facebook", "local_seo", "google_my_business", "local_press"],
+      "min_conversion_rate": 0.2,
+      "required_keywords": ["restaurant", "food", "dining", "local", "new"],
+      "strategy_elements": ["soft_opening", "influencer_preview", "local_partnerships", "opening_event"],
+      "content_types": ["food_photos", "behind_scenes", "menu_highlights", "reviews"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.35,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.25,
+      "content_diversity_weight": 0.15
+    }
+  },
+  {
+    "id": "campaign_9",
+    "description": "Gaming app user acquisition",
+    "inputs": {
+      "product": "Mobile puzzle game",
+      "product_category": "gaming",
+      "budget": 60000,
+      "timeline": "4 months",
+      "target_audience": "casual gamers aged 18-50",
+      "key_features": ["free_to_play", "in_app_purchases", "daily_challenges"],
+      "competition_level": "very_high"
+    },
+    "expected_outputs": {
+      "channels": ["facebook_ads", "tiktok", "youtube", "app_store_optimization", "gaming_communities"],
+      "min_conversion_rate": 0.12,
+      "required_keywords": ["puzzle", "game", "fun", "challenging", "free"],
+      "strategy_elements": ["gameplay_videos", "influencer_gameplay", "referral_rewards", "limited_events"],
+      "content_types": ["gameplay_clips", "tips_tricks", "challenges", "user_generated_content"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.4,
+      "keyword_relevance_weight": 0.2,
+      "strategy_completeness_weight": 0.2,
+      "content_diversity_weight": 0.2
+    }
+  },
+  {
+    "id": "campaign_10",
+    "description": "B2B software demo campaign",
+    "inputs": {
+      "product": "CRM software for small businesses",
+      "product_category": "b2b_software",
+      "budget": 80000,
+      "timeline": "5 months",
+      "target_audience": "small business owners",
+      "key_features": ["easy_setup", "automation", "integrations", "affordable"],
+      "competition_level": "high"
+    },
+    "expected_outputs": {
+      "channels": ["linkedin", "google_ads", "content_marketing", "webinars", "email", "review_sites"],
+      "min_conversion_rate": 0.08,
+      "required_keywords": ["CRM", "customer_management", "small_business", "automation", "sales"],
+      "strategy_elements": ["free_trial", "demo_videos", "comparison_content", "roi_calculator"],
+      "content_types": ["demo_videos", "case_studies", "comparison_guides", "webinars"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.35,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.25,
+      "content_diversity_weight": 0.15
+    }
+  },
+  {
+    "id": "campaign_11",
+    "description": "Eco-friendly product line launch",
+    "inputs": {
+      "product": "Sustainable household products",
+      "product_category": "sustainability",
+      "budget": 35000,
+      "timeline": "3 months",
+      "target_audience": "environmentally conscious consumers",
+      "key_features": ["biodegradable", "plastic_free", "eco_certifications"],
+      "competition_level": "medium"
+    },
+    "expected_outputs": {
+      "channels": ["instagram", "pinterest", "content_marketing", "influencer", "green_marketplaces"],
+      "min_conversion_rate": 0.04,
+      "required_keywords": ["eco_friendly", "sustainable", "green", "biodegradable", "zero_waste"],
+      "strategy_elements": ["sustainability_story", "impact_metrics", "partnerships", "certifications"],
+      "content_types": ["educational_content", "impact_stories", "product_demos", "comparisons"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.3,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.25,
+      "content_diversity_weight": 0.2
+    }
+  },
+  {
+    "id": "campaign_12",
+    "description": "Online course marketplace promotion",
+    "inputs": {
+      "product": "Professional skills courses",
+      "product_category": "online_education",
+      "budget": 90000,
+      "timeline": "5 months",
+      "target_audience": "professionals seeking upskilling",
+      "key_features": ["expert_instructors", "certificates", "flexible_learning"],
+      "competition_level": "high"
+    },
+    "expected_outputs": {
+      "channels": ["linkedin", "facebook", "google_ads", "content_marketing", "youtube", "email"],
+      "min_conversion_rate": 0.05,
+      "required_keywords": ["online_courses", "professional_development", "skills", "certification", "learning"],
+      "strategy_elements": ["free_previews", "instructor_credentials", "student_outcomes", "corporate_partnerships"],
+      "content_types": ["course_previews", "success_stories", "skill_assessments", "webinars"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.3,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.3,
+      "content_diversity_weight": 0.15
+    }
+  },
+  {
+    "id": "campaign_13",
+    "description": "Luxury brand awareness campaign",
+    "inputs": {
+      "product": "Premium watch collection",
+      "product_category": "luxury_goods",
+      "budget": 200000,
+      "timeline": "6 months",
+      "target_audience": "high net worth individuals aged 35-65",
+      "key_features": ["craftsmanship", "exclusivity", "heritage", "limited_editions"],
+      "competition_level": "high"
+    },
+    "expected_outputs": {
+      "channels": ["instagram", "youtube", "luxury_publications", "influencer", "events", "partnerships"],
+      "min_conversion_rate": 0.02,
+      "required_keywords": ["luxury", "premium", "craftsmanship", "exclusive", "heritage"],
+      "strategy_elements": ["brand_storytelling", "limited_availability", "vip_experiences", "celebrity_endorsements"],
+      "content_types": ["brand_films", "craftsmanship_videos", "lifestyle_imagery", "event_coverage"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.35,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.25,
+      "content_diversity_weight": 0.15
+    }
+  },
+  {
+    "id": "campaign_14",
+    "description": "Health supplement direct-to-consumer",
+    "inputs": {
+      "product": "Vitamin and supplement line",
+      "product_category": "health_wellness",
+      "budget": 55000,
+      "timeline": "4 months",
+      "target_audience": "health-conscious adults aged 30-55",
+      "key_features": ["natural_ingredients", "third_party_tested", "subscription_model"],
+      "competition_level": "very_high"
+    },
+    "expected_outputs": {
+      "channels": ["facebook_ads", "instagram", "content_marketing", "influencer", "podcast_sponsorship"],
+      "min_conversion_rate": 0.04,
+      "required_keywords": ["supplements", "vitamins", "health", "natural", "wellness"],
+      "strategy_elements": ["educational_content", "third_party_validation", "subscription_benefits", "testimonials"],
+      "content_types": ["health_guides", "ingredient_breakdowns", "testimonials", "expert_interviews"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.3,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.25,
+      "content_diversity_weight": 0.2
+    }
+  },
+  {
+    "id": "campaign_15",
+    "description": "Event ticketing platform launch",
+    "inputs": {
+      "product": "Event management and ticketing platform",
+      "product_category": "event_tech",
+      "budget": 70000,
+      "timeline": "5 months",
+      "target_audience": "event organizers and venues",
+      "key_features": ["easy_setup", "mobile_tickets", "analytics", "integrations"],
+      "competition_level": "high"
+    },
+    "expected_outputs": {
+      "channels": ["linkedin", "google_ads", "content_marketing", "industry_events", "partnerships"],
+      "min_conversion_rate": 0.06,
+      "required_keywords": ["event_ticketing", "event_management", "mobile_tickets", "organizers", "venue"],
+      "strategy_elements": ["free_tier", "case_studies", "integrations_showcase", "industry_partnerships"],
+      "content_types": ["feature_demos", "case_studies", "integration_guides", "industry_insights"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.35,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.25,
+      "content_diversity_weight": 0.15
+    }
+  },
+  {
+    "id": "campaign_16",
+    "description": "Pet products e-commerce store",
+    "inputs": {
+      "product": "Premium pet food and accessories",
+      "product_category": "pet_products",
+      "budget": 45000,
+      "timeline": "4 months",
+      "target_audience": "pet owners aged 25-50",
+      "key_features": ["premium_quality", "fast_shipping", "subscription_options", "wide_selection"],
+      "competition_level": "high"
+    },
+    "expected_outputs": {
+      "channels": ["facebook_ads", "instagram", "pinterest", "google_shopping", "influencer"],
+      "min_conversion_rate": 0.05,
+      "required_keywords": ["pet_food", "dog", "cat", "premium", "healthy"],
+      "strategy_elements": ["subscription_discounts", "pet_content", "community_building", "reviews"],
+      "content_types": ["pet_photos", "product_reviews", "care_tips", "customer_stories"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.35,
+      "keyword_relevance_weight": 0.2,
+      "strategy_completeness_weight": 0.25,
+      "content_diversity_weight": 0.2
+    }
+  },
+  {
+    "id": "campaign_17",
+    "description": "Cybersecurity SaaS lead generation",
+    "inputs": {
+      "product": "Cloud security platform",
+      "product_category": "cybersecurity",
+      "budget": 150000,
+      "timeline": "6 months",
+      "target_audience": "IT directors and CISOs",
+      "key_features": ["threat_detection", "compliance", "automation", "multi_cloud"],
+      "competition_level": "very_high"
+    },
+    "expected_outputs": {
+      "channels": ["linkedin", "content_marketing", "webinars", "industry_events", "partnerships", "email"],
+      "min_conversion_rate": 0.03,
+      "required_keywords": ["cybersecurity", "cloud_security", "threat_detection", "compliance", "protection"],
+      "strategy_elements": ["thought_leadership", "security_reports", "compliance_guides", "roi_analysis"],
+      "content_types": ["whitepapers", "threat_reports", "webinars", "case_studies"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.3,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.3,
+      "content_diversity_weight": 0.15
+    }
+  },
+  {
+    "id": "campaign_18",
+    "description": "NFT marketplace launch",
+    "inputs": {
+      "product": "NFT trading platform",
+      "product_category": "crypto_web3",
+      "budget": 100000,
+      "timeline": "3 months",
+      "target_audience": "crypto enthusiasts and digital artists",
+      "key_features": ["low_fees", "multi_chain", "creator_tools", "community"],
+      "competition_level": "very_high"
+    },
+    "expected_outputs": {
+      "channels": ["twitter", "discord", "reddit", "influencer", "crypto_communities", "content_marketing"],
+      "min_conversion_rate": 0.07,
+      "required_keywords": ["NFT", "crypto", "blockchain", "digital_art", "marketplace"],
+      "strategy_elements": ["community_building", "creator_partnerships", "launch_drops", "ambassador_program"],
+      "content_types": ["creator_spotlights", "tutorial_content", "community_updates", "ama_sessions"]
+    },
+    "scoring": {
+      "channel_selection_weight": 0.3,
+      "keyword_relevance_weight": 0.25,
+      "strategy_completeness_weight": 0.25,
+      "content_diversity_weight": 0.2
+    }
+  }
+]

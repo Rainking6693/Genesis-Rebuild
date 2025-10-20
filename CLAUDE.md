@@ -8,8 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. **`PROJECT_STATUS.md`** - Single source of truth for progress
 2. **`RESEARCH_UPDATE_OCT_2025.md`** - 40 new papers integration (October 16, 2025)
 3. **`ORCHESTRATION_DESIGN.md`** - Triple-layer orchestration system (HTDAG+HALO+AOP)
+4. **`AGENT_PROJECT_MAPPING.md`** - Agent assignments for all tasks (WHO does WHAT)
 
-**Current Priority:** Phase 4 pre-deployment 100% COMPLETE - Ready for production deployment execution (October 19, 2025)
+**Current Priority:** Phase 4 pre-deployment + Benchmark completion 100% COMPLETE - Ready for production deployment execution (October 19, 2025)
 
 This is the **SINGLE SOURCE OF TRUTH** for what's been completed and what's next. It tracks:
 - ✅ Completed layers (1 Phase 1-3 COMPLETE, 2, 3, 5 are DONE)
@@ -22,6 +23,9 @@ This is the **SINGLE SOURCE OF TRUTH** for what's been completed and what's next
 - Shows exact current status
 - Updated by all Claude sessions
 - Persists across conversations
+- Prevents agents from doing the wrong work (AGENT_PROJECT_MAPPING.md)
+- Shows who is assigned to each project (AGENT_PROJECT_MAPPING.md)
+- Maps specialized agents to their expertise areas (AGENT_PROJECT_MAPPING.md)
 
 **Always check PROJECT_STATUS.md before:**
 - Starting new work
@@ -52,7 +56,7 @@ This is the **SINGLE SOURCE OF TRUTH** for what's been completed and what's next
 
 Genesis Rebuild is a multi-agent system built on Microsoft Agent Framework and Azure AI. This is a rebuild/migration of an existing agent system (located at ~/genesis-agent-system) to use the official Microsoft Agent Framework with Agent-to-Agent (A2A) communication capabilities.
 
-**Current Status:** Phase 4 pre-deployment complete (October 19, 2025). All deployment infrastructure ready: feature flags (42/42 tests), CI/CD configured, staging validated (ZERO blockers), 48-hour monitoring setup complete. Production-ready orchestration with error handling, OTEL observability, performance optimization (46.3% faster). 1,026/1,044 tests passing (98.28%). Ready for production deployment execution.
+**Current Status:** Phase 4 pre-deployment + Benchmark completion complete (October 19, 2025). All deployment infrastructure ready: feature flags (42/42 tests), CI/CD configured, staging validated (ZERO blockers), 48-hour monitoring setup complete. Production-ready orchestration with error handling, OTEL observability, performance optimization (46.3% faster). 1,026/1,044 tests passing (98.28%). All 15 agents have comprehensive benchmarks (270 scenarios, 100% coverage). Ready for production deployment execution.
 
 ## 🏗️ THE ARCHITECTURE (6 LAYERS)
 
@@ -154,6 +158,11 @@ Genesis Rebuild is a multi-agent system built on Microsoft Agent Framework and A
 - **Research Integration:**
   - Ax-Prover (Del Tredici et al., 2025): Formal code verification via MCP-like tools
   - Inclusive Fitness (Rosseau et al., 2025): Genotype-based evolution for cooperation/competition
+- **Benchmark Coverage:** ✅ COMPLETE - All 15 agents (270 scenarios)
+  - 18 test scenarios per agent for evolution validation
+  - Covers success cases, edge cases, performance, integration
+  - Full integration with Darwin evolution framework
+  - Production-ready for automated evolution archiving
 - **Next Steps:** SE-Darwin full integration with Phase 2 orchestration (after Phase 2-3 complete)
 
 ### LAYER 3: Agent Communication (Standardized)

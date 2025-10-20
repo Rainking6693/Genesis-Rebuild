@@ -1,0 +1,625 @@
+[
+  {
+    "id": "spec_1",
+    "description": "E-commerce checkout requirements",
+    "inputs": {
+      "feature": "Checkout flow for e-commerce site",
+      "constraints": [
+        "PCI compliance",
+        "mobile-first",
+        "guest checkout"
+      ],
+      "target_users": "online shoppers",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 15,
+      "must_include": [
+        "payment_security",
+        "user_authentication",
+        "order_confirmation",
+        "cart_management"
+      ],
+      "min_quality_score": 0.8,
+      "required_sections": [
+        "functional",
+        "non_functional",
+        "security",
+        "edge_cases"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "clarity_weight": 0.3,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_2",
+    "description": "API design requirements for user management",
+    "inputs": {
+      "feature": "RESTful API for user management",
+      "constraints": [
+        "OAuth 2.0",
+        "rate limiting",
+        "versioning"
+      ],
+      "target_users": "API developers",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 20,
+      "must_include": [
+        "authentication",
+        "authorization",
+        "error_handling",
+        "rate_limiting"
+      ],
+      "min_quality_score": 0.75,
+      "required_sections": [
+        "endpoints",
+        "authentication",
+        "error_responses",
+        "rate_limits"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "clarity_weight": 0.35,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_3",
+    "description": "Database schema requirements for multi-tenant SaaS",
+    "inputs": {
+      "feature": "Multi-tenant database architecture",
+      "constraints": [
+        "data isolation",
+        "scalability",
+        "GDPR compliance"
+      ],
+      "target_users": "backend developers",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 18,
+      "must_include": [
+        "tenant_isolation",
+        "data_encryption",
+        "audit_logging",
+        "soft_delete"
+      ],
+      "min_quality_score": 0.8,
+      "required_sections": [
+        "tables",
+        "relationships",
+        "indexes",
+        "security"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "clarity_weight": 0.3,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_4",
+    "description": "Mobile app performance requirements",
+    "inputs": {
+      "feature": "Performance optimization for mobile app",
+      "constraints": [
+        "60fps",
+        "2s load time",
+        "offline support"
+      ],
+      "target_users": "mobile users",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 12,
+      "must_include": [
+        "load_time",
+        "frame_rate",
+        "memory_usage",
+        "battery_consumption"
+      ],
+      "min_quality_score": 0.75,
+      "required_sections": [
+        "performance_metrics",
+        "testing_criteria",
+        "optimization_targets"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "clarity_weight": 0.35,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_5",
+    "description": "Real-time chat system requirements",
+    "inputs": {
+      "feature": "Real-time messaging with WebSocket",
+      "constraints": [
+        "sub-100ms latency",
+        "10k concurrent users",
+        "message persistence"
+      ],
+      "target_users": "chat application users",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 16,
+      "must_include": [
+        "websocket_connection",
+        "message_delivery",
+        "offline_sync",
+        "encryption"
+      ],
+      "min_quality_score": 0.8,
+      "required_sections": [
+        "real_time_features",
+        "scalability",
+        "reliability",
+        "security"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "clarity_weight": 0.3,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_6",
+    "description": "Accessibility requirements for web application",
+    "inputs": {
+      "feature": "WCAG 2.1 AA compliance",
+      "constraints": [
+        "screen reader support",
+        "keyboard navigation",
+        "color contrast"
+      ],
+      "target_users": "users with disabilities",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 14,
+      "must_include": [
+        "screen_reader",
+        "keyboard_navigation",
+        "aria_labels",
+        "color_contrast"
+      ],
+      "min_quality_score": 0.75,
+      "required_sections": [
+        "accessibility_features",
+        "testing_methods",
+        "compliance_criteria"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "clarity_weight": 0.35,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_7",
+    "description": "Search functionality requirements",
+    "inputs": {
+      "feature": "Full-text search with filters",
+      "constraints": [
+        "sub-second response",
+        "fuzzy matching",
+        "relevance ranking"
+      ],
+      "target_users": "content seekers",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 13,
+      "must_include": [
+        "full_text_search",
+        "filters",
+        "fuzzy_matching",
+        "pagination"
+      ],
+      "min_quality_score": 0.75,
+      "required_sections": [
+        "search_features",
+        "performance",
+        "ranking_algorithm"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "clarity_weight": 0.35,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_8",
+    "description": "Notification system requirements",
+    "inputs": {
+      "feature": "Multi-channel notification system",
+      "constraints": [
+        "email",
+        "SMS",
+        "push",
+        "in-app"
+      ],
+      "target_users": "application users",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 15,
+      "must_include": [
+        "email_notification",
+        "push_notification",
+        "user_preferences",
+        "delivery_tracking"
+      ],
+      "min_quality_score": 0.75,
+      "required_sections": [
+        "channels",
+        "delivery",
+        "preferences",
+        "tracking"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "clarity_weight": 0.35,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_9",
+    "description": "File upload and processing requirements",
+    "inputs": {
+      "feature": "Large file upload with processing pipeline",
+      "constraints": [
+        "100MB max",
+        "virus scanning",
+        "format conversion"
+      ],
+      "target_users": "content creators",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 12,
+      "must_include": [
+        "file_validation",
+        "virus_scanning",
+        "chunked_upload",
+        "progress_tracking"
+      ],
+      "min_quality_score": 0.75,
+      "required_sections": [
+        "upload_process",
+        "validation",
+        "processing",
+        "storage"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "clarity_weight": 0.35,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_10",
+    "description": "Analytics dashboard requirements",
+    "inputs": {
+      "feature": "Real-time analytics dashboard",
+      "constraints": [
+        "1s refresh rate",
+        "custom date ranges",
+        "export to CSV"
+      ],
+      "target_users": "business analysts",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 17,
+      "must_include": [
+        "real_time_data",
+        "visualizations",
+        "filters",
+        "export_functionality"
+      ],
+      "min_quality_score": 0.8,
+      "required_sections": [
+        "data_sources",
+        "visualizations",
+        "interactivity",
+        "performance"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "clarity_weight": 0.3,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_11",
+    "description": "Multi-factor authentication requirements specification",
+    "inputs": {
+      "feature": "Multi-factor authentication",
+      "constraints": [
+        "security_compliance",
+        "user_experience"
+      ],
+      "target_users": "online shoppers",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 15,
+      "must_include": [
+        "payment_security",
+        "user_authentication",
+        "order_confirmation",
+        "cart_management"
+      ],
+      "min_quality_score": 0.8,
+      "required_sections": [
+        "functional",
+        "non_functional",
+        "security",
+        "edge_cases"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "clarity_weight": 0.3,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_12",
+    "description": "Real-time collaboration requirements specification",
+    "inputs": {
+      "feature": "Real-time collaboration",
+      "constraints": [
+        "concurrency",
+        "conflict_resolution"
+      ],
+      "target_users": "API developers",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 20,
+      "must_include": [
+        "authentication",
+        "authorization",
+        "error_handling",
+        "rate_limiting"
+      ],
+      "min_quality_score": 0.75,
+      "required_sections": [
+        "endpoints",
+        "authentication",
+        "error_responses",
+        "rate_limits"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "clarity_weight": 0.35,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_13",
+    "description": "File upload system requirements specification",
+    "inputs": {
+      "feature": "File upload system",
+      "constraints": [
+        "virus_scanning",
+        "size_limits",
+        "format_validation"
+      ],
+      "target_users": "backend developers",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 18,
+      "must_include": [
+        "tenant_isolation",
+        "data_encryption",
+        "audit_logging",
+        "soft_delete"
+      ],
+      "min_quality_score": 0.8,
+      "required_sections": [
+        "tables",
+        "relationships",
+        "indexes",
+        "security"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "clarity_weight": 0.3,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_14",
+    "description": "Search functionality requirements specification",
+    "inputs": {
+      "feature": "Search functionality",
+      "constraints": [
+        "relevance",
+        "performance",
+        "multilingual"
+      ],
+      "target_users": "mobile users",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 12,
+      "must_include": [
+        "load_time",
+        "frame_rate",
+        "memory_usage",
+        "battery_consumption"
+      ],
+      "min_quality_score": 0.75,
+      "required_sections": [
+        "performance_metrics",
+        "testing_criteria",
+        "optimization_targets"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "clarity_weight": 0.35,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_15",
+    "description": "Notification system requirements specification",
+    "inputs": {
+      "feature": "Notification system",
+      "constraints": [
+        "delivery_guarantee",
+        "rate_limiting",
+        "preferences"
+      ],
+      "target_users": "chat application users",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 16,
+      "must_include": [
+        "websocket_connection",
+        "message_delivery",
+        "offline_sync",
+        "encryption"
+      ],
+      "min_quality_score": 0.8,
+      "required_sections": [
+        "real_time_features",
+        "scalability",
+        "reliability",
+        "security"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "clarity_weight": 0.3,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_16",
+    "description": "API rate limiting requirements specification",
+    "inputs": {
+      "feature": "API rate limiting",
+      "constraints": [
+        "fairness",
+        "burst_handling",
+        "tier_based"
+      ],
+      "target_users": "users with disabilities",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 14,
+      "must_include": [
+        "screen_reader",
+        "keyboard_navigation",
+        "aria_labels",
+        "color_contrast"
+      ],
+      "min_quality_score": 0.75,
+      "required_sections": [
+        "accessibility_features",
+        "testing_methods",
+        "compliance_criteria"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "clarity_weight": 0.35,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_17",
+    "description": "Audit logging requirements specification",
+    "inputs": {
+      "feature": "Audit logging",
+      "constraints": [
+        "immutability",
+        "compliance",
+        "retention"
+      ],
+      "target_users": "content seekers",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 13,
+      "must_include": [
+        "full_text_search",
+        "filters",
+        "fuzzy_matching",
+        "pagination"
+      ],
+      "min_quality_score": 0.75,
+      "required_sections": [
+        "search_features",
+        "performance",
+        "ranking_algorithm"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "clarity_weight": 0.35,
+      "edge_coverage_weight": 0.3
+    }
+  },
+  {
+    "id": "spec_18",
+    "description": "Data export/import requirements specification",
+    "inputs": {
+      "feature": "Data export/import",
+      "constraints": [
+        "format_support",
+        "validation",
+        "error_handling"
+      ],
+      "target_users": "application users",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "min_requirements_count": 15,
+      "must_include": [
+        "email_notification",
+        "push_notification",
+        "user_preferences",
+        "delivery_tracking"
+      ],
+      "min_quality_score": 0.75,
+      "required_sections": [
+        "channels",
+        "delivery",
+        "preferences",
+        "tracking"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.35,
+      "clarity_weight": 0.35,
+      "edge_coverage_weight": 0.3
+    }
+  }
+]

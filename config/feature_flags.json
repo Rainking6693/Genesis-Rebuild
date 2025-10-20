@@ -146,6 +146,34 @@
       "rollout_percentage": 0.0,
       "progressive_config": {},
       "description": "Maintenance mode (reject new requests)"
+    },
+    "darwin_integration_enabled": {
+      "name": "darwin_integration_enabled",
+      "enabled": false,
+      "default_value": false,
+      "rollout_strategy": "progressive",
+      "rollout_percentage": 0.0,
+      "progressive_config": {
+        "initial_percentage": 0,
+        "end_percentage": 100,
+        "start_date": "2025-10-19T00:00:00Z",
+        "end_date": "2025-10-26T00:00:00Z"
+      },
+      "description": "SE-Darwin self-improvement integration (150% improvement potential)"
+    },
+    "a2a_integration_enabled": {
+      "name": "a2a_integration_enabled",
+      "enabled": false,
+      "default_value": false,
+      "rollout_strategy": "progressive",
+      "rollout_percentage": 0.0,
+      "progressive_config": {
+        "initial_percentage": 0,
+        "end_percentage": 100,
+        "start_date": "2025-10-19T00:00:00Z",
+        "end_date": "2025-10-26T00:00:00Z"
+      },
+      "description": "Agent-to-Agent (A2A) protocol integration for inter-agent communication"
     }
   }
 }

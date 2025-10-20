@@ -1,0 +1,605 @@
+[
+  {
+    "id": "analyst_1",
+    "description": "Sales trend analysis",
+    "inputs": {
+      "data_type": "sales",
+      "time_period": "quarterly",
+      "metrics": [
+        "revenue",
+        "growth",
+        "conversion"
+      ],
+      "data_size": "large"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "trend",
+        "pattern",
+        "recommendation",
+        "forecast"
+      ],
+      "visualization_types": [
+        "line_chart",
+        "bar_chart",
+        "trend_line"
+      ],
+      "analysis_depth": "detailed",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.4,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.25
+    }
+  },
+  {
+    "id": "analyst_2",
+    "description": "User behavior analysis",
+    "inputs": {
+      "data_type": "user_behavior",
+      "time_period": "monthly",
+      "metrics": [
+        "engagement",
+        "retention",
+        "churn"
+      ],
+      "data_size": "medium"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "behavior_patterns",
+        "drop_off_points",
+        "recommendations"
+      ],
+      "visualization_types": [
+        "funnel_chart",
+        "cohort_analysis",
+        "heatmap"
+      ],
+      "analysis_depth": "detailed",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.4,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.25
+    }
+  },
+  {
+    "id": "analyst_3",
+    "description": "A/B test results analysis",
+    "inputs": {
+      "data_type": "ab_test",
+      "time_period": "2_weeks",
+      "metrics": [
+        "conversion_rate",
+        "statistical_significance",
+        "sample_size"
+      ],
+      "data_size": "medium"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "winner",
+        "confidence_level",
+        "recommendation",
+        "impact_estimate"
+      ],
+      "visualization_types": [
+        "comparison_chart",
+        "distribution_plot",
+        "confidence_intervals"
+      ],
+      "analysis_depth": "statistical",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.5,
+      "insight_weight": 0.3,
+      "visualization_weight": 0.2
+    }
+  },
+  {
+    "id": "analyst_4",
+    "description": "Churn prediction analysis",
+    "inputs": {
+      "data_type": "customer_data",
+      "time_period": "yearly",
+      "metrics": [
+        "activity",
+        "engagement",
+        "support_tickets",
+        "billing_history"
+      ],
+      "data_size": "large"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "churn_indicators",
+        "at_risk_segments",
+        "prevention_strategies"
+      ],
+      "visualization_types": [
+        "risk_scoring",
+        "segment_analysis",
+        "timeline"
+      ],
+      "analysis_depth": "predictive",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.45,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.2
+    }
+  },
+  {
+    "id": "analyst_5",
+    "description": "Revenue forecasting",
+    "inputs": {
+      "data_type": "financial",
+      "time_period": "yearly",
+      "metrics": [
+        "monthly_revenue",
+        "seasonality",
+        "growth_rate"
+      ],
+      "data_size": "medium"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "forecast",
+        "confidence_interval",
+        "seasonality_patterns"
+      ],
+      "visualization_types": [
+        "forecast_chart",
+        "confidence_bands",
+        "historical_comparison"
+      ],
+      "analysis_depth": "predictive",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.45,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.2
+    }
+  },
+  {
+    "id": "analyst_6",
+    "description": "Funnel analysis",
+    "inputs": {
+      "data_type": "conversion_funnel",
+      "time_period": "monthly",
+      "metrics": [
+        "stage_conversion",
+        "drop_off_rate",
+        "time_in_stage"
+      ],
+      "data_size": "medium"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "bottlenecks",
+        "optimization_opportunities",
+        "conversion_drivers"
+      ],
+      "visualization_types": [
+        "funnel_chart",
+        "drop_off_analysis",
+        "cohort_comparison"
+      ],
+      "analysis_depth": "detailed",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.4,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.25
+    }
+  },
+  {
+    "id": "analyst_7",
+    "description": "Cohort analysis",
+    "inputs": {
+      "data_type": "user_cohorts",
+      "time_period": "yearly",
+      "metrics": [
+        "retention",
+        "lifetime_value",
+        "engagement"
+      ],
+      "data_size": "large"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "cohort_performance",
+        "retention_patterns",
+        "value_drivers"
+      ],
+      "visualization_types": [
+        "cohort_table",
+        "retention_curves",
+        "ltv_comparison"
+      ],
+      "analysis_depth": "detailed",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.4,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.25
+    }
+  },
+  {
+    "id": "analyst_8",
+    "description": "Correlation analysis",
+    "inputs": {
+      "data_type": "multi_metric",
+      "time_period": "quarterly",
+      "metrics": [
+        "feature_usage",
+        "satisfaction",
+        "retention",
+        "revenue"
+      ],
+      "data_size": "large"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "correlations",
+        "causal_relationships",
+        "key_drivers"
+      ],
+      "visualization_types": [
+        "correlation_matrix",
+        "scatter_plots",
+        "heatmap"
+      ],
+      "analysis_depth": "statistical",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.45,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.2
+    }
+  },
+  {
+    "id": "analyst_9",
+    "description": "Anomaly detection",
+    "inputs": {
+      "data_type": "time_series",
+      "time_period": "daily",
+      "metrics": [
+        "traffic",
+        "errors",
+        "response_time",
+        "conversions"
+      ],
+      "data_size": "large"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "anomalies",
+        "severity",
+        "potential_causes",
+        "impact"
+      ],
+      "visualization_types": [
+        "time_series",
+        "anomaly_highlights",
+        "threshold_bands"
+      ],
+      "analysis_depth": "detailed",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.45,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.2
+    }
+  },
+  {
+    "id": "analyst_10",
+    "description": "Market segmentation analysis",
+    "inputs": {
+      "data_type": "customer_demographics",
+      "time_period": "yearly",
+      "metrics": [
+        "demographics",
+        "behavior",
+        "value",
+        "preferences"
+      ],
+      "data_size": "large"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "segments",
+        "segment_characteristics",
+        "targeting_recommendations"
+      ],
+      "visualization_types": [
+        "cluster_plot",
+        "segment_profiles",
+        "comparison_table"
+      ],
+      "analysis_depth": "detailed",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.4,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.25
+    }
+  },
+  {
+    "id": "analyst_11",
+    "description": "Product Performance analysis",
+    "inputs": {
+      "data_type": "product_performance",
+      "time_period": "weekly",
+      "metrics": [
+        "usage",
+        "adoption",
+        "feedback"
+      ],
+      "data_size": "large"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "trend",
+        "pattern",
+        "recommendation",
+        "forecast"
+      ],
+      "visualization_types": [
+        "line_chart",
+        "bar_chart",
+        "trend_line"
+      ],
+      "analysis_depth": "detailed",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.4,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.25
+    }
+  },
+  {
+    "id": "analyst_12",
+    "description": "Campaign Roi analysis",
+    "inputs": {
+      "data_type": "campaign_roi",
+      "time_period": "quarterly",
+      "metrics": [
+        "spend",
+        "roi",
+        "attribution"
+      ],
+      "data_size": "medium"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "behavior_patterns",
+        "drop_off_points",
+        "recommendations"
+      ],
+      "visualization_types": [
+        "funnel_chart",
+        "cohort_analysis",
+        "heatmap"
+      ],
+      "analysis_depth": "detailed",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.4,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.25
+    }
+  },
+  {
+    "id": "analyst_13",
+    "description": "Pricing Analysis analysis",
+    "inputs": {
+      "data_type": "pricing_analysis",
+      "time_period": "monthly",
+      "metrics": [
+        "price_elasticity",
+        "revenue",
+        "demand"
+      ],
+      "data_size": "medium"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "winner",
+        "confidence_level",
+        "recommendation",
+        "impact_estimate"
+      ],
+      "visualization_types": [
+        "comparison_chart",
+        "distribution_plot",
+        "confidence_intervals"
+      ],
+      "analysis_depth": "statistical",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.5,
+      "insight_weight": 0.3,
+      "visualization_weight": 0.2
+    }
+  },
+  {
+    "id": "analyst_14",
+    "description": "Competitive Analysis analysis",
+    "inputs": {
+      "data_type": "competitive_analysis",
+      "time_period": "quarterly",
+      "metrics": [
+        "market_share",
+        "features",
+        "pricing"
+      ],
+      "data_size": "large"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "churn_indicators",
+        "at_risk_segments",
+        "prevention_strategies"
+      ],
+      "visualization_types": [
+        "risk_scoring",
+        "segment_analysis",
+        "timeline"
+      ],
+      "analysis_depth": "predictive",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.45,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.2
+    }
+  },
+  {
+    "id": "analyst_15",
+    "description": "Customer Lifetime Value analysis",
+    "inputs": {
+      "data_type": "customer_lifetime_value",
+      "time_period": "yearly",
+      "metrics": [
+        "ltv",
+        "cac",
+        "payback_period"
+      ],
+      "data_size": "medium"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "forecast",
+        "confidence_interval",
+        "seasonality_patterns"
+      ],
+      "visualization_types": [
+        "forecast_chart",
+        "confidence_bands",
+        "historical_comparison"
+      ],
+      "analysis_depth": "predictive",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.45,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.2
+    }
+  },
+  {
+    "id": "analyst_16",
+    "description": "Geographic Performance analysis",
+    "inputs": {
+      "data_type": "geographic_performance",
+      "time_period": "monthly",
+      "metrics": [
+        "regional_sales",
+        "growth",
+        "penetration"
+      ],
+      "data_size": "medium"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "bottlenecks",
+        "optimization_opportunities",
+        "conversion_drivers"
+      ],
+      "visualization_types": [
+        "funnel_chart",
+        "drop_off_analysis",
+        "cohort_comparison"
+      ],
+      "analysis_depth": "detailed",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.4,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.25
+    }
+  },
+  {
+    "id": "analyst_17",
+    "description": "Product Mix analysis",
+    "inputs": {
+      "data_type": "product_mix",
+      "time_period": "quarterly",
+      "metrics": [
+        "mix",
+        "cross_sell",
+        "upsell"
+      ],
+      "data_size": "large"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "cohort_performance",
+        "retention_patterns",
+        "value_drivers"
+      ],
+      "visualization_types": [
+        "cohort_table",
+        "retention_curves",
+        "ltv_comparison"
+      ],
+      "analysis_depth": "detailed",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.4,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.25
+    }
+  },
+  {
+    "id": "analyst_18",
+    "description": "Support Metrics analysis",
+    "inputs": {
+      "data_type": "support_metrics",
+      "time_period": "monthly",
+      "metrics": [
+        "tickets",
+        "satisfaction",
+        "resolution_time"
+      ],
+      "data_size": "large"
+    },
+    "expected_outputs": {
+      "required_insights": [
+        "correlations",
+        "causal_relationships",
+        "key_drivers"
+      ],
+      "visualization_types": [
+        "correlation_matrix",
+        "scatter_plots",
+        "heatmap"
+      ],
+      "analysis_depth": "statistical",
+      "actionable_recommendations": true
+    },
+    "scoring": {
+      "accuracy_weight": 0.45,
+      "insight_weight": 0.35,
+      "visualization_weight": 0.2
+    }
+  }
+]

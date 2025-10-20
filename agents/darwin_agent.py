@@ -684,26 +684,69 @@ IMPROVED CODE:
 
     async def _evaluate_agent(self, code_path: Path, version: str) -> Dict[str, float]:
         """
-        Evaluate agent performance using benchmarks
+        Evaluate agent performance using real benchmarks
 
         Returns:
             Dictionary of metric scores
         """
-        # TODO: Integrate real benchmarks (SWE-Bench, custom tests)
-        # For now, return mock metrics
+        try:
+            # Import benchmark framework
+            from benchmarks.agent_benchmarks import get_benchmark_for_agent
 
-        # Simulate evaluation
-        await asyncio.sleep(0.5)
+            # Read agent code
+            with open(code_path, 'r') as f:
+                agent_code = f.read()
 
-        # Mock metrics (in production, run actual benchmarks)
-        base_score = 0.5 + random.random() * 0.3
+            # Get appropriate benchmark for this agent
+            try:
+                benchmark = get_benchmark_for_agent(self.agent_name)
+            except ValueError as e:
+                # Agent doesn't have specific benchmark yet, use fallback
+                logger.warning(f"No benchmark for {self.agent_name}, using fallback: {e}")
+                # Return baseline scores for agents without benchmarks
+                return {
+                    "overall_score": 0.65,  # Baseline score
+                    "correctness": 0.70,
+                    "efficiency": 0.60,
+                    "robustness": 0.65,
+                }
 
-        return {
-            "overall_score": base_score,
-            "correctness": base_score + random.random() * 0.1,
-            "efficiency": base_score - random.random() * 0.05,
-            "robustness": base_score + random.random() * 0.05,
-        }
+            # Run benchmark
+            logger.info(f"Running benchmark for {self.agent_name} version {version}")
+            result = await benchmark.run(agent_code)
+
+            # Map BenchmarkResult to metrics dict
+            metrics = {
+                "overall_score": result.overall_score,
+                "correctness": result.accuracy,
+                "efficiency": result.speed,
+                "robustness": result.quality,
+            }
+
+            # Add detailed scores
+            metrics.update(result.detailed_scores)
+
+            # Log benchmark results
+            logger.info(
+                f"Benchmark results for {self.agent_name} v{version}: "
+                f"overall={result.overall_score:.3f}, "
+                f"accuracy={result.accuracy:.3f}, "
+                f"quality={result.quality:.3f}, "
+                f"passed={result.test_cases_passed}/{result.test_cases_total}"
+            )
+
+            return metrics
+
+        except Exception as e:
+            logger.error(f"Benchmark evaluation error: {e}", exc_info=True)
+            # Return low scores on error to ensure failed code isn't accepted
+            return {
+                "overall_score": 0.0,
+                "correctness": 0.0,
+                "efficiency": 0.0,
+                "robustness": 0.0,
+                "error": str(e)
+            }
 
     async def _get_agent_code_path(self, version: str) -> Path:
         """Get path to agent code for given version"""

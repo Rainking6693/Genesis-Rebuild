@@ -1,0 +1,571 @@
+[
+  {
+    "id": "maintenance_1",
+    "description": "Set up application monitoring with Prometheus",
+    "inputs": {
+      "system": "web_application",
+      "metrics": [
+        "uptime",
+        "response_time",
+        "error_rate",
+        "cpu_usage"
+      ],
+      "monitoring_tool": "Prometheus",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "monitoring",
+        "alerting",
+        "logging",
+        "dashboards"
+      ],
+      "alert_rules_min": 5,
+      "metrics_collected_min": 10,
+      "retention_days": 30
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_2",
+    "description": "Configure error tracking with Sentry",
+    "inputs": {
+      "system": "full_stack_app",
+      "error_types": [
+        "exceptions",
+        "performance",
+        "user_feedback"
+      ],
+      "tracking_tool": "Sentry",
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "error_capturing",
+        "alerts",
+        "stack_traces",
+        "user_context"
+      ],
+      "alert_rules_min": 3,
+      "integration_points_min": 2,
+      "retention_days": 90
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_3",
+    "description": "Create health check endpoints",
+    "inputs": {
+      "system": "microservices",
+      "checks": [
+        "database",
+        "cache",
+        "external_services",
+        "disk_space"
+      ],
+      "response_format": "JSON",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "liveness",
+        "readiness",
+        "dependency_checks",
+        "status_codes"
+      ],
+      "health_checks_min": 5,
+      "response_time_max": 100,
+      "status_levels": [
+        "healthy",
+        "degraded",
+        "unhealthy"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_4",
+    "description": "Set up log aggregation with ELK stack",
+    "inputs": {
+      "system": "distributed_system",
+      "log_sources": [
+        "application",
+        "system",
+        "access",
+        "audit"
+      ],
+      "aggregation_tool": "ELK",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "log_collection",
+        "indexing",
+        "searching",
+        "visualization"
+      ],
+      "log_sources_min": 4,
+      "retention_days": 30,
+      "search_performance": "sub_second"
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_5",
+    "description": "Configure backup automation",
+    "inputs": {
+      "system": "database_server",
+      "backup_targets": [
+        "database",
+        "configuration",
+        "user_data"
+      ],
+      "backup_frequency": "daily",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "backup_schedule",
+        "retention_policy",
+        "verification",
+        "restore_procedure"
+      ],
+      "backup_frequency_min": "daily",
+      "retention_days_min": 30,
+      "restore_tested": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_6",
+    "description": "Create disaster recovery plan",
+    "inputs": {
+      "system": "production_infrastructure",
+      "scenarios": [
+        "data_loss",
+        "service_outage",
+        "security_breach"
+      ],
+      "rto": 240,
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "recovery_procedures",
+        "contact_list",
+        "escalation_path",
+        "testing_schedule"
+      ],
+      "scenarios_covered_min": 3,
+      "rto_defined": true,
+      "rpo_defined": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_7",
+    "description": "Set up performance monitoring with New Relic",
+    "inputs": {
+      "system": "web_application",
+      "metrics": [
+        "response_time",
+        "throughput",
+        "error_rate",
+        "apdex"
+      ],
+      "monitoring_tool": "New Relic",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "apm",
+        "infrastructure",
+        "browser",
+        "alerts"
+      ],
+      "alert_rules_min": 4,
+      "dashboards_min": 2,
+      "apdex_threshold": 0.95
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_8",
+    "description": "Configure security scanning automation",
+    "inputs": {
+      "system": "application_code",
+      "scan_types": [
+        "dependency",
+        "static_code",
+        "container"
+      ],
+      "scanning_tool": "Snyk",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "scan_schedule",
+        "vulnerability_reports",
+        "remediation_guidance",
+        "alerts"
+      ],
+      "scan_frequency": "daily",
+      "severity_thresholds": [
+        "critical",
+        "high",
+        "medium"
+      ],
+      "auto_fix": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_9",
+    "description": "Create maintenance runbooks",
+    "inputs": {
+      "system": "production_services",
+      "procedures": [
+        "deployment",
+        "rollback",
+        "scaling",
+        "troubleshooting"
+      ],
+      "audience": "ops_team",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "step_by_step",
+        "prerequisites",
+        "verification",
+        "rollback_steps"
+      ],
+      "runbooks_min": 4,
+      "diagrams_included": true,
+      "tested": true
+    },
+    "scoring": {
+      "completeness_weight": 0.3,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.4
+    }
+  },
+  {
+    "id": "maintenance_10",
+    "description": "Set up uptime monitoring with UptimeRobot",
+    "inputs": {
+      "system": "public_facing_services",
+      "endpoints": [
+        "website",
+        "api",
+        "cdn",
+        "admin_panel"
+      ],
+      "monitoring_tool": "UptimeRobot",
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "uptime_checks",
+        "response_time",
+        "alerts",
+        "status_page"
+      ],
+      "check_interval_max": 5,
+      "endpoints_min": 4,
+      "alert_channels_min": 2
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_11",
+    "description": "Configure database maintenance tasks",
+    "inputs": {
+      "database": "PostgreSQL",
+      "tasks": [
+        "vacuum",
+        "analyze",
+        "reindex",
+        "backup"
+      ],
+      "schedule": "automated",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "vacuum_schedule",
+        "analyze_schedule",
+        "backup_schedule",
+        "monitoring"
+      ],
+      "tasks_min": 4,
+      "automation": true,
+      "performance_impact": "minimal"
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_12",
+    "description": "Set up capacity planning monitoring",
+    "inputs": {
+      "system": "infrastructure",
+      "resources": [
+        "cpu",
+        "memory",
+        "disk",
+        "network"
+      ],
+      "forecast_period": "6_months",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "usage_trends",
+        "growth_forecasts",
+        "threshold_alerts",
+        "recommendations"
+      ],
+      "metrics_tracked_min": 8,
+      "forecast_accuracy": 0.85,
+      "alert_lead_time_days": 30
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_13",
+    "description": "Set up application monitoring with Prometheus",
+    "inputs": {
+      "system": "web_application",
+      "metrics": [
+        "uptime",
+        "response_time",
+        "error_rate",
+        "cpu_usage"
+      ],
+      "monitoring_tool": "Prometheus",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "monitoring",
+        "alerting",
+        "logging",
+        "dashboards"
+      ],
+      "alert_rules_min": 5,
+      "metrics_collected_min": 10,
+      "retention_days": 30
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_14",
+    "description": "Configure error tracking with Sentry",
+    "inputs": {
+      "system": "full_stack_app",
+      "error_types": [
+        "exceptions",
+        "performance",
+        "user_feedback"
+      ],
+      "tracking_tool": "Sentry",
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "error_capturing",
+        "alerts",
+        "stack_traces",
+        "user_context"
+      ],
+      "alert_rules_min": 3,
+      "integration_points_min": 2,
+      "retention_days": 90
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_15",
+    "description": "Create health check endpoints",
+    "inputs": {
+      "system": "microservices",
+      "checks": [
+        "database",
+        "cache",
+        "external_services",
+        "disk_space"
+      ],
+      "response_format": "JSON",
+      "complexity": "medium",
+      "data_size": "extra_large"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "liveness",
+        "readiness",
+        "dependency_checks",
+        "status_codes"
+      ],
+      "health_checks_min": 5,
+      "response_time_max": 100,
+      "status_levels": [
+        "healthy",
+        "degraded",
+        "unhealthy"
+      ]
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_16",
+    "description": "Set up log aggregation with ELK stack",
+    "inputs": {
+      "system": "distributed_system",
+      "log_sources": [
+        "application",
+        "system",
+        "access",
+        "audit"
+      ],
+      "aggregation_tool": "ELK",
+      "complexity": "high",
+      "time_period": "realtime"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "log_collection",
+        "indexing",
+        "searching",
+        "visualization"
+      ],
+      "log_sources_min": 4,
+      "retention_days": 30,
+      "search_performance": "sub_second"
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_17",
+    "description": "Configure backup automation",
+    "inputs": {
+      "system": "database_server",
+      "backup_targets": [
+        "database",
+        "configuration",
+        "user_data"
+      ],
+      "backup_frequency": "daily",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "backup_schedule",
+        "retention_policy",
+        "verification",
+        "restore_procedure"
+      ],
+      "backup_frequency_min": "daily",
+      "retention_days_min": 30,
+      "restore_tested": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  },
+  {
+    "id": "maintenance_18",
+    "description": "Create disaster recovery plan",
+    "inputs": {
+      "system": "production_infrastructure",
+      "scenarios": [
+        "data_loss",
+        "service_outage",
+        "security_breach"
+      ],
+      "rto": 240,
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "recovery_procedures",
+        "contact_list",
+        "escalation_path",
+        "testing_schedule"
+      ],
+      "scenarios_covered_min": 3,
+      "rto_defined": true,
+      "rpo_defined": true
+    },
+    "scoring": {
+      "completeness_weight": 0.4,
+      "quality_weight": 0.3,
+      "procedure_weight": 0.3
+    }
+  }
+]

@@ -1,0 +1,463 @@
+[
+  {
+    "id": "support_1",
+    "description": "Password reset request",
+    "inputs": {
+      "issue_type": "password_reset",
+      "customer_sentiment": "frustrated",
+      "urgency": "high",
+      "customer_type": "existing"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "empathy",
+        "steps",
+        "timeline",
+        "confirmation"
+      ],
+      "resolution_time_max": 300,
+      "tone": "professional_empathetic",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.3,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_2",
+    "description": "Billing inquiry",
+    "inputs": {
+      "issue_type": "billing_question",
+      "customer_sentiment": "confused",
+      "urgency": "medium",
+      "customer_type": "existing"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "clarification",
+        "breakdown",
+        "next_steps"
+      ],
+      "resolution_time_max": 600,
+      "tone": "professional_helpful",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "resolution_weight": 0.35,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_3",
+    "description": "Feature request",
+    "inputs": {
+      "issue_type": "feature_request",
+      "customer_sentiment": "hopeful",
+      "urgency": "low",
+      "customer_type": "power_user"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "acknowledgment",
+        "feedback_collection",
+        "roadmap_info"
+      ],
+      "resolution_time_max": 900,
+      "tone": "professional_encouraging",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.3,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_4",
+    "description": "Bug report",
+    "inputs": {
+      "issue_type": "bug_report",
+      "customer_sentiment": "annoyed",
+      "urgency": "high",
+      "customer_type": "existing"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "acknowledgment",
+        "troubleshooting_steps",
+        "escalation_info"
+      ],
+      "resolution_time_max": 300,
+      "tone": "professional_apologetic",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "resolution_weight": 0.35,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_5",
+    "description": "Account suspension appeal",
+    "inputs": {
+      "issue_type": "account_suspension",
+      "customer_sentiment": "angry",
+      "urgency": "high",
+      "customer_type": "suspended"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "reason_explanation",
+        "appeal_process",
+        "policy_reference"
+      ],
+      "resolution_time_max": 1800,
+      "tone": "professional_firm_empathetic",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.3,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_6",
+    "description": "Product usage question",
+    "inputs": {
+      "issue_type": "how_to",
+      "customer_sentiment": "curious",
+      "urgency": "low",
+      "customer_type": "new"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "step_by_step_guide",
+        "resources",
+        "examples"
+      ],
+      "resolution_time_max": 600,
+      "tone": "professional_educational",
+      "follow_up": false
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.4,
+      "empathy_weight": 0.2
+    }
+  },
+  {
+    "id": "support_7",
+    "description": "Integration troubleshooting",
+    "inputs": {
+      "issue_type": "integration_issue",
+      "customer_sentiment": "frustrated",
+      "urgency": "high",
+      "customer_type": "enterprise"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "technical_troubleshooting",
+        "diagnostics",
+        "escalation"
+      ],
+      "resolution_time_max": 900,
+      "tone": "professional_technical",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "resolution_weight": 0.35,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_8",
+    "description": "Performance complaint",
+    "inputs": {
+      "issue_type": "performance_issue",
+      "customer_sentiment": "disappointed",
+      "urgency": "medium",
+      "customer_type": "existing"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "acknowledgment",
+        "investigation",
+        "workarounds",
+        "timeline"
+      ],
+      "resolution_time_max": 600,
+      "tone": "professional_reassuring",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "resolution_weight": 0.35,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_9",
+    "description": "Data export request",
+    "inputs": {
+      "issue_type": "data_export",
+      "customer_sentiment": "neutral",
+      "urgency": "medium",
+      "customer_type": "existing"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "process_explanation",
+        "timeline",
+        "format_options"
+      ],
+      "resolution_time_max": 900,
+      "tone": "professional_helpful",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.4,
+      "empathy_weight": 0.2
+    }
+  },
+  {
+    "id": "support_10",
+    "description": "Account deletion request",
+    "inputs": {
+      "issue_type": "account_deletion",
+      "customer_sentiment": "neutral_or_leaving",
+      "urgency": "low",
+      "customer_type": "leaving"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "confirmation",
+        "data_retention_policy",
+        "alternatives"
+      ],
+      "resolution_time_max": 1200,
+      "tone": "professional_respectful",
+      "follow_up": false
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.4,
+      "empathy_weight": 0.2
+    }
+  },
+  {
+    "id": "support_11",
+    "description": "Upgrade/downgrade request",
+    "inputs": {
+      "issue_type": "plan_change",
+      "customer_sentiment": "neutral",
+      "urgency": "medium",
+      "customer_type": "existing"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "plan_comparison",
+        "pricing",
+        "process",
+        "timing"
+      ],
+      "resolution_time_max": 600,
+      "tone": "professional_helpful",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "resolution_weight": 0.35,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_12",
+    "description": "Security concern report",
+    "inputs": {
+      "issue_type": "security_concern",
+      "customer_sentiment": "worried",
+      "urgency": "high",
+      "customer_type": "existing"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "immediate_actions",
+        "investigation",
+        "updates",
+        "prevention"
+      ],
+      "resolution_time_max": 300,
+      "tone": "professional_reassuring",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "resolution_weight": 0.35,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_13",
+    "description": "Password reset request",
+    "inputs": {
+      "issue_type": "password_reset",
+      "customer_sentiment": "frustrated",
+      "urgency": "critical",
+      "customer_type": "existing",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "empathy",
+        "steps",
+        "timeline",
+        "confirmation"
+      ],
+      "resolution_time_max": 300,
+      "tone": "professional_empathetic",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.3,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_14",
+    "description": "Billing inquiry",
+    "inputs": {
+      "issue_type": "billing_question",
+      "customer_sentiment": "confused",
+      "urgency": "low",
+      "customer_type": "existing",
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "clarification",
+        "breakdown",
+        "next_steps"
+      ],
+      "resolution_time_max": 600,
+      "tone": "professional_helpful",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "resolution_weight": 0.35,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_15",
+    "description": "Feature request",
+    "inputs": {
+      "issue_type": "feature_request",
+      "customer_sentiment": "hopeful",
+      "urgency": "low",
+      "customer_type": "power_user",
+      "data_size": "extra_large"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "acknowledgment",
+        "feedback_collection",
+        "roadmap_info"
+      ],
+      "resolution_time_max": 900,
+      "tone": "professional_encouraging",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.3,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_16",
+    "description": "Bug report",
+    "inputs": {
+      "issue_type": "bug_report",
+      "customer_sentiment": "annoyed",
+      "urgency": "high",
+      "customer_type": "existing",
+      "time_period": "realtime"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "acknowledgment",
+        "troubleshooting_steps",
+        "escalation_info"
+      ],
+      "resolution_time_max": 300,
+      "tone": "professional_apologetic",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "resolution_weight": 0.35,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_17",
+    "description": "Account suspension appeal",
+    "inputs": {
+      "issue_type": "account_suspension",
+      "customer_sentiment": "angry",
+      "urgency": "critical",
+      "customer_type": "suspended",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "reason_explanation",
+        "appeal_process",
+        "policy_reference"
+      ],
+      "resolution_time_max": 1800,
+      "tone": "professional_firm_empathetic",
+      "follow_up": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.3,
+      "empathy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_18",
+    "description": "Product usage question",
+    "inputs": {
+      "issue_type": "how_to",
+      "customer_sentiment": "curious",
+      "urgency": "low",
+      "customer_type": "new",
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "step_by_step_guide",
+        "resources",
+        "examples"
+      ],
+      "resolution_time_max": 600,
+      "tone": "professional_educational",
+      "follow_up": false
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.4,
+      "empathy_weight": 0.2
+    }
+  }
+]

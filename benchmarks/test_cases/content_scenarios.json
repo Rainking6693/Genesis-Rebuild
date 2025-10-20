@@ -1,0 +1,540 @@
+[
+  {
+    "id": "content_1",
+    "description": "Blog post creation about AI trends",
+    "inputs": {
+      "content_type": "blog_post",
+      "topic": "AI trends 2025",
+      "target_length": 1500,
+      "target_audience": "tech_professionals",
+      "tone": "informative"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "introduction",
+        "body",
+        "conclusion",
+        "cta"
+      ],
+      "seo_keywords": [
+        "AI",
+        "trends",
+        "technology",
+        "machine_learning"
+      ],
+      "readability_score_min": 60,
+      "keyword_density": "1-2%"
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "seo_weight": 0.3,
+      "brand_weight": 0.3
+    }
+  },
+  {
+    "id": "content_2",
+    "description": "Product description for e-commerce",
+    "inputs": {
+      "content_type": "product_description",
+      "product": "Smart home device",
+      "target_length": 300,
+      "target_audience": "homeowners",
+      "tone": "persuasive"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "features",
+        "benefits",
+        "specifications",
+        "cta"
+      ],
+      "seo_keywords": [
+        "smart",
+        "home",
+        "automation",
+        "device"
+      ],
+      "readability_score_min": 70,
+      "conversion_focus": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "seo_weight": 0.3,
+      "conversion_weight": 0.3
+    }
+  },
+  {
+    "id": "content_3",
+    "description": "Email newsletter content",
+    "inputs": {
+      "content_type": "newsletter",
+      "topic": "Monthly product updates",
+      "target_length": 500,
+      "target_audience": "subscribers",
+      "tone": "friendly"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "greeting",
+        "main_content",
+        "cta",
+        "footer"
+      ],
+      "sections_min": 3,
+      "readability_score_min": 75,
+      "personalization": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "engagement_weight": 0.3,
+      "brand_weight": 0.3
+    }
+  },
+  {
+    "id": "content_4",
+    "description": "Social media post creation",
+    "inputs": {
+      "content_type": "social_media",
+      "platform": "LinkedIn",
+      "topic": "Company milestone",
+      "target_length": 200,
+      "target_audience": "professionals",
+      "tone": "celebratory"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "hook",
+        "main_message",
+        "hashtags",
+        "cta"
+      ],
+      "hashtags_min": 3,
+      "engagement_hooks": true,
+      "platform_optimized": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "engagement_weight": 0.3,
+      "brand_weight": 0.3
+    }
+  },
+  {
+    "id": "content_5",
+    "description": "Landing page copy",
+    "inputs": {
+      "content_type": "landing_page",
+      "product": "SaaS project management tool",
+      "target_length": 800,
+      "target_audience": "business_owners",
+      "tone": "professional_persuasive"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "headline",
+        "subheadline",
+        "features",
+        "benefits",
+        "social_proof",
+        "cta"
+      ],
+      "seo_keywords": [
+        "project_management",
+        "productivity",
+        "collaboration"
+      ],
+      "conversion_optimized": true,
+      "above_fold_cta": true
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "conversion_weight": 0.35,
+      "seo_weight": 0.3
+    }
+  },
+  {
+    "id": "content_6",
+    "description": "Video script creation",
+    "inputs": {
+      "content_type": "video_script",
+      "topic": "Product demo",
+      "target_length": 120,
+      "target_audience": "potential_customers",
+      "tone": "engaging"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "hook",
+        "problem",
+        "solution",
+        "demo",
+        "cta"
+      ],
+      "duration_seconds": 120,
+      "visual_cues": true,
+      "pacing_notes": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "engagement_weight": 0.3,
+      "clarity_weight": 0.3
+    }
+  },
+  {
+    "id": "content_7",
+    "description": "Case study creation",
+    "inputs": {
+      "content_type": "case_study",
+      "topic": "Customer success story",
+      "target_length": 2000,
+      "target_audience": "prospects",
+      "tone": "professional_storytelling"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "challenge",
+        "solution",
+        "results",
+        "metrics",
+        "testimonial"
+      ],
+      "metrics_included": true,
+      "before_after": true,
+      "visual_elements": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "credibility_weight": 0.3,
+      "persuasiveness_weight": 0.3
+    }
+  },
+  {
+    "id": "content_8",
+    "description": "White paper creation",
+    "inputs": {
+      "content_type": "white_paper",
+      "topic": "Industry analysis",
+      "target_length": 5000,
+      "target_audience": "enterprise_decision_makers",
+      "tone": "authoritative"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "executive_summary",
+        "introduction",
+        "analysis",
+        "recommendations",
+        "conclusion"
+      ],
+      "research_cited": true,
+      "data_visualizations": true,
+      "professional_formatting": true
+    },
+    "scoring": {
+      "quality_weight": 0.45,
+      "credibility_weight": 0.3,
+      "depth_weight": 0.25
+    }
+  },
+  {
+    "id": "content_9",
+    "description": "Press release creation",
+    "inputs": {
+      "content_type": "press_release",
+      "topic": "Product launch",
+      "target_length": 500,
+      "target_audience": "media",
+      "tone": "formal_newsworthy"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "headline",
+        "dateline",
+        "lead",
+        "body",
+        "boilerplate",
+        "contact"
+      ],
+      "inverted_pyramid": true,
+      "quotes_included": true,
+      "ap_style": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "format_weight": 0.3,
+      "newsworthiness_weight": 0.3
+    }
+  },
+  {
+    "id": "content_10",
+    "description": "FAQ content creation",
+    "inputs": {
+      "content_type": "faq",
+      "topic": "Product features",
+      "target_questions": 15,
+      "target_audience": "users",
+      "tone": "helpful"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "questions",
+        "answers",
+        "categories",
+        "search_optimization"
+      ],
+      "questions_min": 15,
+      "clear_answers": true,
+      "seo_optimized": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "helpfulness_weight": 0.3,
+      "completeness_weight": 0.3
+    }
+  },
+  {
+    "id": "content_11",
+    "description": "Technical documentation",
+    "inputs": {
+      "content_type": "technical_docs",
+      "topic": "API integration guide",
+      "target_length": 3000,
+      "target_audience": "developers",
+      "tone": "technical_clear"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "overview",
+        "prerequisites",
+        "step_by_step",
+        "code_examples",
+        "troubleshooting"
+      ],
+      "code_examples_min": 5,
+      "diagrams": true,
+      "searchable": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "clarity_weight": 0.3,
+      "completeness_weight": 0.3
+    }
+  },
+  {
+    "id": "content_12",
+    "description": "Infographic content script",
+    "inputs": {
+      "content_type": "infographic_script",
+      "topic": "Industry statistics",
+      "data_points": 10,
+      "target_audience": "business_professionals",
+      "tone": "informative_visual"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "headline",
+        "data_points",
+        "visual_hierarchy",
+        "sources",
+        "cta"
+      ],
+      "data_points_min": 10,
+      "visual_flow": true,
+      "citations": true
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "visual_clarity_weight": 0.35,
+      "data_accuracy_weight": 0.3
+    }
+  },
+  {
+    "id": "content_13",
+    "description": "Blog post creation about AI trends",
+    "inputs": {
+      "content_type": "blog_post",
+      "topic": "AI trends 2025",
+      "target_length": 1500,
+      "target_audience": "tech_professionals",
+      "tone": "informative",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "introduction",
+        "body",
+        "conclusion",
+        "cta"
+      ],
+      "seo_keywords": [
+        "AI",
+        "trends",
+        "technology",
+        "machine_learning"
+      ],
+      "readability_score_min": 60,
+      "keyword_density": "1-2%"
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "seo_weight": 0.3,
+      "brand_weight": 0.3
+    }
+  },
+  {
+    "id": "content_14",
+    "description": "Product description for e-commerce",
+    "inputs": {
+      "content_type": "product_description",
+      "product": "Smart home device",
+      "target_length": 300,
+      "target_audience": "homeowners",
+      "tone": "persuasive",
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "features",
+        "benefits",
+        "specifications",
+        "cta"
+      ],
+      "seo_keywords": [
+        "smart",
+        "home",
+        "automation",
+        "device"
+      ],
+      "readability_score_min": 70,
+      "conversion_focus": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "seo_weight": 0.3,
+      "conversion_weight": 0.3
+    }
+  },
+  {
+    "id": "content_15",
+    "description": "Email newsletter content",
+    "inputs": {
+      "content_type": "newsletter",
+      "topic": "Monthly product updates",
+      "target_length": 500,
+      "target_audience": "subscribers",
+      "tone": "friendly",
+      "data_size": "extra_large"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "greeting",
+        "main_content",
+        "cta",
+        "footer"
+      ],
+      "sections_min": 3,
+      "readability_score_min": 75,
+      "personalization": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "engagement_weight": 0.3,
+      "brand_weight": 0.3
+    }
+  },
+  {
+    "id": "content_16",
+    "description": "Social media post creation",
+    "inputs": {
+      "content_type": "social_media",
+      "platform": "LinkedIn",
+      "topic": "Company milestone",
+      "target_length": 200,
+      "target_audience": "professionals",
+      "tone": "celebratory",
+      "time_period": "realtime"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "hook",
+        "main_message",
+        "hashtags",
+        "cta"
+      ],
+      "hashtags_min": 3,
+      "engagement_hooks": true,
+      "platform_optimized": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "engagement_weight": 0.3,
+      "brand_weight": 0.3
+    }
+  },
+  {
+    "id": "content_17",
+    "description": "Landing page copy",
+    "inputs": {
+      "content_type": "landing_page",
+      "product": "SaaS project management tool",
+      "target_length": 800,
+      "target_audience": "business_owners",
+      "tone": "professional_persuasive",
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "headline",
+        "subheadline",
+        "features",
+        "benefits",
+        "social_proof",
+        "cta"
+      ],
+      "seo_keywords": [
+        "project_management",
+        "productivity",
+        "collaboration"
+      ],
+      "conversion_optimized": true,
+      "above_fold_cta": true
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "conversion_weight": 0.35,
+      "seo_weight": 0.3
+    }
+  },
+  {
+    "id": "content_18",
+    "description": "Video script creation",
+    "inputs": {
+      "content_type": "video_script",
+      "topic": "Product demo",
+      "target_length": 120,
+      "target_audience": "potential_customers",
+      "tone": "engaging",
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "hook",
+        "problem",
+        "solution",
+        "demo",
+        "cta"
+      ],
+      "duration_seconds": 120,
+      "visual_cues": true,
+      "pacing_notes": true
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "engagement_weight": 0.3,
+      "clarity_weight": 0.3
+    }
+  }
+]

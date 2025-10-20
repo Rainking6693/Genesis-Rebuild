@@ -24,6 +24,11 @@ from azure.identity.aio import AzureCliCredential
 
 from infrastructure.daao_router import get_daao_router, RoutingDecision
 from infrastructure.feature_flags import is_feature_enabled, get_feature_flag_manager
+from infrastructure.a2a_connector import A2AConnector
+from infrastructure.htdag_planner import HTDAGPlanner
+from infrastructure.halo_router import HALORouter
+from infrastructure.aop_validator import AOPValidator
+from infrastructure.observability import CorrelationContext
 
 # Setup logging
 logging.basicConfig(
@@ -52,9 +57,44 @@ class GenesisOrchestrator:
         if self.use_v2:
             logger.info("Genesis Orchestrator v2.0 initialized (HTDAG+HALO+AOP+DAAO)")
             self.router = get_daao_router()
+
+            # Initialize orchestration components
+            self.htdag = HTDAGPlanner()
+            self.halo = HALORouter()
+            self.aop = AOPValidator()
+
+            # Initialize A2A connector (if feature enabled)
+            if is_feature_enabled('a2a_integration_enabled'):
+                self.a2a_connector = A2AConnector(base_url="http://127.0.0.1:8080")
+                logger.info("A2A integration ENABLED")
+            else:
+                self.a2a_connector = None
+                logger.info("A2A integration DISABLED (planning-only mode)")
+
+            # Initialize Darwin bridge if enabled
+            if is_feature_enabled('darwin_integration_enabled'):
+                try:
+                    from infrastructure.darwin_orchestration_bridge import DarwinOrchestrationBridge
+                    self.darwin_bridge = DarwinOrchestrationBridge(
+                        htdag_planner=self.htdag,
+                        halo_router=self.halo,
+                        aop_validator=self.aop
+                    )
+                    logger.info("Darwin orchestration bridge ENABLED")
+                except ImportError:
+                    self.darwin_bridge = None
+                    logger.warning("Darwin bridge not available (module not found)")
+            else:
+                self.darwin_bridge = None
+                logger.info("Darwin integration DISABLED (feature flag)")
         else:
             logger.info("Genesis Orchestrator v1.0 fallback mode (basic routing)")
             self.router = None
+            self.htdag = None
+            self.halo = None
+            self.aop = None
+            self.a2a_connector = None
+            self.darwin_bridge = None
 
         # Model client mapping (to be populated with actual clients)
         self.model_clients = {}
@@ -163,6 +203,215 @@ class GenesisOrchestrator:
         self.execution_history.append(result)
 
         return result
+
+    async def execute_orchestrated_request(
+        self,
+        user_request: str
+    ) -> Dict:
+        """
+        Full end-to-end orchestration + execution
+
+        Pipeline:
+        1. HTDAG: Decompose request into hierarchical DAG
+        2. HALO: Route tasks to agents
+        3. AOP: Validate plan (solvability, completeness, non-redundancy)
+        4. DAAO: Optimize costs (if enabled)
+        5. A2A: Execute via connector (if enabled)
+
+        Args:
+            user_request: Natural language user request
+
+        Returns:
+            Dictionary with orchestration results and execution status
+
+        Raises:
+            Exception: If critical errors occur during orchestration
+        """
+        if not self.use_v2:
+            return {
+                "status": "not_available",
+                "message": "Full orchestration requires v2.0 (set orchestration_enabled=true)"
+            }
+
+        # Create correlation context for tracing
+        ctx = CorrelationContext(user_request=user_request)
+
+        logger.info(f"Starting orchestrated request (correlation_id={ctx.correlation_id})")
+
+        try:
+            # Step 1: HTDAG - Decompose request into DAG
+            logger.info("Step 1: HTDAG decomposition")
+            dag = await self.htdag.decompose_task(user_request)
+            logger.info(f"HTDAG complete: {len(dag)} tasks generated")
+
+            # Step 2: HALO - Route tasks to agents
+            logger.info("Step 2: HALO routing")
+            routing_plan = await self.halo.route_tasks(dag)
+            logger.info(f"HALO complete: {len(routing_plan.assignments)} tasks routed")
+
+            if not routing_plan.is_complete():
+                logger.warning(f"Routing incomplete: {len(routing_plan.unassigned_tasks)} tasks unassigned")
+
+            # Step 3: AOP - Validate plan
+            logger.info("Step 3: AOP validation")
+            validation_result = self.aop.validate_plan(routing_plan, dag)
+
+            if not validation_result.is_valid:
+                logger.error(f"AOP validation failed: {validation_result.issues}")
+                return {
+                    "status": "validation_failed",
+                    "correlation_id": ctx.correlation_id,
+                    "dag_size": len(dag),
+                    "validation_issues": validation_result.issues,
+                    "message": "Plan validation failed"
+                }
+
+            logger.info(f"AOP complete: validation passed (quality_score={validation_result.quality_score:.2f})")
+
+            # Step 4: DAAO cost optimization (handled by HALO if enabled)
+            # This is already integrated in HALO router
+
+            # Step 5: A2A - Execute via connector (if enabled)
+            if self.a2a_connector:
+                logger.info("Step 5: A2A execution")
+                execution_result = await self.a2a_connector.execute_routing_plan(
+                    routing_plan,
+                    dag,
+                    correlation_context=ctx
+                )
+
+                logger.info(
+                    f"A2A execution complete: {execution_result['successful']}/{execution_result['total_tasks']} "
+                    f"tasks successful"
+                )
+
+                return {
+                    "status": execution_result["status"],
+                    "correlation_id": ctx.correlation_id,
+                    "dag_size": len(dag),
+                    "tasks_routed": len(routing_plan.assignments),
+                    "validation_score": validation_result.quality_score,
+                    "execution": execution_result,
+                    "message": "Full orchestration + execution complete"
+                }
+            else:
+                # Planning-only mode (no A2A execution)
+                logger.info("A2A execution DISABLED - returning plan only")
+
+                return {
+                    "status": "planned",
+                    "correlation_id": ctx.correlation_id,
+                    "dag_size": len(dag),
+                    "tasks_routed": len(routing_plan.assignments),
+                    "validation_score": validation_result.quality_score,
+                    "routing_plan": {
+                        "assignments": routing_plan.assignments,
+                        "explanations": routing_plan.explanations,
+                        "unassigned_tasks": routing_plan.unassigned_tasks
+                    },
+                    "message": "Orchestration plan created (A2A execution disabled)"
+                }
+
+        except Exception as e:
+            logger.error(f"Orchestration failed: {str(e)}", exc_info=True)
+
+            return {
+                "status": "failed",
+                "correlation_id": ctx.correlation_id,
+                "error": str(e),
+                "message": "Orchestration failed"
+            }
+
+    async def improve_agent(
+        self,
+        agent_name: str,
+        evolution_type: str = "improve_agent",
+        context: Optional[Dict] = None
+    ) -> Dict:
+        """
+        Improve an agent using Darwin evolution
+
+        This method integrates with the SE-Darwin self-improvement system
+        to evolve agent code based on performance metrics, errors, or
+        optimization targets.
+
+        Args:
+            agent_name: Name of agent to improve (e.g., "marketing_agent")
+            evolution_type: Type of evolution:
+                - "improve_agent": General improvement
+                - "fix_bug": Fix specific bug or error
+                - "optimize_performance": Performance optimization
+            context: Additional context:
+                - success_rate: Current success rate (0.0-1.0)
+                - target: Target success rate or metric
+                - errors: List of errors to fix
+                - metrics: Performance metrics
+
+        Returns:
+            Evolution result with improvement metrics:
+                - success: Whether evolution succeeded
+                - agent_name: Name of improved agent
+                - metrics_before: Performance before improvement
+                - metrics_after: Performance after improvement
+                - improvement: Percentage improvement
+                - new_version: Version identifier of improved agent
+                - error: Error message if failed
+
+        Example:
+            result = await orchestrator.improve_agent(
+                agent_name="marketing_agent",
+                evolution_type="improve_agent",
+                context={"success_rate": 0.65, "target": 0.80}
+            )
+
+        Raises:
+            RuntimeError: If Darwin integration not enabled
+        """
+        if not self.darwin_bridge:
+            raise RuntimeError(
+                "Darwin integration not enabled. "
+                "Set darwin_integration_enabled=true in feature flags."
+            )
+
+        logger.info(f"Improving {agent_name} via Darwin evolution ({evolution_type})")
+
+        try:
+            # Execute evolution through bridge
+            from infrastructure.darwin_orchestration_bridge import EvolutionTaskType
+            result = await self.darwin_bridge.evolve_agent(
+                agent_name=agent_name,
+                evolution_type=EvolutionTaskType(evolution_type),
+                context=context or {}
+            )
+
+            # Log result
+            if result.success:
+                logger.info(
+                    f"Evolution successful: {agent_name} improved by "
+                    f"{result.improvement_delta}"
+                )
+            else:
+                logger.warning(
+                    f"Evolution failed: {agent_name} - {result.error_message}"
+                )
+
+            return {
+                "success": result.success,
+                "agent_name": result.agent_name,
+                "metrics_before": result.metrics_before,
+                "metrics_after": result.metrics_after,
+                "improvement": result.improvement_delta,
+                "new_version": result.new_version,
+                "error": result.error_message
+            }
+
+        except Exception as e:
+            logger.error(f"Darwin evolution error: {e}", exc_info=True)
+            return {
+                "success": False,
+                "agent_name": agent_name,
+                "error": str(e)
+            }
 
     async def analyze_cost_savings(
         self,

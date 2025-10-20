@@ -1,0 +1,628 @@
+[
+  {
+    "id": "deploy_1",
+    "description": "Deploy Next.js app to Vercel",
+    "inputs": {
+      "app_type": "Next.js",
+      "platform": "Vercel",
+      "features": [
+        "env_variables",
+        "preview_deployments",
+        "custom_domain"
+      ],
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "build",
+        "test",
+        "deploy",
+        "verify"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "vercel_json",
+        "environment_variables"
+      ],
+      "deployment_time_max": 300
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_2",
+    "description": "Deploy Python FastAPI to AWS Lambda",
+    "inputs": {
+      "app_type": "FastAPI",
+      "platform": "AWS Lambda",
+      "features": [
+        "api_gateway",
+        "cloudwatch_logging",
+        "environment_variables"
+      ],
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "package",
+        "test",
+        "upload",
+        "configure",
+        "deploy"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "lambda_function",
+        "api_gateway",
+        "iam_roles"
+      ],
+      "deployment_time_max": 600
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_3",
+    "description": "Set up GitHub Actions CI/CD pipeline",
+    "inputs": {
+      "app_type": "Full-stack web app",
+      "platform": "GitHub Actions",
+      "features": [
+        "automated_tests",
+        "linting",
+        "deployment"
+      ],
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "workflow_config",
+        "test_stage",
+        "build_stage",
+        "deploy_stage"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "github_workflow",
+        "secrets",
+        "environments"
+      ],
+      "pipeline_stages_min": 4
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "completeness_weight": 0.35,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_4",
+    "description": "Docker containerization and deployment",
+    "inputs": {
+      "app_type": "Node.js microservice",
+      "platform": "Docker",
+      "features": [
+        "multi_stage_build",
+        "health_checks",
+        "volume_mounts"
+      ],
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "dockerfile",
+        "build",
+        "tag",
+        "push",
+        "run"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "dockerfile",
+        "docker_compose",
+        "env_file"
+      ],
+      "image_size_max": 500
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_5",
+    "description": "Kubernetes deployment configuration",
+    "inputs": {
+      "app_type": "Microservices architecture",
+      "platform": "Kubernetes",
+      "features": [
+        "auto_scaling",
+        "load_balancing",
+        "rolling_updates"
+      ],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "deployment",
+        "service",
+        "ingress",
+        "configmap",
+        "apply"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "deployment_yaml",
+        "service_yaml",
+        "ingress_yaml"
+      ],
+      "replica_count_min": 2
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_6",
+    "description": "Database migration deployment",
+    "inputs": {
+      "database_type": "PostgreSQL",
+      "migration_tool": "Alembic",
+      "features": [
+        "version_control",
+        "rollback",
+        "data_preservation"
+      ],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "backup",
+        "validate",
+        "migrate",
+        "verify",
+        "notify"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "migration_scripts",
+        "backup_plan",
+        "validation_tests"
+      ],
+      "downtime_max": 60
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_7",
+    "description": "Load balancer configuration",
+    "inputs": {
+      "load_balancer": "AWS ALB",
+      "backend": "EC2 instances",
+      "features": [
+        "health_checks",
+        "ssl_termination",
+        "sticky_sessions"
+      ],
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "configure",
+        "register_targets",
+        "test",
+        "deploy"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "target_groups",
+        "listeners",
+        "health_checks"
+      ],
+      "health_check_interval_max": 30
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_8",
+    "description": "Monitoring and alerting setup",
+    "inputs": {
+      "monitoring_tool": "Prometheus + Grafana",
+      "alert_channel": "Slack",
+      "features": [
+        "metrics_collection",
+        "dashboards",
+        "alerts"
+      ],
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "install",
+        "configure",
+        "dashboard_setup",
+        "alert_rules"
+      ],
+      "rollback_strategy": false,
+      "required_config": [
+        "prometheus_config",
+        "grafana_dashboards",
+        "alert_rules"
+      ],
+      "metrics_count_min": 10
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.4,
+      "rollback_weight": 0.2
+    }
+  },
+  {
+    "id": "deploy_9",
+    "description": "Blue-green deployment strategy",
+    "inputs": {
+      "app_type": "Web application",
+      "platform": "AWS",
+      "features": [
+        "zero_downtime",
+        "instant_rollback",
+        "traffic_switching"
+      ],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "deploy_green",
+        "test_green",
+        "switch_traffic",
+        "monitor",
+        "decommission_blue"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "load_balancer",
+        "target_groups",
+        "health_checks"
+      ],
+      "traffic_switch_time_max": 5
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_10",
+    "description": "Canary deployment strategy",
+    "inputs": {
+      "app_type": "Microservice",
+      "platform": "Kubernetes",
+      "features": [
+        "gradual_rollout",
+        "traffic_splitting",
+        "metrics_monitoring"
+      ],
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "deploy_canary",
+        "monitor_metrics",
+        "increase_traffic",
+        "complete_rollout"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "canary_deployment",
+        "traffic_split",
+        "monitoring"
+      ],
+      "canary_percentage_start": 5
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_11",
+    "description": "Static site deployment to CDN",
+    "inputs": {
+      "app_type": "React SPA",
+      "platform": "CloudFront + S3",
+      "features": [
+        "cdn_distribution",
+        "cache_invalidation",
+        "custom_domain"
+      ],
+      "complexity": "low"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "build",
+        "upload_s3",
+        "invalidate_cache",
+        "verify"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "s3_bucket",
+        "cloudfront_distribution",
+        "dns_records"
+      ],
+      "deployment_time_max": 180
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_12",
+    "description": "Serverless function deployment",
+    "inputs": {
+      "app_type": "Background job processor",
+      "platform": "Google Cloud Functions",
+      "features": [
+        "event_triggers",
+        "auto_scaling",
+        "monitoring"
+      ],
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "package",
+        "configure_triggers",
+        "deploy",
+        "test",
+        "monitor"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "function_config",
+        "event_triggers",
+        "environment_variables"
+      ],
+      "cold_start_time_max": 3
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_13",
+    "description": "Deploy Next.js app to Vercel",
+    "inputs": {
+      "app_type": "Next.js",
+      "platform": "Vercel",
+      "features": [
+        "env_variables",
+        "preview_deployments",
+        "custom_domain"
+      ],
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "build",
+        "test",
+        "deploy",
+        "verify"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "vercel_json",
+        "environment_variables"
+      ],
+      "deployment_time_max": 300
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_14",
+    "description": "Deploy Python FastAPI to AWS Lambda",
+    "inputs": {
+      "app_type": "FastAPI",
+      "platform": "AWS Lambda",
+      "features": [
+        "api_gateway",
+        "cloudwatch_logging",
+        "environment_variables"
+      ],
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "package",
+        "test",
+        "upload",
+        "configure",
+        "deploy"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "lambda_function",
+        "api_gateway",
+        "iam_roles"
+      ],
+      "deployment_time_max": 600
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_15",
+    "description": "Set up GitHub Actions CI/CD pipeline",
+    "inputs": {
+      "app_type": "Full-stack web app",
+      "platform": "GitHub Actions",
+      "features": [
+        "automated_tests",
+        "linting",
+        "deployment"
+      ],
+      "complexity": "medium",
+      "data_size": "extra_large"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "workflow_config",
+        "test_stage",
+        "build_stage",
+        "deploy_stage"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "github_workflow",
+        "secrets",
+        "environments"
+      ],
+      "pipeline_stages_min": 4
+    },
+    "scoring": {
+      "correctness_weight": 0.35,
+      "completeness_weight": 0.35,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_16",
+    "description": "Docker containerization and deployment",
+    "inputs": {
+      "app_type": "Node.js microservice",
+      "platform": "Docker",
+      "features": [
+        "multi_stage_build",
+        "health_checks",
+        "volume_mounts"
+      ],
+      "complexity": "medium",
+      "time_period": "realtime"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "dockerfile",
+        "build",
+        "tag",
+        "push",
+        "run"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "dockerfile",
+        "docker_compose",
+        "env_file"
+      ],
+      "image_size_max": 500
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_17",
+    "description": "Kubernetes deployment configuration",
+    "inputs": {
+      "app_type": "Microservices architecture",
+      "platform": "Kubernetes",
+      "features": [
+        "auto_scaling",
+        "load_balancing",
+        "rolling_updates"
+      ],
+      "complexity": "high",
+      "urgency": "critical"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "deployment",
+        "service",
+        "ingress",
+        "configmap",
+        "apply"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "deployment_yaml",
+        "service_yaml",
+        "ingress_yaml"
+      ],
+      "replica_count_min": 2
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  },
+  {
+    "id": "deploy_18",
+    "description": "Database migration deployment",
+    "inputs": {
+      "database_type": "PostgreSQL",
+      "migration_tool": "Alembic",
+      "features": [
+        "version_control",
+        "rollback",
+        "data_preservation"
+      ],
+      "complexity": "low",
+      "urgency": "low"
+    },
+    "expected_outputs": {
+      "required_steps": [
+        "backup",
+        "validate",
+        "migrate",
+        "verify",
+        "notify"
+      ],
+      "rollback_strategy": true,
+      "required_config": [
+        "migration_scripts",
+        "backup_plan",
+        "validation_tests"
+      ],
+      "downtime_max": 60
+    },
+    "scoring": {
+      "correctness_weight": 0.4,
+      "completeness_weight": 0.3,
+      "rollback_weight": 0.3
+    }
+  }
+]
