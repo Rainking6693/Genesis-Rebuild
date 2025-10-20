@@ -1,6 +1,9 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Always use context7 MCP, and 
+always switch to using haiku 4.5
+if you are able to without effecting quality
 
 ## 🚨 CRITICAL: READ THIS FIRST
 
@@ -10,9 +13,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. **`ORCHESTRATION_DESIGN.md`** - Triple-layer orchestration system (HTDAG+HALO+AOP)
 4. **`AGENT_PROJECT_MAPPING.md`** - Agent assignments for all tasks (WHO does WHAT)
 
+<<<<<<< HEAD
 **Current Priority:** Phase 4 pre-deployment + Benchmark completion + SE-Darwin integration 100% COMPLETE - Ready for production deployment execution (October 20, 2025)
 
 **Latest Update (October 20, 2025):** SE-Darwin 100% complete + production approved (triple approval: Hudson 9.2, Alex 9.4, Forge 9.5). Layer 2 self-improvement operational with 2,130 lines code, 119 tests, 99.3% pass rate, zero regressions. Phase 5 & 6 research complete - DeepSeek-OCR + LangGraph Store + Hybrid RAG documented in DEEP_RESEARCH_ANALYSIS.md. Layer 6 roadmap ready (3-week timeline, 75% total cost reduction validated: $500→$125/month).
+=======
+<<<<<<< Updated upstream
+**Current Priority:** Phase 4 pre-deployment + Benchmark completion 100% COMPLETE - Ready for production deployment execution (October 19, 2025)
+
+**Latest Update (October 20, 2025):** Phase 5 & 6 research complete - Deep Agents, DeepSeek-OCR, and DAAO analysis documented in DEEP_RESEARCH_ANALYSIS.md. Layer 6 implementation roadmap ready with 3-week timeline and $45k/year cost savings validated.
+=======
+Always use context7 MCP, and 
+always switch to using haiku 4.5
+if you are able to without effecting quality
+
+**Current Priority:** Phase 4 pre-deployment 100% COMPLETE - Ready for production deployment execution (October 19, 2025)
+>>>>>>> Stashed changes
+>>>>>>> 5f8793a3caaebd761f89a5c3803d51f63a2966fc
 
 This is the **SINGLE SOURCE OF TRUTH** for what's been completed and what's next. It tracks:
 - ✅ Completed layers (1 Phase 1-4 COMPLETE, 2 COMPLETE, 3 COMPLETE, 5 COMPLETE)
