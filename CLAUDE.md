@@ -1,6 +1,9 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Always use context7 MCP, and 
+always switch to using haiku 4.5
+if you are able to without effecting quality
 
 ## 🚨 CRITICAL: READ THIS FIRST
 
@@ -10,9 +13,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. **`ORCHESTRATION_DESIGN.md`** - Triple-layer orchestration system (HTDAG+HALO+AOP)
 4. **`AGENT_PROJECT_MAPPING.md`** - Agent assignments for all tasks (WHO does WHAT)
 
+<<<<<<< Updated upstream
 **Current Priority:** Phase 4 pre-deployment + Benchmark completion 100% COMPLETE - Ready for production deployment execution (October 19, 2025)
 
 **Latest Update (October 20, 2025):** Phase 5 & 6 research complete - Deep Agents, DeepSeek-OCR, and DAAO analysis documented in DEEP_RESEARCH_ANALYSIS.md. Layer 6 implementation roadmap ready with 3-week timeline and $45k/year cost savings validated.
+=======
+Always use context7 MCP, and 
+always switch to using haiku 4.5
+if you are able to without effecting quality
+
+**Current Priority:** Phase 4 pre-deployment 100% COMPLETE - Ready for production deployment execution (October 19, 2025)
+>>>>>>> Stashed changes
 
 This is the **SINGLE SOURCE OF TRUTH** for what's been completed and what's next. It tracks:
 - ✅ Completed layers (1 Phase 1-3 COMPLETE, 2, 3, 5 are DONE)
