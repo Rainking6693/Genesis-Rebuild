@@ -1,0 +1,458 @@
+2025-10-21 13:26:08 - infrastructure.reasoning_bank - WARNING - MongoDB not available - using in-memory storage
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/reasoning_bank.py:42 - WARNING] MongoDB not available - using in-memory storage
+2025-10-21 13:26:08 - infrastructure.replay_buffer - WARNING - MongoDB not available - using in-memory trajectory storage
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/replay_buffer.py:56 - WARNING] MongoDB not available - using in-memory trajectory storage
+2025-10-21 13:26:08 - infrastructure.feature_flags - INFO - Loaded 17 feature flags from /home/genesis/genesis-rebuild/config/feature_flags.json
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/feature_flags.py:481 - INFO] Loaded 17 feature flags from /home/genesis/genesis-rebuild/config/feature_flags.json
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/opentelemetry/trace/__init__.py:537 - WARNING] Overriding of current TracerProvider is not allowed
+2025-10-21 13:26:08 - infrastructure.agent_auth_registry - INFO - AgentAuthRegistry initialized with cryptographic verification
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/agent_auth_registry.py:63 - INFO] AgentAuthRegistry initialized with cryptographic verification
+2025-10-21 13:26:08 - infrastructure.halo_router - INFO - Initialized HALORouter with 16 agents (cost_optimization=disabled)
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/halo_router.py:156 - INFO] Initialized HALORouter with 16 agents (cost_optimization=disabled)
+2025-10-21 13:26:08 - infrastructure.daao_router - INFO - Routed task to gemini-2.5-flash
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/daao_router.py:333 - INFO] Routed task to gemini-2.5-flash
+2025-10-21 13:26:08 - infrastructure.daao_router - INFO - Routed task to gpt-4o
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/daao_router.py:333 - INFO] Routed task to gpt-4o
+2025-10-21 13:26:08 - infrastructure.daao_router - INFO - Routed task to gemini-2.5-flash
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/daao_router.py:333 - INFO] Routed task to gemini-2.5-flash
+2025-10-21 13:26:08 - infrastructure.daao_router - INFO - Routed task to gemini-2.0-flash-lite
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/daao_router.py:333 - INFO] Routed task to gemini-2.0-flash-lite
+2025-10-21 13:26:08 - infrastructure.daao_router - INFO - Routed task to gemini-2.5-flash
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/daao_router.py:333 - INFO] Routed task to gemini-2.5-flash
+2025-10-21 13:26:08 - infrastructure.daao_router - INFO - Routed task to gpt-4o
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/daao_router.py:333 - INFO] Routed task to gpt-4o
+2025-10-21 13:26:08 - infrastructure.daao_router - INFO - Routed task to gemini-2.5-flash
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/daao_router.py:333 - INFO] Routed task to gemini-2.5-flash
+2025-10-21 13:26:08 - infrastructure.daao_router - INFO - Routed task to gemini-2.0-flash-lite
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/daao_router.py:333 - INFO] Routed task to gemini-2.0-flash-lite
+2025-10-21 13:26:08 - infrastructure.daao_router - INFO - Cost savings analysis complete
+[2025-10-21 13:26:08 - /home/genesis/genesis-rebuild/infrastructure/daao_router.py:430 - INFO] Cost savings analysis complete
+================================================================================
+GENESIS ORCHESTRATOR - v2.0 (HTDAG+HALO+AOP+DAAO)
+================================================================================
+Feature Flag Mode: ENABLED
+================================================================================
+
+Task task-001: Fix typo in README.md...
+  → Model: gemini-2.5-flash
+  → Difficulty: trivial
+  → Estimated Cost: $0.000015
+  → Confidence: 0.93
+  → Reasoning: Task is simple (difficulty: 0.01) | Cost-optimized routing to gemini-2.5-flash | Low cost model selected
+
+Task task-002: Design and implement a scalable microservices architecture w...
+  → Model: gpt-4o
+  → Difficulty: hard
+  → Estimated Cost: $0.006054
+  → Confidence: 0.09
+  → Reasoning: Task is complex (difficulty: 0.62) | Cost-optimized routing to gpt-4o | High cost model selected for quality
+
+Task task-003: Write a function to calculate factorial...
+  → Model: gemini-2.5-flash
+  → Difficulty: trivial
+  → Estimated Cost: $0.000015
+  → Confidence: 0.82
+  → Reasoning: Task is simple (difficulty: 0.04) | Cost-optimized routing to gemini-2.5-flash | Low cost model selected
+
+Task task-004: Optimize database queries and implement caching for performa...
+  → Model: gemini-2.0-flash-lite
+  → Difficulty: easy
+  → Estimated Cost: $0.000141
+  → Confidence: 0.45
+  → Reasoning: Task is moderate (difficulty: 0.31) | Cost-optimized routing to gemini-2.0-flash-lite | Low cost model selected
+
+================================================================================
+COST SAVINGS ANALYSIS (DAAO)
+================================================================================
+Tasks Analyzed: 4
+Baseline Cost (GPT-4o for all): $0.012000
+DAAO Cost (optimized): $0.006225
+Savings: $0.005775 (48.1%)
+
+Expected from research: 36% cost reduction
+Achieved in demo: 48.1% cost reduction
+
+================================================================================
+EXECUTION SUMMARY
+================================================================================
+Total Tasks: 4
+Total Estimated Cost: $0.006225
+
+Model Distribution:
+  - gemini-2.5-flash: 2 tasks
+  - gpt-4o: 1 tasks
+  - gemini-2.0-flash-lite: 1 tasks
+
+Difficulty Distribution:
+  - trivial: 2 tasks
+  - hard: 1 tasks
+  - easy: 1 tasks
+
+================================================================================
+GENESIS ORCHESTRATOR v2.0 - FEATURE FLAG SYSTEM ACTIVE ✅
+================================================================================
+
+To toggle between v1.0 and v2.0:
+  1. Edit config/feature_flags.json
+  2. Set 'orchestration_enabled' to true/false
+  3. Restart orchestrator
+
+For instant rollback:
+  export ORCHESTRATION_ENABLED=false
+================================================================================
+{
+    "body": "AgentAuthRegistry initialized with cryptographic verification",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/agent_auth_registry.py",
+        "code.function.name": "__init__",
+        "code.line.number": 63
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T13:26:08.809638Z",
+    "observed_timestamp": "2025-10-21T13:26:08.809945Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "agent_framework"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Initialized HALORouter with 16 agents (cost_optimization=disabled)",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/halo_router.py",
+        "code.function.name": "__init__",
+        "code.line.number": 156
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T13:26:08.810396Z",
+    "observed_timestamp": "2025-10-21T13:26:08.810546Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "agent_framework"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Routed task to gemini-2.5-flash",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "task_id": "task-001",
+        "difficulty": 0.013150000000000002,
+        "difficulty_category": "trivial",
+        "confidence": 0.93425,
+        "estimated_cost": 1.5149999999999999e-05,
+        "estimated_tokens": 505,
+        "budget_conscious": true,
+        "model": "gemini-2.5-flash",
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/daao_router.py",
+        "code.function.name": "route_task",
+        "code.line.number": 333
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T13:26:08.810830Z",
+    "observed_timestamp": "2025-10-21T13:26:08.810961Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "agent_framework"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Routed task to gpt-4o",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "task_id": "task-002",
+        "difficulty": 0.61875,
+        "difficulty_category": "hard",
+        "confidence": 0.09375000000000022,
+        "estimated_cost": 0.006054,
+        "estimated_tokens": 2018,
+        "budget_conscious": true,
+        "model": "gpt-4o",
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/daao_router.py",
+        "code.function.name": "route_task",
+        "code.line.number": 333
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T13:26:08.811158Z",
+    "observed_timestamp": "2025-10-21T13:26:08.811292Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "agent_framework"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Routed task to gemini-2.5-flash",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "task_id": "task-003",
+        "difficulty": 0.03585,
+        "difficulty_category": "trivial",
+        "confidence": 0.8207500000000001,
+        "estimated_cost": 1.5209999999999998e-05,
+        "estimated_tokens": 507,
+        "budget_conscious": true,
+        "model": "gemini-2.5-flash",
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/daao_router.py",
+        "code.function.name": "route_task",
+        "code.line.number": 333
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T13:26:08.811406Z",
+    "observed_timestamp": "2025-10-21T13:26:08.811569Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "agent_framework"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Routed task to gemini-2.0-flash-lite",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "task_id": "task-004",
+        "difficulty": 0.30945,
+        "difficulty_category": "easy",
+        "confidence": 0.4527500000000001,
+        "estimated_cost": 0.000141,
+        "estimated_tokens": 1410,
+        "budget_conscious": true,
+        "model": "gemini-2.0-flash-lite",
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/daao_router.py",
+        "code.function.name": "route_task",
+        "code.line.number": 333
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T13:26:08.811701Z",
+    "observed_timestamp": "2025-10-21T13:26:08.811805Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "agent_framework"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Routed task to gemini-2.5-flash",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "task_id": "task-001",
+        "difficulty": 0.013150000000000002,
+        "difficulty_category": "trivial",
+        "confidence": 0.93425,
+        "estimated_cost": 1.5149999999999999e-05,
+        "estimated_tokens": 505,
+        "budget_conscious": true,
+        "model": "gemini-2.5-flash",
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/daao_router.py",
+        "code.function.name": "route_task",
+        "code.line.number": 333
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T13:26:08.811960Z",
+    "observed_timestamp": "2025-10-21T13:26:08.812065Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "agent_framework"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Routed task to gpt-4o",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "task_id": "task-002",
+        "difficulty": 0.61875,
+        "difficulty_category": "hard",
+        "confidence": 0.09375000000000022,
+        "estimated_cost": 0.006054,
+        "estimated_tokens": 2018,
+        "budget_conscious": true,
+        "model": "gpt-4o",
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/daao_router.py",
+        "code.function.name": "route_task",
+        "code.line.number": 333
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T13:26:08.812202Z",
+    "observed_timestamp": "2025-10-21T13:26:08.812307Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "agent_framework"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Routed task to gemini-2.5-flash",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "task_id": "task-003",
+        "difficulty": 0.03585,
+        "difficulty_category": "trivial",
+        "confidence": 0.8207500000000001,
+        "estimated_cost": 1.5209999999999998e-05,
+        "estimated_tokens": 507,
+        "budget_conscious": true,
+        "model": "gemini-2.5-flash",
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/daao_router.py",
+        "code.function.name": "route_task",
+        "code.line.number": 333
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T13:26:08.812385Z",
+    "observed_timestamp": "2025-10-21T13:26:08.812493Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "agent_framework"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Routed task to gemini-2.0-flash-lite",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "task_id": "task-004",
+        "difficulty": 0.30945,
+        "difficulty_category": "easy",
+        "confidence": 0.4527500000000001,
+        "estimated_cost": 0.000141,
+        "estimated_tokens": 1410,
+        "budget_conscious": true,
+        "model": "gemini-2.0-flash-lite",
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/daao_router.py",
+        "code.function.name": "route_task",
+        "code.line.number": 333
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T13:26:08.812571Z",
+    "observed_timestamp": "2025-10-21T13:26:08.812657Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "agent_framework"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Cost savings analysis complete",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "num_tasks": 4,
+        "daao_cost": 0.00622536,
+        "baseline_cost": 0.012,
+        "savings": 0.00577464,
+        "savings_percent": 48.122,
+        "baseline_model": "gpt-4o",
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/daao_router.py",
+        "code.function.name": "estimate_cost_savings",
+        "code.line.number": 430
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T13:26:08.812746Z",
+    "observed_timestamp": "2025-10-21T13:26:08.812837Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "agent_framework"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}

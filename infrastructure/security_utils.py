@@ -260,19 +260,30 @@ def redact_credentials(text: str) -> str:
         return ""
 
     patterns = {
-        # API keys
+        # API keys (with quotes)
         r'api[_-]?key["\']?\s*[:=]\s*["\']([^"\']+)["\']': 'api_key="[REDACTED]"',
         r'apikey["\']?\s*[:=]\s*["\']([^"\']+)["\']': 'apikey="[REDACTED]"',
+        # API keys (without quotes - matches alphanumeric, hyphens, underscores)
+        r'api[_-]?key\s*[:=]\s*([a-zA-Z0-9\-_]+)': 'api_key=[REDACTED]',
+        r'apikey\s*[:=]\s*([a-zA-Z0-9\-_]+)': 'apikey=[REDACTED]',
 
-        # Passwords
+        # Passwords (with quotes)
         r'password["\']?\s*[:=]\s*["\']([^"\']+)["\']': 'password="[REDACTED]"',
         r'passwd["\']?\s*[:=]\s*["\']([^"\']+)["\']': 'passwd="[REDACTED]"',
         r'pwd["\']?\s*[:=]\s*["\']([^"\']+)["\']': 'pwd="[REDACTED]"',
+        # Passwords (without quotes)
+        r'password\s*[:=]\s*([a-zA-Z0-9\-_]+)': 'password=[REDACTED]',
+        r'passwd\s*[:=]\s*([a-zA-Z0-9\-_]+)': 'passwd=[REDACTED]',
+        r'pwd\s*[:=]\s*([a-zA-Z0-9\-_]+)': 'pwd=[REDACTED]',
 
-        # Tokens
+        # Tokens (with quotes)
         r'token["\']?\s*[:=]\s*["\']([^"\']+)["\']': 'token="[REDACTED]"',
         r'auth[_-]?token["\']?\s*[:=]\s*["\']([^"\']+)["\']': 'auth_token="[REDACTED]"',
         r'access[_-]?token["\']?\s*[:=]\s*["\']([^"\']+)["\']': 'access_token="[REDACTED]"',
+        # Tokens (without quotes)
+        r'token\s*[:=]\s*([a-zA-Z0-9\-_]+)': 'token=[REDACTED]',
+        r'auth[_-]?token\s*[:=]\s*([a-zA-Z0-9\-_]+)': 'auth_token=[REDACTED]',
+        r'access[_-]?token\s*[:=]\s*([a-zA-Z0-9\-_]+)': 'access_token=[REDACTED]',
 
         # OpenAI keys (sk-... and sk-proj-...)
         # Match sk- followed by at least 16 alphanumeric characters

@@ -383,7 +383,11 @@ async def test_circuit_breaker_opens(a2a_connector):
 
     # Attempting to invoke should fail immediately
     with pytest.raises(Exception, match="Circuit breaker OPEN"):
-        await a2a_connector.invoke_agent_tool("marketing", "create_strategy", {})
+        await a2a_connector.invoke_agent_tool("marketing", "create_strategy", {
+            "business_name": "TestBusiness",
+            "target_audience": "SaaS founders",
+            "budget": 5000.0
+        })
 
 
 # Test 10: Circuit Breaker Recovers After Success
@@ -574,7 +578,11 @@ async def test_http_timeout_handling(a2a_connector):
         a2a_connector.circuit_breaker.record_failure()
 
     with pytest.raises(Exception, match="Circuit breaker OPEN"):
-        await a2a_connector.invoke_agent_tool("marketing", "create_strategy", {})
+        await a2a_connector.invoke_agent_tool("marketing", "create_strategy", {
+            "business_name": "TestBusiness",
+            "target_audience": "SaaS founders",
+            "budget": 5000.0
+        })
 
 
 # Test 18: DAG with Cycles (Should Fail)

@@ -5,8 +5,13 @@ All 15 agents with 56 tools exposed via A2A protocol
 
 import ast
 import operator
+import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
+
+# Load environment variables from .env file (MUST be first)
+from dotenv import load_dotenv
+load_dotenv()
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -52,9 +57,23 @@ async def startup_event():
     """Initialize all 15 agents"""
     global agents
 
-    a2a_logger.info("Genesis A2A Service starting up")
+    # Verify production environment is loaded
+    genesis_env = os.getenv("GENESIS_ENV", "development")
+    environment = os.getenv("ENVIRONMENT", "development")
+    debug = os.getenv("DEBUG", "true").lower() == "true"
+
+    a2a_logger.info(f"Genesis A2A Service starting up - Environment: {genesis_env}")
     print("\n" + "="*80)
     print("GENESIS A2A SERVICE - INITIALIZING ALL AGENTS")
+    print(f"ENVIRONMENT: {genesis_env} (ENVIRONMENT={environment}, DEBUG={debug})")
+
+    if genesis_env == "production":
+        print("✅ RUNNING IN PRODUCTION MODE")
+        a2a_logger.info("Production mode confirmed - security hardening enabled")
+    else:
+        print(f"⚠️  WARNING: Running in {genesis_env.upper()} mode")
+        a2a_logger.warning(f"Non-production mode detected: {genesis_env}")
+
     print("="*80 + "\n")
 
     # Initialize all agents

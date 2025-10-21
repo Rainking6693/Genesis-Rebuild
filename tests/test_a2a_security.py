@@ -35,7 +35,11 @@ async def test_authentication_headers_added():
 
     connector._session = mock_session
 
-    await connector.invoke_agent_tool("marketing", "create_strategy", {})
+    await connector.invoke_agent_tool("marketing", "create_strategy", {
+        "business_name": "TestBusiness",
+        "target_audience": "SaaS founders",
+        "budget": 5000.0
+    })
 
     # Verify Authorization header was sent
     call_kwargs = mock_session.post.call_args[1]
@@ -130,6 +134,9 @@ async def test_credential_redaction_in_logs():
         connector._session = mock_session
 
         arguments = {
+            "business_name": "TestBusiness",
+            "target_audience": "SaaS founders",
+            "budget": 5000.0,
             "api_key": "sk-1234567890abcdef",
             "password": "super_secret_pass",
             "description": "Test task"
@@ -292,7 +299,11 @@ async def test_json_schema_validation():
     connector._session = mock_session
 
     with pytest.raises(ValueError, match="Invalid A2A response schema"):
-        await connector.invoke_agent_tool("marketing", "create_strategy", {})
+        await connector.invoke_agent_tool("marketing", "create_strategy", {
+            "business_name": "TestBusiness",
+            "target_audience": "SaaS founders",
+            "budget": 5000.0
+        })
 
 
 # Test 15: Valid JSON schema passes
@@ -318,7 +329,11 @@ async def test_valid_json_schema_passes():
 
     connector._session = mock_session
 
-    result = await connector.invoke_agent_tool("marketing", "create_strategy", {})
+    result = await connector.invoke_agent_tool("marketing", "create_strategy", {
+        "business_name": "TestBusiness",
+        "target_audience": "SaaS founders",
+        "budget": 5000.0
+    })
     assert result == {"data": "success"}
 
 
@@ -385,8 +400,15 @@ async def test_http_session_reuse():
             mock_post.return_value.__aenter__.return_value = mock_response
 
             # Make multiple requests
-            await connector.invoke_agent_tool("marketing", "create_strategy", {})
-            await connector.invoke_agent_tool("builder", "generate_backend", {})
+            await connector.invoke_agent_tool("marketing", "create_strategy", {
+                "business_name": "TestBusiness",
+                "target_audience": "SaaS founders",
+                "budget": 5000.0
+            })
+            await connector.invoke_agent_tool("builder", "generate_backend", {
+                "business_type": "SaaS",
+                "tech_stack": "Python"
+            })
 
             # Session should be reused (2 calls with same session)
             assert mock_post.call_count == 2
@@ -407,7 +429,11 @@ async def test_circuit_breaker_with_rate_limiting():
 
     # Should raise rate limit error (not circuit breaker error)
     with pytest.raises(Exception, match="Rate limit exceeded"):
-        await connector.invoke_agent_tool("marketing", "create_strategy", {})
+        await connector.invoke_agent_tool("marketing", "create_strategy", {
+            "business_name": "TestBusiness",
+            "target_audience": "SaaS founders",
+            "budget": 5000.0
+        })
 
 
 # Test 20: Error text redaction
@@ -431,7 +457,11 @@ async def test_error_text_redaction():
     connector._session = mock_session
 
     try:
-        await connector.invoke_agent_tool("marketing", "create_strategy", {})
+        await connector.invoke_agent_tool("marketing", "create_strategy", {
+            "business_name": "TestBusiness",
+            "target_audience": "SaaS founders",
+            "budget": 5000.0
+        })
     except Exception as e:
         error_message = str(e)
         # Credentials should be redacted

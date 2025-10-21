@@ -306,7 +306,15 @@ class A2AConnector:
 
     async def _ensure_session(self):
         """Ensure HTTP session exists (lazy initialization)"""
-        if self._session is None or self._session.closed:
+        # Check if session needs to be created/recreated
+        needs_session = (
+            self._session is None or
+            (hasattr(self._session, 'closed') and
+             isinstance(self._session.closed, bool) and
+             self._session.closed)
+        )
+
+        if needs_session:
             import ssl
             ssl_context = None
             if self.verify_ssl:
@@ -649,12 +657,19 @@ class A2AConnector:
 
         # SECURITY: Redact credentials for logging (not for actual request)
         safe_arguments_for_logging = {}
+        SENSITIVE_KEYS = {'api_key', 'apikey', 'password', 'passwd', 'pwd', 'token',
+                         'auth_token', 'access_token', 'secret', 'bearer'}
+
         for key, value in arguments.items():
-            if isinstance(value, str):
+            # Check if key itself is sensitive
+            if key.lower() in SENSITIVE_KEYS:
+                safe_arguments_for_logging[key] = "[REDACTED]"
+            elif isinstance(value, str):
                 safe_arguments_for_logging[key] = redact_credentials(value)
             elif isinstance(value, dict):
                 safe_arguments_for_logging[key] = {
-                    k: redact_credentials(str(v)) if isinstance(v, str) else v
+                    k: "[REDACTED]" if k.lower() in SENSITIVE_KEYS
+                       else (redact_credentials(str(v)) if isinstance(v, str) else v)
                     for k, v in value.items()
                 }
             else:

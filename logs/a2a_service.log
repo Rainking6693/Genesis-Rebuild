@@ -173,3 +173,2673 @@
 {"timestamp": "2025-10-20T20:25:05.005892+00:00", "level": "ERROR", "logger": "a2a_service", "message": "Agent tool failed: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 236, "exception": "Traceback (most recent call last):\n  File \"/home/genesis/genesis-rebuild/a2a_service.py\", line 232, in invoke_tool\n    result = tool_method(**request.arguments)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: MarketingAgent.create_strategy() missing 3 required positional arguments: 'business_name', 'target_audience', and 'budget'", "agent_id": "marketing", "tool_name": "create_strategy"}
 {"timestamp": "2025-10-20T20:25:05.097984+00:00", "level": "INFO", "logger": "a2a_service", "message": "Executing agent tool: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 231, "agent_id": "marketing", "tool_name": "create_strategy"}
 {"timestamp": "2025-10-20T20:25:05.098643+00:00", "level": "ERROR", "logger": "a2a_service", "message": "Agent tool failed: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 236, "exception": "Traceback (most recent call last):\n  File \"/home/genesis/genesis-rebuild/a2a_service.py\", line 232, in invoke_tool\n    result = tool_method(**request.arguments)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: MarketingAgent.create_strategy() missing 3 required positional arguments: 'business_name', 'target_audience', and 'budget'", "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T00:04:54.885443+00:00", "level": "INFO", "logger": "a2a_service", "message": "Executing agent tool: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 231, "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T00:04:54.886438+00:00", "level": "ERROR", "logger": "a2a_service", "message": "Agent tool failed: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 236, "exception": "Traceback (most recent call last):\n  File \"/home/genesis/genesis-rebuild/a2a_service.py\", line 232, in invoke_tool\n    result = tool_method(**request.arguments)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: MarketingAgent.create_strategy() missing 3 required positional arguments: 'business_name', 'target_audience', and 'budget'", "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T00:04:54.968000+00:00", "level": "INFO", "logger": "a2a_service", "message": "Executing agent tool: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 231, "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T00:04:54.968880+00:00", "level": "ERROR", "logger": "a2a_service", "message": "Agent tool failed: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 236, "exception": "Traceback (most recent call last):\n  File \"/home/genesis/genesis-rebuild/a2a_service.py\", line 232, in invoke_tool\n    result = tool_method(**request.arguments)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: MarketingAgent.create_strategy() got an unexpected keyword argument 'api_key'", "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T00:04:55.152394+00:00", "level": "INFO", "logger": "a2a_service", "message": "Executing agent tool: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 231, "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T00:04:55.153243+00:00", "level": "ERROR", "logger": "a2a_service", "message": "Agent tool failed: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 236, "exception": "Traceback (most recent call last):\n  File \"/home/genesis/genesis-rebuild/a2a_service.py\", line 232, in invoke_tool\n    result = tool_method(**request.arguments)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: MarketingAgent.create_strategy() missing 3 required positional arguments: 'business_name', 'target_audience', and 'budget'", "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T00:04:55.202463+00:00", "level": "INFO", "logger": "a2a_service", "message": "Executing agent tool: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 231, "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T00:04:55.203053+00:00", "level": "ERROR", "logger": "a2a_service", "message": "Agent tool failed: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 236, "exception": "Traceback (most recent call last):\n  File \"/home/genesis/genesis-rebuild/a2a_service.py\", line 232, in invoke_tool\n    result = tool_method(**request.arguments)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: MarketingAgent.create_strategy() missing 3 required positional arguments: 'business_name', 'target_audience', and 'budget'", "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T00:04:55.297926+00:00", "level": "INFO", "logger": "a2a_service", "message": "Executing agent tool: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 231, "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T00:04:55.298631+00:00", "level": "ERROR", "logger": "a2a_service", "message": "Agent tool failed: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 236, "exception": "Traceback (most recent call last):\n  File \"/home/genesis/genesis-rebuild/a2a_service.py\", line 232, in invoke_tool\n    result = tool_method(**request.arguments)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: MarketingAgent.create_strategy() missing 3 required positional arguments: 'business_name', 'target_audience', and 'budget'", "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T12:38:48.833582+00:00", "level": "INFO", "logger": "a2a_service", "message": "Executing agent tool: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 231, "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T12:38:48.834481+00:00", "level": "ERROR", "logger": "a2a_service", "message": "Agent tool failed: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 236, "exception": "Traceback (most recent call last):\n  File \"/home/genesis/genesis-rebuild/a2a_service.py\", line 232, in invoke_tool\n    result = tool_method(**request.arguments)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: MarketingAgent.create_strategy() got an unexpected keyword argument 'api_key'", "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T12:38:50.054516+00:00", "level": "INFO", "logger": "a2a_service", "message": "Executing agent tool: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 231, "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T12:38:50.055126+00:00", "level": "ERROR", "logger": "a2a_service", "message": "Agent tool failed: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 236, "exception": "Traceback (most recent call last):\n  File \"/home/genesis/genesis-rebuild/a2a_service.py\", line 232, in invoke_tool\n    result = tool_method(**request.arguments)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: MarketingAgent.create_strategy() missing 3 required positional arguments: 'business_name', 'target_audience', and 'budget'", "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T12:39:38.436752+00:00", "level": "INFO", "logger": "a2a_service", "message": "Executing agent tool: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 231, "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T12:39:38.437482+00:00", "level": "ERROR", "logger": "a2a_service", "message": "Agent tool failed: marketing.create_strategy", "module": "a2a_service", "function": "invoke_tool", "line": 236, "exception": "Traceback (most recent call last):\n  File \"/home/genesis/genesis-rebuild/a2a_service.py\", line 232, in invoke_tool\n    result = tool_method(**request.arguments)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: MarketingAgent.create_strategy() got an unexpected keyword argument 'api_key'", "agent_id": "marketing", "tool_name": "create_strategy"}
+{"timestamp": "2025-10-21T13:47:11.480727+00:00", "level": "INFO", "logger": "a2a_service", "message": "Genesis A2A Service starting up - Environment: production", "module": "a2a_service", "function": "startup_event", "line": 65}
+{"timestamp": "2025-10-21T13:47:11.481081+00:00", "level": "INFO", "logger": "a2a_service", "message": "Production mode confirmed - security hardening enabled", "module": "a2a_service", "function": "startup_event", "line": 72}
+{"timestamp": "2025-10-21T13:47:11.684370+00:00", "level": "INFO", "logger": "a2a_service", "message": "All 15 agents initialized successfully", "module": "a2a_service", "function": "startup_event", "line": 125}
+{"timestamp": "2025-10-21T13:47:22.740376+00:00", "level": "INFO", "logger": "a2a_service", "message": "Genesis A2A Service starting up - Environment: production", "module": "a2a_service", "function": "startup_event", "line": 65}
+{"timestamp": "2025-10-21T13:47:22.740802+00:00", "level": "INFO", "logger": "a2a_service", "message": "Production mode confirmed - security hardening enabled", "module": "a2a_service", "function": "startup_event", "line": 72}
+{"timestamp": "2025-10-21T13:47:22.905894+00:00", "level": "INFO", "logger": "a2a_service", "message": "All 15 agents initialized successfully", "module": "a2a_service", "function": "startup_event", "line": 125}
+{"timestamp": "2025-10-21T14:52:16.605949+00:00", "level": "INFO", "logger": "a2a_service", "message": "Genesis A2A Service starting up - Environment: production", "module": "a2a_service", "function": "startup_event", "line": 74}
+{"timestamp": "2025-10-21T14:52:16.606204+00:00", "level": "INFO", "logger": "a2a_service", "message": "Production mode confirmed - security hardening enabled", "module": "a2a_service", "function": "startup_event", "line": 81}
+{"timestamp": "2025-10-21T14:52:16.769800+00:00", "level": "INFO", "logger": "a2a_service", "message": "All 15 agents initialized successfully", "module": "a2a_service", "function": "startup_event", "line": 134}
+{"timestamp": "2025-10-21T14:54:27.118547+00:00", "level": "INFO", "logger": "a2a_service", "message": "Genesis A2A Service starting up - Environment: production", "module": "a2a_service", "function": "startup_event", "line": 74}
+{"timestamp": "2025-10-21T14:54:27.118794+00:00", "level": "INFO", "logger": "a2a_service", "message": "Production mode confirmed - security hardening enabled", "module": "a2a_service", "function": "startup_event", "line": 81}
+{"timestamp": "2025-10-21T14:54:27.262934+00:00", "level": "INFO", "logger": "a2a_service", "message": "All 15 agents initialized successfully", "module": "a2a_service", "function": "startup_event", "line": 134}
+{"timestamp": "2025-10-21T14:54:37.090534+00:00", "level": "INFO", "logger": "a2a_service", "message": "Genesis A2A Service starting up - Environment: production", "module": "a2a_service", "function": "startup_event", "line": 74}
+{"timestamp": "2025-10-21T14:54:37.090787+00:00", "level": "INFO", "logger": "a2a_service", "message": "Production mode confirmed - security hardening enabled", "module": "a2a_service", "function": "startup_event", "line": 81}
+{"timestamp": "2025-10-21T14:54:37.230819+00:00", "level": "INFO", "logger": "a2a_service", "message": "All 15 agents initialized successfully", "module": "a2a_service", "function": "startup_event", "line": 134}
+2025-10-21 15:00:00 - infrastructure.reasoning_bank - WARNING - MongoDB not available - using in-memory storage
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reasoning_bank.py:42 - WARNING] MongoDB not available - using in-memory storage
+2025-10-21 15:00:00 - infrastructure.replay_buffer - WARNING - MongoDB not available - using in-memory trajectory storage
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/replay_buffer.py:56 - WARNING] MongoDB not available - using in-memory trajectory storage
+INFO:     Started server process [574905]
+INFO:     Waiting for application startup.
+2025-10-21 15:00:00 - a2a_service - INFO - Genesis A2A Service starting up - Environment: production
+{"timestamp": "2025-10-21T15:00:00.568757+00:00", "level": "INFO", "logger": "a2a_service", "message": "Genesis A2A Service starting up - Environment: production", "module": "a2a_service", "function": "startup_event", "line": 74}
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/a2a_service.py:74 - INFO] Genesis A2A Service starting up - Environment: production
+2025-10-21 15:00:00 - a2a_service - INFO - Production mode confirmed - security hardening enabled
+{"timestamp": "2025-10-21T15:00:00.568976+00:00", "level": "INFO", "logger": "a2a_service", "message": "Production mode confirmed - security hardening enabled", "module": "a2a_service", "function": "startup_event", "line": 81}
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/a2a_service.py:81 - INFO] Production mode confirmed - security hardening enabled
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.marketing_agent - INFO - Marketing Agent v4.0 initialized with DAAO + TUMIX for business: default
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/marketing_agent.py:78 - INFO] Marketing Agent v4.0 initialized with DAAO + TUMIX for business: default
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.builder_agent - INFO - Builder Agent v4.0 initialized with DAAO + TUMIX for business: default
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/builder_agent.py:75 - INFO] Builder Agent v4.0 initialized with DAAO + TUMIX for business: default
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.content_agent - INFO - Content Agent v4.0 initialized with DAAO + TUMIX for business: default
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/content_agent.py:59 - INFO] Content Agent v4.0 initialized with DAAO + TUMIX for business: default
+2025-10-21 15:00:00 - infrastructure.reasoning_bank - INFO - ✅ ReasoningBank connected to Redis cache
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reasoning_bank.py:186 - INFO] ✅ ReasoningBank connected to Redis cache
+2025-10-21 15:00:00 - infrastructure.replay_buffer - INFO - ✅ ReplayBuffer connected to Redis Streams
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/replay_buffer.py:199 - INFO] ✅ ReplayBuffer connected to Redis Streams
+2025-10-21 15:00:00 - agents.deploy_agent - INFO - ✅ Learning infrastructure initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/deploy_agent.py:386 - INFO] ✅ Learning infrastructure initialized
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ ReflectionAgent connected to ReasoningBank
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:181 - INFO] ✅ ReflectionAgent connected to ReasoningBank
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ ReflectionAgent connected to ReplayBuffer
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:188 - INFO] ✅ ReflectionAgent connected to ReplayBuffer
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ DAAO + TUMIX enabled for ReflectionAgent
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:213 - INFO] ✅ DAAO + TUMIX enabled for ReflectionAgent
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ ReflectionAgent v4.0 initialized: reflection_agent
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:217 - INFO] ✅ ReflectionAgent v4.0 initialized: reflection_agent
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    Quality threshold: 0.75
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:218 - INFO]    Quality threshold: 0.75
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    LLM enabled: True
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:219 - INFO]    LLM enabled: True
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    ReasoningBank: Connected
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:220 - INFO]    ReasoningBank: Connected
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    ReplayBuffer: Connected
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:221 - INFO]    ReplayBuffer: Connected
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    DAAO/TUMIX: Enabled
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:222 - INFO]    DAAO/TUMIX: Enabled
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO - ✅ ReflectionHarness initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:179 - INFO] ✅ ReflectionHarness initialized
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO -    Max attempts: 2
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:180 - INFO]    Max attempts: 2
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO -    Quality threshold: 0.75
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:181 - INFO]    Quality threshold: 0.75
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO -    Fallback behavior: warn
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:182 - INFO]    Fallback behavior: warn
+2025-10-21 15:00:00 - agents.deploy_agent - INFO - ✅ Reflection harness initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/deploy_agent.py:399 - INFO] ✅ Reflection harness initialized
+2025-10-21 15:00:00 - agents.deploy_agent - INFO - 🚀 Deploy Agent initialized for business: default
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/deploy_agent.py:404 - INFO] 🚀 Deploy Agent initialized for business: default
+2025-10-21 15:00:00 - agents.deploy_agent - INFO -    Model: Gemini 2.5 Flash (372 tokens/sec)
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/deploy_agent.py:405 - INFO]    Model: Gemini 2.5 Flash (372 tokens/sec)
+2025-10-21 15:00:00 - agents.deploy_agent - INFO -    Learning: Enabled
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/deploy_agent.py:406 - INFO]    Learning: Enabled
+2025-10-21 15:00:00 - agents.deploy_agent - INFO -    Reflection: Enabled
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/deploy_agent.py:407 - INFO]    Reflection: Enabled
+2025-10-21 15:00:00 - agents.deploy_agent - INFO - 
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/deploy_agent.py:408 - INFO] 
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.support_agent - INFO - {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/support_agent.py:49 - INFO] {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.qa_agent - INFO - QA Agent v4.0 initialized with DAAO + TUMIX for business: default
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/qa_agent.py:59 - INFO] QA Agent v4.0 initialized with DAAO + TUMIX for business: default
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.seo_agent - INFO - {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/seo_agent.py:49 - INFO] {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.email_agent - INFO - {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/email_agent.py:49 - INFO] {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.legal_agent - INFO - {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/legal_agent.py:49 - INFO] {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+2025-10-21 15:00:00 - agents.security_agent - INFO - Enhanced Security Agent initialized for business: default
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/security_agent.py:168 - INFO] Enhanced Security Agent initialized for business: default
+2025-10-21 15:00:00 - agents.security_agent - INFO - Initializing Enhanced Security Agent...
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/security_agent.py:180 - INFO] Initializing Enhanced Security Agent...
+2025-10-21 15:00:00 - agents.security_agent - INFO - Connected to ReasoningBank
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/security_agent.py:228 - INFO] Connected to ReasoningBank
+2025-10-21 15:00:00 - agents.security_agent - INFO - Connected to Replay Buffer
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/security_agent.py:234 - INFO] Connected to Replay Buffer
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ ReflectionAgent connected to ReasoningBank
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:181 - INFO] ✅ ReflectionAgent connected to ReasoningBank
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ ReflectionAgent connected to ReplayBuffer
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:188 - INFO] ✅ ReflectionAgent connected to ReplayBuffer
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ DAAO + TUMIX enabled for ReflectionAgent
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:213 - INFO] ✅ DAAO + TUMIX enabled for ReflectionAgent
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ ReflectionAgent v4.0 initialized: reflection_agent
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:217 - INFO] ✅ ReflectionAgent v4.0 initialized: reflection_agent
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    Quality threshold: 0.75
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:218 - INFO]    Quality threshold: 0.75
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    LLM enabled: True
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:219 - INFO]    LLM enabled: True
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    ReasoningBank: Connected
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:220 - INFO]    ReasoningBank: Connected
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    ReplayBuffer: Connected
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:221 - INFO]    ReplayBuffer: Connected
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    DAAO/TUMIX: Enabled
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:222 - INFO]    DAAO/TUMIX: Enabled
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO - ✅ ReflectionHarness initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:179 - INFO] ✅ ReflectionHarness initialized
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO -    Max attempts: 2
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:180 - INFO]    Max attempts: 2
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO -    Quality threshold: 0.75
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:181 - INFO]    Quality threshold: 0.75
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO -    Fallback behavior: warn
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:182 - INFO]    Fallback behavior: warn
+2025-10-21 15:00:00 - agents.security_agent - INFO - Reflection Harness initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/security_agent.py:244 - INFO] Reflection Harness initialized
+2025-10-21 15:00:00 - agents.security_agent - INFO - Security Agent fully initialized for business: default
+
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/security_agent.py:248 - INFO] Security Agent fully initialized for business: default
+
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.billing_agent - INFO - {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/billing_agent.py:49 - INFO] {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.analyst_agent - INFO - Analyst Agent v4.0 initialized with DAAO + TUMIX for business: default
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/analyst_agent.py:58 - INFO] Analyst Agent v4.0 initialized with DAAO + TUMIX for business: default
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.maintenance_agent - INFO - {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/maintenance_agent.py:49 - INFO] {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.onboarding_agent - INFO - {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/onboarding_agent.py:49 - INFO] {agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ ReflectionAgent connected to ReasoningBank
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:181 - INFO] ✅ ReflectionAgent connected to ReasoningBank
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ ReflectionAgent connected to ReplayBuffer
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:188 - INFO] ✅ ReflectionAgent connected to ReplayBuffer
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ DAAO + TUMIX enabled for ReflectionAgent
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:213 - INFO] ✅ DAAO + TUMIX enabled for ReflectionAgent
+2025-10-21 15:00:00 - agents.reflection_agent - INFO - ✅ ReflectionAgent v4.0 initialized: reflection_agent
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:217 - INFO] ✅ ReflectionAgent v4.0 initialized: reflection_agent
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    Quality threshold: 0.75
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:218 - INFO]    Quality threshold: 0.75
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    LLM enabled: True
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:219 - INFO]    LLM enabled: True
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    ReasoningBank: Connected
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:220 - INFO]    ReasoningBank: Connected
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    ReplayBuffer: Connected
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:221 - INFO]    ReplayBuffer: Connected
+2025-10-21 15:00:00 - agents.reflection_agent - INFO -    DAAO/TUMIX: Enabled
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/reflection_agent.py:222 - INFO]    DAAO/TUMIX: Enabled
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO - ✅ ReflectionHarness initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:179 - INFO] ✅ ReflectionHarness initialized
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO -    Max attempts: 2
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:180 - INFO]    Max attempts: 2
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO -    Quality threshold: 0.75
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:181 - INFO]    Quality threshold: 0.75
+2025-10-21 15:00:00 - infrastructure.reflection_harness - INFO -    Fallback behavior: warn
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/reflection_harness.py:182 - INFO]    Fallback behavior: warn
+2025-10-21 15:00:00 - infrastructure.tumix_termination - INFO - TUMIX termination engine initialized
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/infrastructure/tumix_termination.py:106 - INFO] TUMIX termination engine initialized
+2025-10-21 15:00:00 - agents.spec_agent - INFO - SpecAgent v5.0 initialized: spec_default
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/spec_agent.py:164 - INFO] SpecAgent v5.0 initialized: spec_default
+2025-10-21 15:00:00 - agents.spec_agent - INFO -   Quality threshold: 0.75
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/spec_agent.py:165 - INFO]   Quality threshold: 0.75
+2025-10-21 15:00:00 - agents.spec_agent - INFO -   Max reflection attempts: 2
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/spec_agent.py:166 - INFO]   Max reflection attempts: 2
+2025-10-21 15:00:00 - agents.spec_agent - INFO -   DAAO + TUMIX: Enabled for cost optimization
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/spec_agent.py:167 - INFO]   DAAO + TUMIX: Enabled for cost optimization
+2025-10-21 15:00:00 - agents.spec_agent - INFO - Agent Framework initialized: spec_default
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/agents/spec_agent.py:223 - INFO] Agent Framework initialized: spec_default
+2025-10-21 15:00:00 - a2a_service - INFO - All 15 agents initialized successfully
+{"timestamp": "2025-10-21T15:00:00.767768+00:00", "level": "INFO", "logger": "a2a_service", "message": "All 15 agents initialized successfully", "module": "a2a_service", "function": "startup_event", "line": 134}
+[2025-10-21 15:00:00 - /home/genesis/genesis-rebuild/a2a_service.py:134 - INFO] All 15 agents initialized successfully
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('0.0.0.0', 8080): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+
+================================================================================
+GENESIS A2A SERVICE - INITIALIZING ALL AGENTS
+ENVIRONMENT: production (ENVIRONMENT=production, DEBUG=False)
+✅ RUNNING IN PRODUCTION MODE
+================================================================================
+
+📢 Marketing Agent initialized for business: default
+   Model: GPT-4o via Azure AI
+   Ready to drive growth
+
+🔨 Builder Agent initialized for business: default
+   Model: Claude Sonnet 4 / GPT-4o
+   Ready to generate production code
+
+📝 Content Agent initialized for business: default
+
+💬 Support Agent initialized for business: default
+
+✅ QA Agent initialized for business: default
+
+🔍 SEO Agent initialized for business: default
+
+✉️ Email Agent initialized for business: default
+
+⚖️ Legal Agent initialized for business: default
+
+💰 Billing Agent initialized for business: default
+
+📊 Analyst Agent initialized for business: default
+
+🔧 Maintenance Agent initialized for business: default
+
+👋 Onboarding Agent initialized for business: default
+
+
+================================================================================
+✅ ALL 15 AGENTS INITIALIZED - READY FOR A2A COMMUNICATION
+================================================================================
+
+{
+    "body": "Genesis A2A Service starting up - Environment: production",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/a2a_service.py",
+        "code.function.name": "startup_event",
+        "code.line.number": 74
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.568645Z",
+    "observed_timestamp": "2025-10-21T15:00:00.568823Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Production mode confirmed - security hardening enabled",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/a2a_service.py",
+        "code.function.name": "startup_event",
+        "code.line.number": 81
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.568924Z",
+    "observed_timestamp": "2025-10-21T15:00:00.569008Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 3,
+        "improvement_threshold": 0.07,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.569071Z",
+    "observed_timestamp": "2025-10-21T15:00:00.569245Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Marketing Agent v4.0 initialized with DAAO + TUMIX for business: default",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/marketing_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 78
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.569311Z",
+    "observed_timestamp": "2025-10-21T15:00:00.569442Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.582491Z",
+    "observed_timestamp": "2025-10-21T15:00:00.582736Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Builder Agent v4.0 initialized with DAAO + TUMIX for business: default",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/builder_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 75
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.582816Z",
+    "observed_timestamp": "2025-10-21T15:00:00.582933Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 5,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.594176Z",
+    "observed_timestamp": "2025-10-21T15:00:00.594390Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Content Agent v4.0 initialized with DAAO + TUMIX for business: default",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/content_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 59
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.594469Z",
+    "observed_timestamp": "2025-10-21T15:00:00.594565Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReasoningBank connected to Redis cache",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reasoning_bank.py",
+        "code.function.name": "__init__",
+        "code.line.number": 186
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.616548Z",
+    "observed_timestamp": "2025-10-21T15:00:00.616918Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReplayBuffer connected to Redis Streams",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/replay_buffer.py",
+        "code.function.name": "__init__",
+        "code.line.number": 199
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.618751Z",
+    "observed_timestamp": "2025-10-21T15:00:00.618960Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 Learning infrastructure initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/deploy_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 386
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.619075Z",
+    "observed_timestamp": "2025-10-21T15:00:00.619280Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionAgent connected to ReasoningBank",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 181
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.622426Z",
+    "observed_timestamp": "2025-10-21T15:00:00.622630Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionAgent connected to ReplayBuffer",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 188
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.622709Z",
+    "observed_timestamp": "2025-10-21T15:00:00.622851Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.622945Z",
+    "observed_timestamp": "2025-10-21T15:00:00.623097Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 DAAO + TUMIX enabled for ReflectionAgent",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 213
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.623238Z",
+    "observed_timestamp": "2025-10-21T15:00:00.623382Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionAgent v4.0 initialized: reflection_agent",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 217
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.623440Z",
+    "observed_timestamp": "2025-10-21T15:00:00.623561Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Quality threshold: 0.75",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 218
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.623623Z",
+    "observed_timestamp": "2025-10-21T15:00:00.623752Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   LLM enabled: True",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 219
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.623807Z",
+    "observed_timestamp": "2025-10-21T15:00:00.623944Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   ReasoningBank: Connected",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 220
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.623998Z",
+    "observed_timestamp": "2025-10-21T15:00:00.624161Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   ReplayBuffer: Connected",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 221
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.624219Z",
+    "observed_timestamp": "2025-10-21T15:00:00.624351Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   DAAO/TUMIX: Enabled",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 222
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.624407Z",
+    "observed_timestamp": "2025-10-21T15:00:00.624524Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionHarness initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 179
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.624595Z",
+    "observed_timestamp": "2025-10-21T15:00:00.624731Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Max attempts: 2",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 180
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.624790Z",
+    "observed_timestamp": "2025-10-21T15:00:00.624920Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Quality threshold: 0.75",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 181
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.624974Z",
+    "observed_timestamp": "2025-10-21T15:00:00.625090Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Fallback behavior: warn",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 182
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.625187Z",
+    "observed_timestamp": "2025-10-21T15:00:00.625309Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 Reflection harness initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/deploy_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 399
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.625357Z",
+    "observed_timestamp": "2025-10-21T15:00:00.625444Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\ud83d\ude80 Deploy Agent initialized for business: default",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/deploy_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 404
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.625487Z",
+    "observed_timestamp": "2025-10-21T15:00:00.625576Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Model: Gemini 2.5 Flash (372 tokens/sec)",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/deploy_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 405
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.625615Z",
+    "observed_timestamp": "2025-10-21T15:00:00.625689Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Learning: Enabled",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/deploy_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 406
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.625725Z",
+    "observed_timestamp": "2025-10-21T15:00:00.625849Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Reflection: Enabled",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/deploy_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 407
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.625906Z",
+    "observed_timestamp": "2025-10-21T15:00:00.626000Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/deploy_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 408
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.626056Z",
+    "observed_timestamp": "2025-10-21T15:00:00.626230Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.626304Z",
+    "observed_timestamp": "2025-10-21T15:00:00.626458Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "{agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/support_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 49
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.626521Z",
+    "observed_timestamp": "2025-10-21T15:00:00.626638Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.03,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.641975Z",
+    "observed_timestamp": "2025-10-21T15:00:00.642309Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "QA Agent v4.0 initialized with DAAO + TUMIX for business: default",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/qa_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 59
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.642421Z",
+    "observed_timestamp": "2025-10-21T15:00:00.642564Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.657918Z",
+    "observed_timestamp": "2025-10-21T15:00:00.658220Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "{agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/seo_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 49
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.658320Z",
+    "observed_timestamp": "2025-10-21T15:00:00.658436Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.670199Z",
+    "observed_timestamp": "2025-10-21T15:00:00.670409Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "{agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/email_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 49
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.670491Z",
+    "observed_timestamp": "2025-10-21T15:00:00.670596Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.681853Z",
+    "observed_timestamp": "2025-10-21T15:00:00.682038Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "{agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/legal_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 49
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.682110Z",
+    "observed_timestamp": "2025-10-21T15:00:00.682271Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Enhanced Security Agent initialized for business: default",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/security_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 168
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.694260Z",
+    "observed_timestamp": "2025-10-21T15:00:00.694548Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Initializing Enhanced Security Agent...",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/security_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 180
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.694639Z",
+    "observed_timestamp": "2025-10-21T15:00:00.694758Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Connected to ReasoningBank",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/security_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 228
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.709180Z",
+    "observed_timestamp": "2025-10-21T15:00:00.709464Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Connected to Replay Buffer",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/security_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 234
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.709554Z",
+    "observed_timestamp": "2025-10-21T15:00:00.709651Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionAgent connected to ReasoningBank",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 181
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.709713Z",
+    "observed_timestamp": "2025-10-21T15:00:00.709830Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionAgent connected to ReplayBuffer",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 188
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.709878Z",
+    "observed_timestamp": "2025-10-21T15:00:00.709974Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.710040Z",
+    "observed_timestamp": "2025-10-21T15:00:00.710183Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 DAAO + TUMIX enabled for ReflectionAgent",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 213
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.710241Z",
+    "observed_timestamp": "2025-10-21T15:00:00.710345Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionAgent v4.0 initialized: reflection_agent",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 217
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.710388Z",
+    "observed_timestamp": "2025-10-21T15:00:00.710477Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Quality threshold: 0.75",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 218
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.710523Z",
+    "observed_timestamp": "2025-10-21T15:00:00.710611Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   LLM enabled: True",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 219
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.710652Z",
+    "observed_timestamp": "2025-10-21T15:00:00.710739Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   ReasoningBank: Connected",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 220
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.710780Z",
+    "observed_timestamp": "2025-10-21T15:00:00.710877Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   ReplayBuffer: Connected",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 221
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.710919Z",
+    "observed_timestamp": "2025-10-21T15:00:00.711007Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   DAAO/TUMIX: Enabled",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 222
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.711047Z",
+    "observed_timestamp": "2025-10-21T15:00:00.711183Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionHarness initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 179
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.711238Z",
+    "observed_timestamp": "2025-10-21T15:00:00.711348Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Max attempts: 2",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 180
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.711391Z",
+    "observed_timestamp": "2025-10-21T15:00:00.711480Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Quality threshold: 0.75",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 181
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.711521Z",
+    "observed_timestamp": "2025-10-21T15:00:00.711608Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Fallback behavior: warn",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 182
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.711651Z",
+    "observed_timestamp": "2025-10-21T15:00:00.711745Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Reflection Harness initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/security_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 244
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.711787Z",
+    "observed_timestamp": "2025-10-21T15:00:00.711917Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Security Agent fully initialized for business: default\n",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/security_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 248
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.711963Z",
+    "observed_timestamp": "2025-10-21T15:00:00.712052Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.712110Z",
+    "observed_timestamp": "2025-10-21T15:00:00.712236Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "{agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/billing_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 49
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.712297Z",
+    "observed_timestamp": "2025-10-21T15:00:00.712403Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.724309Z",
+    "observed_timestamp": "2025-10-21T15:00:00.724578Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Analyst Agent v4.0 initialized with DAAO + TUMIX for business: default",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/analyst_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 58
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.724665Z",
+    "observed_timestamp": "2025-10-21T15:00:00.724764Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.735185Z",
+    "observed_timestamp": "2025-10-21T15:00:00.735420Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "{agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/maintenance_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 49
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.735508Z",
+    "observed_timestamp": "2025-10-21T15:00:00.735622Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.744430Z",
+    "observed_timestamp": "2025-10-21T15:00:00.744667Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "{agent_name} v4.0 initialized with DAAO + TUMIX for business: {business_id}",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/onboarding_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 49
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.744766Z",
+    "observed_timestamp": "2025-10-21T15:00:00.744889Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionAgent connected to ReasoningBank",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 181
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.754361Z",
+    "observed_timestamp": "2025-10-21T15:00:00.754529Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionAgent connected to ReplayBuffer",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 188
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.754587Z",
+    "observed_timestamp": "2025-10-21T15:00:00.754671Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.754727Z",
+    "observed_timestamp": "2025-10-21T15:00:00.754814Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 DAAO + TUMIX enabled for ReflectionAgent",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 213
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.754869Z",
+    "observed_timestamp": "2025-10-21T15:00:00.754965Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionAgent v4.0 initialized: reflection_agent",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 217
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.755014Z",
+    "observed_timestamp": "2025-10-21T15:00:00.755109Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Quality threshold: 0.75",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 218
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.755196Z",
+    "observed_timestamp": "2025-10-21T15:00:00.755290Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   LLM enabled: True",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 219
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.755327Z",
+    "observed_timestamp": "2025-10-21T15:00:00.755393Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   ReasoningBank: Connected",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 220
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.755424Z",
+    "observed_timestamp": "2025-10-21T15:00:00.755518Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   ReplayBuffer: Connected",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 221
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.755553Z",
+    "observed_timestamp": "2025-10-21T15:00:00.755619Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   DAAO/TUMIX: Enabled",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/reflection_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 222
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.755650Z",
+    "observed_timestamp": "2025-10-21T15:00:00.755721Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "\u2705 ReflectionHarness initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 179
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.755766Z",
+    "observed_timestamp": "2025-10-21T15:00:00.755868Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Max attempts: 2",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 180
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.755903Z",
+    "observed_timestamp": "2025-10-21T15:00:00.755966Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Quality threshold: 0.75",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 181
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.756012Z",
+    "observed_timestamp": "2025-10-21T15:00:00.756083Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "   Fallback behavior: warn",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/reflection_harness.py",
+        "code.function.name": "__init__",
+        "code.line.number": 182
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.756116Z",
+    "observed_timestamp": "2025-10-21T15:00:00.756234Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "TUMIX termination engine initialized",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "min_rounds": 2,
+        "max_rounds": 4,
+        "improvement_threshold": 0.05,
+        "lookback_window": 3,
+        "code.file.path": "/home/genesis/genesis-rebuild/infrastructure/tumix_termination.py",
+        "code.function.name": "__init__",
+        "code.line.number": 106
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.756298Z",
+    "observed_timestamp": "2025-10-21T15:00:00.756415Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "SpecAgent v5.0 initialized: spec_default",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/spec_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 164
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.756487Z",
+    "observed_timestamp": "2025-10-21T15:00:00.756608Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "  Quality threshold: 0.75",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/spec_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 165
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.756677Z",
+    "observed_timestamp": "2025-10-21T15:00:00.756789Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "  Max reflection attempts: 2",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/spec_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 166
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.756850Z",
+    "observed_timestamp": "2025-10-21T15:00:00.756953Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "  DAAO + TUMIX: Enabled for cost optimization",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/spec_agent.py",
+        "code.function.name": "__init__",
+        "code.line.number": 167
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.756996Z",
+    "observed_timestamp": "2025-10-21T15:00:00.757071Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "Agent Framework initialized: spec_default",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/agents/spec_agent.py",
+        "code.function.name": "initialize",
+        "code.line.number": 223
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.767390Z",
+    "observed_timestamp": "2025-10-21T15:00:00.767614Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
+{
+    "body": "All 15 agents initialized successfully",
+    "severity_number": 9,
+    "severity_text": "INFO",
+    "attributes": {
+        "code.file.path": "/home/genesis/genesis-rebuild/a2a_service.py",
+        "code.function.name": "startup_event",
+        "code.line.number": 134
+    },
+    "dropped_attributes": 0,
+    "timestamp": "2025-10-21T15:00:00.767699Z",
+    "observed_timestamp": "2025-10-21T15:00:00.767798Z",
+    "trace_id": "0x00000000000000000000000000000000",
+    "span_id": "0x0000000000000000",
+    "trace_flags": 0,
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "service.name": "genesis-orchestrator"
+        },
+        "schema_url": ""
+    },
+    "event_name": ""
+}
