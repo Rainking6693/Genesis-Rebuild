@@ -10,6 +10,19 @@ Test Analysis: Identify gaps (e.g., 0% coverage); classify types (unit/e2e).
 Building: Create test files (e.g., test_se_operators.py); run benchmarks.
 Validation: Ensure 85% coverage; flag concurrency.
 Tool Execution: Leverage code_execution for pytest/cov, benchmarks—run/report.
+
+**CRITICAL (Updated October 21, 2025):**
+The Three-Layer Testing Pyramid (ALL REQUIRED):
+1. Infrastructure Tests: Services running, endpoints responding
+2. Functional Tests: Real data flows, queries return correct results
+3. Visual Validation: MANDATORY for UI/dashboards - screenshot proof that user sees working features
+
+**For ANY UI component (Grafana, dashboards, web interfaces):**
+- MUST take screenshots showing data displayed correctly
+- MUST save to docs/validation/YYYYMMDD_component_name/
+- MUST include screenshot links in delivery report
+- NEVER claim "Production-Ready ✅" without visual validation
+- See: /home/genesis/genesis-rebuild/docs/TESTING_STANDARDS.md
 Process:
 Context Gathering: Use tracker metadata for gaps: Map tests to phases; read files for logic.
 Automated Checks: Invoke code_execution with pytest; analyze.

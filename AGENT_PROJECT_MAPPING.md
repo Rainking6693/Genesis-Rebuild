@@ -1,8 +1,28 @@
 # AGENT PROJECT MAPPING - ORCHESTRATION V2.0 IMPLEMENTATION
 
 **Document Status:** Phase 1, 2 & 3 COMPLETE, Phase 4 pending (deployment)
-**Last Updated:** October 20, 2025 (SE-Darwin 100% Complete + Production Approved)
+**Last Updated:** October 21, 2025 (Testing Standards Enforced)
 **Purpose:** Map all orchestration tasks to specialized agents with clear responsibilities
+
+---
+
+## 🚨 CRITICAL: NEW TESTING REQUIREMENTS (October 21, 2025)
+
+**ALL agents performing testing MUST follow the Three-Layer Testing Pyramid:**
+
+1. **Infrastructure Tests** - Services running, endpoints responding ⚠️ NOT SUFFICIENT
+2. **Functional Tests** - Real data flows, queries return correct results ✅ REQUIRED
+3. **Visual Validation** - Screenshot proof of working UI ✅✅ MANDATORY FOR UI COMPONENTS
+
+**For UI/Dashboard components, agents MUST:**
+- Take screenshots showing data displayed correctly
+- Save to `docs/validation/YYYYMMDD_component_name/`
+- Include screenshot links in delivery reports
+- NEVER claim "Production-Ready ✅" without visual validation
+
+**Reason:** Grafana dashboard delivered as "Production-Ready" but all panels showed "No Data" due to untested metric name typo.
+
+**Full Details:** See `TESTING_STANDARDS_UPDATE_SUMMARY.md` and `docs/TESTING_STANDARDS.md`
 
 ---
 
@@ -955,6 +975,248 @@ Nova: Production validation with Vertex AI
 
 ---
 
+## 📋 POST-DEPLOYMENT: WALTZRL SAFETY INTEGRATION (October 21, 2025 - HIGHEST PRIORITY)
+
+**Status:** 🚧 **RESEARCH COMPLETE** - Implementation Week 2-3 post-deployment
+**Document Updated:** October 21, 2025 (After New Papers 10.21 analysis)
+**Priority:** ⭐ **TIER 1 - HIGHEST PRIORITY** (89% unsafe reduction + 78% over-refusal reduction)
+
+**Paper:** "The Alignment Waltz: Multi-Agent Collaborative Safety Alignment via Dynamic Improvement Reward"
+- **Authors:** Meta Superintelligence Labs + Johns Hopkins University
+- **Date:** October 10, 2025
+- **arXiv:** 2510.08240v1
+
+**Validated Results:**
+- Attack Success Rate (ASR): 39.0% → 4.6% (89% reduction in unsafe responses)
+- Over-Refusal Rate (ORR): 45.3% → 9.9% (78% reduction in over-refusal)
+- Feedback Trigger Rate (FTR): 6.7% on general queries (minimal latency impact)
+- General capabilities: Zero degradation on AlpacaEval, IFEval, GPQA, MMLU, TruthfulQA
+
+**Integration Strategy:**
+- Layer 1: HALO router safety wrapper (catch unsafe queries before routing)
+- Layer 2: SE-Darwin safety benchmarks (validate evolved code for safety)
+- All 15 agents: General safety wrapper (nuanced feedback vs. binary blocking)
+
+---
+
+### 7.1 WaltzRL Stage 1: Feedback Agent Training ⭐ **HIGHEST PRIORITY**
+**Assigned:** Safety Agent (primary), Cora (RL design), Zenith (prompt engineering)
+**Timeline:** Week 2 post-deployment (1 week)
+**Why:** Safety for RL/safety systems; Cora for reward model design; Zenith for feedback prompts
+**Steps:**
+```
+Safety Agent: Implement WaltzRL feedback agent framework
+- Design FeedbackAgent class with safety detection logic
+- Implement format learning (how to provide nuanced feedback)
+- Train on safety benchmark datasets (100+ scenarios)
+- Integrate with conversation agent outputs
+- Validate feedback quality (helpful + safe)
+
+Cora: Design DIR (Dynamic Improvement Reward) model
+- Implement DIR calculation: reward = improvement * safety_score
+- Design reward shaping for joint training (Stage 2)
+- Create safety scoring rubric (ASR, ORR, general capability)
+- Validate reward model on test scenarios
+
+Zenith: Engineer feedback prompts
+- Design nuanced feedback templates (not binary reject)
+- Create few-shot examples for feedback agent
+- Optimize for helpfulness + safety balance
+- A/B test prompt variations for quality
+```
+
+**Deliverables:**
+- `agents/safety/waltzrl_feedback_agent.py` (~300 lines)
+- `infrastructure/waltzrl_safety.py` (DIR reward model, ~200 lines)
+- Feedback agent trained on 100+ safety scenarios
+- `tests/test_waltzrl_stage1.py` (~200 lines, 25+ tests)
+- Stage 1 validation report (feedback quality metrics)
+
+---
+
+### 7.2 WaltzRL Stage 2: Joint DIR Training
+**Assigned:** Safety Agent (primary), Cora (RL training), Alex (integration testing)
+**Timeline:** Week 3 post-deployment (1 week)
+**Dependencies:** Stage 1 complete (feedback agent trained)
+**Why:** Safety for joint training orchestration; Cora for RL optimization; Alex for integration validation
+**Steps:**
+```
+Safety Agent: Orchestrate joint training pipeline
+- Implement collaborative training loop (conversation + feedback)
+- Integrate DIR reward model from Stage 1
+- Train both agents with co-evolution dynamics
+- Monitor ASR, ORR, FTR metrics during training
+- Validate convergence (safety + helpfulness balanced)
+
+Cora: Optimize RL training parameters
+- Tune learning rates for conversation vs. feedback agents
+- Implement gradient balancing (prevent collapse)
+- Add early stopping criteria (metrics plateau)
+- Validate training stability (no catastrophic forgetting)
+
+Alex: Integration testing with HALO router
+- Test WaltzRL wrapper on all 15 Genesis agents
+- Validate latency impact (<10ms target)
+- Test edge cases (adversarial prompts, edge inputs)
+- Measure ASR, ORR, FTR on Genesis workflows
+```
+
+**Deliverables:**
+- `agents/safety/waltzrl_conversation_agent.py` (~300 lines)
+- Joint training pipeline operational
+- `tests/test_waltzrl_stage2.py` (~250 lines, 30+ tests)
+- Integration tests with HALO router (15 agents)
+- `tests/test_waltzrl_integration.py` (~300 lines, 20+ tests)
+- Stage 2 validation report (ASR, ORR, FTR metrics)
+
+---
+
+### 7.3 WaltzRL Production Integration
+**Assigned:** Orion (Framework integration), Hudson (security audit), Forge (E2E validation)
+**Timeline:** Week 3 post-deployment (parallel with 7.2)
+**Dependencies:** Stage 1-2 complete
+**Why:** Orion for Microsoft Framework integration; Hudson for security validation; Forge for E2E testing
+**Steps:**
+```
+Orion: Integrate WaltzRL with Microsoft Agent Framework
+- Add WaltzRL safety wrapper to genesis_orchestrator_v2.py
+- Implement feature flag: USE_WALTZRL_SAFETY (default: True)
+- Integrate with HALO router (pre-routing safety check)
+- Add WaltzRL to SE-Darwin evolution pipeline (code safety validation)
+
+Hudson: Security audit of WaltzRL integration
+- Validate feedback agent doesn't leak sensitive data
+- Test adversarial scenarios (jailbreak attempts)
+- Verify DIR reward model is tamper-resistant
+- Check for feedback injection vulnerabilities
+
+Forge: E2E validation of safety improvements
+- Benchmark ASR on 100+ unsafe prompts (target: <5%)
+- Benchmark ORR on 100+ benign prompts (target: <10%)
+- Measure FTR on general queries (target: <10%)
+- Validate zero capability degradation (AlpacaEval, GPQA)
+```
+
+**Deliverables:**
+- `infrastructure/waltzrl_safety.py` (full integration, ~500 lines total)
+- Feature flag configuration (`.env`, `config/deployment.yaml`)
+- `tests/test_waltzrl_e2e.py` (~400 lines, 40+ tests)
+- Security audit report (WaltzRL vulnerabilities, if any)
+- Production readiness scorecard (safety metrics)
+- `docs/WALTZRL_INTEGRATION_GUIDE.md` (~1,000 lines)
+
+---
+
+### 7.4 WaltzRL Safety Benchmarks
+**Assigned:** Thon (benchmark creation), Safety Agent (scenario design)
+**Timeline:** Week 3 post-deployment (parallel with 7.2-7.3)
+**Why:** Thon for Python benchmark infrastructure; Safety Agent for safety scenario design
+**Steps:**
+```
+Thon: Create comprehensive safety benchmark suite
+- Implement WaltzRLBenchmarkRunner (similar to SE-Darwin benchmarks)
+- Create 100+ unsafe prompt scenarios (jailbreaks, adversarial)
+- Create 100+ benign prompt scenarios (edge cases, ambiguous)
+- Add automated ASR, ORR, FTR calculation
+- Integrate with CI/CD (safety regression tests)
+
+Safety Agent: Design safety scenarios
+- Categorize unsafe prompts (violence, hate, illegal, PII)
+- Design benign edge cases (legitimate requests that trigger false positives)
+- Create adversarial prompts (sophisticated jailbreaks)
+- Validate scenario coverage (11 dangerous patterns from Phase 2)
+```
+
+**Deliverables:**
+- `benchmarks/waltzrl_safety_scenarios.json` (200+ scenarios)
+- `tests/benchmarks/test_waltzrl_benchmarks.py` (~300 lines)
+- Benchmark runner integrated with pytest
+- CI/CD safety regression suite
+- Benchmark validation report (ASR, ORR, FTR baselines)
+
+---
+
+### 🔍 WALTZRL AUDIT & VALIDATION
+**Assigned:** Cora (architecture), Hudson (security), Alex (integration), Forge (E2E), Atlas (documentation)
+**Timeline:** End of Week 3 post-deployment
+**Steps:**
+```
+Cora: Architecture review of WaltzRL integration
+- Verify DIR reward model implementation matches paper
+- Validate Stage 1-2 training follows WaltzRL methodology
+- Check integration with HALO router + SE-Darwin is sound
+- Score: Design fidelity, research alignment
+
+Hudson: Final security audit
+- Test with 50+ adversarial scenarios (jailbreaks, injections)
+- Verify feedback agent resists manipulation
+- Check for privacy leaks in feedback loop
+- Validate safety metrics (ASR <5%, ORR <10%)
+
+Alex: Integration testing
+- Validate WaltzRL works with all 15 Genesis agents
+- Test HALO router safety wrapper (pre-routing check)
+- Test SE-Darwin safety validation (code evolution)
+- Measure zero regressions on Phase 1-4 systems
+
+Forge: E2E safety validation
+- Run 200+ safety benchmarks (100 unsafe + 100 benign)
+- Measure ASR, ORR, FTR on Genesis workflows
+- Compare to baseline (pre-WaltzRL) metrics
+- Validate zero capability degradation
+
+Atlas: Documentation update
+- Update PROJECT_STATUS.md (WaltzRL complete)
+- Update IMPLEMENTATION_ROADMAP.md (Week 2-3 done)
+- Update CLAUDE.md (Layer 1 + Layer 2 safety)
+- Update AGENT_PROJECT_MAPPING.md (this file)
+- Create WALTZRL_COMPLETION_SUMMARY.md
+```
+
+**Deliverables:**
+- 5 audit reports (architecture, security, integration, E2E, documentation)
+- **WALTZRL_COMPLETION_SUMMARY.md** (comprehensive reference)
+- Updated PROJECT_STATUS.md, CLAUDE.md, AGENT_PROJECT_MAPPING.md
+- Production readiness decision (Go/No-Go for general availability)
+- Safety metrics report (ASR, ORR, FTR validated)
+
+---
+
+### WALTZRL SUMMARY
+
+**Total Timeline:** 2 weeks (Week 2-3 post-deployment)
+**Agent Assignments:**
+- **Safety Agent:** Lead (4 tasks) - Stage 1, Stage 2, benchmarks, audit
+- **Cora:** Support (3 tasks) - DIR model, RL optimization, architecture review
+- **Zenith:** Support (1 task) - Feedback prompt engineering
+- **Alex:** Integration (2 tasks) - Stage 2 integration, final integration audit
+- **Orion:** Framework integration (1 task) - Microsoft Agent Framework wrapper
+- **Hudson:** Security (2 tasks) - Security audit, final security validation
+- **Forge:** E2E validation (2 tasks) - Production validation, final E2E testing
+- **Thon:** Benchmarks (1 task) - Safety benchmark suite creation
+- **Atlas:** Documentation (1 task) - Final documentation update
+
+**Expected Results:**
+- 89% unsafe reduction (ASR: 39.0% → 4.6%)
+- 78% over-refusal reduction (ORR: 45.3% → 9.9%)
+- <10% feedback trigger rate (minimal latency impact)
+- Zero capability degradation (validated on 5 benchmarks)
+- Production-ready safety layer for all 15 Genesis agents
+
+**Integration Points:**
+- Layer 1: HALO router safety wrapper (pre-routing safety check)
+- Layer 2: SE-Darwin safety benchmarks (code evolution validation)
+- All 15 agents: General safety wrapper (nuanced feedback)
+
+**Cost Impact:**
+- Minimal: 6.7% feedback trigger rate (only on edge cases)
+- Combined with DAAO + TUMIX: Maintains 52% total cost reduction
+- Safety gain: 89% unsafe + 78% over-refusal (massive ROI)
+
+**Status:** ⭐ **TIER 1 - HIGHEST PRIORITY** for post-deployment integration
+
+---
+
 ## 📋 MISSING PROJECTS ADDED
 
 ### 6.1 Layer 6 (Shared Memory) Preparation
@@ -1090,61 +1352,102 @@ Cora: Technical documentation
 
 ## 📊 SUMMARY OF AGENT UTILIZATION
 
-### Lead Assignments by Agent:
-- **Cora:** 7 lead projects + 3 audits (architecture, design, integration)
-- **Thon:** 4 lead projects (Python implementation)
-- **Hudson:** 3 lead projects + 3 audits (security, error handling)
+### Lead Assignments by Agent (UPDATED October 21, 2025):
+- **Safety Agent:** 4 lead projects (WaltzRL Stage 1, Stage 2, benchmarks, audit) - **NEW**
+- **Cora:** 7 lead projects + 4 audits (architecture, design, integration, + WaltzRL DIR/RL/audit)
+- **Thon:** 5 lead projects (Python implementation + WaltzRL benchmarks)
+- **Hudson:** 3 lead projects + 4 audits (security, error handling, + WaltzRL security audit)
 - **Nova:** 4 lead projects (Vertex AI, pipelines)
-- **Forge:** 3 lead projects + 4 audits (testing, validation)
+- **Forge:** 3 lead projects + 5 audits (testing, validation, + WaltzRL E2E)
 - **Oracle:** 3 lead projects (experiments, validation)
 - **Vanguard:** 3 lead projects (MLOps, monitoring)
 - **Sentinel:** 2 lead projects (security hardening)
-- **Zenith:** 2 lead projects (prompt optimization)
+- **Zenith:** 3 lead projects (prompt optimization + WaltzRL feedback prompts)
 - **Nexus:** 2 lead projects (A2A protocol)
-- **Orion:** 2 lead projects (Framework integration)
+- **Orion:** 3 lead projects (Framework integration + WaltzRL integration)
 - **River:** 2 lead projects (memory engineering)
-- **Atlas:** 2 lead projects + 4 documentation updates (task management, documentation)
-- **Alex:** 3 audits (testing quality)
+- **Atlas:** 2 lead projects + 5 documentation updates (task management, documentation, + WaltzRL docs)
+- **Alex:** 4 audits (testing quality + WaltzRL integration testing)
 
 ### Audit Cadence:
 - **After Phase 1:** 5 agents (Cora, Hudson, Alex, Forge, **Atlas**)
 - **After Phase 2:** 5 agents (Cora, Hudson, Alex, Forge, **Atlas**)
 - **After Phase 3:** 5 agents (Cora, Hudson, Alex, Forge, **Atlas**)
 - **After Phase 4:** 2 agents (Atlas, Forge)
+- **After WaltzRL:** 5 agents (Cora, Hudson, Alex, Forge, **Atlas**) - **NEW**
 
 **Atlas Role:** Updates PROJECT_STATUS.md, IMPLEMENTATION_ROADMAP.md, CLAUDE.md, and change log after every phase
 
-### Total Projects: **25 projects** across 4 deployment phases + post-deployment
-### Total Audits: **20 audits** (5 per phase × 3 phases + 2 for phase 4)
+### Total Projects: **29 projects** across 4 deployment phases + post-deployment + WaltzRL (was 25)
+### Total Audits: **25 audits** (5 per phase × 3 phases + 2 for phase 4 + 5 for WaltzRL) (was 20)
+
+**NEW (October 21, 2025):**
+- **WaltzRL Safety Integration:** 4 new tasks (Stage 1, Stage 2, Production Integration, Benchmarks)
+- **Primary Owner:** Safety Agent (first major lead role)
+- **Supporting Agents:** Cora, Zenith, Alex, Orion, Hudson, Forge, Thon, Atlas (9 agents total)
+- **Timeline:** Week 2-3 post-deployment (2 weeks)
+- **Priority:** ⭐ TIER 1 - HIGHEST PRIORITY (89% unsafe reduction + 78% over-refusal reduction)
 
 ---
 
-## 🎯 EXECUTION ORDER
+## 🎯 EXECUTION ORDER (UPDATED October 21, 2025)
 
-**Week 2 (Days 8-11):**
+**Week 2 (Days 8-11):** ✅ **COMPLETE**
 1. Phase 1: Core components
 2. Phase 1 Audit
 
-**Week 2-3 (Days 12-13):**
+**Week 2-3 (Days 12-13):** ✅ **COMPLETE**
 3. Phase 2: Advanced features
 4. Phase 2 Audit
 
-**Week 3 (Days 14-16):**
+**Week 3 (Days 14-16):** ✅ **COMPLETE**
 5. Phase 3: Production hardening
 6. Phase 3 Audit
 
-**Week 3 (Days 17-18):**
-7. Phase 4: Deployment
+**Week 3 (Days 17-18):** ✅ **COMPLETE**
+7. Phase 4: Deployment preparation
 8. Phase 4 Audit
 
-**Week 4+:**
-9. SE-Darwin integration
-10. Layer 6 (Memory) preparation
-11. Layer 4 (Economy) foundation
-12. Ongoing: Security, prompts, documentation
+**Week 4 (October 16-20):** ✅ **COMPLETE**
+9. SE-Darwin integration (100% complete + production approved)
+10. Benchmark scenarios (270 scenarios)
+
+**POST-DEPLOYMENT:**
+
+**Week 1 Post-Deployment:**
+- Production deployment execution (7-day progressive rollout)
+- System stabilization and monitoring
+- Performance validation (46.3% faster, 52% cost reduction)
+
+**Week 2-3 Post-Deployment (HIGHEST PRIORITY):** ⭐ **NEW**
+11. **WaltzRL Safety Integration** (TIER 1)
+    - Stage 1: Feedback agent training (Week 2)
+    - Stage 2: Joint DIR training (Week 3)
+    - Production integration + benchmarks (parallel)
+    - Safety audit and validation (end of Week 3)
+    - Expected: 89% unsafe reduction + 78% over-refusal reduction
+
+**Week 3-4 Post-Deployment (TIER 2):**
+12. Early Experience Sandbox (Layer 2 pre-flight)
+13. Tensor Logic Reasoning (Layer 2 validation + Layer 6 RAG)
+
+**Week 4+ Post-Deployment:**
+14. Layer 6 (Memory) implementation (DeepSeek-OCR + LangGraph Store + Hybrid RAG)
+15. Layer 4 (Economy) foundation (x402 protocol)
+16. Ongoing: Security, prompts, documentation
+
+---
+
+**CRITICAL PATH (October 21, 2025):**
+1. ✅ Phase 1-4 orchestration (COMPLETE)
+2. ✅ SE-Darwin integration (COMPLETE)
+3. **NOW:** Production deployment (Week 1)
+4. **NEXT:** WaltzRL safety (Week 2-3) - HIGHEST PRIORITY
+5. **THEN:** Early Experience + Tensor Logic (Week 3-4)
+6. **FINALLY:** Layer 6 memory optimization (Week 4+)
 
 ---
 
 **END OF AGENT PROJECT MAPPING**
 
-**Next Step:** Begin Phase 1 implementation (HTDAGPlanner, HALORouter, AOPValidator) with assigned agents
+**Next Step:** Execute Phase 4 production deployment (7-day progressive rollout), then proceed with WaltzRL safety integration (HIGHEST PRIORITY)

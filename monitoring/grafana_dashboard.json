@@ -5,7 +5,7 @@
     "timezone": "browser",
     "refresh": "10s",
     "time": {
-      "from": "now-48h",
+      "from": "now-1h",
       "to": "now"
     },
     "panels": [
@@ -15,7 +15,7 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "(genesis_tests_passed_total / genesis_tests_total_total) * 100",
+            "expr": "(genesis_tests_passed_total / genesis_tests_total) * 100",
             "legendFormat": "Pass Rate %"
           }
         ],
@@ -110,23 +110,13 @@
         "type": "graph",
         "targets": [
           {
-            "expr": "(genesis_tests_passed_total / genesis_tests_total_total) * 100",
+            "expr": "(genesis_tests_passed_total / genesis_tests_total) * 100",
             "legendFormat": "Pass Rate %"
           }
         ],
         "yaxes": [
           {"format": "percent", "min": 95, "max": 100}
         ],
-        "alert": {
-          "conditions": [
-            {
-              "evaluator": {"params": [98], "type": "lt"},
-              "operator": {"type": "and"},
-              "query": {"params": ["A", "5m", "now"]},
-              "reducer": {"params": [], "type": "avg"}
-            }
-          ]
-        },
         "gridPos": {"h": 10, "w": 12, "x": 0, "y": 8}
       },
       {

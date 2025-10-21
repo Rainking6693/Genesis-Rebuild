@@ -12,6 +12,7 @@ if you are able to without effecting quality
 2. **`RESEARCH_UPDATE_OCT_2025.md`** - 40 new papers integration (October 16, 2025)
 3. **`ORCHESTRATION_DESIGN.md`** - Triple-layer orchestration system (HTDAG+HALO+AOP)
 4. **`AGENT_PROJECT_MAPPING.md`** - Agent assignments for all tasks (WHO does WHAT)
+5. **`TESTING_STANDARDS_UPDATE_SUMMARY.md`** - MANDATORY testing requirements (October 21, 2025)
 
 <<<<<<< HEAD
 **Current Priority:** Phase 4 pre-deployment + Benchmark completion + SE-Darwin integration 100% COMPLETE - Ready for production deployment execution (October 20, 2025)
@@ -234,7 +235,17 @@ Genesis Rebuild is a multi-agent system built on Microsoft Agent Framework and A
 - ✅ SE-Darwin 100% complete - PRODUCTION APPROVED (October 20, 2025)
 - **Now:** Deploy to production with Phase 4 rollout (7-day progressive 0% → 100%)
 - **Post-Deployment:** Monitor evolution performance in production
-- **Phase 5:** Layer 6 memory integration (DeepSeek-OCR compression, LangGraph Store, Hybrid RAG)
+- **Phase 5 (Weeks 2-3):** WaltzRL safety integration (89% unsafe reduction, 78% over-refusal reduction) - HIGHEST PRIORITY
+- **Phase 5 (Weeks 3-4):** Early Experience Sandbox + Tensor Logic reasoning
+- **Phase 5 (Week 4+):** Layer 6 memory integration (DeepSeek-OCR compression, LangGraph Store, Hybrid RAG)
+
+**Safety Integration (October 21, 2025 - WaltzRL):**
+- WaltzRL collaborative safety framework identified as HIGHEST PRIORITY for post-deployment
+- Two-stage training: Stage 1 (feedback agent) + Stage 2 (joint DIR training)
+- Integration points: Layer 1 (HALO router safety wrapper), Layer 2 (SE-Darwin safety benchmarks)
+- Expected impact: 89% unsafe reduction + 78% over-refusal reduction (validated Meta/Johns Hopkins)
+- Timeline: 2 weeks (Week 2-3 post-deployment)
+- Owner: Safety Agent (primary), Cora/Zenith (implementation), Alex (E2E testing)
 
 ### LAYER 3: Agent Communication (Standardized) ✅ **COMPLETE (82% pass rate)**
 - **Protocol:** Agent2Agent (A2A) - launched Oct 2, 2025
@@ -524,6 +535,16 @@ When creating agents for Agent-to-Agent communication, define a JSON card with:
 - **Wiley:** 40% self-service efficiency improvement, 213% ROI
 - **Valoir study:** 4.8 months strategy-to-production (vs 75.5 months for DIY builds)
 
+### 9. WaltzRL - Collaborative Multi-Agent Safety (Oct 10, 2025)
+- **Paper:** arxiv.org/abs/2510.08240v1
+- **Authors:** Meta Superintelligence Labs + Johns Hopkins University
+- **Breakthrough:** Two-agent collaborative RL for safety alignment (Conversation + Feedback)
+- **Results:** 89% unsafe reduction (39.0% → 4.6%), 78% over-refusal reduction (45.3% → 9.9%)
+- **Key Innovation:** Dynamic Improvement Reward (DIR) for joint agent training
+- **Advantage:** Nuanced feedback vs. binary blocking (Llama Guard), zero capability degradation
+- **Integration:** Layer 1 safety wrapper (HALO router), Layer 2 safety benchmarks (SE-Darwin)
+- **Status:** Research complete, HIGHEST PRIORITY for Phase 5 post-deployment (Weeks 2-3)
+
 ## 💰 ECONOMICS & ROI
 
 ### Proven Production Results:
@@ -600,6 +621,22 @@ At Scale (1000 businesses):
   - Multi-agent orchestration patterns
 - **Society of HiveMind:** https://arxiv.org/abs/2503.05473
   - Multi-agent collaboration strategies
+- **WaltzRL (The Alignment Waltz):** https://arxiv.org/abs/2510.08240v1
+  - Multi-agent collaborative safety alignment
+  - 89% unsafe reduction + 78% over-refusal reduction
+  - Meta Superintelligence Labs + Johns Hopkins, Oct 2025
+- **HTDAG (Deep Agent):** https://arxiv.org/abs/2502.07056
+  - Hierarchical task decomposition into DAG
+  - 30-40% faster execution validated
+- **HALO (Logic Routing):** https://arxiv.org/abs/2505.13516
+  - Logic-based agent routing with explainability
+  - 25% better agent selection accuracy
+- **AOP (Orchestration Principles):** https://arxiv.org/abs/2410.02189
+  - Solvability, completeness, non-redundancy validation
+  - Reward model integration
+- **DAAO (Cost Optimization):** https://arxiv.org/abs/2509.11079
+  - 48% cost reduction via intelligent LLM routing
+  - Integrated in Genesis Layer 1
 
 ### CRITICAL GITHUB REPOSITORIES:
 - **Darwin Gödel Machine:** https://github.com/jennyzzt/dgm

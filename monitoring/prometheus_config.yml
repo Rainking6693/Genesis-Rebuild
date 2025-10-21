@@ -19,25 +19,14 @@ rule_files:
 
 # Scrape configurations
 scrape_configs:
-  # System metrics (node_exporter) - WORKING
+  # System metrics (node_exporter)
   - job_name: 'node'
     static_configs:
       - targets: ['node-exporter:9100']
 
-  # Genesis orchestration metrics - DISABLED (service not running)
-  # - job_name: 'genesis-orchestration'
-  #   static_configs:
-  #     - targets: ['host.docker.internal:8000']
-  #   metrics_path: '/metrics'
-  #   scrape_interval: 5s
-
-  # Python application metrics - DISABLED (service not running)
-  # - job_name: 'genesis-python-app'
-  #   static_configs:
-  #     - targets: ['host.docker.internal:8001']
-
-  # Test suite metrics - DISABLED (service not running)
-  # - job_name: 'genesis-tests'
-  #   static_configs:
-  #     - targets: ['host.docker.internal:8002']
-  #   scrape_interval: 60s
+  # Genesis orchestration metrics - ENABLED
+  - job_name: 'genesis-orchestration'
+    static_configs:
+      - targets: ['genesis-metrics:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
