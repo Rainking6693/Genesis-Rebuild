@@ -13,7 +13,8 @@ from typing import Any, Dict, List
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Security, Depends
+from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 from azure.identity.aio import AzureCliCredential
 from agent_framework import ChatAgent
@@ -40,6 +41,47 @@ app = FastAPI(
     description="Complete multi-agent system with 15 specialized agents and 56 tools",
     version="2.0.0"
 )
+
+# Security: API Key authentication
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+def get_api_key() -> str:
+    """Get API key from environment variable"""
+    api_key = os.getenv("A2A_API_KEY", os.getenv("GENESIS_API_KEY"))
+    if not api_key:
+        # Generate secure random key if not set (for development)
+        import secrets
+        api_key = secrets.token_urlsafe(32)
+        a2a_logger.warning(f"No A2A_API_KEY found in environment - using generated key: {api_key[:8]}...")
+    return api_key
+
+GENESIS_API_KEY = get_api_key()
+
+async def verify_api_key(api_key: str = Security(api_key_header)):
+    """Verify API key from request header"""
+    genesis_env = os.getenv("GENESIS_ENV", "development")
+
+    # In development, allow without key (but log warning)
+    if genesis_env != "production" and api_key is None:
+        a2a_logger.warning("API request without key in development mode - allowed but not recommended")
+        return True
+
+    # In production, require valid key
+    if api_key is None:
+        a2a_logger.error("API request without key in production mode - rejected")
+        raise HTTPException(
+            status_code=401,
+            detail="Missing API key. Include X-API-Key header."
+        )
+
+    if api_key != GENESIS_API_KEY:
+        a2a_logger.error(f"Invalid API key attempt: {api_key[:8]}...")
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid API key"
+        )
+
+    return True
 
 # Request/Response models
 class InvokeRequest(BaseModel):
@@ -207,8 +249,8 @@ async def get_card():
     }
 
 @app.post("/a2a/invoke")
-async def invoke_tool(request: InvokeRequest) -> InvokeResponse:
-    """Invoke a tool from any agent or infrastructure layer"""
+async def invoke_tool(request: InvokeRequest, authenticated: bool = Depends(verify_api_key)) -> InvokeResponse:
+    """Invoke a tool from any agent or infrastructure layer - REQUIRES AUTHENTICATION"""
 
     # Check for infrastructure tools first (Intent Abstraction Layer)
     infrastructure_tools = {
@@ -264,15 +306,15 @@ def find_tool(tool_name: str) -> tuple:
 
 # Convenience endpoint for marketing tools
 @app.post("/a2a/marketing/strategy")
-async def marketing_strategy(business_name: str, target_audience: str, budget: float):
-    """Create marketing strategy"""
+async def marketing_strategy(business_name: str, target_audience: str, budget: float, authenticated: bool = Depends(verify_api_key)):
+    """Create marketing strategy - REQUIRES AUTHENTICATION"""
     result = agents["marketing"].create_strategy(business_name, target_audience, budget)
     return {"result": result}
 
 # Convenience endpoint for builder tools
 @app.post("/a2a/builder/frontend")
-async def builder_frontend(app_name: str, features: List[str], pages: List[str]):
-    """Generate frontend code"""
+async def builder_frontend(app_name: str, features: List[str], pages: List[str], authenticated: bool = Depends(verify_api_key)):
+    """Generate frontend code - REQUIRES AUTHENTICATION"""
     result = agents["builder"].generate_frontend(app_name, features, pages)
     return {"result": result}
 
