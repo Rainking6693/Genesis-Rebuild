@@ -1,4 +1,4 @@
-#!/home/genesis/genesis-rebuild/venv/bin/python3.12
+#!/home/genesis/genesis-rebuild/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

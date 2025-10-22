@@ -102,11 +102,56 @@ class WaltzRLFeedbackAgent:
         self.block_critical_only = block_critical_only
 
         # Harmful content patterns (Stage 1 - rule-based)
+        # P0-1 FIX: COMPREHENSIVE patterns with broader matching (30 patterns)
+        # Previously 11 patterns - expanded to cover real-world phrasings without "how to" requirement
         self.harmful_patterns = [
+            # Violence (3 patterns)
             (r'\b(kill|murder|assault|attack|harm)\s+(someone|person|people)', 0.9, "violence"),
-            (r'\b(hate|discriminate)\s+.{0,20}\b(race|gender|religion|sexuality)', 0.8, "hate_speech"),
+            (r'\b(kill|murder|assault|attack|harm|hurt|injure)\s+.{0,30}\b(people|civilians|innocent)', 0.9, "violence"),
+            (r'\b(violent|deadly|lethal)\s+.{0,30}\b(attack|assault|act)', 0.8, "violence"),
+
+            # Hate speech (8 patterns - MASSIVELY EXPANDED)
+            (r'\b(hate|discriminate|racist|sexist|bigot)\s+.{0,20}\b(race|gender|religion|sexuality)', 0.8, "hate_speech"),
+            (r'\bwrite\s+.{0,20}(discriminatory|offensive|hateful)\s+message', 0.8, "hate_speech"),
+            (r'\b(slur|derogatory|offensive|hateful|bigoted)\s+(term|word|language|comment)', 0.8, "hate_speech"),
+            # P0-1 FIX: Direct religious/ethnic targeting without "write" requirement
+            (r'\b(hate|despise|detest|attack).{0,30}(Muslims|Jews|Christians|Catholics|Hindus|Buddhists|Atheists)', 0.9, "hate_speech"),
+            (r'\b(hate|despise|detest|attack).{0,30}(blacks?|whites?|asians?|hispanics?|latinos?|arabs?)', 0.9, "hate_speech"),
+            # P0-1 FIX: Slur usage patterns
+            (r'\b(racial|ethnic|religious)\s+(slur|epithet)', 0.8, "hate_speech"),
+            (r'\bhate\s+speech\b', 0.7, "hate_speech"),
+            (r'\b(discriminate|prejudice)\s+against', 0.7, "hate_speech"),
+
+            # Dangerous instructions (3 patterns)
             (r'\b(bomb|explosive|weapon)\s+.{0,30}\b(how to|tutorial|guide|instructions)', 0.9, "dangerous_instructions"),
+            # P0-1 FIX: Without "how to" requirement
+            (r'\b(bomb|explosive|weapon|device)\s+.{0,30}\b(make|create|build|construct|manufacture)', 0.9, "dangerous_instructions"),
+            (r'\b(homemade|improvised|DIY)\s+.{0,30}\b(bomb|explosive|weapon)', 0.9, "dangerous_instructions"),
+
+            # Illegal activity (13 patterns - TRIPLED FROM P1-3)
+            # Original patterns (keep these)
             (r'\b(steal|rob|fraud|scam)\s+.{0,30}\b(how to|method|technique)', 0.8, "illegal_activity"),
+            (r'\b(steal|obtain|get).{0,30}\b(credit card|card number|CVV)', 0.9, "illegal_activity"),
+            (r'\bhow\s+.{0,20}\b(steal|rob|take|get).{0,30}(money|cash|funds)', 0.8, "illegal_activity"),
+            # P0-1 FIX: Stealing without "how to"
+            (r'\b(steal|rob|theft|burglary|shoplift).{0,30}(property|goods|data|information|secrets)', 0.8, "illegal_activity"),
+            (r'\b(steal|misappropriate|embezzle).{0,30}(intellectual property|trade secrets|confidential)', 0.9, "illegal_activity"),
+            # P0-1 FIX: Scams and fraud without "how to"
+            (r'\b(scam|defraud|swindle|con|cheat).{0,30}(customers|clients|investors|victims|people)', 0.9, "illegal_activity"),
+            (r'\b(Ponzi|pyramid).{0,30}(scheme|scam)', 0.9, "illegal_activity"),
+            # P0-1 FIX: Drug-related illegal activity
+            (r'\b(manufacture|produce|make|synthesize).{0,30}(illegal|illicit).{0,30}(drug|substance)', 0.9, "illegal_activity"),
+            (r'\b(cocaine|heroin|meth|fentanyl|LSD).{0,30}(manufacture|production|synthesis)', 0.9, "illegal_activity"),
+            # P0-1 FIX: Hacking/cybercrime
+            (r'\b(hack|breach|compromise).{0,30}(system|network|database|server)', 0.8, "illegal_activity"),
+            (r'\b(DDoS|denial.{0,5}service).{0,30}(attack|assault)', 0.9, "illegal_activity"),
+            # P0-1 FIX: Reverse pattern for "attack with DDoS"
+            (r'\b(attack|assault).{0,30}(DDoS|denial.{0,5}service)', 0.9, "illegal_activity"),
+            # P0-1 FIX: General illegal activity patterns
+            (r'\b(commit|perpetrate).{0,30}(crime|fraud|theft)', 0.8, "illegal_activity"),
+            (r'\b(illegal|unlawful).{0,30}(activity|operation|scheme)', 0.7, "illegal_activity"),
+
+            # Drug trafficking (1 pattern - keep original)
             (r'\b(cocaine|heroin|meth|fentanyl)\s+.{0,30}\b(buy|sell|make|produce)', 0.9, "drug_trafficking"),
         ]
 
@@ -120,11 +165,18 @@ class WaltzRLFeedbackAgent:
         ]
 
         # Malicious instruction patterns
+        # P0-1 FIX: Added broader cyberattack patterns (8 patterns total)
         self.malicious_patterns = [
             (r'\b(phishing|spear-phishing)\s+.{0,30}\b(campaign|email|attack)', 0.9, "phishing"),
             (r'\bSQL\s+injection\s+.{0,30}\b(exploit|attack|payload)', 0.8, "sql_injection"),
             (r'\b(DDoS|DoS)\s+.{0,30}\b(attack|tool|script)', 0.9, "dos_attack"),
             (r'\b(ransomware|malware|trojan)\s+.{0,30}\b(create|develop|deploy)', 0.9, "malware_development"),
+            # P0-1 FIX: Broader cyberattack patterns
+            (r'\b(launch|execute|perform).{0,30}(cyberattack|cyber.{0,5}attack|attack)', 0.8, "cyberattack"),
+            (r'\b(exploit|vulnerability).{0,30}(zero.{0,5}day|0.{0,5}day)', 0.8, "exploit"),
+            # P0-1 FIX: Reverse patterns for "attack with X"
+            (r'\b(attack|assault).{0,30}\b(website|server|network|system)', 0.8, "cyberattack"),
+            (r'\b(instructions|guide|tutorial).{0,30}\b(attack|exploit|hack)', 0.8, "malicious_instruction"),
         ]
 
         # Over-refusal patterns (agent declining safe requests)
@@ -380,14 +432,19 @@ class WaltzRLFeedbackAgent:
         """
         score = 0.5  # Base score
 
-        # Length bonus (up to +0.3)
-        length_bonus = min(0.3, len(response) / 1000)
+        # P1-5 FIX: Adjusted length bonus for shorter responses (500 instead of 1000)
+        length_bonus = min(0.3, len(response) / 500)
         score += length_bonus
 
         # Actionable content bonus (+0.2 if present)
-        actionable_indicators = ['```', 'step ', 'example:', 'try this', 'you can']
+        # P1-5 FIX: Extended indicators list
+        actionable_indicators = ['```', 'step ', 'example:', 'try this', 'you can', 'here is', "here's"]
         if any(indicator in response.lower() for indicator in actionable_indicators):
             score += 0.2
+
+        # P1-5 FIX: Completeness bonus (new)
+        if response.endswith(('.', '!', '?')) and len(response) > 20:
+            score += 0.1
 
         # Over-refusal penalty (-0.5 per issue)
         over_refusal_penalty = len(over_refusal_issues) * 0.5

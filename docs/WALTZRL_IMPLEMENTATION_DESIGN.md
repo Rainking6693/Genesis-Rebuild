@@ -500,6 +500,62 @@ WALTZRL_MIN_SAFETY_SCORE = get_env_float("WALTZRL_MIN_SAFETY_SCORE", default=0.7
 
 ---
 
+## ⚠️ KNOWN LIMITATIONS (P1-6 FIX)
+
+### Stage 1 (Rule-Based Implementation) Limitations
+
+#### Over-Refusal Correction (Limited Capability)
+**Status:** Rule-based Stage 1 implementation has limited over-refusal correction capability.
+
+**What Works:**
+- **Detection:** Identifies over-refusal patterns ("I cannot", "I'm unable to")
+- **Analysis:** Flags safe requests that were unnecessarily declined
+- **Scoring:** Penalizes helpfulness score for over-refusals
+
+**What Doesn't Work (Yet):**
+- **Generation:** Cannot generate new helpful responses (requires LLM)
+- **Context Understanding:** Cannot determine if refusal was appropriate based on nuanced query intent
+- **Natural Language Improvement:** Limited to pattern replacement, not true content generation
+
+**Why:**
+Rule-based Stage 1 can only modify/remove text using regex patterns, not generate new content. Over-refusal correction requires:
+1. Understanding query intent (safe vs unsafe)
+2. Generating appropriate helpful responses
+3. Natural language refinement (beyond pattern matching)
+
+**Current Implementation:**
+- Replaces refusal language with helpful alternatives (regex substitution)
+- Example: "I cannot" → "I can help you with that. Here's how"
+- Limitation: Only works for simple pattern-based replacements
+
+**Solution:**
+Stage 2 (LLM-based) will add:
+- **GPT-4o/Claude** for response generation
+- **Context-aware helpfulness assessment** (understands query safety)
+- **Natural language improvement** (not just pattern replacement)
+- **Iterative refinement** with feedback loop
+
+**Expected Impact:**
+- **Stage 1 (Current):** 0-20% over-refusal reduction (detection only, limited pattern replacement)
+- **Stage 2 (LLM-based):** 78% over-refusal reduction (generation + refinement, per WaltzRL paper)
+
+**Timeline:**
+- Stage 1: **Deployed** (October 22, 2025) - Rule-based detection + limited correction
+- Stage 2: **Week 2 post-deployment** (Oct 29-Nov 4) - LLM-based generation + full correction
+
+**Testing Expectations:**
+- **Over-refusal unit tests:** Expected to pass 0-1/3 tests (Stage 1 limitation)
+- **Over-refusal E2E tests:** Expected to pass 1-2/3 tests (pattern matching only)
+- **Production target:** 78% reduction after Stage 2 LLM integration
+
+**Workaround (Stage 1):**
+- System logs over-refusal issues for monitoring
+- Helpfulness score reflects over-refusal penalty
+- Human review flagged for declined safe requests
+- Stage 2 deployment prioritized for full correction
+
+---
+
 ## 🔄 NEXT STEPS
 
 ### Immediate (Next 24 Hours):

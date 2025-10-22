@@ -1,0 +1,13 @@
+{
+  "test": "Concurrent Throughput (1000 requests)",
+  "timestamp": "2025-10-22T20:36:53.613510",
+  "total_requests": 1002,
+  "elapsed_seconds": 1.69,
+  "throughput_rps": 593.26,
+  "latency": {
+    "p95_ms": 7.81,
+    "avg_ms": 5.3
+  },
+  "target": "\u226510 rps",
+  "status": "PASS"
+}

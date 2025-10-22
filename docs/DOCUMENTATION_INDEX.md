@@ -1,8 +1,58 @@
-# Genesis Rebuild - Documentation Index
+# GENESIS DOCUMENTATION INDEX
 
-**Last Updated:** October 19, 2025
-**Total Documents:** 190+ files
-**Purpose:** Navigate all project documentation organized by category and use case
+**Last Updated:** October 22, 2025
+**Total Documents:** 200+ files
+**Purpose:** Central index for all Genesis documentation - Navigate by category and priority
+
+---
+
+## 🚨 CRITICAL - READ FIRST (Priority Order)
+
+**MANDATORY READING BEFORE ANY WORK:**
+
+1. **`../PROJECT_STATUS.md`** ⭐ SINGLE SOURCE OF TRUTH
+   - What's done, what's in progress, what's next
+   - Updated: October 22, 2025 (OCR 100% + WaltzRL 25%)
+   - **READ THIS FIRST EVERY SESSION**
+
+2. **`../AGENT_PROJECT_MAPPING.md`** ⭐ WHO DOES WHAT
+   - All agent assignments for tasks
+   - Audit procedures (Cora/Hudson code review, Alex E2E with screenshots)
+   - Updated: October 22, 2025 (OCR + WaltzRL sections added)
+   - **MANDATORY: FOLLOW AGENT ASSIGNMENTS - NO EXCEPTIONS**
+
+3. **`../TESTING_STANDARDS_UPDATE_SUMMARY.md`** ⭐ TESTING REQUIREMENTS
+   - Three-layer pyramid (infrastructure, functional, visual)
+   - Screenshot requirements for UI components
+   - Updated: October 21, 2025 (after Grafana incident)
+
+4. **`../CLAUDE.md`** ⭐ MAIN PROJECT INSTRUCTIONS
+   - Architecture overview (6 layers)
+   - Technology stack, research papers
+   - Agent mapping enforcement added October 22, 2025
+
+---
+
+## 📋 CURRENT WORK (October 22, 2025)
+
+### OCR Integration ✅ **100% COMPLETE**
+- **`DEEPSEEK_OCR_IMPLEMENTATION_STATUS.md`** - Implementation status
+- **`OCR_WEEK1_PROGRESS.md`** - Week 1 progress report
+- **Tests:** `../tests/test_ocr_agent_integrations.py` (6/6 passing, 100%)
+- **Performance:** 0.324s average, $0 cost (CPU-only)
+- **Agents:** QA, Support, Legal, Analyst, Marketing (5 agents with vision)
+
+### WaltzRL Safety ⏳ **25% COMPLETE (Week 1/2)**
+- **`WALTZRL_IMPLEMENTATION_DESIGN.md`** ⭐ COMPLETE DESIGN (500+ lines)
+  - Architecture (4 components: Feedback, Conversation, Wrapper, DIR)
+  - Two-stage training (Stage 1: feedback, Stage 2: joint DIR)
+  - Integration points (HALO router, SE-Darwin)
+  - Cost analysis ($65 training, $8/month inference)
+  - Deployment plan (4 phases)
+- **`SESSION_PROGRESS_OCT_22_2025.md`** - Today's session summary
+- **Code:** `../infrastructure/safety/waltzrl_feedback_agent.py` (500 lines, COMPLETE)
+- **Next:** 3 remaining modules assigned to Thon per AGENT_PROJECT_MAPPING.md
+- **Expected:** 89% unsafe reduction + 78% over-refusal reduction
 
 ---
 

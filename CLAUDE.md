@@ -9,28 +9,26 @@ if you are able to without effecting quality
 
 **⚠️ BEFORE DOING ANYTHING, READ:**
 1. **`PROJECT_STATUS.md`** - Single source of truth for progress
-2. **`RESEARCH_UPDATE_OCT_2025.md`** - 40 new papers integration (October 16, 2025)
-3. **`ORCHESTRATION_DESIGN.md`** - Triple-layer orchestration system (HTDAG+HALO+AOP)
-4. **`AGENT_PROJECT_MAPPING.md`** - Agent assignments for all tasks (WHO does WHAT)
-5. **`TESTING_STANDARDS_UPDATE_SUMMARY.md`** - MANDATORY testing requirements (October 21, 2025)
+2. **`AGENT_PROJECT_MAPPING.md`** - Agent assignments for all tasks (WHO does WHAT) - **MUST FOLLOW**
+3. **`TESTING_STANDARDS_UPDATE_SUMMARY.md`** - MANDATORY testing requirements (October 21, 2025)
+4. **`ORCHESTRATION_DESIGN.md`** - Triple-layer orchestration system (HTDAG+HALO+AOP)
+5. **`RESEARCH_UPDATE_OCT_2025.md`** - 40 new papers integration (October 16, 2025)
 
-<<<<<<< HEAD
-**Current Priority:** Phase 4 pre-deployment + Benchmark completion + SE-Darwin integration 100% COMPLETE - Ready for production deployment execution (October 20, 2025)
+**Current Priority:** WaltzRL Safety Integration Week 1 (Oct 22-28) - Following AGENT_PROJECT_MAPPING.md assignments
 
-**Latest Update (October 20, 2025):** SE-Darwin 100% complete + production approved (triple approval: Hudson 9.2, Alex 9.4, Forge 9.5). Layer 2 self-improvement operational with 2,130 lines code, 119 tests, 99.3% pass rate, zero regressions. Phase 5 & 6 research complete - DeepSeek-OCR + LangGraph Store + Hybrid RAG documented in DEEP_RESEARCH_ANALYSIS.md. Layer 6 roadmap ready (3-week timeline, 75% total cost reduction validated: $500→$125/month).
-=======
-<<<<<<< Updated upstream
-**Current Priority:** Phase 4 pre-deployment + Benchmark completion 100% COMPLETE - Ready for production deployment execution (October 19, 2025)
+**Latest Update (October 22, 2025):**
+- **OCR Integration 100% COMPLETE:** 5 agents with vision (QA, Support, Legal, Analyst, Marketing), 6/6 tests passing, 0.324s avg inference
+- **WaltzRL 25% COMPLETE:** Design doc (500+ lines) + feedback agent (500 lines) complete
+- **Agent Mapping Enforcement:** ALL work MUST follow `AGENT_PROJECT_MAPPING.md` assignments
+- **Audit Procedure:** Cora/Hudson (code review), Alex (E2E with screenshots)
+- **Next:** Thon implements 3 remaining WaltzRL modules (~900 lines + 50 tests)
 
-**Latest Update (October 20, 2025):** Phase 5 & 6 research complete - Deep Agents, DeepSeek-OCR, and DAAO analysis documented in DEEP_RESEARCH_ANALYSIS.md. Layer 6 implementation roadmap ready with 3-week timeline and $45k/year cost savings validated.
-=======
-Always use context7 MCP, and 
-always switch to using haiku 4.5
-if you are able to without effecting quality
-
-**Current Priority:** Phase 4 pre-deployment 100% COMPLETE - Ready for production deployment execution (October 19, 2025)
->>>>>>> Stashed changes
->>>>>>> 5f8793a3caaebd761f89a5c3803d51f63a2966fc
+**🚨 MANDATORY WORKFLOW (October 22, 2025):**
+1. Check `AGENT_PROJECT_MAPPING.md` for assignments
+2. Follow assigned agent (DO NOT improvise)
+3. Cora/Hudson audit all code (8.5/10+ approval required)
+4. Alex E2E tests with screenshots (9/10+ approval required)
+5. Update PROJECT_STATUS.md and AGENT_PROJECT_MAPPING.md after completion
 
 This is the **SINGLE SOURCE OF TRUTH** for what's been completed and what's next. It tracks:
 - ✅ Completed layers (1 Phase 1-4 COMPLETE, 2 COMPLETE, 3 COMPLETE, 5 COMPLETE)
