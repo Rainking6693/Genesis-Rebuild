@@ -25,6 +25,9 @@ from infrastructure.tumix_termination import (
     TerminationDecision
 )
 
+# Import OCR capability
+from infrastructure.ocr.ocr_agent_tool import qa_agent_screenshot_validator
+
 setup_observability(enable_sensitive_data=True)
 logger = logging.getLogger(__name__)
 
@@ -63,9 +66,9 @@ class QAAgent:
         client = AzureAIAgentClient(async_credential=cred)
         self.agent = ChatAgent(
             chat_client=client,
-            instructions="You are a quality assurance specialist. Design and execute test plans, identify bugs, validate functionality, and ensure code quality. Run unit tests, integration tests, end-to-end tests, and performance tests. Track test coverage and maintain quality metrics. Use LLM-based termination for iterative refinement (minimum 2 rounds, stop at 51% cost savings when quality plateaus).",
+            instructions="You are a quality assurance specialist with OCR capabilities. Design and execute test plans, identify bugs, validate functionality, and ensure code quality. Run unit tests, integration tests, end-to-end tests, and performance tests. You can also validate screenshots and UI elements using OCR. Track test coverage and maintain quality metrics. Use LLM-based termination for iterative refinement (minimum 2 rounds, stop at 51% cost savings when quality plateaus).",
             name="qa-agent",
-            tools=[self.create_test_plan, self.run_test_suite, self.report_bug, self.measure_code_quality, self.validate_acceptance_criteria]
+            tools=[self.create_test_plan, self.run_test_suite, self.report_bug, self.measure_code_quality, self.validate_acceptance_criteria, self.validate_screenshot]
         )
         print(f"✅ QA Agent initialized for business: {self.business_id}\n")
 
@@ -137,6 +140,11 @@ class QAAgent:
             },
             "analyzed_at": datetime.now().isoformat()
         }
+        return json.dumps(result, indent=2)
+
+    def validate_screenshot(self, screenshot_path: str) -> str:
+        """Validate screenshot contents using OCR (NEW: Vision capability)"""
+        result = qa_agent_screenshot_validator(screenshot_path)
         return json.dumps(result, indent=2)
 
     def validate_acceptance_criteria(self, story_id: str, criteria: List[str]) -> str:

@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # Genesis MongoDB - Shared memory storage
+  genesis-mongodb:
+    image: mongo:latest
+    container_name: genesis-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=genesis
+    networks:
+      - genesis-network
+
+  # Genesis Redis - Caching and state management
+  genesis-redis:
+    image: redis:latest
+    container_name: genesis-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - genesis-network
+
+  # DeepSeek-OCR Service - Document OCR (CPU-optimized)
+  deepseek-ocr:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/deepseek-ocr-cpu.Dockerfile
+    container_name: deepseek-ocr
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./data/ocr_cache:/cache
+      - ./data/ocr_test_images:/test_images:ro
+    environment:
+      - OCR_SERVICE_PORT=8001
+      - CACHE_DIR=/cache
+      - ENABLE_CACHE=true
+    networks:
+      - genesis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  mongodb-data:
+  redis-data:
+
+networks:
+  genesis-network:
+    driver: bridge
+    name: genesis-network

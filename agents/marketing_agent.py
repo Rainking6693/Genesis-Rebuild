@@ -32,6 +32,9 @@ from infrastructure.tumix_termination import (
     TerminationDecision
 )
 
+# Import OCR capability
+from infrastructure.ocr.ocr_agent_tool import marketing_agent_visual_analyzer
+
 setup_observability(enable_sensitive_data=True)
 logger = logging.getLogger(__name__)
 
@@ -91,7 +94,8 @@ class MarketingAgent:
                 self.generate_social_content,
                 self.write_blog_post,
                 self.create_email_sequence,
-                self.build_launch_plan
+                self.build_launch_plan,
+                self.analyze_competitor_visual
             ]
         )
 
@@ -101,7 +105,7 @@ class MarketingAgent:
 
     def _get_system_instruction(self) -> str:
         """System instruction for marketing agent"""
-        return """You are a growth marketing expert specializing in bootstrapped SaaS.
+        return """You are a growth marketing expert specializing in bootstrapped SaaS with OCR visual analysis capabilities.
 
 Your role:
 1. Create data-driven marketing strategies
@@ -109,6 +113,7 @@ Your role:
 3. Generate viral-worthy content
 4. Build sustainable growth engines
 5. Prioritize free/organic over paid advertising
+6. Analyze competitor ads and social media images using OCR
 
 You are:
 - Creative: Memorable, shareable content
@@ -370,6 +375,11 @@ Always return structured JSON responses."""
         }
 
         return json.dumps(plan, indent=2)
+
+    def analyze_competitor_visual(self, image_path: str) -> str:
+        """Analyze competitor ads and social media images using OCR (NEW: Vision capability)"""
+        result = marketing_agent_visual_analyzer(image_path)
+        return json.dumps(result, indent=2)
 
     def route_task(self, task_description: str, priority: float = 0.5) -> RoutingDecision:
         """

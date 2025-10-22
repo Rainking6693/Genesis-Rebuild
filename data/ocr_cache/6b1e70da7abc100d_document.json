@@ -1,0 +1,84 @@
+{
+  "text": "Genesis OCR Test Invoice #12845,\nTotal Amount, 23458\nDate: October 22,202",
+  "bounding_boxes": [
+    {
+      "text": "Genesis",
+      "x": 50,
+      "y": 52,
+      "width": 81,
+      "height": 8,
+      "confidence": 0.65
+    },
+    {
+      "text": "OCR",
+      "x": 92,
+      "y": 41,
+      "width": 15,
+      "height": 28,
+      "confidence": 0.65
+    },
+    {
+      "text": "Test",
+      "x": 111,
+      "y": 41,
+      "width": 19,
+      "height": 28,
+      "confidence": 0.92
+    },
+    {
+      "text": "Invoice",
+      "x": 135,
+      "y": 52,
+      "width": 32,
+      "height": 8,
+      "confidence": 0.91
+    },
+    {
+      "text": "#12845,",
+      "x": 171,
+      "y": 52,
+      "width": 34,
+      "height": 8,
+      "confidence": 0.73
+    },
+    {
+      "text": "Total",
+      "x": 51,
+      "y": 56,
+      "width": 21,
+      "height": 28,
+      "confidence": 0.44
+    },
+    {
+      "text": "Date:",
+      "x": 51,
+      "y": 80,
+      "width": 19,
+      "height": 8,
+      "confidence": 0.86
+    },
+    {
+      "text": "October",
+      "x": 77,
+      "y": 70,
+      "width": 33,
+      "height": 28,
+      "confidence": 0.86
+    },
+    {
+      "text": "22,202",
+      "x": 114,
+      "y": 70,
+      "width": 38,
+      "height": 28,
+      "confidence": 0.77
+    }
+  ],
+  "mode": "document",
+  "inference_time": 0.2971792221069336,
+  "engine": "tesseract",
+  "model_version": "fallback-v1",
+  "cached": false,
+  "timestamp": "2025-10-22T14:27:49.048910",
+  "image_path": "/home/genesis/genesis-rebuild/data/ocr_test_images/test_invoice.png"
+}

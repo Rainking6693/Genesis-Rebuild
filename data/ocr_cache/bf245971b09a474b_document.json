@@ -1,0 +1,108 @@
+{
+  "text": "Support Ticket #98765\n\nERROR Login not working\nUrgent- Production issue\nUser. john@example.com",
+  "bounding_boxes": [
+    {
+      "text": "Support",
+      "x": 51,
+      "y": 52,
+      "width": 36,
+      "height": 10,
+      "confidence": 0.58
+    },
+    {
+      "text": "Ticket",
+      "x": 90,
+      "y": 52,
+      "width": 28,
+      "height": 8,
+      "confidence": 0.58
+    },
+    {
+      "text": "#98765",
+      "x": 121,
+      "y": 52,
+      "width": 34,
+      "height": 8,
+      "confidence": 0.66
+    },
+    {
+      "text": "ERROR",
+      "x": 51,
+      "y": 80,
+      "width": 31,
+      "height": 8,
+      "confidence": 0.52
+    },
+    {
+      "text": "Login",
+      "x": 86,
+      "y": 80,
+      "width": 25,
+      "height": 10,
+      "confidence": 0.91
+    },
+    {
+      "text": "not",
+      "x": 115,
+      "y": 70,
+      "width": 14,
+      "height": 28,
+      "confidence": 0.37
+    },
+    {
+      "text": "working",
+      "x": 133,
+      "y": 70,
+      "width": 36,
+      "height": 28,
+      "confidence": 0.37
+    },
+    {
+      "text": "Urgent-",
+      "x": 51,
+      "y": 94,
+      "width": 32,
+      "height": 10,
+      "confidence": 0.8
+    },
+    {
+      "text": "Production",
+      "x": 91,
+      "y": 94,
+      "width": 49,
+      "height": 8,
+      "confidence": 0.6
+    },
+    {
+      "text": "issue",
+      "x": 144,
+      "y": 96,
+      "width": 22,
+      "height": 6,
+      "confidence": 0.6
+    },
+    {
+      "text": "User.",
+      "x": 51,
+      "y": 108,
+      "width": 21,
+      "height": 8,
+      "confidence": 0.54
+    },
+    {
+      "text": "john@example.com",
+      "x": 75,
+      "y": 108,
+      "width": 92,
+      "height": 10,
+      "confidence": 0.54
+    }
+  ],
+  "mode": "document",
+  "inference_time": 0.35062074661254883,
+  "engine": "tesseract",
+  "model_version": "fallback-v1",
+  "cached": false,
+  "timestamp": "2025-10-22T14:27:56.729057",
+  "image_path": "/home/genesis/genesis-rebuild/data/ocr_test_images/test_ticket.png"
+}

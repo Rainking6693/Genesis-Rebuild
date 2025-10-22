@@ -23,6 +23,9 @@ from infrastructure.tumix_termination import (
     TerminationDecision
 )
 
+# Import OCR capability
+from infrastructure.ocr.ocr_agent_tool import support_agent_ticket_image_processor
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,9 +56,9 @@ class SupportAgent:
         client = AzureAIAgentClient(async_credential=cred)
         self.agent = ChatAgent(
             chat_client=client,
-            instructions="You are a customer support specialist. Handle support tickets, answer user questions, troubleshoot issues, and escalate complex problems. Maintain empathetic, professional communication. Track ticket resolution metrics and identify common issues for documentation. Aim for 84% autonomous resolution rate.",
+            instructions="You are a customer support specialist with OCR image reading capabilities. Handle support tickets, answer user questions, troubleshoot issues, and escalate complex problems. You can process customer screenshots and error images using OCR. Maintain empathetic, professional communication. Track ticket resolution metrics and identify common issues for documentation. Aim for 84% autonomous resolution rate.",
             name="support-agent",
-            tools=[self.create_ticket, self.respond_to_ticket, self.escalate_ticket, self.search_knowledge_base, self.generate_support_report]
+            tools=[self.create_ticket, self.respond_to_ticket, self.escalate_ticket, self.search_knowledge_base, self.generate_support_report, self.process_ticket_image]
         )
         print(f"💬 Support Agent initialized for business: {self.business_id}\n")
 
@@ -129,6 +132,11 @@ class SupportAgent:
             },
             "generated_at": datetime.now().isoformat()
         }
+        return json.dumps(result, indent=2)
+
+    def process_ticket_image(self, image_path: str) -> str:
+        """Process customer support ticket images using OCR (NEW: Vision capability)"""
+        result = support_agent_ticket_image_processor(image_path)
         return json.dumps(result, indent=2)
 
 

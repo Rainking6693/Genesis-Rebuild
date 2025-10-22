@@ -1,0 +1,11 @@
+{
+  "text": "Genesis OCR Test Invoice #12845,\nTotal Amount, 23458\nDate: October 22,202",
+  "bounding_boxes": [],
+  "mode": "raw",
+  "inference_time": 0.15398192405700684,
+  "engine": "tesseract",
+  "model_version": "fallback-v1",
+  "cached": false,
+  "timestamp": "2025-10-22T14:28:13.634714",
+  "image_path": "/home/genesis/genesis-rebuild/data/ocr_test_images/test_invoice.png"
+}

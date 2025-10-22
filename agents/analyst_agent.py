@@ -25,6 +25,9 @@ from infrastructure.tumix_termination import (
     TerminationDecision
 )
 
+# Import OCR capability
+from infrastructure.ocr.ocr_agent_tool import analyst_agent_chart_data_extractor
+
 setup_observability(enable_sensitive_data=True)
 logger = logging.getLogger(__name__)
 
@@ -62,9 +65,9 @@ class AnalystAgent:
         client = AzureAIAgentClient(async_credential=cred)
         self.agent = ChatAgent(
             chat_client=client,
-            instructions="You are a data analyst and business intelligence specialist. Analyze metrics, identify trends, generate insights, create dashboards, and support data-driven decision making. Use statistical analysis, predictive modeling, and visualization techniques. Track KPIs, detect anomalies, and provide actionable recommendations. Implement LLM-based termination for iterative analysis (minimum 2 rounds, optimize cost vs. insight quality).",
+            instructions="You are a data analyst and business intelligence specialist with OCR chart/graph extraction capabilities. Analyze metrics, identify trends, generate insights, create dashboards, and support data-driven decision making. You can extract data from chart images, graphs, and report screenshots using OCR. Use statistical analysis, predictive modeling, and visualization techniques. Track KPIs, detect anomalies, and provide actionable recommendations. Implement LLM-based termination for iterative analysis (minimum 2 rounds, optimize cost vs. insight quality).",
             name="analyst-agent",
-            tools=[self.analyze_metrics, self.generate_dashboard, self.predict_trends, self.detect_anomalies, self.create_business_report]
+            tools=[self.analyze_metrics, self.generate_dashboard, self.predict_trends, self.detect_anomalies, self.create_business_report, self.extract_chart_data]
         )
         print(f"📊 Analyst Agent initialized for business: {self.business_id}\n")
 
@@ -216,6 +219,11 @@ class AnalystAgent:
             "report_url": f"https://reports.example.com/{report_type}/{datetime.now().strftime('%Y%m%d')}",
             "created_at": datetime.now().isoformat()
         }
+        return json.dumps(result, indent=2)
+
+    def extract_chart_data(self, chart_image_path: str) -> str:
+        """Extract data from chart/graph images using OCR (NEW: Vision capability)"""
+        result = analyst_agent_chart_data_extractor(chart_image_path)
         return json.dumps(result, indent=2)
 
     def route_analysis_task(self, task_description: str, complexity: str = "auto") -> RoutingDecision:

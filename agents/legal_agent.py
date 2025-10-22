@@ -23,6 +23,9 @@ from infrastructure.tumix_termination import (
     TerminationDecision
 )
 
+# Import OCR capability
+from infrastructure.ocr.ocr_agent_tool import legal_agent_contract_parser
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,9 +56,9 @@ class LegalAgent:
         client = AzureAIAgentClient(async_credential=cred)
         self.agent = ChatAgent(
             chat_client=client,
-            instructions="You are a legal compliance specialist. Generate legal documents, review contracts, ensure regulatory compliance, manage terms of service, privacy policies, and licensing agreements. Track compliance deadlines, identify legal risks, and maintain document version control. Always recommend human legal review for final approval.",
+            instructions="You are a legal compliance specialist with OCR document scanning capabilities. Generate legal documents, review contracts, ensure regulatory compliance, manage terms of service, privacy policies, and licensing agreements. You can scan and extract text from contract images and legal documents using OCR. Track compliance deadlines, identify legal risks, and maintain document version control. Always recommend human legal review for final approval.",
             name="legal-agent",
-            tools=[self.generate_document, self.review_contract, self.check_compliance, self.create_privacy_policy, self.track_legal_deadlines]
+            tools=[self.generate_document, self.review_contract, self.check_compliance, self.create_privacy_policy, self.track_legal_deadlines, self.parse_contract_image]
         )
         print(f"⚖️ Legal Agent initialized for business: {self.business_id}\n")
 
@@ -126,6 +129,11 @@ class LegalAgent:
             "next_review_date": "2026-04-14",
             "checked_at": datetime.now().isoformat()
         }
+        return json.dumps(result, indent=2)
+
+    def parse_contract_image(self, contract_image_path: str) -> str:
+        """Parse contract or legal document images using OCR (NEW: Vision capability)"""
+        result = legal_agent_contract_parser(contract_image_path)
         return json.dumps(result, indent=2)
 
     def create_privacy_policy(self, company_name: str, data_collected: List[str], third_party_sharing: bool) -> str:
