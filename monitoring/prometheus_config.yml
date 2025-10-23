@@ -22,11 +22,11 @@ scrape_configs:
   # System metrics (node_exporter)
   - job_name: 'node'
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: ['localhost:9100']
 
-  # Genesis orchestration metrics - ENABLED
+  # Genesis orchestration metrics - ENABLED (running on host)
   - job_name: 'genesis-orchestration'
     static_configs:
-      - targets: ['genesis-metrics:8000']
+      - targets: ['localhost:8000']  # Host metrics endpoint
     metrics_path: '/metrics'
     scrape_interval: 5s

@@ -7,13 +7,10 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
-    url: http://prometheus:9090
+    url: http://host.docker.internal:9090
     isDefault: true
     editable: true
-    basicAuth: true
-    basicAuthUser: admin
-    secureJsonData:
-      basicAuthPassword: OKTxCQkZyX3IGvUKam12Q4oJyLraun05
+    basicAuth: false
     jsonData:
       timeInterval: 15s
       httpMethod: POST

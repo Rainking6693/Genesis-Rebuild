@@ -1,0 +1,1 @@
+{"timestamp": "2025-10-23T13:08:38.282983+00:00", "level": "INFO", "logger": "tests.test_visual_memory_compressor", "message": "Concurrent compression test: 100 operations in 4.28s (42.8ms avg)", "module": "test_visual_memory_compressor", "function": "test_concurrent_compression_no_blocking", "line": 911}

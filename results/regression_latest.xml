@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="2.892" timestamp="2025-10-23T19:05:48.953557+00:00" hostname="genesis-agent-01"><testcase classname="" name="tests.test_alex_e2e_visual_compression_phase52" time="0.000"><error message="collection failure">ImportError while importing test module '/home/genesis/genesis-rebuild/tests/test_alex_e2e_visual_compression_phase52.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_alex_e2e_visual_compression_phase52.py:29: in &lt;module&gt;
+    from infrastructure.visual_memory_compressor import VisualMemoryCompressor, VisualVisualCompressionMode
+E   ImportError: cannot import name 'VisualVisualCompressionMode' from 'infrastructure.visual_memory_compressor' (/home/genesis/genesis-rebuild/infrastructure/visual_memory_compressor.py)</error></testcase></testsuite></testsuites>

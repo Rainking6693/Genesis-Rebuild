@@ -1,0 +1,207 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Hybrid RAG Ground Truth Dataset Schema",
+  "description": "Schema for validating retrieval accuracy of Genesis Hybrid RAG system. Each entry represents a query with human-labeled expected memory IDs for precision@10 calculation.",
+  "type": "object",
+  "required": [
+    "query_id",
+    "query",
+    "category",
+    "difficulty",
+    "expected_memory_ids",
+    "requires_vector",
+    "requires_graph",
+    "labeler",
+    "confidence",
+    "created_at",
+    "validation_status"
+  ],
+  "properties": {
+    "query_id": {
+      "type": "string",
+      "description": "Unique identifier for the query (e.g., 'qa_001', 'support_015', 'edge_042')",
+      "pattern": "^[a-z_]+_[0-9]{3}$",
+      "examples": ["qa_001", "support_015", "edge_042"]
+    },
+    "query": {
+      "type": "string",
+      "description": "Natural language query that agents would ask the memory system",
+      "minLength": 10,
+      "maxLength": 500,
+      "examples": [
+        "How do we test authentication after password changes?",
+        "Find all billing tickets from last month with payment failures",
+        "Which agents contributed to the user registration feature?"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "description": "Query category for evaluation breakdown",
+      "enum": ["technical", "procedural", "relational"],
+      "examples": ["technical"]
+    },
+    "difficulty": {
+      "type": "string",
+      "description": "Query complexity level for performance analysis",
+      "enum": ["simple", "medium", "hard"],
+      "examples": ["medium"]
+    },
+    "namespace": {
+      "type": "array",
+      "description": "Optional namespace filter for the query [namespace_type, namespace_id]",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        ["agent", "qa_001"],
+        ["business", "saas_001"],
+        ["system", "global"]
+      ]
+    },
+    "expected_memory_ids": {
+      "type": "array",
+      "description": "Ground truth: memory IDs that SHOULD be retrieved for this query (format: 'namespace_type:namespace_id:key')",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z_]+:[a-z0-9_]+:[a-z0-9_]+$"
+      },
+      "examples": [
+        [
+          "agent:qa_001:test_auth_flow",
+          "agent:qa_001:password_validation",
+          "agent:qa_001:session_management"
+        ]
+      ]
+    },
+    "requires_vector": {
+      "type": "boolean",
+      "description": "True if query requires semantic similarity search (vector database)",
+      "examples": [true]
+    },
+    "requires_graph": {
+      "type": "boolean",
+      "description": "True if query requires relationship traversal (graph database)",
+      "examples": [true]
+    },
+    "labeler": {
+      "type": "string",
+      "description": "Name of person who created initial labels (Pass 1)",
+      "enum": ["thon", "hudson", "alex", "cora"],
+      "examples": ["thon"]
+    },
+    "reviewer": {
+      "type": "string",
+      "description": "Name of person who reviewed labels (Pass 2)",
+      "enum": ["thon", "hudson", "alex", "cora"],
+      "examples": ["hudson"]
+    },
+    "validator": {
+      "type": "string",
+      "description": "Name of person who validated retrievability (Pass 3)",
+      "enum": ["thon", "hudson", "alex", "cora"],
+      "examples": ["alex"]
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Labeler's confidence in expected results (0.0 = uncertain, 1.0 = certain)",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "examples": [0.95]
+    },
+    "labeling_rationale": {
+      "type": "string",
+      "description": "Optional explanation for why these expected_memory_ids were chosen",
+      "maxLength": 1000,
+      "examples": [
+        "Query requires both semantic match (password, auth keywords) and procedural steps (test flow relationships)"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "description": "ISO 8601 timestamp of when entry was created",
+      "format": "date-time",
+      "examples": ["2025-10-23T10:30:00Z"]
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "ISO 8601 timestamp of last update (optional)",
+      "format": "date-time",
+      "examples": ["2025-10-23T14:15:00Z"]
+    },
+    "validation_status": {
+      "type": "string",
+      "description": "Current validation status of this entry",
+      "enum": ["draft", "pending_review", "needs_revision", "approved", "rejected"],
+      "examples": ["approved"]
+    },
+    "validation_notes": {
+      "type": "string",
+      "description": "Notes from validation passes (disagreements, changes made)",
+      "maxLength": 2000,
+      "examples": [
+        "Hudson added 'agent:qa_001:login_test' to expected IDs (prerequisite step). Alex confirmed all IDs retrievable via vector search."
+      ]
+    },
+    "actual_retrieved_ids": {
+      "type": "array",
+      "description": "Optional: IDs actually retrieved during validation (for debugging)",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        [
+          "agent:qa_001:test_auth_flow",
+          "agent:qa_001:password_validation",
+          "agent:qa_001:session_management",
+          "agent:qa_001:login_test"
+        ]
+      ]
+    },
+    "actual_precision": {
+      "type": "number",
+      "description": "Optional: Actual precision@10 achieved during validation",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "examples": [0.9]
+    }
+  },
+  "examples": [
+    {
+      "query_id": "qa_001",
+      "query": "How do we test authentication after password changes?",
+      "category": "technical",
+      "difficulty": "medium",
+      "namespace": ["agent", "qa_001"],
+      "expected_memory_ids": [
+        "agent:qa_001:test_auth_flow",
+        "agent:qa_001:password_validation",
+        "agent:qa_001:session_management",
+        "agent:qa_001:login_test"
+      ],
+      "requires_vector": true,
+      "requires_graph": true,
+      "labeler": "thon",
+      "reviewer": "hudson",
+      "validator": "alex",
+      "confidence": 0.95,
+      "labeling_rationale": "Query requires both semantic match (password, auth keywords) and procedural steps (test flow relationships via graph)",
+      "created_at": "2025-10-23T10:30:00Z",
+      "updated_at": "2025-10-23T14:15:00Z",
+      "validation_status": "approved",
+      "validation_notes": "Hudson added 'login_test' as prerequisite step. Alex confirmed all IDs retrievable via vector (semantic) and graph (test flow relationships).",
+      "actual_retrieved_ids": [
+        "agent:qa_001:test_auth_flow",
+        "agent:qa_001:password_validation",
+        "agent:qa_001:session_management",
+        "agent:qa_001:login_test",
+        "agent:qa_001:jwt_validation",
+        "agent:qa_001:oauth_flow"
+      ],
+      "actual_precision": 0.9
+    }
+  ]
+}

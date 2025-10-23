@@ -1,17 +1,17 @@
 {
-  "archive_id": "archive_test_evolution_agent_e538ae46",
+  "archive_id": "archive_test_evolution_agent_4c3392cf",
   "agent_name": "test_evolution_agent",
   "generations": [
     0
   ],
   "successful_attempts": [],
   "failed_attempts": [
-    "gen0_attempt0_473d3479"
+    "gen0_attempt0_3b579ead"
   ],
   "best_version": "initial",
   "best_score": 0.65,
   "total_attempts": 1,
   "acceptance_rate": 0.0,
-  "created_at": "2025-10-21T18:50:56.947406+00:00",
-  "updated_at": "2025-10-21T18:50:56.947412+00:00"
+  "created_at": "2025-10-23T10:52:50.935753+00:00",
+  "updated_at": "2025-10-23T10:52:50.935765+00:00"
 }

@@ -1,0 +1,165 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/genesis/genesis-rebuild
+configfile: pytest.ini
+plugins: benchmark-5.1.0, cov-7.0.0, anyio-4.11.0, rerunfailures-16.1, timeout-2.4.0, xdist-3.8.0, asyncio-1.2.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 1660 items / 171 deselected / 1489 selected
+
+tests/test_a2a_integration.py EEEEEEEEEEEEsE..EEEEEEE.EEEEE              [  1%]
+tests/test_a2a_security.py .........................                     [  3%]
+tests/test_aatc.py .............................                         [  5%]
+tests/test_aop_validator.py .....................                        [  6%]
+tests/test_benchmark_recorder.py .........................               [  8%]
+tests/test_concurrency.py ..............................                 [ 10%]
+tests/test_daao.py ...............                                       [ 11%]
+tests/test_daao_router.py .............................................. [ 14%]
+......                                                                   [ 15%]
+tests/test_dag_api_type_conversion.py ............                       [ 15%]
+tests/test_darwin_checkpoint.py .....                                    [ 16%]
+tests/test_darwin_e2e.py .......                                         [ 16%]
+tests/test_darwin_integration.py ................                        [ 17%]
+tests/test_darwin_layer2.py .....................                        [ 19%]
+tests/test_darwin_routing.py ........                                    [ 19%]
+tests/test_darwin_security.py .........................                  [ 21%]
+tests/test_deploy_agent.py ..............................                [ 23%]
+tests/test_deploy_script.py ..........................................F. [ 26%]
+.....                                                                    [ 26%]
+tests/test_error_handling.py ............................                [ 28%]
+tests/test_failure_rationale_tracking.py .............                   [ 29%]
+tests/test_failure_scenarios.py ........................................ [ 32%]
+                                                                         [ 32%]
+tests/test_feature_flags.py ..........................................   [ 35%]
+tests/test_halo_router.py ..............................                 [ 37%]
+tests/test_htdag_planner.py .............                                [ 37%]
+tests/test_intent_layer.py ....................................          [ 40%]
+tests/test_learned_reward_model.py ..............................        [ 42%]
+tests/test_llm_integration.py .......ssss.......                         [ 43%]
+tests/test_observability.py ............................                 [ 45%]
+tests/test_ocr_agent_integrations.py .....                               [ 45%]
+tests/test_orchestration_comprehensive.py .............................. [ 47%]
+...............                                                          [ 48%]
+tests/test_orchestration_e2e.py sssssssssss..                            [ 49%]
+tests/test_orchestration_phase1.py ................                      [ 50%]
+tests/test_p0_critical_fix_validation.py ...........F                    [ 51%]
+tests/test_production_health.py ....................s.....s....s...      [ 53%]
+tests/test_production_security.py ...........                            [ 54%]
+tests/test_reflection_agent.py ..........................                [ 56%]
+tests/test_reflection_harness.py ..........................              [ 58%]
+tests/test_reflection_integration.py ...............                     [ 59%]
+tests/test_retry_logic_demo.py R...                                      [ 59%]
+tests/test_rollback_sla.py ............                                  [ 60%]
+tests/test_se_darwin_agent.py .......................................... [ 62%]
+..                                                                       [ 63%]
+tests/test_se_darwin_comprehensive_e2e.py ...................            [ 64%]
+tests/test_se_darwin_e2e.py ..................                           [ 65%]
+tests/test_se_darwin_integration.py .......F....                         [ 66%]
+tests/test_se_operators.py ..........................................    [ 69%]
+tests/test_security.py .....................................             [ 71%]
+tests/test_security_adversarial.py ..................................... [ 74%]
+.....                                                                    [ 74%]
+tests/test_security_agent.py .......................................     [ 77%]
+tests/test_security_fixes.py .......................                     [ 78%]
+tests/test_security_scripts.py ...............................           [ 80%]
+tests/test_sica_integration.py .................................         [ 83%]
+tests/test_smoke.py .......E.......s..ss...                              [ 84%]
+tests/test_spec_agent.py ....................s                           [ 85%]
+tests/test_staging_validation.py ...FFssss......................         [ 88%]
+tests/test_swarm_edge_cases.py ....................                      [ 89%]
+tests/test_swarm_fixes.py ..................                             [ 90%]
+tests/test_swarm_layer5.py ........................                      [ 92%]
+tests/test_trajectory_operators_integration.py ...........               [ 92%]
+tests/test_trajectory_pool.py .......................................... [ 95%]
+..                                                                       [ 95%]
+tests/test_tumix_termination.py ........................................ [ 98%]
+.....................                                                    [100%]
+
+--- generated xml file: /home/genesis/genesis-rebuild/results/regression.xml ---
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_a2a_integration.py:473: A2A connector not initialized
+SKIPPED [1] tests/test_llm_integration.py:182: OPENAI_API_KEY not set
+SKIPPED [1] tests/test_llm_integration.py:212: OPENAI_API_KEY not set
+SKIPPED [1] tests/test_llm_integration.py:254: ANTHROPIC_API_KEY not set
+SKIPPED [1] tests/test_llm_integration.py:280: ANTHROPIC_API_KEY not set
+SKIPPED [1] tests/test_orchestration_e2e.py:30: Orchestration layer not yet implemented (Week 2-3)
+SKIPPED [1] tests/test_orchestration_e2e.py:40: Orchestration layer not yet implemented (Week 2-3)
+SKIPPED [1] tests/test_orchestration_e2e.py:46: Orchestration layer not yet implemented (Week 2-3)
+SKIPPED [1] tests/test_orchestration_e2e.py:56: Orchestration layer not yet implemented (Week 2-3)
+SKIPPED [1] tests/test_orchestration_e2e.py:66: Orchestration layer not yet implemented (Week 2-3)
+SKIPPED [1] tests/test_orchestration_e2e.py:76: Orchestration layer not yet implemented (Week 2-3)
+SKIPPED [1] tests/test_orchestration_e2e.py:86: Orchestration layer not yet implemented (Week 2-3)
+SKIPPED [1] tests/test_orchestration_e2e.py:92: Orchestration layer not yet implemented (Week 2-3)
+SKIPPED [1] tests/test_orchestration_e2e.py:102: Orchestration layer not yet implemented (Week 2-3)
+SKIPPED [1] tests/test_orchestration_e2e.py:114: Orchestration layer not yet implemented (Week 2-3)
+SKIPPED [1] tests/test_orchestration_e2e.py:120: Orchestration layer not yet implemented (Week 2-3)
+SKIPPED [1] tests/test_production_health.py:394: Alertmanager not running (expected in CI)
+SKIPPED [1] tests/test_production_health.py:560: Feature flags module not available
+SKIPPED [1] tests/test_production_health.py:664: Monitoring container alertmanager not running (expected in production)
+SKIPPED [1] tests/test_smoke.py:339: Error categorization not testable: assert 'decomposition_error' in ['decomposition', 'routing', 'validation', 'network', 'resource', 'llm', ...]
+SKIPPED [1] tests/test_smoke.py:384: Tracing not available: module 'infrastructure.observability' has no attribute 'create_tracer'
+SKIPPED [1] tests/test_smoke.py:394: Metrics registry not available in observability module
+SKIPPED [1] tests/test_spec_agent.py:495: Requires Azure credentials - run manually with valid credentials
+SKIPPED [1] tests/test_staging_validation.py:167: MongoDB not configured (MONGODB_URI not set)
+SKIPPED [1] tests/test_staging_validation.py:185: Redis not configured (REDIS_URL not set)
+SKIPPED [1] tests/test_staging_validation.py:215: Agents endpoint not implemented (/agents returns 404)
+SKIPPED [1] tests/test_staging_validation.py:239: Task endpoint not implemented (/task returns 404)
+ERROR tests/test_a2a_integration.py::test_agent_name_mapping - ValueError: HT...
+ERROR tests/test_a2a_integration.py::test_task_to_tool_mapping - ValueError: ...
+ERROR tests/test_a2a_integration.py::test_prepare_arguments - ValueError: HTT...
+ERROR tests/test_a2a_integration.py::test_get_dependency_results - ValueError...
+ERROR tests/test_a2a_integration.py::test_simple_single_agent_execution - Val...
+ERROR tests/test_a2a_integration.py::test_complex_multi_agent_workflow - Valu...
+ERROR tests/test_a2a_integration.py::test_dependency_order_enforcement - Valu...
+ERROR tests/test_a2a_integration.py::test_error_handling_agent_failure - Valu...
+ERROR tests/test_a2a_integration.py::test_circuit_breaker_opens - ValueError:...
+ERROR tests/test_a2a_integration.py::test_circuit_breaker_recovery - ValueErr...
+ERROR tests/test_a2a_integration.py::test_execution_summary - ValueError: HTT...
+ERROR tests/test_a2a_integration.py::test_correlation_context_propagation - V...
+ERROR tests/test_a2a_integration.py::test_parallel_task_execution - ValueErro...
+ERROR tests/test_a2a_integration.py::test_http_timeout_handling - ValueError:...
+ERROR tests/test_a2a_integration.py::test_dag_with_cycles - ValueError: HTTPS...
+ERROR tests/test_a2a_integration.py::test_empty_routing_plan - ValueError: HT...
+ERROR tests/test_a2a_integration.py::test_task_with_missing_dependencies - Va...
+ERROR tests/test_a2a_integration.py::test_reset_circuit_breaker - ValueError:...
+ERROR tests/test_a2a_integration.py::test_execution_history_tracking - ValueE...
+ERROR tests/test_a2a_integration.py::test_task_metadata_propagation - ValueEr...
+ERROR tests/test_a2a_integration.py::test_multiple_execution_cycles - ValueEr...
+ERROR tests/test_a2a_integration.py::test_execution_time_tracking - ValueErro...
+ERROR tests/test_a2a_integration.py::test_success_rate_calculation - ValueErr...
+ERROR tests/test_a2a_integration.py::test_empty_dag_handling - ValueError: HT...
+ERROR tests/test_a2a_integration.py::test_partial_completion_status - ValueEr...
+ERROR tests/test_smoke.py::TestComponentInitialization::test_error_handler_initialization
+FAILED tests/test_deploy_script.py::test_deploy_handles_save_failure - Except...
+FAILED tests/test_p0_critical_fix_validation.py::TestP0CriticalFixValidation::test_pattern_count_validation
+FAILED tests/test_se_darwin_integration.py::test_support_deployment_issues_evolution
+FAILED tests/test_staging_validation.py::TestServiceHealth::test_all_monitoring_containers_running
+FAILED tests/test_staging_validation.py::TestServiceHealth::test_docker_containers_healthy
+= 5 failed, 1431 passed, 27 skipped, 171 deselected, 10 warnings, 26 errors, 1 rerun in 2039.81s (0:33:59) =
+--- Logging error ---
+Traceback (most recent call last):
+  File "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/opentelemetry/sdk/_shared_internal/__init__.py", line 179, in _export
+    self._exporter.export(
+  File "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/opentelemetry/sdk/_logs/_internal/export/__init__.py", line 98, in export
+    self.out.write(self.formatter(data.log_record))
+ValueError: I/O operation on closed file.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/logging/__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+ValueError: I/O operation on closed file.
+Call stack:
+  File "/usr/lib/python3.12/threading.py", line 1030, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/opentelemetry/sdk/_shared_internal/__init__.py", line 168, in worker
+    self._export(BatchExportStrategy.EXPORT_ALL)
+  File "/home/genesis/genesis-rebuild/venv/lib/python3.12/site-packages/opentelemetry/sdk/_shared_internal/__init__.py", line 192, in _export
+    self._logger.exception(
+Message: 'Exception while exporting %s.'
+Arguments: ('Log',)
