@@ -1,0 +1,53 @@
+engines:
+  pylint:
+    enabled: true
+    exclude_paths:
+      - "venv/**"
+      - "**/__pycache__/**"
+      - "*.egg-info/**"
+      - "benchmarks/results/**"
+      - "htmlcov/**"
+      - "logs/**"
+      - "data/tmp/**"
+  bandit:
+    enabled: true
+    exclude_paths:
+      - "venv/**"
+      - "**/__pycache__/**"
+      - "*.egg-info/**"
+      - "benchmarks/results/**"
+      - "htmlcov/**"
+      - "logs/**"
+  remark-lint:
+    enabled: true
+    exclude_paths:
+      - "docs/ARCHIVE/**"
+      - "venv/**"
+
+languages:
+  python:
+    extensions:
+      - ".py"
+  markdown:
+    extensions:
+      - ".md"
+
+exclude_paths:
+  - "venv/**"
+  - "**/__pycache__/**"
+  - "*.egg-info/**"
+  - "benchmarks/results/**"
+  - "logs/**"
+  - "htmlcov/**"
+  - "coverage/**"
+  - ".coverage"
+  - "coverage.json"
+  - "data/tmp/**"
+  - "**/*.min.js"
+
+include_paths:
+  - "agents/**"
+  - "infrastructure/**"
+  - "tools/**"
+  - "tests/**"
+  - "docs/**"
