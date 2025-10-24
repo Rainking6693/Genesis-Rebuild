@@ -1,0 +1,7 @@
+{
+  "chart_type": "line",
+  "x_axis": "timestamp",
+  "y_axis": "value",
+  "title": "Test Chart",
+  "data_points": 3
+}

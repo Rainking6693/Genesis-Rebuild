@@ -1,0 +1,29 @@
+---
+title: "Tag: 6"
+tags: [moc, tag-index, 6]
+generated: 2025-10-24T22:05:29.993770
+---
+
+# Tag: #6
+
+Documents tagged with #6 (8 total):
+
+## Documents
+
+
+### Architecture
+
+- [[DAY4_FIXES_APPLIED|DAY 4 FIXES APPLIED - POST-AUDIT IMPROVEMENTS]]
+- [[darwin_layer2_architecture_audit|Darwin Layer 2 Architecture Audit Report]]
+- [[ROLLBACK_PROCEDURES|Genesis Production Rollback Procedures]]
+
+### Guides
+
+- [[STAGING_DEPLOYMENT_READY|STAGING DEPLOYMENT READY]]
+
+### Reports
+
+- [[ARCHITECTURE_GAPS_FIXED|ARCHITECTURE SPECIFICATION GAPS - RESOLUTION SUMMARY]]
+- [[RESEARCH_UPDATE_OCT_2025|CRITICAL RESEARCH UPDATE - OCTOBER 2025]]
+- [[NEW_PAPERS_FINAL_2025|FINAL ARXIV RESEARCH - ALL SOURCES CONSOLIDATED]]
+- [[PHASE3_TESTING_AUDIT|PHASE 3 TESTING AUDIT REPORT]]

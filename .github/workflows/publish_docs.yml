@@ -1,0 +1,368 @@
+name: Publish Documentation to Obsidian Vault
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '*.md'
+      - 'scripts/export_docs_obsidian.py'
+      - 'scripts/generate_knowledge_graph.py'
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: 'Deployment target'
+        required: true
+        default: 'github-pages'
+        type: choice
+        options:
+          - github-pages
+          - obsidian-publish
+          - both
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  export-documentation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better context
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyyaml networkx
+
+      - name: Export documentation to Obsidian vault
+        id: export
+        run: |
+          python scripts/export_docs_obsidian.py \
+            /home/runner/work/genesis-rebuild/genesis-rebuild \
+            /home/runner/work/genesis-rebuild/genesis-rebuild/obsidian_vault
+
+          # Capture export statistics
+          echo "export_complete=true" >> $GITHUB_OUTPUT
+
+      - name: Generate knowledge graph
+        run: |
+          python scripts/generate_knowledge_graph.py \
+            /home/runner/work/genesis-rebuild/genesis-rebuild/obsidian_vault
+
+      - name: Create README for vault
+        run: |
+          cat > obsidian_vault/README.md << 'EOF'
+          ---
+          title: Genesis Knowledge Base
+          dg-publish: true
+          dg-home: true
+          ---
+
+          # Genesis Multi-Agent AI System
+
+          Welcome to the Genesis project knowledge base. This is a comprehensive documentation vault for the recursive multi-agent AI system.
+
+          ## Quick Start
+
+          - **[[MOC_Main|Main Index]]** - Complete overview
+          - **[[Core/PROJECT_STATUS|Project Status]]** - Current progress
+          - **[[Architecture/INDEX|Architecture]]** - System design
+          - **[[Research/INDEX|Research]]** - Papers and analysis
+          - **[[Guides/INDEX|Guides]]** - Implementation guides
+
+          ## What is Genesis?
+
+          Genesis is a recursive multi-agent AI system that autonomously spawns, manages, and optimizes entire businesses. Not just agents that do tasks—agents that create agent businesses that create more agents.
+
+          ### Key Features:
+
+          - **Layer 1**: Triple-layer orchestration (HTDAG + HALO + AOP)
+          - **Layer 2**: Self-improving agents (SE-Darwin + SICA)
+          - **Layer 3**: A2A protocol communication
+          - **Layer 4**: Agent economy (x402 payments)
+          - **Layer 5**: Swarm optimization
+          - **Layer 6**: Shared memory (Hybrid RAG)
+
+          ## Navigation
+
+          Browse by:
+
+          - **Category**: See index pages in each category folder
+          - **Tags**: Use graph view or search by #tag
+          - **Graph**: Visual exploration of document connections
+          - **Search**: Full-text search across all documents
+
+          ## Statistics
+
+          See [[graph_data.json]] for detailed graph statistics and [[MOC_Main|Main MOC]] for hub documents.
+
+          ---
+
+          *Last updated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")*
+
+          *Generated automatically from Genesis project documentation*
+          EOF
+
+      - name: Generate sitemap
+        run: |
+          # Create sitemap.xml for SEO
+          cat > obsidian_vault/sitemap.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+          EOF
+
+          # Add all markdown files
+          find obsidian_vault -name "*.md" -type f | while read file; do
+            rel_path=$(echo "$file" | sed 's|obsidian_vault/||')
+            url_path=$(echo "$rel_path" | sed 's|\.md$||' | sed 's| |%20|g')
+
+            cat >> obsidian_vault/sitemap.xml << EOF
+            <url>
+              <loc>https://genesis-rebuild.github.io/$url_path</loc>
+              <lastmod>$(date -u +"%Y-%m-%d")</lastmod>
+              <changefreq>weekly</changefreq>
+              <priority>0.8</priority>
+            </url>
+          EOF
+          done
+
+          echo "</urlset>" >> obsidian_vault/sitemap.xml
+
+      - name: Create search index
+        run: |
+          # Generate simple search index JSON
+          python << 'EOF'
+          import os
+          import json
+          import re
+          from pathlib import Path
+
+          search_index = []
+          vault_dir = Path('obsidian_vault')
+
+          for md_file in vault_dir.rglob('*.md'):
+              try:
+                  with open(md_file, 'r', encoding='utf-8') as f:
+                      content = f.read()
+
+                  # Extract title
+                  title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+                  title = title_match.group(1) if title_match else md_file.stem
+
+                  # Extract first paragraph as excerpt
+                  paragraphs = re.findall(r'^[^#\-\*\n][^\n]+', content, re.MULTILINE)
+                  excerpt = paragraphs[0][:200] if paragraphs else ""
+
+                  # Add to index
+                  search_index.append({
+                      'title': title,
+                      'path': str(md_file.relative_to(vault_dir)),
+                      'excerpt': excerpt
+                  })
+
+              except Exception as e:
+                  print(f"Error indexing {md_file}: {e}")
+
+          # Write index
+          with open('obsidian_vault/search_index.json', 'w', encoding='utf-8') as f:
+              json.dump(search_index, f, indent=2)
+
+          print(f"Indexed {len(search_index)} documents")
+          EOF
+
+      - name: Upload vault artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: obsidian-vault
+          path: obsidian_vault/
+          retention-days: 30
+
+      - name: Deploy to GitHub Pages
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.deploy_target == 'github-pages' ||
+          github.event.inputs.deploy_target == 'both'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./obsidian_vault
+          publish_branch: gh-pages
+          cname: genesis-docs.yourdomain.com  # Optional: Add your custom domain
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'Deploy documentation vault ${{ github.sha }}'
+
+      - name: Deploy to Obsidian Publish
+        if: |
+          github.event.inputs.deploy_target == 'obsidian-publish' ||
+          github.event.inputs.deploy_target == 'both'
+        run: |
+          echo "Obsidian Publish deployment requires manual setup:"
+          echo "1. Create an Obsidian Publish site at obsidian.md/publish"
+          echo "2. Install Obsidian Digital Garden plugin (alternative)"
+          echo "3. Or use the vault artifact to manually publish"
+          echo ""
+          echo "Vault artifact available for download from this workflow run."
+          echo ""
+          echo "Alternative: Use Obsidian Digital Garden plugin"
+          echo "  - GitHub: oleeskild/obsidian-digital-garden"
+          echo "  - Provides free Vercel/Netlify hosting"
+          echo "  - Auto-sync from GitHub repository"
+
+      - name: Generate deployment summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Documentation Export Complete
+
+          ### Export Statistics
+
+          - **Vault Location**: `obsidian_vault/`
+          - **Total Files**: $(find obsidian_vault -name "*.md" | wc -l) markdown files
+          - **Images**: $(find obsidian_vault/_attachments -type f 2>/dev/null | wc -l) images copied
+          - **Graph Data**: `obsidian_vault/graph_data.json`
+          - **Search Index**: `obsidian_vault/search_index.json`
+
+          ### Deployment Options
+
+          #### GitHub Pages (Automatic)
+
+          ✅ Deployed to `gh-pages` branch
+
+          - **URL**: https://genesis-rebuild.github.io
+          - **Custom Domain**: Configure in repository settings
+
+          #### Obsidian Publish (Manual)
+
+          Download the vault artifact and:
+
+          1. Subscribe at [obsidian.md/publish](https://obsidian.md/publish)
+          2. Open vault in Obsidian
+          3. Enable Publish core plugin
+          4. Select all files and publish
+
+          #### Obsidian Digital Garden (Free Alternative)
+
+          1. Install [Digital Garden plugin](https://github.com/oleeskild/obsidian-digital-garden)
+          2. Configure Vercel/Netlify deployment
+          3. Auto-sync from this repository
+
+          ### Files Generated
+
+          - `README.md` - Main index
+          - `MOC_Main.md` - Master map of content
+          - `MOC_Tag_*.md` - Tag-specific MOCs
+          - `*/INDEX.md` - Category indexes
+          - `graph_data.json` - Knowledge graph data
+          - `sitemap.xml` - SEO sitemap
+          - `search_index.json` - Search index
+
+          ### Next Steps
+
+          1. **Review vault**: Download artifact to inspect
+          2. **Configure GitHub Pages**: Enable in repository settings
+          3. **Optional**: Set up custom domain
+          4. **Optional**: Configure Obsidian Publish
+
+          EOF
+
+  validate-export:
+    runs-on: ubuntu-latest
+    needs: export-documentation
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download vault artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: obsidian-vault
+          path: obsidian_vault/
+
+      - name: Validate vault structure
+        run: |
+          echo "Validating vault structure..."
+
+          # Check required files
+          required_files=(
+            "obsidian_vault/README.md"
+            "obsidian_vault/MOC_Main.md"
+            "obsidian_vault/graph_data.json"
+            "obsidian_vault/sitemap.xml"
+          )
+
+          all_present=true
+          for file in "${required_files[@]}"; do
+            if [ -f "$file" ]; then
+              echo "✅ $file"
+            else
+              echo "❌ Missing: $file"
+              all_present=false
+            fi
+          done
+
+          # Check category directories
+          categories=(
+            "Core"
+            "Architecture"
+            "Research"
+            "Guides"
+            "Reports"
+            "Testing"
+          )
+
+          for category in "${categories[@]}"; do
+            if [ -d "obsidian_vault/$category" ]; then
+              count=$(find "obsidian_vault/$category" -name "*.md" | wc -l)
+              echo "✅ $category: $count files"
+            else
+              echo "⚠️  $category: directory not found"
+            fi
+          done
+
+          # Validate JSON files
+          echo ""
+          echo "Validating JSON files..."
+          python3 -m json.tool obsidian_vault/graph_data.json > /dev/null && echo "✅ graph_data.json is valid JSON"
+          python3 -m json.tool obsidian_vault/search_index.json > /dev/null && echo "✅ search_index.json is valid JSON"
+
+          # Summary
+          echo ""
+          if [ "$all_present" = true ]; then
+            echo "✅ Vault structure validation passed"
+            exit 0
+          else
+            echo "❌ Vault structure validation failed"
+            exit 1
+          fi
+
+      - name: Check for broken links
+        run: |
+          echo "Checking for broken wikilinks..."
+
+          # Extract all wikilinks and check if targets exist
+          find obsidian_vault -name "*.md" -type f | while read file; do
+            # Extract wikilinks
+            grep -oP '\[\[\K[^\]|]+' "$file" 2>/dev/null | while read link; do
+              # Check if target exists
+              if ! find obsidian_vault -name "${link}.md" -type f | grep -q .; then
+                echo "⚠️  Broken link in $file: [[$link]]"
+              fi
+            done
+          done
+
+          echo "Link validation complete"
