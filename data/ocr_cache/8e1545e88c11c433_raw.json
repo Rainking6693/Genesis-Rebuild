@@ -1,0 +1,11 @@
+{
+  "text": "Line\nLine\nLine\nLine\n\nBUNK\n\nIntroduction to text compression.\nUsing pixels for memory optimization.\nDeepSeek-OCR integration validation.\nPerformance benchmarking results.",
+  "bounding_boxes": [],
+  "mode": "raw",
+  "inference_time": 0.1812748908996582,
+  "engine": "tesseract",
+  "model_version": "fallback-v1",
+  "cached": false,
+  "timestamp": "2025-10-24T22:27:18.762759",
+  "image_path": "/tmp/tmpsi0t5lcc.png"
+}

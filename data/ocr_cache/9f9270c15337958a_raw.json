@@ -1,0 +1,11 @@
+{
+  "text": "Special chars: @#$%\u00b06*() 123456 [brackets] {braces} <tags>",
+  "bounding_boxes": [],
+  "mode": "raw",
+  "inference_time": 0.18510103225708008,
+  "engine": "tesseract",
+  "model_version": "fallback-v1",
+  "cached": false,
+  "timestamp": "2025-10-24T22:28:29.506624",
+  "image_path": "/tmp/tmpylzzjwi1.png"
+}

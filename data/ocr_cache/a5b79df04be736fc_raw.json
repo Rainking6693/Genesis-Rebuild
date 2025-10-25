@@ -1,0 +1,11 @@
+{
+  "text": "Hello World! This is a test of the OCR roundtrip pipeline.",
+  "bounding_boxes": [],
+  "mode": "raw",
+  "inference_time": 0.13693904876708984,
+  "engine": "tesseract",
+  "model_version": "fallback-v1",
+  "cached": false,
+  "timestamp": "2025-10-24T22:27:18.498052",
+  "image_path": "/tmp/tmpgxphsqrq.png"
+}

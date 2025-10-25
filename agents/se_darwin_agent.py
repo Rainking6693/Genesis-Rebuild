@@ -72,6 +72,14 @@ from infrastructure.se_operators import (
 )
 from infrastructure.benchmark_runner import BenchmarkRunner, BenchmarkResult, BenchmarkType
 from infrastructure.security_utils import sanitize_agent_name, redact_credentials
+from infrastructure.casebank import CaseBank, get_casebank
+
+# Import self-correction for evolution validation
+from infrastructure.self_correction import (
+    SelfCorrectingAgent,
+    ValidationCategory,
+    get_self_correcting_agent
+)
 
 # OTEL observability
 try:
@@ -516,6 +524,13 @@ class SEDarwinAgent:
         # P2-1 Fix: Initialize benchmark scenario loader
         self.benchmark_loader = BenchmarkScenarioLoader()
 
+        # CaseBank integration: Learn from past evolution outcomes
+        self.casebank = get_casebank()
+        self.enable_casebank = True  # Enable case-based learning
+
+        # Self-correction integration (for trajectory validation)
+        self.self_correcting: Optional[SelfCorrectingAgent] = None
+
         # Evolution state
         self.current_generation = 0
         self.best_score = 0.0
@@ -529,6 +544,28 @@ class SEDarwinAgent:
                 'max_iterations': max_iterations,
                 'timeout': timeout_per_trajectory
             }
+        )
+
+    async def enable_self_correction(self, qa_agent: Any, max_attempts: int = 3):
+        """
+        Enable self-correction QA loop for evolved code validation.
+
+        Args:
+            qa_agent: QA agent for validation
+            max_attempts: Maximum correction attempts per trajectory
+        """
+        self.self_correcting = get_self_correcting_agent(
+            agent=self,
+            qa_agent=qa_agent,
+            max_attempts=max_attempts,
+            validation_categories=[
+                ValidationCategory.CORRECTNESS,
+                ValidationCategory.QUALITY,
+                ValidationCategory.SAFETY
+            ]
+        )
+        logger.info(
+            f"SE-Darwin self-correction enabled: max_attempts={max_attempts}"
         )
 
     async def evolve_solution(
@@ -566,6 +603,21 @@ class SEDarwinAgent:
         start_time = time.time()
 
         context = context or {}
+
+        # CaseBank: Retrieve similar past evolutions
+        similar_cases = []
+        if self.enable_casebank:
+            similar_cases = await self.casebank.retrieve_similar(
+                query_state=problem_description,
+                k=4,
+                min_reward=0.6,
+                min_similarity=0.8,
+                agent_filter=self.agent_name
+            )
+            if similar_cases:
+                logger.info(f"Retrieved {len(similar_cases)} similar past evolutions")
+                # Add case context to evolution context
+                context['past_cases'] = self.casebank.build_case_context(similar_cases)
 
         # Evolution iterations
         for iteration in range(self.max_iterations):
@@ -630,6 +682,21 @@ class SEDarwinAgent:
         # Save trajectory pool
         self.trajectory_pool.save_to_disk()
 
+        # CaseBank: Store evolution outcome for future learning
+        if self.enable_casebank and best_trajectory:
+            await self.casebank.add_case(
+                state=problem_description,
+                action=f"Best trajectory: {best_trajectory.trajectory_id}, operators: {best_trajectory.operator_type}",
+                reward=self.best_score,
+                metadata={
+                    "agent": self.agent_name,
+                    "iterations": len(self.iterations),
+                    "trajectory_id": best_trajectory.trajectory_id,
+                    "had_past_cases": len(similar_cases) > 0
+                }
+            )
+            logger.info(f"Stored evolution outcome in CaseBank (reward={self.best_score:.3f})")
+
         result = {
             'success': self.best_score > 0.0,  # Success if any score achieved
             'best_trajectory': best_trajectory,
@@ -645,7 +712,8 @@ class SEDarwinAgent:
                 for it in self.iterations
             ],
             'total_time': total_time,
-            'pool_statistics': self.trajectory_pool.get_statistics()
+            'pool_statistics': self.trajectory_pool.get_statistics(),
+            'cases_used': len(similar_cases)
         }
 
         logger.info(f"Evolution completed in {total_time:.2f}s, best score: {self.best_score:.3f}")

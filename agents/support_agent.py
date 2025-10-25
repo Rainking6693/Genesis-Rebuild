@@ -8,7 +8,7 @@ Handles customer support, ticket management, and user assistance.
 import json
 import logging
 from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Optional, Any
 from agent_framework import ChatAgent
 from agent_framework.azure import AzureAIAgentClient
 from agent_framework.observability import setup_observability
@@ -25,6 +25,17 @@ from infrastructure.tumix_termination import (
 
 # Import OCR capability
 from infrastructure.ocr.ocr_agent_tool import support_agent_ticket_image_processor
+
+# Import self-correction for response validation
+from infrastructure.self_correction import (
+    SelfCorrectingAgent,
+    ValidationCategory,
+    get_self_correcting_agent
+)
+
+# Import OpenEnv for customer issue reproduction
+from infrastructure.openenv_wrapper import EnvRegistry
+from infrastructure.env_learning_agent import EnvironmentLearningAgent
 
 logger = logging.getLogger(__name__)
 
@@ -49,18 +60,96 @@ class SupportAgent:
         # Track refinement sessions for metrics
         self.refinement_history: List[List[RefinementResult]] = []
 
-        logger.info(f"{{agent_name}} v4.0 initialized with DAAO + TUMIX for business: {{business_id}}")
+        # Self-correction wrapper (initialized after agent setup)
+        self.self_correcting: Optional[SelfCorrectingAgent] = None
+
+        # OpenEnv for customer issue reproduction (initialized after agent setup)
+        self.browser_env = None
+        self.env_agent = None
+
+        logger.info(f"Support Agent v4.0 initialized with DAAO + TUMIX + OpenEnv for business: {business_id}")
 
     async def initialize(self):
         cred = AzureCliCredential()
         client = AzureAIAgentClient(async_credential=cred)
         self.agent = ChatAgent(
             chat_client=client,
-            instructions="You are a customer support specialist with OCR image reading capabilities. Handle support tickets, answer user questions, troubleshoot issues, and escalate complex problems. You can process customer screenshots and error images using OCR. Maintain empathetic, professional communication. Track ticket resolution metrics and identify common issues for documentation. Aim for 84% autonomous resolution rate.",
+            instructions="You are a customer support specialist with OCR image reading capabilities and issue reproduction via Playwright. Handle support tickets, answer user questions, troubleshoot issues, and escalate complex problems. You can process customer screenshots and error images using OCR, and reproduce customer issues by learning browser automation via self-play. Maintain empathetic, professional communication. Track ticket resolution metrics and identify common issues for documentation. Aim for 84% autonomous resolution rate.",
             name="support-agent",
-            tools=[self.create_ticket, self.respond_to_ticket, self.escalate_ticket, self.search_knowledge_base, self.generate_support_report, self.process_ticket_image]
+            tools=[self.create_ticket, self.respond_to_ticket, self.escalate_ticket, self.search_knowledge_base, self.generate_support_report, self.process_ticket_image, self.reproduce_customer_issue]
         )
-        print(f"💬 Support Agent initialized for business: {self.business_id}\n")
+
+        # Initialize OpenEnv for customer issue reproduction
+        self.browser_env = EnvRegistry.make("playwright")
+        from infrastructure.llm_client import get_llm_client
+        llm_client = await get_llm_client()
+        self.env_agent = EnvironmentLearningAgent(
+            env=self.browser_env,
+            llm_client=llm_client,
+            casebank=None,  # TODO: Integrate with CaseBank
+            max_episodes=8  # Support: moderate learning
+        )
+
+        print(f"💬 Support Agent initialized for business: {self.business_id}")
+        print(f"   - OpenEnv issue reproduction enabled (Playwright)\n")
+
+    async def enable_self_correction(self, qa_agent: Any, max_attempts: int = 3):
+        """
+        Enable self-correction QA loop for support response validation.
+
+        Args:
+            qa_agent: QA agent for validation
+            max_attempts: Maximum correction attempts
+        """
+        self.self_correcting = get_self_correcting_agent(
+            agent=self,
+            qa_agent=qa_agent,
+            max_attempts=max_attempts,
+            validation_categories=[
+                ValidationCategory.CORRECTNESS,
+                ValidationCategory.COMPLETENESS,
+                ValidationCategory.QUALITY,
+                ValidationCategory.SAFETY
+            ]
+        )
+        logger.info(
+            f"Support Agent self-correction enabled: max_attempts={max_attempts}"
+        )
+
+    async def respond_with_validation(
+        self,
+        task: str,
+        expectations: Optional[Dict] = None
+    ) -> Dict:
+        """
+        Generate support response with automatic QA validation loop.
+
+        Args:
+            task: Support task/ticket description
+            expectations: Expected response properties
+
+        Returns:
+            Validated support response
+        """
+        if not self.self_correcting:
+            raise RuntimeError(
+                "Self-correction not enabled. Call enable_self_correction() first."
+            )
+
+        default_expectations = {
+            "professional_tone": True,
+            "answers_question": True,
+            "safe_content": True,
+            "actionable_steps": True
+        }
+
+        expectations = {**default_expectations, **(expectations or {})}
+
+        return await self.self_correcting.execute_with_validation(
+            task=task,
+            expectations=expectations,
+            context={"agent": "SupportAgent", "business_id": self.business_id}
+        )
 
     def create_ticket(self, user_id: str, issue_description: str, priority: str) -> str:
         """Create a new support ticket"""
@@ -138,6 +227,55 @@ class SupportAgent:
         """Process customer support ticket images using OCR (NEW: Vision capability)"""
         result = support_agent_ticket_image_processor(image_path)
         return json.dumps(result, indent=2)
+
+    async def reproduce_customer_issue(self, ticket_id: str, reproduction_steps: str) -> str:
+        """
+        Reproduce customer issue via learned browser automation (NEW: OpenEnv capability).
+
+        Args:
+            ticket_id: Support ticket ID
+            reproduction_steps: Steps to reproduce the issue
+
+        Returns:
+            JSON string with reproduction results
+        """
+        if not self.env_agent:
+            return json.dumps({
+                "error": "OpenEnv not initialized",
+                "message": "Call initialize() first"
+            }, indent=2)
+
+        logger.info(f"Reproducing customer issue: ticket={ticket_id}")
+
+        # Agent learns to reproduce issue via self-play
+        result = await self.env_agent.learn_task(
+            goal=f"Reproduce issue: {reproduction_steps}",
+            context={"ticket_id": ticket_id}
+        )
+
+        reproduction_result = {
+            "reproduction_id": f"REPRO-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "ticket_id": ticket_id,
+            "reproduction_steps": reproduction_steps,
+            "reproduced": result["success"],
+            "episodes": result["episodes"],
+            "total_steps": result["total_steps"],
+            "observed_behavior": result["learned_strategy"],
+            "status": "REPRODUCED" if result["success"] else "COULD_NOT_REPRODUCE",
+            "reproduced_at": datetime.now().isoformat()
+        }
+
+        if result["success"]:
+            logger.info(
+                f"Issue reproduced! Episodes: {result['episodes']}, "
+                f"Steps: {result['total_steps']}"
+            )
+        else:
+            logger.warning(
+                f"Could not reproduce issue after {result['episodes']} episodes"
+            )
+
+        return json.dumps(reproduction_result, indent=2)
 
 
     def route_task(self, task_description: str, priority: float = 0.5) -> RoutingDecision:

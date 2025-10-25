@@ -1,0 +1,11 @@
+{
+  "text": "This is a benchmark text for measuring compression ratio. This is a benchmark text for\nmeasuring compression ratio. This is a benchmark text for measuring compression ratio. This\nis a benchmark text for measuring compression ratio. This is a benchmark text for measuring\ncompression ratio. This is a benchmark text for measuring compression ratio. This is a\nbenchmark text for measuring compression ratio. This is a benchmark text for measuring\ncompression ratio. This is a benchmark text for measuring compression ratio. This is a\nbenchmark text for measuring compression ratio. This is a benchmark text for measuring\ncompression ratio. This is a benchmark text for measuring compression ratio. This is a\nbenchmark text for measuring compression ratio. This is a benchmark text for measuring\ncompression ratio. This is a benchmark text for measuring compression ratio. This is a\nbenchmark text for measuring compression ratio. This is a benchmark text for measuring\ncompression ratio. This is a benchmark text for measuring compression ratio.",
+  "bounding_boxes": [],
+  "mode": "raw",
+  "inference_time": 0.5806674957275391,
+  "engine": "tesseract",
+  "model_version": "fallback-v1",
+  "cached": false,
+  "timestamp": "2025-10-24T22:27:19.515811",
+  "image_path": "/tmp/tmp7_nile1d.png"
+}

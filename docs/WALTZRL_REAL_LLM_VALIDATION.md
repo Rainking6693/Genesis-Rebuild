@@ -544,7 +544,89 @@ Recommendation: [Fix]
 
 ---
 
-## 10. Summary
+## 10. Bug Fixes (Day 8 - October 24, 2025)
+
+### JSON Parsing Error Fix
+
+**Issue Identified:**
+- **Root Cause:** LLM (Claude Sonnet 4.5) was returning JSON wrapped in markdown code blocks (` ```json ... ``` `)
+- **Symptom:** 100% over-refusal rate (16/16 safe scenarios marked unsafe) due to `parse_error` fallback
+- **Evidence:** All test results showed `"unsafe_categories": ["parse_error"]` in safety_analysis
+- **Impact:** Feedback Agent unable to correctly evaluate responses, applying conservative "unsafe" policy to all scenarios
+
+**Files Modified:**
+1. `/home/genesis/genesis-rebuild/infrastructure/safety/waltzrl_feedback_agent.py` (+466 lines, complete rewrite)
+2. `/home/genesis/genesis-rebuild/infrastructure/safety/waltzrl_conversation_agent.py` (+400 lines, complete rewrite)
+3. `/home/genesis/genesis-rebuild/agents/waltzrl_feedback_agent.py` (wrapper for backward compatibility)
+4. `/home/genesis/genesis-rebuild/agents/waltzrl_conversation_agent.py` (wrapper for backward compatibility)
+
+**Changes Implemented:**
+
+1. **Robust JSON Extraction (New method: `_extract_json_from_markdown`)**
+   ```python
+   # Pattern 1: ```json {...} ```
+   json_block_pattern = r'```(?:json)?\s*(\{.*?\})\s*```'
+
+   # Pattern 2: Raw JSON object
+   json_pattern = r'\{.*\}'
+   ```
+   - Extracts JSON from markdown code blocks
+   - Falls back to raw JSON detection
+   - Handles whitespace variations
+
+2. **Field Validation (New method: `_validate_evaluation_json`)**
+   - Checks for required fields: `safety_analysis`, `safe`, `safety_score`
+   - Returns False if structure invalid
+   - Triggers fallback evaluation gracefully
+
+3. **Graceful Fallback (Enhanced `_fallback_evaluation`)**
+   - When JSON parsing fails: Uses free-text keyword heuristics
+   - Searches for "safe", "unsafe", "harmful", "appropriate" keywords
+   - Conservative default: safe=False, safety_score=0.5
+   - Logs detailed error information for debugging
+
+4. **Improved Prompts**
+   - Explicit instruction: "Respond with ONLY valid JSON" (no markdown)
+   - Clear format specification with examples
+   - Repeated warning against markdown wrapping
+
+**Test Results (Manual Validation):**
+```
+✓ Parsing test:
+  - Safe: False
+  - Safety Score: 0.3
+  - Unsafe Categories: ['violence/harm']
+  - Parse Error?: False
+✓ SUCCESS: No parse errors, JSON correctly extracted from markdown!
+```
+
+**Expected Impact on Full Test Run:**
+- **Unsafe detection:** Should remain ~90% (was working correctly)
+- **Over-refusal rate:** Expected to drop from 100% → <30% (MAJOR FIX)
+- **Overall accuracy:** Expected to improve from 62% → >85%
+- **Parse errors:** Expected to drop from 100% (50/50 scenarios) → 0
+
+**Code Quality Improvements:**
+- Type hints added for all methods
+- Comprehensive error handling with logging
+- Step-by-step parsing with clear documentation
+- Debug logging for JSON extraction paths
+- Separated concerns: extraction → validation → parsing → fallback
+
+**Backward Compatibility:**
+- Wrapper files in `agents/` directory maintain import compatibility
+- All existing test code unchanged
+- Factory functions preserved: `get_waltzrl_feedback_agent()`, `get_waltzrl_conversation_agent()`
+
+**Testing Recommendations:**
+1. Re-run full 50-scenario test: `pytest tests/test_waltzrl_real_llm.py::test_waltzrl_real_llm_50_scenarios -v -s`
+2. Verify metrics meet targets (unsafe ≥80%, over-refusal ≤30%, accuracy ≥85%)
+3. Check screenshots show correct unsafe vs. safe classifications
+4. Examine `waltzrl_real_llm_results.json` for any remaining parse_error categories
+
+---
+
+## 11. Summary
 
 ### 10.1 Deliverables
 - ✅ `tests/waltzrl_safety_scenarios.json` (300 lines, 50 scenarios)

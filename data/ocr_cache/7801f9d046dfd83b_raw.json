@@ -1,0 +1,11 @@
+{
+  "text": "Invoice #12345: Total $1,234.56 | Date: 2025-10-24 | Qty: 42",
+  "bounding_boxes": [],
+  "mode": "raw",
+  "inference_time": 0.1834263801574707,
+  "engine": "tesseract",
+  "model_version": "fallback-v1",
+  "cached": false,
+  "timestamp": "2025-10-24T22:28:29.748732",
+  "image_path": "/tmp/tmp6d_owsbq.png"
+}

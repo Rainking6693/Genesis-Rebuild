@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="2.892" timestamp="2025-10-23T19:05:48.953557+00:00" hostname="genesis-agent-01"><testcase classname="" name="tests.test_alex_e2e_visual_compression_phase52" time="0.000"><error message="collection failure">ImportError while importing test module '/home/genesis/genesis-rebuild/tests/test_alex_e2e_visual_compression_phase52.py'.
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="2" failures="0" skipped="1" tests="3" time="2.766" timestamp="2025-10-25T11:51:48.687653+00:00" hostname="genesis-agent-01"><testcase classname="" name="tests.test_alex_e2e_visual_compression_phase52" time="0.000"><error message="collection failure">ImportError while importing test module '/home/genesis/genesis-rebuild/tests/test_alex_e2e_visual_compression_phase52.py'.
 Hint: make sure your test modules/packages have valid Python names.
 Traceback:
 /usr/lib/python3.12/importlib/__init__.py:90: in import_module
@@ -6,4 +6,12 @@ Traceback:
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 tests/test_alex_e2e_visual_compression_phase52.py:29: in &lt;module&gt;
     from infrastructure.visual_memory_compressor import VisualMemoryCompressor, VisualVisualCompressionMode
-E   ImportError: cannot import name 'VisualVisualCompressionMode' from 'infrastructure.visual_memory_compressor' (/home/genesis/genesis-rebuild/infrastructure/visual_memory_compressor.py)</error></testcase></testsuite></testsuites>
+E   ImportError: cannot import name 'VisualVisualCompressionMode' from 'infrastructure.visual_memory_compressor' (/home/genesis/genesis-rebuild/infrastructure/visual_memory_compressor.py)</error></testcase><testcase classname="" name="tests.test_graph_attention_rag" time="0.000"><error message="collection failure">ImportError while importing test module '/home/genesis/genesis-rebuild/tests/test_graph_attention_rag.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_graph_attention_rag.py:20: in &lt;module&gt;
+    from infrastructure.hybrid_rag_retriever import (
+E   ImportError: cannot import name 'GraphAttentionMechanism' from 'infrastructure.hybrid_rag_retriever' (/home/genesis/genesis-rebuild/infrastructure/hybrid_rag_retriever.py)</error></testcase><testcase classname="" name="tests.test_sparse_memory_benchmarks" time="0.000"><skipped message="collection skipped">('/home/genesis/genesis-rebuild/tests/test_sparse_memory_benchmarks.py', 31, 'Skipped: Sparse Memory modules not available')</skipped></testcase></testsuite></testsuites>

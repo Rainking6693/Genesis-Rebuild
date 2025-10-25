@@ -1,0 +1,11 @@
+{
+  "text": "Cache test text for validation",
+  "bounding_boxes": [],
+  "mode": "raw",
+  "inference_time": 0.15398192405700684,
+  "engine": "tesseract",
+  "model_version": "fallback-v1",
+  "cached": false,
+  "timestamp": "2025-10-24T22:28:29.952312",
+  "image_path": "/tmp/tmp5pmj0d3s.png"
+}

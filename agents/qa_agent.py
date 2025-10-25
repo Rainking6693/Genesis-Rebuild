@@ -28,6 +28,10 @@ from infrastructure.tumix_termination import (
 # Import OCR capability
 from infrastructure.ocr.ocr_agent_tool import qa_agent_screenshot_validator
 
+# Import OpenEnv for E2E testing
+from infrastructure.openenv_wrapper import EnvRegistry, PlaywrightEnv
+from infrastructure.env_learning_agent import EnvironmentLearningAgent
+
 setup_observability(enable_sensitive_data=True)
 logger = logging.getLogger(__name__)
 
@@ -59,18 +63,36 @@ class QAAgent:
         # Track refinement sessions for metrics
         self.refinement_history: List[List[RefinementResult]] = []
 
-        logger.info(f"QA Agent v4.0 initialized with DAAO + TUMIX for business: {business_id}")
+        # OpenEnv for E2E testing (initialized after agent setup)
+        self.browser_env = None
+        self.env_agent = None
+
+        logger.info(f"QA Agent v4.0 initialized with DAAO + TUMIX + OpenEnv for business: {business_id}")
 
     async def initialize(self):
         cred = AzureCliCredential()
         client = AzureAIAgentClient(async_credential=cred)
         self.agent = ChatAgent(
             chat_client=client,
-            instructions="You are a quality assurance specialist with OCR capabilities. Design and execute test plans, identify bugs, validate functionality, and ensure code quality. Run unit tests, integration tests, end-to-end tests, and performance tests. You can also validate screenshots and UI elements using OCR. Track test coverage and maintain quality metrics. Use LLM-based termination for iterative refinement (minimum 2 rounds, stop at 51% cost savings when quality plateaus).",
+            instructions="You are a quality assurance specialist with OCR capabilities and E2E testing via Playwright. Design and execute test plans, identify bugs, validate functionality, and ensure code quality. Run unit tests, integration tests, end-to-end tests, and performance tests. You can also validate screenshots and UI elements using OCR, and learn to automate browser testing via self-play. Track test coverage and maintain quality metrics. Use LLM-based termination for iterative refinement (minimum 2 rounds, stop at 51% cost savings when quality plateaus).",
             name="qa-agent",
-            tools=[self.create_test_plan, self.run_test_suite, self.report_bug, self.measure_code_quality, self.validate_acceptance_criteria, self.validate_screenshot]
+            tools=[self.create_test_plan, self.run_test_suite, self.report_bug, self.measure_code_quality, self.validate_acceptance_criteria, self.validate_screenshot, self.test_web_feature]
         )
-        print(f"✅ QA Agent initialized for business: {self.business_id}\n")
+
+        # Initialize OpenEnv for E2E testing
+        self.browser_env = EnvRegistry.make("playwright")
+        # Use mock LLM client for now (will be replaced with real LLM in production)
+        from infrastructure.llm_client import get_llm_client
+        llm_client = await get_llm_client()
+        self.env_agent = EnvironmentLearningAgent(
+            env=self.browser_env,
+            llm_client=llm_client,
+            casebank=None,  # TODO: Integrate with CaseBank
+            max_episodes=5  # QA testing: quick learning
+        )
+
+        print(f"✅ QA Agent initialized for business: {self.business_id}")
+        print(f"   - OpenEnv E2E testing enabled (Playwright)\n")
 
     def create_test_plan(self, feature_name: str, test_types: List[str], coverage_target: float) -> str:
         """Create a comprehensive test plan for a feature"""
@@ -146,6 +168,58 @@ class QAAgent:
         """Validate screenshot contents using OCR (NEW: Vision capability)"""
         result = qa_agent_screenshot_validator(screenshot_path)
         return json.dumps(result, indent=2)
+
+    async def test_web_feature(self, feature_url: str, test_goal: str) -> str:
+        """
+        E2E test web feature via learned browser automation (NEW: OpenEnv capability).
+
+        Args:
+            feature_url: URL of feature to test
+            test_goal: Test objective (e.g., "Login with credentials")
+
+        Returns:
+            JSON string with test results and learned strategy
+        """
+        if not self.env_agent:
+            return json.dumps({
+                "error": "OpenEnv not initialized",
+                "message": "Call initialize() first"
+            }, indent=2)
+
+        logger.info(f"Starting E2E test: url={feature_url}, goal={test_goal}")
+
+        # Agent learns to test the feature via self-play
+        result = await self.env_agent.learn_task(
+            goal=f"Navigate to {feature_url} and {test_goal}",
+            context={"url": feature_url}
+        )
+
+        test_result = {
+            "test_id": f"E2E-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "feature_url": feature_url,
+            "test_goal": test_goal,
+            "success": result["success"],
+            "episodes": result["episodes"],
+            "best_reward": result["best_reward"],
+            "total_steps": result["total_steps"],
+            "learned_strategy": result["learned_strategy"],
+            "learning_curve": result["learning_curve"],
+            "status": "PASS" if result["success"] else "FAIL",
+            "tested_at": datetime.now().isoformat()
+        }
+
+        if result["success"]:
+            logger.info(
+                f"E2E test passed! Episodes: {result['episodes']}, "
+                f"Steps: {result['total_steps']}"
+            )
+        else:
+            logger.warning(
+                f"E2E test failed after {result['episodes']} episodes. "
+                f"Best reward: {result['best_reward']:.2f}"
+            )
+
+        return json.dumps(test_result, indent=2)
 
     def validate_acceptance_criteria(self, story_id: str, criteria: List[str]) -> str:
         """Validate that acceptance criteria are met"""

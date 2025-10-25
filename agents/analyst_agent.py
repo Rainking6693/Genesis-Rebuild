@@ -11,7 +11,7 @@ Enhanced with:
 import json
 import logging
 from datetime import datetime
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from agent_framework import ChatAgent
 from agent_framework.azure import AzureAIAgentClient
 from agent_framework.observability import setup_observability
@@ -27,6 +27,16 @@ from infrastructure.tumix_termination import (
 
 # Import OCR capability
 from infrastructure.ocr.ocr_agent_tool import analyst_agent_chart_data_extractor
+
+# Import self-correction for report validation
+from infrastructure.self_correction import (
+    SelfCorrectingAgent,
+    ValidationCategory,
+    get_self_correcting_agent
+)
+
+# Import context profiles for long-document optimization
+from infrastructure.context_profiles import ContextProfile, get_profile_manager
 
 setup_observability(enable_sensitive_data=True)
 logger = logging.getLogger(__name__)
@@ -55,21 +65,87 @@ class AnalystAgent:
             improvement_threshold=0.05  # 5% improvement threshold
         )
 
+        # Initialize context profile manager for long-document optimization
+        self.profile_manager = get_profile_manager()
+
         # Track refinement sessions for metrics
         self.refinement_history: List[List[RefinementResult]] = []
 
-        logger.info(f"Analyst Agent v4.0 initialized with DAAO + TUMIX for business: {business_id}")
+        # Self-correction wrapper (initialized after agent setup)
+        self.self_correcting: Optional[SelfCorrectingAgent] = None
+
+        logger.info(
+            f"Analyst Agent v4.0 initialized with DAAO + TUMIX + Context Profiles "
+            f"for business: {business_id}"
+        )
 
     async def initialize(self):
         cred = AzureCliCredential()
         client = AzureAIAgentClient(async_credential=cred)
         self.agent = ChatAgent(
             chat_client=client,
-            instructions="You are a data analyst and business intelligence specialist with OCR chart/graph extraction capabilities. Analyze metrics, identify trends, generate insights, create dashboards, and support data-driven decision making. You can extract data from chart images, graphs, and report screenshots using OCR. Use statistical analysis, predictive modeling, and visualization techniques. Track KPIs, detect anomalies, and provide actionable recommendations. Implement LLM-based termination for iterative analysis (minimum 2 rounds, optimize cost vs. insight quality).",
+            instructions="You are a data analyst and business intelligence specialist with OCR chart/graph extraction capabilities. Analyze metrics, identify trends, generate insights, create dashboards, and support data-driven decision making. You can extract data from chart images, graphs, and report screenshots using OCR. Use statistical analysis, predictive modeling, and visualization techniques. Track KPIs, detect anomalies, and provide actionable recommendations. Implement LLM-based termination for iterative analysis (minimum 2 rounds, optimize cost vs. insight quality). For long documents (>8k tokens), automatically use LONGDOC context profile for 60% cost reduction.",
             name="analyst-agent",
-            tools=[self.analyze_metrics, self.generate_dashboard, self.predict_trends, self.detect_anomalies, self.create_business_report, self.extract_chart_data]
+            tools=[self.analyze_metrics, self.generate_dashboard, self.predict_trends, self.detect_anomalies, self.create_business_report, self.extract_chart_data, self.analyze_long_document]
         )
-        print(f"📊 Analyst Agent initialized for business: {self.business_id}\n")
+        print(f"📊 Analyst Agent initialized for business: {self.business_id}")
+        print(f"   Context Profiles: LONGDOC enabled (60% cost reduction for long documents)\n")
+
+    async def enable_self_correction(self, qa_agent: Any, max_attempts: int = 3):
+        """
+        Enable self-correction QA loop for analysis validation.
+
+        Args:
+            qa_agent: QA agent for validation
+            max_attempts: Maximum correction attempts
+        """
+        self.self_correcting = get_self_correcting_agent(
+            agent=self,
+            qa_agent=qa_agent,
+            max_attempts=max_attempts,
+            validation_categories=[
+                ValidationCategory.CORRECTNESS,
+                ValidationCategory.COMPLETENESS,
+                ValidationCategory.QUALITY
+            ]
+        )
+        logger.info(
+            f"Analyst Agent self-correction enabled: max_attempts={max_attempts}"
+        )
+
+    async def analyze_with_validation(
+        self,
+        task: str,
+        expectations: Optional[Dict] = None
+    ) -> Dict:
+        """
+        Analyze metrics with automatic QA validation loop.
+
+        Args:
+            task: Analysis task description
+            expectations: Expected analysis properties
+
+        Returns:
+            Validated analysis result
+        """
+        if not self.self_correcting:
+            raise RuntimeError(
+                "Self-correction not enabled. Call enable_self_correction() first."
+            )
+
+        default_expectations = {
+            "has_insights": True,
+            "data_accurate": True,
+            "actionable": True
+        }
+
+        expectations = {**default_expectations, **(expectations or {})}
+
+        return await self.self_correcting.execute_with_validation(
+            task=task,
+            expectations=expectations,
+            context={"agent": "AnalystAgent", "business_id": self.business_id}
+        )
 
     def analyze_metrics(self, metric_names: List[str], time_period: str, granularity: str) -> str:
         """Analyze business metrics over a time period"""
@@ -219,6 +295,75 @@ class AnalystAgent:
             "report_url": f"https://reports.example.com/{report_type}/{datetime.now().strftime('%Y%m%d')}",
             "created_at": datetime.now().isoformat()
         }
+        return json.dumps(result, indent=2)
+
+    def analyze_long_document(self, document: str, query: str) -> str:
+        """
+        Analyze long document (32k-128k tokens) using LONGDOC profile.
+
+        This method demonstrates LONGDOC context profile for 60% cost reduction
+        on long-context document analysis.
+
+        Args:
+            document: Long document text (reports, research papers, etc.)
+            query: Analysis query
+
+        Returns:
+            JSON analysis result with cost savings metadata
+        """
+        # Estimate document size
+        doc_length = len(document)
+        estimated_tokens = doc_length // 4  # Rough estimate
+
+        # Select LONGDOC profile explicitly
+        profile = ContextProfile.LONGDOC
+
+        # Log profile selection
+        config = self.profile_manager.get_config(profile)
+        savings = self.profile_manager.estimate_cost_savings(
+            profile=profile,
+            tokens=estimated_tokens,
+            baseline_cost_per_1m=3.0
+        )
+
+        logger.info(
+            f"Analyzing long document ({doc_length} chars, ~{estimated_tokens} tokens) "
+            f"with LONGDOC profile: ${savings['savings']:.4f} savings "
+            f"({savings['savings_pct']:.1f}%)"
+        )
+
+        # In production, this would call LLM with context_profile=ContextProfile.LONGDOC
+        # For now, return simulated analysis with profile metadata
+        result = {
+            "analysis_id": f"LONGDOC-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "query": query,
+            "document_length": doc_length,
+            "estimated_tokens": estimated_tokens,
+            "context_profile": profile.value,
+            "cost_savings": {
+                "baseline_cost": savings["baseline_cost"],
+                "profile_cost": savings["profile_cost"],
+                "savings": savings["savings"],
+                "savings_pct": savings["savings_pct"]
+            },
+            "analysis": {
+                "summary": f"Analysis of {query} in document",
+                "key_findings": [
+                    "Finding 1 from long document",
+                    "Finding 2 from detailed sections",
+                    "Finding 3 from comprehensive review"
+                ],
+                "confidence": 0.92
+            },
+            "profile_config": {
+                "max_context": config.max_context,
+                "attention_type": config.attention_type,
+                "num_kv_heads": config.num_key_value_heads,
+                "description": config.description
+            },
+            "analyzed_at": datetime.now().isoformat()
+        }
+
         return json.dumps(result, indent=2)
 
     def extract_chart_data(self, chart_image_path: str) -> str:

@@ -218,7 +218,10 @@ class ProductionDeployer:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "reason": "emergency_rollback"
         })
-        self._save_deployment_state()
+        try:
+            self._save_deployment_state()
+        except Exception as exc:  # pragma: no cover - exercised via test patching
+            logger.error(f"Unable to persist deployment state during rollback: {exc}")
         
         logger.warning("Rollback complete - system returned to safe mode (0%)")
         logger.warning("=" * 80)
@@ -274,7 +277,10 @@ class ProductionDeployer:
             "percentage": percentage,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-        self._save_deployment_state()
+        try:
+            self._save_deployment_state()
+        except Exception as exc:  # pragma: no cover - exercised via test patching
+            logger.error(f"Unable to persist deployment state after step {percentage}%: {exc}")
         
         # Skip monitoring if requested (or if at 0%)
         if skip_monitoring or percentage == 0:

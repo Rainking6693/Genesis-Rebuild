@@ -1,0 +1,11 @@
+{
+  "text": "Performance test\nPerformance test\nPerformance test\nPerformance test\nPerformance test\n\ntext\ntext\ntext\ntext\ntext\n\nfor\nfor\nfor\nfor\nfor\n\nlatency\nlatency\nlatency\nlatency\nlatency\n\nmeasurement.\nmeasurement.\nmeasurement.\nmeasurement.\nmeasurement.\n\nPerformance test\nPerformance test\nPerformance test\nPerformance test\nPerformance test\n\ntext\ntext\ntext\ntext\ntext\n\nfor\nfor\nfor\nfor\nfor\n\nlatency\nlatency\nlatency\nlatency\nlatency\n\nmeasurement .\nmeasurement .\nmeasurement .\nmeasurement .\nmeasurement .",
+  "bounding_boxes": [],
+  "mode": "raw",
+  "inference_time": 0.5455117225646973,
+  "engine": "tesseract",
+  "model_version": "fallback-v1",
+  "cached": false,
+  "timestamp": "2025-10-24T22:28:28.063043",
+  "image_path": "/tmp/tmpq_1nzv_t.png"
+}

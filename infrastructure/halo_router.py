@@ -10,12 +10,20 @@ Key Features:
 - Support for Genesis 15-agent ensemble
 - Agent authentication (VULN-002 fix)
 - DAAO cost optimization (Phase 2 integration)
+- CaseBank memory integration (Memento case-based reasoning)
 """
 import logging
 from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, field
 from infrastructure.task_dag import TaskDAG, Task, TaskStatus
 from infrastructure.agent_auth_registry import AgentAuthRegistry, SecurityError
+
+# CaseBank integration for learning from past routing decisions
+try:
+    from infrastructure.casebank import CaseBank, get_casebank
+    HAS_CASEBANK = True
+except ImportError:
+    HAS_CASEBANK = False
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +115,8 @@ class HALORouter:
         auth_registry: Optional[AgentAuthRegistry] = None,
         enable_cost_optimization: bool = False,
         cost_profiler = None,
-        daao_optimizer = None
+        daao_optimizer = None,
+        enable_casebank: bool = True
     ):
         """
         Initialize HALORouter
@@ -118,6 +127,7 @@ class HALORouter:
             enable_cost_optimization: Enable DAAO cost optimization (Phase 2 feature)
             cost_profiler: Optional CostProfiler instance
             daao_optimizer: Optional DAAOOptimizer instance
+            enable_casebank: Enable case-based learning from past routing decisions
         """
         self.agent_registry = agent_registry or self._get_genesis_15_agents()
         self.routing_rules = self._initialize_routing_rules()
@@ -130,6 +140,14 @@ class HALORouter:
         self.enable_cost_optimization = enable_cost_optimization
         self.cost_profiler = cost_profiler
         self.daao_optimizer = daao_optimizer
+
+        # CaseBank integration: Learn from past routing successes/failures
+        self.enable_casebank = enable_casebank and HAS_CASEBANK
+        if self.enable_casebank:
+            self.casebank = get_casebank()
+            logger.info("CaseBank enabled for HALO router")
+        else:
+            self.casebank = None
 
         # OPTIMIZATION 1: Cache sorted rules (avoid re-sorting on every task)
         self._sorted_rules_cache = sorted(self.routing_rules, key=lambda r: r.priority, reverse=True)

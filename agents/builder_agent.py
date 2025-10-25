@@ -15,7 +15,7 @@ OUTPUT: 20-30 complete code files ready to deploy
 import json
 import logging
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional, Any
 from agent_framework import ChatAgent
 from agent_framework.azure import AzureAIAgentClient
 from agent_framework.observability import setup_observability
@@ -28,6 +28,17 @@ from infrastructure.tumix_termination import (
     RefinementResult,
     TerminationDecision
 )
+
+# Import self-correction for QA validation loop
+from infrastructure.self_correction import (
+    SelfCorrectingAgent,
+    ValidationCategory,
+    get_self_correcting_agent
+)
+
+# Import OpenEnv for deployment testing
+from infrastructure.openenv_wrapper import EnvRegistry
+from infrastructure.env_learning_agent import EnvironmentLearningAgent
 
 setup_observability(enable_sensitive_data=True)
 logger = logging.getLogger(__name__)
@@ -72,7 +83,14 @@ class BuilderAgent:
         # Track refinement sessions for metrics
         self.refinement_history: List[List[RefinementResult]] = []
 
-        logger.info(f"Builder Agent v4.0 initialized with DAAO + TUMIX for business: {business_id}")
+        # Self-correction wrapper (initialized after agent setup)
+        self.self_correcting: Optional[SelfCorrectingAgent] = None
+
+        # OpenEnv for deployment automation (initialized after agent setup)
+        self.deploy_env = None
+        self.env_agent = None
+
+        logger.info(f"Builder Agent v4.0 initialized with DAAO + TUMIX + OpenEnv for business: {business_id}")
 
     async def initialize(self):
         """Initialize the agent with Azure AI Agent Client"""
@@ -92,9 +110,87 @@ class BuilderAgent:
             ]
         )
 
+        # Initialize OpenEnv for deployment automation (Playwright for cloud interfaces)
+        self.deploy_env = EnvRegistry.make("playwright")
+        from infrastructure.llm_client import get_llm_client
+        llm_client = await get_llm_client()
+        self.env_agent = EnvironmentLearningAgent(
+            env=self.deploy_env,
+            llm_client=llm_client,
+            casebank=None,  # TODO: Integrate with CaseBank
+            max_episodes=10  # Deployment: thorough learning
+        )
+
         print(f"🔨 Builder Agent initialized for business: {self.business_id}")
         print("   Model: Claude Sonnet 4 / GPT-4o")
+        print("   OpenEnv deployment automation enabled (Playwright)")
         print("   Ready to generate production code\n")
+
+    async def enable_self_correction(self, qa_agent: Any, max_attempts: int = 3):
+        """
+        Enable self-correction QA loop for code validation.
+
+        Args:
+            qa_agent: QA agent for validation
+            max_attempts: Maximum correction attempts
+        """
+        self.self_correcting = get_self_correcting_agent(
+            agent=self,
+            qa_agent=qa_agent,
+            max_attempts=max_attempts,
+            validation_categories=[
+                ValidationCategory.CORRECTNESS,
+                ValidationCategory.COMPLETENESS,
+                ValidationCategory.QUALITY,
+                ValidationCategory.SAFETY
+            ]
+        )
+        logger.info(
+            f"Builder Agent self-correction enabled: "
+            f"max_attempts={max_attempts}"
+        )
+
+    async def build_with_validation(
+        self,
+        task: str,
+        expectations: Optional[Dict] = None
+    ) -> Dict:
+        """
+        Build code with automatic QA validation loop.
+
+        Args:
+            task: Build task description
+            expectations: Expected code properties (has_tests, handles_errors, etc.)
+
+        Returns:
+            {
+                "solution": str,
+                "valid": bool,
+                "attempts": int,
+                "qa_feedback": QAFeedback
+            }
+        """
+        if not self.self_correcting:
+            raise RuntimeError(
+                "Self-correction not enabled. Call enable_self_correction() first."
+            )
+
+        # Default expectations for code
+        default_expectations = {
+            "has_tests": True,
+            "handles_errors": True,
+            "follows_style": True,
+            "has_types": True,
+            "is_complete": True
+        }
+
+        expectations = {**default_expectations, **(expectations or {})}
+
+        return await self.self_correcting.execute_with_validation(
+            task=task,
+            expectations=expectations,
+            context={"agent": "BuilderAgent", "business_id": self.business_id}
+        )
 
     def _get_system_instruction(self) -> str:
         """System instruction for builder agent"""
@@ -506,6 +602,55 @@ CREATE POLICY "Users can read own {table_name}"
         )
 
         return decision
+
+    async def deploy_to_cloud(self, platform: str, deployment_goal: str) -> str:
+        """
+        Deploy to cloud platform via learned automation (NEW: OpenEnv capability).
+
+        Args:
+            platform: Cloud platform (e.g., "Vercel", "Netlify", "AWS")
+            deployment_goal: Deployment objective
+
+        Returns:
+            JSON string with deployment results
+        """
+        if not self.env_agent:
+            return json.dumps({
+                "error": "OpenEnv not initialized",
+                "message": "Call initialize() first"
+            }, indent=2)
+
+        logger.info(f"Starting cloud deployment: platform={platform}, goal={deployment_goal}")
+
+        # Agent learns to deploy via self-play
+        result = await self.env_agent.learn_task(
+            goal=f"Deploy to {platform}: {deployment_goal}",
+            context={"platform": platform}
+        )
+
+        deployment_result = {
+            "deployment_id": f"DEPLOY-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "platform": platform,
+            "goal": deployment_goal,
+            "success": result["success"],
+            "episodes": result["episodes"],
+            "total_steps": result["total_steps"],
+            "learned_workflow": result["learned_strategy"],
+            "status": "DEPLOYED" if result["success"] else "FAILED",
+            "deployed_at": datetime.now().isoformat()
+        }
+
+        if result["success"]:
+            logger.info(
+                f"Deployment successful! Episodes: {result['episodes']}, "
+                f"Steps: {result['total_steps']}"
+            )
+        else:
+            logger.warning(
+                f"Deployment failed after {result['episodes']} episodes"
+            )
+
+        return json.dumps(deployment_result, indent=2)
 
     def get_cost_metrics(self) -> Dict:
         """Get cumulative cost savings from DAAO and TUMIX"""
