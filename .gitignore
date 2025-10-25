@@ -1,0 +1,6 @@
+logs/
+monitoring/
+results/
+*.log
+*.xml
+*.json
