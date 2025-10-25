@@ -191,10 +191,7 @@ jobs:
           retention-days: 30
 
       - name: Deploy to GitHub Pages
-        if: |
-          github.event_name == 'push' ||
-          github.event.inputs.deploy_target == 'github-pages' ||
-          github.event.inputs.deploy_target == 'both'
+        if: false  # DISABLED: Keep vault generation but don't publish publicly
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
