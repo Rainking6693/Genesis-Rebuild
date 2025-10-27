@@ -71,6 +71,7 @@ from infrastructure.security_utils import (
     redact_credentials
 )
 from infrastructure.agent_auth_registry import AgentAuthRegistry, SecurityError
+from infrastructure.toon_encoder import toon_or_json, decode_from_toon, calculate_token_reduction
 
 logger = logging.getLogger(__name__)
 tracer = trace.get_tracer(__name__)
@@ -198,10 +199,11 @@ class A2AConnector:
         circuit_breaker: Optional[CircuitBreaker] = None,
         api_key: Optional[str] = None,
         verify_ssl: bool = True,
-        auth_registry: Optional[AgentAuthRegistry] = None
+        auth_registry: Optional[AgentAuthRegistry] = None,
+        enable_toon: bool = True
     ):
         """
-        Initialize A2A connector with security features
+        Initialize A2A connector with security features and TOON support
 
         Args:
             base_url: A2A service base URL (defaults to HTTPS in production)
@@ -210,22 +212,39 @@ class A2AConnector:
             api_key: API key for A2A service authentication
             verify_ssl: Whether to verify SSL certificates
             auth_registry: Optional agent authentication registry for authorization
+            enable_toon: Enable TOON encoding for efficient data transfer (default: True)
         """
+        # SECURITY: Check A2A_ALLOW_HTTP flag for local development
+        allow_http = os.getenv("A2A_ALLOW_HTTP", "false").lower() == "true"
+
         # Determine base URL with HTTPS enforcement
         if base_url is None:
             if os.getenv("ENVIRONMENT") == "production":
                 base_url = "https://127.0.0.1:8443"
-            else:
+            elif allow_http:
                 base_url = "http://127.0.0.1:8080"
+            else:
+                # Default to HTTPS even in development (secure by default)
+                base_url = "https://127.0.0.1:8443"
 
-        # SECURITY: Validate HTTPS in production
+        # SECURITY: Validate HTTPS in production (strict enforcement)
         if os.getenv("ENVIRONMENT") == "production" and not base_url.startswith("https://"):
             raise ValueError("HTTPS required in production environment")
-        elif not base_url.startswith("https://"):
-            logger.warning(
-                f"Using HTTP in {os.getenv('ENVIRONMENT', 'development')} environment - "
-                f"this is insecure!"
-            )
+
+        # SECURITY: Validate HTTPS in CI/sandbox (unless explicitly allowed)
+        if not base_url.startswith("https://") and not allow_http:
+            # In CI or staging, require HTTPS unless A2A_ALLOW_HTTP=true
+            if os.getenv("CI") == "true" or os.getenv("ENVIRONMENT") in ["staging", "ci"]:
+                raise ValueError(
+                    "HTTPS required in CI/staging environment. "
+                    "Set A2A_ALLOW_HTTP=true for local development only."
+                )
+            else:
+                # In local development, warn but allow
+                logger.warning(
+                    f"Using HTTP in {os.getenv('ENVIRONMENT', 'development')} environment - "
+                    f"this is insecure! Set A2A_ALLOW_HTTP=true to suppress this warning."
+                )
 
         self.base_url = base_url.rstrip('/')
         self.verify_ssl = verify_ssl
@@ -273,9 +292,20 @@ class A2AConnector:
         # Execution tracking
         self.execution_history: List[A2AExecutionResult] = []
 
+        # TOON encoding feature flag
+        self.enable_toon = enable_toon and os.getenv("A2A_ENABLE_TOON", "true").lower() == "true"
+
+        # TOON metrics
+        self.toon_stats = {
+            "requests_sent": 0,
+            "toon_encoded": 0,
+            "json_encoded": 0,
+            "total_token_reduction": 0.0
+        }
+
         logger.info(
             f"A2AConnector initialized (base_url={base_url}, timeout={timeout_seconds}s, "
-            f"auth={'enabled' if self.api_key else 'disabled'})"
+            f"auth={'enabled' if self.api_key else 'disabled'}, toon={'enabled' if self.enable_toon else 'disabled'})"
         )
 
     async def __aenter__(self):
@@ -693,13 +723,50 @@ class A2AConnector:
             "arguments": arguments  # Use original, unredacted arguments for actual request
         }
 
+        # TOON: Attempt efficient encoding for arguments
+        content_type = "application/json"
+        payload_body = json.dumps(payload)
+
+        if self.enable_toon:
+            # Check if arguments contain tabular data suitable for TOON
+            if isinstance(arguments, dict):
+                for key, value in arguments.items():
+                    if isinstance(value, list):
+                        # Try TOON encoding for list values
+                        toon_content_type, toon_encoded = toon_or_json(value)
+                        if toon_content_type == "application/toon":
+                            # Calculate token reduction
+                            reduction = calculate_token_reduction(value)
+
+                            # Use TOON for this field
+                            arguments_with_toon = arguments.copy()
+                            arguments_with_toon[key] = {"__toon__": toon_encoded}
+                            payload["arguments"] = arguments_with_toon
+                            payload_body = json.dumps(payload)
+
+                            logger.debug(
+                                f"TOON encoded field '{key}': {reduction:.1%} token reduction "
+                                f"({len(json.dumps(value))} -> {len(toon_encoded)} chars)"
+                            )
+
+                            # Update metrics
+                            self.toon_stats["toon_encoded"] += 1
+                            self.toon_stats["total_token_reduction"] += reduction
+                            break
+
         # SECURITY: Validate payload size (prevent DoS)
-        payload_json = json.dumps(payload)
-        if len(payload_json) > 100_000:  # 100KB limit
-            raise ValueError(f"Payload too large: {len(payload_json)} bytes")
+        if len(payload_body) > 100_000:  # 100KB limit
+            raise ValueError(f"Payload too large: {len(payload_body)} bytes")
+
+        self.toon_stats["requests_sent"] += 1
+        if content_type == "application/json":
+            self.toon_stats["json_encoded"] += 1
 
         # SECURITY: Add authentication headers
-        headers = {}
+        headers = {
+            "Content-Type": content_type,
+            "Accept": "application/toon, application/json"  # Request TOON if available
+        }
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
             headers["X-Client-ID"] = "genesis-orchestrator"
@@ -709,9 +776,18 @@ class A2AConnector:
             await self._ensure_session()
 
             # Use persistent session
-            async with self._session.post(url, json=payload, headers=headers) as response:
+            async with self._session.post(url, data=payload_body, headers=headers) as response:
                 if response.status == 200:
-                    data = await response.json()
+                    response_content_type = response.headers.get("Content-Type", "application/json")
+
+                    # Handle TOON-encoded responses
+                    if "application/toon" in response_content_type:
+                        response_text = await response.text()
+                        # Decode TOON response
+                        data = decode_from_toon(response_text)
+                        logger.debug(f"Decoded TOON response: {len(response_text)} chars")
+                    else:
+                        data = await response.json()
 
                     # SECURITY: Validate response schema
                     try:
@@ -1001,3 +1077,29 @@ class A2AConnector:
             success_threshold=2
         )
         logger.info("Circuit breaker reset")
+
+    def get_toon_statistics(self) -> Dict[str, Any]:
+        """
+        Get TOON encoding statistics
+
+        Returns:
+            Dictionary with TOON usage metrics:
+            - requests_sent: Total A2A requests
+            - toon_encoded: Requests using TOON encoding
+            - json_encoded: Requests using JSON encoding
+            - toon_usage_rate: % of requests using TOON
+            - avg_token_reduction: Average token reduction for TOON requests
+        """
+        requests = self.toon_stats["requests_sent"]
+        toon_count = self.toon_stats["toon_encoded"]
+
+        return {
+            "requests_sent": requests,
+            "toon_encoded": toon_count,
+            "json_encoded": self.toon_stats["json_encoded"],
+            "toon_usage_rate": toon_count / requests if requests > 0 else 0.0,
+            "avg_token_reduction": (
+                self.toon_stats["total_token_reduction"] / toon_count
+                if toon_count > 0 else 0.0
+            )
+        }
