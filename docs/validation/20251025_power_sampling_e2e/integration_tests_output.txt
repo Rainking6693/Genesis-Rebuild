@@ -1,0 +1,30 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /home/genesis/genesis-rebuild/venv/bin/python
+cachedir: .pytest_cache
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/genesis/genesis-rebuild
+configfile: pytest.ini
+plugins: benchmark-5.1.0, cov-7.0.0, anyio-4.11.0, rerunfailures-16.1, timeout-2.4.0, mock-3.15.1, xdist-3.8.0, asyncio-1.2.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 18 items
+
+tests/test_htdag_power_sampling_integration.py::TestFeatureFlag::test_feature_flag_disabled_uses_baseline PASSED [  5%]
+tests/test_htdag_power_sampling_integration.py::TestFeatureFlag::test_feature_flag_enabled_uses_power_sampling PASSED [ 11%]
+tests/test_htdag_power_sampling_integration.py::TestFeatureFlag::test_feature_flag_case_insensitive PASSED [ 16%]
+tests/test_htdag_power_sampling_integration.py::TestFeatureFlag::test_feature_flag_default_disabled PASSED [ 22%]
+tests/test_htdag_power_sampling_integration.py::TestPowerSamplingSuccess::test_power_sampling_returns_valid_tasks PASSED [ 27%]
+tests/test_htdag_power_sampling_integration.py::TestPowerSamplingSuccess::test_power_sampling_with_custom_mcmc_params PASSED [ 33%]
+tests/test_htdag_power_sampling_integration.py::TestPowerSamplingSuccess::test_quality_evaluator_function PASSED [ 38%]
+tests/test_htdag_power_sampling_integration.py::TestFallbackBehavior::test_power_sampling_fallback_on_error PASSED [ 44%]
+tests/test_htdag_power_sampling_integration.py::TestFallbackBehavior::test_empty_task_list_fallback PASSED [ 50%]
+tests/test_htdag_power_sampling_integration.py::TestFallbackBehavior::test_circuit_breaker_prevents_power_sampling PASSED [ 55%]
+tests/test_htdag_power_sampling_integration.py::TestFallbackBehavior::test_retry_logic_with_power_sampling PASSED [ 61%]
+tests/test_htdag_power_sampling_integration.py::TestMetricsRecording::test_metrics_recording_power_sampling PASSED [ 66%]
+tests/test_htdag_power_sampling_integration.py::TestMetricsRecording::test_metrics_recording_baseline PASSED [ 72%]
+tests/test_htdag_power_sampling_integration.py::TestMetricsRecording::test_metrics_recording_handles_errors_gracefully PASSED [ 77%]
+tests/test_htdag_power_sampling_integration.py::TestConfiguration::test_invalid_mcmc_params_handled PASSED [ 83%]
+tests/test_htdag_power_sampling_integration.py::TestConfiguration::test_environment_variable_parsing PASSED [ 88%]
+tests/test_htdag_power_sampling_integration.py::TestEndToEndIntegration::test_full_decomposition_with_power_sampling PASSED [ 94%]
+tests/test_htdag_power_sampling_integration.py::TestEndToEndIntegration::test_power_sampling_with_real_quality_evaluation PASSED [100%]
+
+============================== 18 passed in 0.65s ==============================
