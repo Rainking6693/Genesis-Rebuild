@@ -18,17 +18,20 @@ import logging
 import time
 import re
 import json
+import os
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 from enum import Enum
 from collections import defaultdict
 from datetime import datetime, timedelta
+from pathlib import Path
 
 # Orchestration imports
 from infrastructure.htdag_planner import HTDAGPlanner
 from infrastructure.halo_router import HALORouter, RoutingPlan
 from infrastructure.aop_validator import AOPValidator
 from infrastructure.task_dag import TaskDAG, Task, TaskStatus
+from infrastructure.safety.dir_report_store import load_latest_dir_report
 
 # Darwin imports
 from agents.darwin_agent import DarwinAgent, EvolutionAttempt, ImprovementType
@@ -132,6 +135,24 @@ class DarwinOrchestrationBridge:
 
         # Feature flag check
         self.enabled = is_feature_enabled("darwin_integration_enabled")
+
+        # WaltzRL DIR report integration for AOP validation gates
+        self._dir_report_enabled = os.getenv("WALTZRL_DIR_REPORT_ENABLED", "true").lower() != "false"
+        dir_report_path = os.getenv("WALTZRL_DIR_REPORT_PATH")
+        self._dir_report_path = Path(dir_report_path) if dir_report_path else None
+
+        dir_thresholds_raw = os.getenv("WALTZRL_DIR_THRESHOLDS")
+        if dir_thresholds_raw:
+            try:
+                self._dir_threshold_overrides = json.loads(dir_thresholds_raw)
+            except json.JSONDecodeError:
+                logger.warning(
+                    "Invalid WALTZRL_DIR_THRESHOLDS JSON; ignoring overrides",
+                    extra={"value": dir_thresholds_raw},
+                )
+                self._dir_threshold_overrides = None
+        else:
+            self._dir_threshold_overrides = None
 
         # Rate limiting (VULN-DARWIN-004 fix)
         self._evolution_attempts: Dict[str, List[datetime]] = defaultdict(list)
@@ -386,8 +407,24 @@ class DarwinOrchestrationBridge:
             # Step 3: Route to Darwin via HALO
             routing_plan = await self._route_to_darwin(evolution_dag)
 
-            # Step 4: Validate plan via AOP
-            validation = await self.aop.validate_routing_plan(routing_plan, evolution_dag)
+            # Step 4: Validate plan via AOP (with optional WaltzRL DIR gating)
+            dir_report = None
+            if self._dir_report_enabled:
+                dir_report = load_latest_dir_report(self._dir_report_path)
+                if dir_report:
+                    logger.debug(
+                        "Loaded WaltzRL DIR report for validation",
+                        extra={"dir_report_metadata": dir_report.get("metadata", {})},
+                    )
+                else:
+                    logger.debug("No WaltzRL DIR report available for validation")
+
+            validation = await self.aop.validate_routing_plan(
+                routing_plan,
+                evolution_dag,
+                dir_report=dir_report,
+                dir_thresholds=self._dir_threshold_overrides,
+            )
             if not validation.is_valid:
                 logger.error(f"Evolution plan validation failed: {validation.issues}")
                 return EvolutionResult(

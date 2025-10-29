@@ -68,24 +68,45 @@ OPENAI_API_KEY=sk-YOUR-KEY-HERE
 
 ## 💡 Recommended API Keys (Cost Optimization)
 
-### 3. **Google Gemini API Key** ⭐ RECOMMENDED
+### 3. **Google Gemini API Key** ⭐ RECOMMENDED (NOW INTEGRATED)
 
 **What it's for:**
-- High-throughput cheap tasks (100x cheaper than GPT-4o)
+- **Vision tasks** (screenshot analysis, OCR, image understanding) - 20X cheaper than Claude
+- **High-throughput cheap tasks** (100x cheaper than GPT-4o)
+- **Automatic routing** for QA, Support, Legal, Analyst, Marketing agents with images
 - OCR vision model (Text-as-Pixels compression)
 - VideoGen backend (optional)
 
 **Where to get it:**
 1. Go to: https://aistudio.google.com/apikey
 2. Sign in with Google account
-3. Create API key
-4. Copy the key
+3. Click "Create API key"
+4. Copy the key (starts with `AI...`)
 
-**Cost:** $0.03/1M tokens (cheapest option)
+**Cost:** $0.03/1M tokens (cheapest option, 100X cheaper than GPT-4o)
+
+**Vision Routing Benefits:**
+- Automatically detects vision tasks (keywords: screenshot, image, diagram, chart, photo, OCR)
+- Routes to Gemini 2.0 Flash for 99% cost reduction on vision tasks
+- Fallback to Claude Sonnet if Gemini key not set (graceful degradation)
+- Zero code changes required - works automatically with InferenceRouter
 
 **Add to .env:**
 ```bash
-GEMINI_API_KEY=YOUR-KEY-HERE
+GEMINI_API_KEY=AIza...YOUR-KEY-HERE
+```
+
+**Test your setup:**
+```bash
+# Run vision routing tests
+pytest tests/test_gemini_vision_routing.py -v
+
+# Or test manually
+python -c "
+from infrastructure.llm_client import GeminiClient
+client = GeminiClient()  # Will fail if key not set
+print('✅ Gemini configured correctly')
+"
 ```
 
 ---

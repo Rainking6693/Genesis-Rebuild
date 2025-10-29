@@ -31,6 +31,7 @@ class OperatorResult:
     strategy_description: str
     reasoning: str
     error_message: Optional[str] = None
+    confidence_score: Optional[float] = None
 
 
 class BaseOperator:

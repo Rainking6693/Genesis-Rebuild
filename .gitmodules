@@ -1,0 +1,9 @@
+[submodule "integrations/evolution/ReasoningBank"]
+	path = integrations/evolution/ReasoningBank
+	url = https://github.com/[repo-owner]/ReasoningBank
+[submodule "integrations/evolution/AgentFlow"]
+	path = integrations/evolution/AgentFlow
+	url = https://github.com/lupantech/AgentFlow
+[submodule "integrations/evolution/RLT"]
+	path = integrations/evolution/RLT
+	url = https://github.com/SakanaAI/RLT

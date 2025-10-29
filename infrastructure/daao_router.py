@@ -12,11 +12,33 @@ Expected Impact: 64% cost at +11% accuracy (36% cost reduction)
 import logging
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
-from typing import Dict, List, Optional
+from pathlib import Path
+from typing import Dict, List, Optional, Any, Tuple
 
 # Setup logging
 logger = logging.getLogger(__name__)
+
+# Unsloth imports for adapter loading
+try:
+    from unsloth import FastLanguageModel
+    HAS_UNSLOTH = True
+except ImportError:
+    FastLanguageModel = None
+    HAS_UNSLOTH = False
+    logger.warning("Unsloth not available - fine-tuned adapter loading disabled")
+
+# Import Context Linter for validation
+try:
+    from infrastructure.context_linter import get_context_linter, ContextLinter, Message
+    CONTEXT_LINTER_AVAILABLE = True
+except ImportError:
+    get_context_linter = None
+    ContextLinter = None
+    Message = None
+    CONTEXT_LINTER_AVAILABLE = False
+    logger.warning("Context Linter not available - context validation disabled")
 
 
 class TaskDifficulty(Enum):
@@ -92,7 +114,7 @@ class DAAORouter:
     THRESHOLD_MEDIUM = 0.6
     THRESHOLD_HARD = 0.8
 
-    def __init__(self):
+    def __init__(self, context_linter: Optional[ContextLinter] = None, enable_safety: bool = True):
         # Model pricing (per 1M tokens)
         self.model_costs = {
             ModelTier.ULTRA_CHEAP: 0.03,
@@ -101,6 +123,26 @@ class DAAORouter:
             ModelTier.PREMIUM: 3.00,
             ModelTier.ULTRA_PREMIUM: 5.00,
         }
+
+        # Context linter for validation
+        self.context_linter = context_linter
+        if CONTEXT_LINTER_AVAILABLE and self.context_linter is None:
+            self.context_linter = get_context_linter()
+
+        # WaltzRL safety integration (optional, disabled by default in tests)
+        self.enable_safety = enable_safety
+        self.safety_wrapper = None
+        if enable_safety:
+            try:
+                from infrastructure.waltzrl_safety import get_waltzrl_safety
+                self.safety_wrapper = get_waltzrl_safety(
+                    enable_blocking=False,  # Don't block by default
+                    feedback_only_mode=True,  # Log only initially
+                    stage=1  # Pattern-based
+                )
+                logger.info("WaltzRL safety wrapper initialized")
+            except ImportError:
+                logger.warning("WaltzRL safety not available, continuing without safety checks")
 
         # Complexity indicators (all lowercase for matching)
         self.complexity_keywords = [
@@ -114,6 +156,120 @@ class DAAORouter:
             'authentication', 'authorization', 'encryption', 'protocol',
             'microservice', 'containerize', 'orchestrate', 'pipeline'
         ]
+
+        # Fine-tuned adapter registry
+        self.adapters: Dict[str, Dict[str, Any]] = {}  # agent_name -> adapter_info
+        self.adapter_base_dir = Path("/home/genesis/genesis-rebuild/models/finetuned_agents")
+        self._load_available_adapters()
+
+    def _load_available_adapters(self):
+        """Scan for available fine-tuned adapters"""
+        if not self.adapter_base_dir.exists():
+            logger.info("No adapter directory found, skipping adapter loading")
+            return
+
+        for agent_dir in self.adapter_base_dir.iterdir():
+            if agent_dir.is_dir():
+                adapter_path = agent_dir / "final_model"
+                if adapter_path.exists():
+                    agent_name = agent_dir.name
+                    self.adapters[agent_name] = {
+                        "path": str(adapter_path),
+                        "loaded_at": datetime.now(timezone.utc).isoformat(),
+                        "model": None,  # Lazy load
+                        "tokenizer": None
+                    }
+                    logger.info(f"Adapter registered: {agent_name} at {adapter_path}")
+
+        logger.info(f"Loaded {len(self.adapters)} adapter(s)")
+
+    def load_adapter(self, agent_name: str, adapter_path: Optional[str] = None) -> bool:
+        """
+        Load fine-tuned adapter for agent.
+
+        Args:
+            agent_name: Agent name
+            adapter_path: Optional explicit adapter path
+
+        Returns:
+            True if loaded successfully, False otherwise
+        """
+        if not HAS_UNSLOTH:
+            logger.warning(f"Cannot load adapter for {agent_name}: Unsloth not available")
+            return False
+
+        try:
+            # Use provided path or registry
+            if adapter_path is None:
+                if agent_name not in self.adapters:
+                    logger.warning(f"No adapter found for agent: {agent_name}")
+                    return False
+                adapter_path = self.adapters[agent_name]["path"]
+
+            logger.info(f"Loading adapter for {agent_name} from {adapter_path}")
+
+            # Load model and tokenizer with adapter
+            model, tokenizer = FastLanguageModel.from_pretrained(
+                model_name=adapter_path,
+                max_seq_length=2048,
+                dtype=None,
+                load_in_4bit=True,
+            )
+
+            # Update registry
+            if agent_name not in self.adapters:
+                self.adapters[agent_name] = {}
+
+            self.adapters[agent_name].update({
+                "path": adapter_path,
+                "model": model,
+                "tokenizer": tokenizer,
+                "loaded_at": datetime.now(timezone.utc).isoformat()
+            })
+
+            logger.info(f"Adapter loaded successfully: {agent_name}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to load adapter for {agent_name}: {e}", exc_info=True)
+            return False
+
+    def route_with_adapter(
+        self,
+        task: Dict,
+        agent_name: Optional[str] = None
+    ) -> Tuple[str, Optional[Any], Optional[Any]]:
+        """
+        Route task with adapter preference if available.
+
+        Args:
+            task: Task dictionary
+            agent_name: Agent name (for adapter lookup)
+
+        Returns:
+            Tuple of (model_name, model_obj, tokenizer) - model/tokenizer None if no adapter
+        """
+        # Check if agent has fine-tuned adapter
+        if agent_name and agent_name in self.adapters:
+            adapter_info = self.adapters[agent_name]
+
+            # Lazy load if not loaded
+            if adapter_info.get("model") is None:
+                self.load_adapter(agent_name)
+                adapter_info = self.adapters[agent_name]
+
+            # Return adapter model if available
+            if adapter_info.get("model") is not None:
+                logger.info(f"Using fine-tuned adapter for {agent_name}")
+                return (
+                    f"{agent_name}_finetuned",
+                    adapter_info["model"],
+                    adapter_info["tokenizer"]
+                )
+
+        # Fall back to standard DAAO routing
+        decision = self.route_task(task)
+        return (decision.model, None, None)
 
     def estimate_difficulty(self, task: Dict) -> float:
         """
@@ -287,7 +443,8 @@ class DAAORouter:
     def route_task(
         self,
         task: Dict,
-        budget_conscious: bool = True
+        budget_conscious: bool = True,
+        context_messages: Optional[List] = None
     ) -> RoutingDecision:
         """
         Route task to appropriate model
@@ -295,10 +452,54 @@ class DAAORouter:
         Args:
             task: Task dictionary with description, priority, etc.
             budget_conscious: Prefer cost savings over max quality
+            context_messages: Optional context messages for validation
 
         Returns:
             RoutingDecision with model, difficulty, cost estimate, reasoning
         """
+        # Validate context quality if provided
+        context_valid = True
+        context_metrics = {}
+
+        if context_messages and self.context_linter and CONTEXT_LINTER_AVAILABLE:
+            # Convert to Message objects if needed
+            messages = []
+            for msg in context_messages:
+                if not isinstance(msg, Message):
+                    messages.append(Message(
+                        content=msg.get('content', ''),
+                        role=msg.get('role', 'user'),
+                        timestamp=datetime.now(timezone.utc),
+                        source=msg.get('source', 'unknown')
+                    ))
+                else:
+                    messages.append(msg)
+
+            # Lint context
+            linted = self.context_linter.lint_context(messages)
+
+            # Check if context contract violated
+            # If token reduction > 60%, context was too noisy - re-query recommended
+            if linted.token_reduction_percent > 60:
+                context_valid = False
+                logger.warning(
+                    f"Context quality low: {linted.token_reduction_percent:.1f}% tokens removed. "
+                    f"Consider re-querying with stricter limits."
+                )
+
+            context_metrics = {
+                'original_tokens': linted.original_tokens,
+                'cleaned_tokens': linted.cleaned_tokens,
+                'token_reduction_percent': linted.token_reduction_percent,
+                'context_valid': context_valid
+            }
+
+            # Log quality metrics
+            logger.info(
+                f"Context validated: {linted.original_tokens} → {linted.cleaned_tokens} tokens "
+                f"({linted.token_reduction_percent:.1f}% reduction), valid={context_valid}"
+            )
+
         # Estimate difficulty
         difficulty_score = self.estimate_difficulty(task)
 
@@ -330,18 +531,24 @@ class DAAORouter:
         )
 
         # Log routing decision
+        log_extra = {
+            'task_id': task.get('id', 'unknown'),
+            'difficulty': difficulty_score,
+            'difficulty_category': difficulty.value,
+            'confidence': confidence,
+            'estimated_cost': estimated_cost,
+            'estimated_tokens': estimated_tokens,
+            'budget_conscious': budget_conscious,
+            'model': model_tier.value
+        }
+
+        # Add context metrics if available
+        if context_metrics:
+            log_extra['context_metrics'] = context_metrics
+
         logger.info(
             f"Routed task to {model_tier.value}",
-            extra={
-                'task_id': task.get('id', 'unknown'),
-                'difficulty': difficulty_score,
-                'difficulty_category': difficulty.value,
-                'confidence': confidence,
-                'estimated_cost': estimated_cost,
-                'estimated_tokens': estimated_tokens,
-                'budget_conscious': budget_conscious,
-                'model': model_tier.value
-            }
+            extra=log_extra
         )
 
         return RoutingDecision(
@@ -351,6 +558,136 @@ class DAAORouter:
             confidence=confidence,
             reasoning=reasoning
         )
+
+    def safety_filter_task(
+        self,
+        task: Dict,
+        agent_name: str = "unknown"
+    ) -> Tuple[bool, Optional[str], Dict]:
+        """
+        Safety filter task before routing (WaltzRL integration).
+
+        This method provides a safety gate BEFORE task routing:
+        1. Analyzes task description for unsafe content
+        2. Blocks unsafe tasks (if enabled)
+        3. Logs safety metrics
+        4. Returns safe/unsafe decision + explanation
+
+        Args:
+            task: Task dictionary with 'description' field
+            agent_name: Name of agent requesting routing
+
+        Returns:
+            Tuple of (is_safe, blocked_message, safety_metrics)
+            - is_safe: True if task is safe to route
+            - blocked_message: Optional blocking message (if unsafe)
+            - safety_metrics: Dict of safety scores and details
+
+        Example:
+            is_safe, msg, metrics = router.safety_filter_task(task, "qa-agent")
+            if not is_safe:
+                return {"error": msg, "metrics": metrics}
+        """
+        if not self.enable_safety or not self.safety_wrapper:
+            # Safety disabled, pass through
+            return True, None, {}
+
+        description = task.get('description', '') or ''
+
+        # Use WaltzRL safety wrapper to filter query
+        is_safe, confidence, explanation = self.safety_wrapper.filter_unsafe_query(description)
+
+        safety_metrics = {
+            'is_safe': is_safe,
+            'confidence': confidence,
+            'agent_name': agent_name,
+            'task_description_length': len(description)
+        }
+
+        if not is_safe:
+            logger.warning(
+                f"Safety filter BLOCKED task for {agent_name}: {explanation[:100]}... "
+                f"(confidence={confidence:.2f})"
+            )
+            return False, explanation, safety_metrics
+        else:
+            logger.debug(
+                f"Safety filter PASSED task for {agent_name} (confidence={confidence:.2f})"
+            )
+            return True, None, safety_metrics
+
+    def safety_improve_response(
+        self,
+        query: str,
+        response: str,
+        agent_name: str = "unknown"
+    ) -> Dict:
+        """
+        Improve agent response using WaltzRL safety wrapper.
+
+        This method provides post-processing safety improvements:
+        1. Analyzes response for safety issues
+        2. Redacts sensitive data (PII, credentials)
+        3. Rewrites over-refusals to be more helpful
+        4. Returns improved response + metrics
+
+        Args:
+            query: Original user query
+            response: Agent's response
+            agent_name: Name of agent that generated response
+
+        Returns:
+            Dict with:
+                - 'response': Final safe response (improved if needed)
+                - 'original_response': Original response (for comparison)
+                - 'safety_score': Safety score (0.0-1.0)
+                - 'helpfulness_score': Helpfulness score (0.0-1.0)
+                - 'blocked': Whether response was blocked
+                - 'changes_made': List of changes applied
+
+        Example:
+            result = router.safety_improve_response(query, response, "support-agent")
+            return result['response']  # Use improved response
+        """
+        if not self.enable_safety or not self.safety_wrapper:
+            # Safety disabled, return original
+            return {
+                'response': response,
+                'original_response': response,
+                'safety_score': 1.0,
+                'helpfulness_score': 1.0,
+                'blocked': False,
+                'changes_made': []
+            }
+
+        # Use collaborative filter (query + response analysis)
+        filter_result = self.safety_wrapper.collaborative_filter(
+            query=query,
+            response=response,
+            agent_name=agent_name
+        )
+
+        result = {
+            'response': filter_result.final_response,
+            'original_response': response,
+            'safety_score': filter_result.safety_score.safety_score,
+            'helpfulness_score': filter_result.safety_score.helpfulness_score,
+            'blocked': filter_result.blocked,
+            'changes_made': [
+                issue.description for issue in filter_result.response_issues
+            ],
+            'processing_time_ms': filter_result.processing_time_ms
+        }
+
+        logger.info(
+            f"Safety improved response for {agent_name}: "
+            f"safety={result['safety_score']:.2f}, "
+            f"helpfulness={result['helpfulness_score']:.2f}, "
+            f"blocked={result['blocked']}, "
+            f"changes={len(result['changes_made'])}"
+        )
+
+        return result
 
     def _generate_reasoning(
         self,
@@ -517,3 +854,266 @@ if __name__ == "__main__":
     print(f"Savings: ${savings['savings']:.6f} ({savings['savings_percent']:.1f}%)")
     print(f"\nExpected from paper: 36% cost reduction")
     print(f"Actual in demo: {savings['savings_percent']:.1f}% cost reduction")
+
+
+# ===== SGLang MTP Integration =====
+
+class InferenceBackend(Enum):
+    """Inference backend options."""
+    STANDARD = "standard"      # Standard API calls
+    SGLANG_MTP = "sglang_mtp"  # SGLang with Multi-Token Prediction
+    VLLM = "vllm"              # vLLM inference
+
+
+@dataclass
+class BackendRoutingDecision:
+    """Decision for routing to inference backend."""
+    backend: InferenceBackend
+    use_speculative_decoding: bool
+    expected_speedup: float
+    reasoning: str
+
+
+class SGLangRouter:
+    """
+    Routes tasks to appropriate inference backend.
+
+    Integration with SGLang MTP for high-throughput scenarios:
+    - Batch inference → SGLang MTP (2-4x speedup)
+    - Single requests → Standard API
+    - Long generations → SGLang with CUDA graphs
+    """
+
+    def __init__(self):
+        """Initialize SGLang router."""
+        self.backends_available = {
+            InferenceBackend.STANDARD: True,
+            InferenceBackend.SGLANG_MTP: False,  # Requires SGLang server
+            InferenceBackend.VLLM: False,  # Requires vLLM server
+        }
+
+    def set_backend_availability(self, backend: InferenceBackend, available: bool):
+        """Set whether a backend is available."""
+        self.backends_available[backend] = available
+        logger.info(f"Backend {backend.value} availability: {available}")
+
+    def route_to_sglang(self, task: Dict, model: str) -> bool:
+        """
+        Determine if task should use SGLang MTP.
+
+        Criteria:
+        - Batch size > 8 → Use SGLang (better batching)
+        - Generation length > 512 → Use SGLang (CUDA graphs benefit)
+        - High throughput requirement → Use SGLang
+
+        Args:
+            task: Task dictionary
+            model: Model name
+
+        Returns:
+            True if should use SGLang
+        """
+        if not self.backends_available[InferenceBackend.SGLANG_MTP]:
+            return False
+
+        # Check batch size
+        batch_size = task.get('batch_size', 1)
+        if batch_size > 8:
+            logger.debug(f"Routing to SGLang: batch_size={batch_size} > 8")
+            return True
+
+        # Check generation length
+        max_tokens = task.get('max_tokens', 256)
+        if max_tokens > 512:
+            logger.debug(f"Routing to SGLang: max_tokens={max_tokens} > 512")
+            return True
+
+        # Check throughput requirement
+        throughput_critical = task.get('throughput_critical', False)
+        if throughput_critical:
+            logger.debug("Routing to SGLang: throughput_critical=True")
+            return True
+
+        return False
+
+    def use_speculative_decoding(self, task_type: str) -> bool:
+        """
+        Determine if task should use speculative decoding.
+
+        Speculative decoding benefits:
+        - Generation tasks (2-4x speedup)
+        - QA/chat (2x speedup typical)
+
+        NOT beneficial:
+        - Classification (single token)
+        - Embeddings
+
+        Args:
+            task_type: Type of task (generation, qa, classification, etc.)
+
+        Returns:
+            True if should use speculative decoding
+        """
+        speculative_beneficial = [
+            'generation',
+            'qa',
+            'chat',
+            'summarization',
+            'translation',
+            'code_generation'
+        ]
+
+        return task_type.lower() in speculative_beneficial
+
+    def select_backend(
+        self,
+        task: Dict,
+        model: str,
+        task_type: str = "generation"
+    ) -> BackendRoutingDecision:
+        """
+        Select optimal inference backend for task.
+
+        Args:
+            task: Task dictionary
+            model: Model name
+            task_type: Type of task
+
+        Returns:
+            BackendRoutingDecision with backend choice
+        """
+        # Check if SGLang should be used
+        use_sglang = self.route_to_sglang(task, model)
+
+        if use_sglang:
+            use_spec = self.use_speculative_decoding(task_type)
+
+            # Estimate speedup
+            batch_size = task.get('batch_size', 1)
+            max_tokens = task.get('max_tokens', 256)
+
+            speedup = 1.0
+            if use_spec:
+                # Speculative decoding: 2-4x speedup
+                speedup *= 2.5
+            if batch_size > 16:
+                # Good batching: 1.5x additional speedup
+                speedup *= 1.5
+            if max_tokens > 512:
+                # CUDA graphs benefit: 1.2x additional
+                speedup *= 1.2
+
+            return BackendRoutingDecision(
+                backend=InferenceBackend.SGLANG_MTP,
+                use_speculative_decoding=use_spec,
+                expected_speedup=speedup,
+                reasoning=f"SGLang MTP selected: batch_size={batch_size}, "
+                          f"max_tokens={max_tokens}, speculative={use_spec}, "
+                          f"expected speedup={speedup:.1f}x"
+            )
+
+        # Fallback to standard
+        return BackendRoutingDecision(
+            backend=InferenceBackend.STANDARD,
+            use_speculative_decoding=False,
+            expected_speedup=1.0,
+            reasoning="Standard API: small batch, short generation"
+        )
+
+    def estimate_sglang_benefit(
+        self,
+        tasks: List[Dict],
+        baseline_tokens_per_sec: float = 50.0
+    ) -> Dict[str, Any]:
+        """
+        Estimate benefit of using SGLang for task set.
+
+        Args:
+            tasks: List of tasks
+            baseline_tokens_per_sec: Baseline throughput without SGLang
+
+        Returns:
+            Dictionary with benefit estimates
+        """
+        total_tasks = len(tasks)
+        sglang_tasks = sum(1 for t in tasks if self.route_to_sglang(t, "gpt-4o"))
+
+        if sglang_tasks == 0:
+            return {
+                'sglang_tasks': 0,
+                'total_tasks': total_tasks,
+                'sglang_usage_pct': 0.0,
+                'estimated_speedup': 1.0,
+                'estimated_time_saved_pct': 0.0
+            }
+
+        # Average speedup (conservative estimate: 2.5x)
+        avg_speedup = 2.5
+
+        # Time saved calculation
+        # Assume even distribution of work
+        sglang_pct = sglang_tasks / total_tasks
+        time_saved_pct = sglang_pct * (1 - 1/avg_speedup) * 100
+
+        return {
+            'sglang_tasks': sglang_tasks,
+            'total_tasks': total_tasks,
+            'sglang_usage_pct': (sglang_tasks / total_tasks) * 100,
+            'estimated_speedup': avg_speedup,
+            'estimated_time_saved_pct': time_saved_pct,
+            'estimated_throughput_tokens_per_sec': baseline_tokens_per_sec * (
+                sglang_pct * avg_speedup + (1 - sglang_pct)
+            )
+        }
+
+
+# Example integration with DAAORouter
+class EnhancedDAAORouter(DAAORouter):
+    """
+    DAAO Router with SGLang MTP integration.
+
+    Combines difficulty-aware routing with inference backend optimization.
+    """
+
+    def __init__(self, context_linter=None):
+        super().__init__(context_linter)
+        self.sglang_router = SGLangRouter()
+
+    def route_task_with_backend(
+        self,
+        task: Dict,
+        budget_conscious: bool = True,
+        task_type: str = "generation"
+    ) -> Tuple[RoutingDecision, BackendRoutingDecision]:
+        """
+        Route task with both model and backend selection.
+
+        Args:
+            task: Task dictionary
+            budget_conscious: Prefer cheaper models
+            task_type: Type of task
+
+        Returns:
+            Tuple of (RoutingDecision, BackendRoutingDecision)
+        """
+        # Model selection (existing DAAO logic)
+        model_decision = self.route_task(task, budget_conscious)
+
+        # Backend selection (new SGLang logic)
+        backend_decision = self.sglang_router.select_backend(
+            task,
+            model_decision.model,
+            task_type
+        )
+
+        return model_decision, backend_decision
+
+    def enable_sglang(self, enabled: bool = True):
+        """Enable/disable SGLang MTP backend."""
+        self.sglang_router.set_backend_availability(
+            InferenceBackend.SGLANG_MTP,
+            enabled
+        )
+        logger.info(f"SGLang MTP backend: {'enabled' if enabled else 'disabled'}")
+
+

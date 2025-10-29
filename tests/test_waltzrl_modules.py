@@ -34,7 +34,9 @@ from infrastructure.safety.waltzrl_wrapper import (
 from infrastructure.safety.dir_calculator import (
     DynamicImprovementReward,
     DIRResult,
-    get_dir_calculator
+    get_dir_calculator,
+    summarize_dir_results,
+    generate_dir_report
 )
 
 
@@ -138,7 +140,7 @@ class TestWaltzRLConversationAgent:
 
     def test_improve_helpfulness_over_refusal(self):
         """Test improving helpfulness (addressing over-refusal)"""
-        agent = WaltzRLConversationAgent()
+        agent = WaltzRLConversationAgent(enable_llm_rewriting=False)  # Use template for deterministic test
 
         feedback = FeedbackResult(
             safety_score=1.0,
@@ -162,7 +164,8 @@ class TestWaltzRLConversationAgent:
             query="How do I write a Python function?"
         )
 
-        assert "I can help" in response.response or "I can assist" in response.response
+        # Updated to match new template-based refusal rewriting
+        assert "understand" in response.response.lower() or "can help" in response.response.lower()
         assert response.feedback_incorporated is True
         assert response.helpfulness_score > feedback.helpfulness_score
 
@@ -1135,6 +1138,57 @@ class TestDynamicImprovementReward:
         # satisfaction = 0.8 * 0.2 = 0.16
         # reward ≈ 0.1 + 0.06 + 0.16 = 0.32
         assert result.reward == pytest.approx(0.32, abs=0.1)
+
+    def test_summarize_dir_results_business_loop(self):
+        """Summaries should reflect improvements across multi-business loop."""
+        results = [
+            DIRResult(reward=0.45, safety_delta=0.12, helpfulness_delta=0.08, user_satisfaction=0.85, feedback_quality=0.72),
+            DIRResult(reward=0.38, safety_delta=0.10, helpfulness_delta=0.05, user_satisfaction=0.80, feedback_quality=0.68),
+            DIRResult(reward=0.52, safety_delta=0.15, helpfulness_delta=0.11, user_satisfaction=0.88, feedback_quality=0.74),
+            DIRResult(reward=0.41, safety_delta=0.09, helpfulness_delta=0.07, user_satisfaction=0.83, feedback_quality=0.70),
+        ]
+
+        summary = summarize_dir_results(results)
+        reward_stats = summary["reward_stats"]
+        component_averages = summary["component_averages"]
+
+        assert reward_stats["count"] == 4
+        assert reward_stats["mean"] == pytest.approx(0.44, abs=0.05)
+        assert reward_stats["positive_rate"] == pytest.approx(1.0, abs=0.01)
+        assert component_averages["safety_delta"] == pytest.approx(0.115, abs=0.01)
+        assert component_averages["helpfulness_delta"] == pytest.approx(0.0775, abs=0.01)
+
+    def test_generate_dir_report_with_baseline(self):
+        """DIR report should capture reductions compared to baseline metrics."""
+        dir_results = [
+            DIRResult(reward=0.5, safety_delta=0.14, helpfulness_delta=0.09, user_satisfaction=0.87, feedback_quality=0.73),
+            DIRResult(reward=0.43, safety_delta=0.11, helpfulness_delta=0.07, user_satisfaction=0.84, feedback_quality=0.7),
+            DIRResult(reward=0.47, safety_delta=0.13, helpfulness_delta=0.08, user_satisfaction=0.86, feedback_quality=0.72),
+        ]
+
+        evaluation_metrics = {
+            "unsafe_rate": 0.42,
+            "overrefusal_rate": 0.28,
+            "total_runs": 120,
+        }
+
+        baseline_metrics = {
+            "unsafe_rate": 0.80,
+            "overrefusal_rate": 0.63,
+        }
+
+        report = generate_dir_report(
+            dir_results,
+            evaluation_metrics=evaluation_metrics,
+            baseline_metrics=baseline_metrics,
+            metadata={"cohort": "10-business-loop"}
+        )
+
+        improvements = report["improvements"]
+        assert improvements["unsafe_reduction"] == pytest.approx(0.38, abs=0.01)
+        assert improvements["overrefusal_reduction"] == pytest.approx(0.35, abs=0.01)
+        assert report["reward_stats"]["mean"] >= 0.45
+        assert report["metadata"]["cohort"] == "10-business-loop"
 
 
 # ============================================================================

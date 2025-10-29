@@ -50,6 +50,9 @@ env:
   PROMETHEUS_ENABLED: 'true'
   GRAFANA_ENABLED: 'true'
   ALERTMANAGER_ENABLED: 'true'
+  # Security: A2A HTTPS enforcement (STRICT in production)
+  A2A_ALLOW_HTTP: 'false'  # HTTPS MANDATORY in production
+  ENVIRONMENT: 'production'  # Enforces strict HTTPS validation
 
 jobs:
   # Pre-production validation

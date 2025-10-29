@@ -318,6 +318,183 @@ Result: "Production-Ready ✅" but completely broken
 
 ---
 
+## Pytest Configuration and Plugin Management
+
+### Plugin Autoload: Disabled by Default Pattern
+
+**Context:** Third-party pytest plugins (e.g., pytest-asyncio, pytest-rerunfailures) can cause test failures with "asyncio marker" or similar errors when not available in CI/sandbox environments.
+
+**Solution:** Genesis uses a plugin-disabled-by-default pattern:
+- Plugins are **disabled by default** via pytest.ini configuration (-p no:asyncio -p no:rerunfailures)
+- Markers are **registered** in pytest.ini to prevent "unknown marker" errors
+- Tests run **without plugin dependencies** ensuring CI/sandbox compatibility
+- Plugins can be **optionally enabled** for specific test runs if needed (advanced use cases)
+
+### Configuration Files
+
+#### pytest.ini
+```ini
+[pytest]
+# Register markers to prevent "unknown marker" errors when plugins disabled
+markers =
+    asyncio: Mark test as async (plugin disabled, marker only for compatibility)
+    flaky: Tests that may occasionally fail (plugin disabled, marker only for compatibility)
+    # ... other markers ...
+
+# Plugin management: Disable autoload by default for CI/sandbox compatibility
+addopts =
+    # ... other options ...
+    -p no:asyncio
+    -p no:rerunfailures
+
+# asyncio_mode = auto (configured but plugin disabled by -p no:asyncio above)
+asyncio_mode = auto
+```
+
+#### pyproject.toml
+```toml
+# NOTE: Plugins DISABLED by default via pytest.ini (-p no:asyncio -p no:rerunfailures)
+#       Markers registered in pytest.ini to prevent "unknown marker" errors
+#       Tests run without plugin dependencies for CI/sandbox compatibility
+#       Use pytest -p asyncio to enable specific plugins if needed (advanced)
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+```
+
+### Test Runner Script
+
+Use the provided test runner script for consistent behavior:
+
+```bash
+# Run all tests (plugins disabled by default via pytest.ini)
+./scripts/run_tests.sh
+
+# Run specific tests
+./scripts/run_tests.sh tests/test_orchestration_e2e.py
+
+# Run with coverage
+./scripts/run_tests.sh --cov
+
+# Run tests matching a pattern
+./scripts/run_tests.sh -k test_htdag
+
+# Enable specific plugins for advanced use cases (override pytest.ini)
+pytest -p asyncio tests/test_async_specific.py
+pytest -p rerunfailures --reruns 3 tests/test_flaky_specific.py
+```
+
+The script sets `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` by default and provides a consistent test execution environment across all platforms.
+
+### Plugin Management in Different Environments
+
+**Default Behavior (Recommended):**
+Plugins are disabled by default via pytest.ini configuration. This ensures tests work in all environments:
+
+```bash
+# Plugins disabled automatically via pytest.ini
+pytest
+
+# Or use the test runner script (sets PYTEST_DISABLE_PLUGIN_AUTOLOAD=1)
+./scripts/run_tests.sh
+```
+
+**Enabling Plugins for Specific Tests (Advanced):**
+If you need plugin functionality for specific tests, you can override the pytest.ini configuration:
+
+```bash
+# Enable asyncio plugin for async-heavy tests
+pytest -p asyncio tests/test_async_heavy.py
+
+# Enable rerunfailures for flaky tests
+pytest -p rerunfailures --reruns 3 tests/test_network_calls.py
+
+# Enable multiple plugins
+pytest -p asyncio -p rerunfailures tests/
+```
+
+**Environment Variables:**
+The test runner script respects these environment variables:
+
+```bash
+# Explicitly disable plugins (default behavior)
+export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
+./scripts/run_tests.sh
+
+# Legacy alias (still supported)
+export SANDBOX_MODE=1
+./scripts/run_tests.sh
+```
+
+**Note:** The default configuration (plugins disabled) ensures compatibility across all environments including CI/CD, sandboxes, and local development.
+
+### CI/CD Integration
+
+In CI/CD pipelines (GitHub Actions, Jenkins, etc.), the default configuration (plugins disabled) works out of the box:
+
+```yaml
+# GitHub Actions example - plugins disabled by default via pytest.ini
+- name: Install dependencies
+  run: |
+    pip install -r requirements.txt  # pytest and other dependencies
+
+- name: Run tests (plugins disabled by default)
+  run: ./scripts/run_tests.sh --maxfail=5
+
+# Alternative: Run directly with pytest (plugins still disabled via pytest.ini)
+- name: Run tests
+  run: pytest --maxfail=5
+
+# Advanced: Enable plugins for specific test suites if needed
+- name: Run async tests with plugin enabled
+  run: pytest -p asyncio tests/test_async_specific.py
+  if: ${{ env.ENABLE_ASYNC_PLUGIN == 'true' }}
+```
+
+### Why This Matters
+
+1. **Universal Compatibility:** Tests work in all environments (CI/CD, sandboxes, local) without plugin dependencies
+2. **Sandbox Compatibility:** Claude Code sandboxes can run tests without installing third-party plugins
+3. **CI/CD Reliability:** No "asyncio marker" or plugin-related errors in automated pipelines
+4. **Consistent Behavior:** Same test behavior across all environments (no plugin-specific variations)
+5. **Simplified Dependencies:** No need to install pytest-asyncio or pytest-rerunfailures
+6. **Faster Test Setup:** Fewer dependencies to install, faster CI/CD pipeline setup
+
+### Troubleshooting
+
+**Error: "PytestUnknownMarkWarning: Unknown pytest.mark.asyncio"**
+- **Cause:** Marker not registered in pytest.ini
+- **Solution:** Already fixed - asyncio marker registered in pytest.ini line 44
+- **Current Genesis Setting:** Marker registered, plugin disabled by default
+
+**Error: "async def functions are not natively supported"**
+- **Cause:** pytest-asyncio plugin disabled but async tests are being run
+- **Solution:** This should NOT occur - asyncio plugin is disabled and not required
+- **Current Genesis Setting:** Plugin disabled via -p no:asyncio in pytest.ini
+- **If you need async support:** Enable plugin explicitly: `pytest -p asyncio tests/test_async.py`
+
+**Error: "pytest: error: unrecognized arguments: --reruns"**
+- **Cause:** pytest-rerunfailures plugin disabled but --reruns flag used
+- **Solution:** Remove --reruns flag OR enable plugin: `pytest -p rerunfailures --reruns 3`
+- **Current Genesis Setting:** Plugin disabled via -p no:rerunfailures in pytest.ini
+
+**Tests still show plugin errors:**
+- **Verify:** Check pytest.ini has `-p no:asyncio` and `-p no:rerunfailures` in addopts section (lines 65-66)
+- **Verify:** Run tests via `./scripts/run_tests.sh` which sets PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
+- **Debug:** Run `pytest --version` to check pytest installation
+- **Debug:** Run `pytest --markers` to see registered markers
+
+### Best Practices
+
+1. **Register all markers** in pytest.ini to prevent "unknown marker" warnings
+2. **Use the test runner script** (`./scripts/run_tests.sh`) for consistent behavior across environments
+3. **Disable plugins by default** in pytest.ini for universal compatibility (-p no:asyncio -p no:rerunfailures)
+4. **Enable plugins explicitly** only when needed for specific test suites (advanced use cases)
+5. **Document plugin requirements** if tests need specific plugins to function correctly
+6. **Test in CI/sandbox environments** to verify tests work without plugin dependencies
+
+---
+
 ## Metrics for Success
 
 ### Pre-October 21, 2025

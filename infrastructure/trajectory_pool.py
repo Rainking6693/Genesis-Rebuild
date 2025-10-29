@@ -76,6 +76,11 @@ class Trajectory:
     problem_diagnosis: str = ""
     proposed_strategy: str = ""
 
+    # ISSUE 6 FIX: Missing schema fields for trajectory evolution
+    code_after: Optional[str] = None  # Final code after execution
+    strategy_description: str = ""  # Detailed strategy explanation (aliases proposed_strategy)
+    plan_id: Optional[str] = None  # Link to extracted plan (for production learning)
+
     # Results
     status: str = TrajectoryStatus.PENDING.value
     success_score: float = 0.0

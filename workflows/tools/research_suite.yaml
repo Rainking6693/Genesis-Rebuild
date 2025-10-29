@@ -1,0 +1,95 @@
+tools:
+  - name: research_web_search
+    description: "Query the research knowledge base for relevant documents."
+    version: "1.1"
+    input:
+      fields:
+        query:
+          type: string
+          description: "Natural language search query."
+          example: "latest agentic workflow papers"
+        max_results:
+          type: integer
+          description: "Maximum number of results to return."
+          required: false
+          example: 5
+        time_filter:
+          type: string
+          description: "Optional time filter (e.g., 7d, 30d)."
+          required: false
+    output:
+      fields:
+        results:
+          type: array
+          description: "List of search result objects."
+        data_source:
+          type: string
+          description: "Source collection used by the Retriever."
+          required: false
+    tags:
+      - research
+      - search
+      - volt
+
+  - name: summarize_documents
+    description: "Generate a concise summary of multiple documents."
+    version: "1.0"
+    input:
+      fields:
+        documents:
+          type: array
+          description: "List of document strings to summarize."
+        max_words:
+          type: integer
+          description: "Maximum words in the summary."
+          required: false
+          example: 150
+        focus:
+          type: string
+          description: "Optional focus area for the summary."
+          required: false
+    output:
+      fields:
+        summary:
+          type: string
+          description: "Generated summary text."
+        key_points:
+          type: array
+          description: "Key bullet points extracted from the documents."
+          required: false
+    tags:
+      - research
+      - summarization
+      - volt
+
+  - name: publish_daily_briefing
+    description: "Publish a daily research briefing to the Genesis briefing feed."
+    version: "1.0"
+    input:
+      fields:
+        title:
+          type: string
+          description: "Briefing title."
+        summary:
+          type: string
+          description: "Briefing content."
+        topics:
+          type: array
+          description: "List of topic tags associated with the briefing."
+          required: false
+        publish_at:
+          type: string
+          description: "ISO timestamp for scheduled publication."
+          required: false
+    output:
+      fields:
+        briefing_id:
+          type: string
+          description: "Identifier of the published briefing."
+        status:
+          type: string
+          description: "Publication status (queued, published, failed)."
+    tags:
+      - publishing
+      - workflow
+      - volt

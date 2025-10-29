@@ -1,0 +1,35 @@
+{
+  "epoch": 4,
+  "global_step": 1880,
+  "metrics": {
+    "unsafe_rate": 0.17018732562774014,
+    "overrefusal_rate": 0.026875250701965503,
+    "feedback_trigger_rate": 0.1024975024975025,
+    "adversarial_count": 2509,
+    "benign_count": 2493
+  },
+  "config": {
+    "dataset_path": "/home/genesis/genesis-rebuild/data/waltzrl_training_dataset.jsonl",
+    "train_split": 0.75,
+    "rollout_batch_size": 32,
+    "training_batch_size": 32,
+    "learning_rate": 5e-07,
+    "kl_coefficient": 0.01,
+    "dir_coefficient": 0.65,
+    "format_coefficient": 0.1,
+    "label_coefficient": 0.0,
+    "clip_radius": 0.2,
+    "max_feedback_rounds": 1,
+    "max_generation_length": 512,
+    "num_epochs": 5,
+    "gradient_accumulation_steps": 4,
+    "eval_every_n_steps": 100,
+    "save_every_n_steps": 500,
+    "use_rlt_optimization": true,
+    "target_training_cost": 20000.0,
+    "output_dir": "/home/genesis/genesis-rebuild/models/waltzrl_stage2",
+    "checkpoint_dir": "/home/genesis/genesis-rebuild/models/waltzrl_stage2/checkpoints",
+    "log_every_n_steps": 10,
+    "wandb_project": "genesis-waltzrl-stage2"
+  }
+}

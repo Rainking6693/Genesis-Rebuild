@@ -27,6 +27,8 @@ env:
   # Monitoring
   PROMETHEUS_ENABLED: 'true'
   GRAFANA_ENABLED: 'true'
+  # Security: A2A HTTPS enforcement
+  A2A_ALLOW_HTTP: 'false'  # HTTPS required in staging
 
 jobs:
   # Pre-deployment validation

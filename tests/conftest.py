@@ -7,12 +7,14 @@ Provides:
 - Test data generators
 - CI/CD compatibility
 - Custom retry decorator with exponential backoff for performance tests
+- Sandbox-aware plugin management (auto-disable plugins in Docker sandbox)
 """
 
 import asyncio
 import functools
 import json
 import logging
+import os
 import tempfile
 import time
 from pathlib import Path
@@ -31,7 +33,37 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 def pytest_configure(config):
-    """Configure pytest markers"""
+    """
+    Configure pytest markers and conditionally block plugins in sandbox environments.
+
+    This hook runs early in pytest initialization and manages plugin loading:
+    - In sandbox environments (SANDBOX_ENABLED=true), pytest-rerunfailures is blocked
+    - In local/CI environments, all plugins load normally
+
+    Why this matters:
+    - Docker sandboxes disable networking, blocking pytest-rerunfailures socket creation
+    - Tests run in both environments need graceful plugin handling
+    - Plugins load by default (pytest auto-discovery)
+    - This hook blocks rerunfailures when running in Docker with network=disabled
+    """
+    # Check if running in sandbox mode (Docker with network disabled)
+    sandbox_enabled = os.getenv("SANDBOX_ENABLED", "false").lower() == "true"
+
+    if sandbox_enabled:
+        logger.info("🔒 SANDBOX MODE: Blocking pytest-rerunfailures (network disabled)")
+        # Block rerunfailures plugin in sandbox to prevent socket errors
+        # Note: asyncio plugin is safe to use (doesn't create sockets)
+        try:
+            if config.pluginmanager.has_plugin("rerunfailures"):
+                plugin = config.pluginmanager.get_plugin("rerunfailures")
+                config.pluginmanager.unregister(plugin, name="rerunfailures")
+                logger.info("   ✓ pytest-rerunfailures blocked successfully")
+        except Exception as e:
+            logger.warning(f"   ⚠ Plugin block failed (continuing anyway): {e}")
+    else:
+        logger.info("✅ LOCAL/CI MODE: All plugins enabled")
+
+    # Register custom markers
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )

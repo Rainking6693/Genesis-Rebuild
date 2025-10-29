@@ -459,5 +459,221 @@
       "resolution_weight": 0.4,
       "empathy_weight": 0.2
     }
+  },
+  {
+    "id": "support_19_docker",
+    "description": "Docker container failing to start",
+    "inputs": {
+      "issue_type": "docker_container_startup",
+      "customer_sentiment": "frustrated",
+      "urgency": "high",
+      "customer_type": "developer",
+      "error_message": "Error response from daemon: Conflict. The container name '/myapp' is already in use",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "docker_diagnostics",
+        "docker_commands",
+        "dockerfile_review",
+        "port_bindings_check",
+        "container_logs_analysis"
+      ],
+      "resolution_time_max": 600,
+      "tone": "professional_technical",
+      "follow_up": true,
+      "docker_specific_checks": [
+        "docker ps -a",
+        "docker logs <container>",
+        "docker inspect <container>",
+        "docker rm <container>",
+        "Dockerfile syntax validation"
+      ]
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.3,
+      "technical_accuracy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_20_docker",
+    "description": "Docker network connectivity issues",
+    "inputs": {
+      "issue_type": "docker_networking",
+      "customer_sentiment": "confused",
+      "urgency": "high",
+      "customer_type": "developer",
+      "error_message": "Container cannot reach external services or other containers",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "network_diagnostics",
+        "docker_network_commands",
+        "dns_resolution_check",
+        "firewall_settings",
+        "docker_compose_networking"
+      ],
+      "resolution_time_max": 900,
+      "tone": "professional_technical",
+      "follow_up": true,
+      "docker_specific_checks": [
+        "docker network ls",
+        "docker network inspect <network>",
+        "docker-compose.yml network configuration",
+        "iptables rules",
+        "DNS settings in /etc/resolv.conf"
+      ]
+    },
+    "scoring": {
+      "quality_weight": 0.35,
+      "resolution_weight": 0.35,
+      "technical_accuracy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_21_docker",
+    "description": "Docker volume mount permissions error",
+    "inputs": {
+      "issue_type": "docker_volume_permissions",
+      "customer_sentiment": "annoyed",
+      "urgency": "medium",
+      "customer_type": "developer",
+      "error_message": "Permission denied when accessing mounted volume",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "permissions_diagnosis",
+        "user_id_mapping",
+        "dockerfile_user_directive",
+        "volume_mount_options",
+        "selinux_context"
+      ],
+      "resolution_time_max": 600,
+      "tone": "professional_technical",
+      "follow_up": true,
+      "docker_specific_checks": [
+        "ls -la /path/to/volume",
+        "docker exec <container> id",
+        "Dockerfile USER directive",
+        "volume mount with :z or :Z flags",
+        "chown/chmod commands"
+      ]
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.3,
+      "technical_accuracy_weight": 0.3
+    }
+  },
+  {
+    "id": "support_22_docker",
+    "description": "Docker build cache invalidation issues",
+    "inputs": {
+      "issue_type": "docker_build_caching",
+      "customer_sentiment": "curious",
+      "urgency": "low",
+      "customer_type": "developer",
+      "error_message": "Docker build not using cache, rebuilding all layers",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "build_cache_explanation",
+        "layer_optimization",
+        "dockerfile_best_practices",
+        "build_arguments",
+        "cache_invalidation_triggers"
+      ],
+      "resolution_time_max": 900,
+      "tone": "professional_educational",
+      "follow_up": false,
+      "docker_specific_checks": [
+        "docker build --no-cache",
+        "Dockerfile layer order optimization",
+        "COPY vs ADD commands",
+        "ARG vs ENV variables",
+        "docker system df"
+      ]
+    },
+    "scoring": {
+      "quality_weight": 0.45,
+      "resolution_weight": 0.3,
+      "technical_accuracy_weight": 0.25
+    }
+  },
+  {
+    "id": "support_23_docker",
+    "description": "Docker Compose service dependencies not starting in order",
+    "inputs": {
+      "issue_type": "docker_compose_dependencies",
+      "customer_sentiment": "frustrated",
+      "urgency": "high",
+      "customer_type": "developer",
+      "error_message": "Application fails because database container not ready",
+      "complexity": "high"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "depends_on_configuration",
+        "health_checks",
+        "wait_for_scripts",
+        "service_startup_order",
+        "docker_compose_best_practices"
+      ],
+      "resolution_time_max": 600,
+      "tone": "professional_technical",
+      "follow_up": true,
+      "docker_specific_checks": [
+        "docker-compose.yml depends_on",
+        "healthcheck directive",
+        "wait-for-it.sh script",
+        "docker-compose up --wait",
+        "docker-compose logs"
+      ]
+    },
+    "scoring": {
+      "quality_weight": 0.4,
+      "resolution_weight": 0.35,
+      "technical_accuracy_weight": 0.25
+    }
+  },
+  {
+    "id": "support_24_docker",
+    "description": "Docker image size optimization",
+    "inputs": {
+      "issue_type": "docker_image_size",
+      "customer_sentiment": "neutral",
+      "urgency": "medium",
+      "customer_type": "developer",
+      "error_message": "Docker image is 2GB, looking to reduce size",
+      "complexity": "medium"
+    },
+    "expected_outputs": {
+      "required_elements": [
+        "multi_stage_builds",
+        "alpine_base_images",
+        "layer_minimization",
+        "dockerignore_file",
+        "image_analysis_tools"
+      ],
+      "resolution_time_max": 900,
+      "tone": "professional_educational",
+      "follow_up": true,
+      "docker_specific_checks": [
+        "docker history <image>",
+        "docker image ls",
+        "Multi-stage Dockerfile example",
+        ".dockerignore configuration",
+        "dive tool for image analysis"
+      ]
+    },
+    "scoring": {
+      "quality_weight": 0.45,
+      "resolution_weight": 0.3,
+      "technical_accuracy_weight": 0.25
+    }
   }
 ]

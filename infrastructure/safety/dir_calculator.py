@@ -21,7 +21,8 @@ DIR Range: -1.0 (degraded) to +1.0 (excellent improvement)
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, Dict
+from statistics import mean
+from typing import Optional, Dict, List, Any
 
 from infrastructure.safety.waltzrl_feedback_agent import FeedbackResult
 from infrastructure.safety.waltzrl_conversation_agent import SafeResponse
@@ -411,3 +412,104 @@ def get_dir_calculator(
         helpfulness_weight=helpfulness_weight,
         satisfaction_weight=satisfaction_weight
     )
+
+
+def summarize_dir_results(dir_results: List[DIRResult]) -> Dict[str, Any]:
+    """
+    Summarize a list of DIR results with aggregate statistics.
+
+    Args:
+        dir_results: List of DIRResult objects from WaltzRL runs.
+
+    Returns:
+        Dictionary containing reward statistics and component averages.
+    """
+    if not dir_results:
+        return {
+            "reward_stats": {
+                "count": 0,
+                "mean": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "positive_rate": 0.0,
+            },
+            "component_averages": {
+                "safety_delta": 0.0,
+                "helpfulness_delta": 0.0,
+                "user_satisfaction": 0.0,
+                "feedback_quality": 0.0,
+            },
+        }
+
+    rewards = [result.reward for result in dir_results]
+    safety_deltas = [result.safety_delta for result in dir_results]
+    helpfulness_deltas = [result.helpfulness_delta for result in dir_results]
+    satisfaction_scores = [result.user_satisfaction for result in dir_results]
+    feedback_scores = [result.feedback_quality for result in dir_results]
+
+    reward_stats = {
+        "count": len(rewards),
+        "mean": mean(rewards),
+        "min": min(rewards),
+        "max": max(rewards),
+        "positive_rate": sum(1 for value in rewards if value > 0) / len(rewards),
+    }
+
+    component_averages = {
+        "safety_delta": mean(safety_deltas),
+        "helpfulness_delta": mean(helpfulness_deltas),
+        "user_satisfaction": mean(satisfaction_scores),
+        "feedback_quality": mean(feedback_scores),
+    }
+
+    return {
+        "reward_stats": reward_stats,
+        "component_averages": component_averages,
+    }
+
+
+def generate_dir_report(
+    dir_results: List[DIRResult],
+    evaluation_metrics: Optional[Dict[str, float]] = None,
+    baseline_metrics: Optional[Dict[str, float]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Generate a comprehensive DIR report summarizing performance across runs.
+
+    Args:
+        dir_results: List of DIRResult objects from WaltzRL runs.
+        evaluation_metrics: Optional metrics captured during evaluation
+            (e.g., unsafe_rate, overrefusal_rate, total_runs).
+        baseline_metrics: Optional baseline metrics to compare against.
+        metadata: Optional metadata (e.g., cohort size, dataset identifiers).
+
+    Returns:
+        Dictionary containing aggregated DIR statistics and improvements.
+    """
+    summary = summarize_dir_results(dir_results)
+    report: Dict[str, Any] = {
+        "metadata": metadata or {},
+        "reward_stats": summary["reward_stats"],
+        "component_averages": summary["component_averages"],
+        "evaluation_metrics": evaluation_metrics or {},
+        "improvements": {},
+    }
+
+    if evaluation_metrics and baseline_metrics:
+        improvements: Dict[str, Any] = {}
+
+        unsafe_curr = evaluation_metrics.get("unsafe_rate")
+        unsafe_prev = baseline_metrics.get("unsafe_rate")
+        if unsafe_curr is not None and unsafe_prev is not None:
+            improvements["unsafe_reduction"] = unsafe_prev - unsafe_curr
+
+        overrefusal_curr = evaluation_metrics.get("overrefusal_rate")
+        overrefusal_prev = baseline_metrics.get("overrefusal_rate")
+        if overrefusal_curr is not None and overrefusal_prev is not None:
+            improvements["overrefusal_reduction"] = overrefusal_prev - overrefusal_curr
+
+        if improvements:
+            report["improvements"] = improvements
+
+    return report

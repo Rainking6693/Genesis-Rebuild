@@ -160,6 +160,11 @@ observability:
     exporter: otlp
     endpoint: http://localhost:4318
     service_name: genesis-staging
+    allowed_span_types:
+      - orchestration
+      - htdag
+      - halo
+      - aop
 
   # Metrics
   metrics:
@@ -183,6 +188,9 @@ observability:
       - throughput_requests_per_second
       - active_agents_count
       - queue_depth
+    default_labels:
+      environment: staging
+      service: genesis-staging
 
   # Health checks
   health_checks:

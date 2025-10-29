@@ -1,23 +1,23 @@
 {
   "test": "PII Redaction Performance Scaling",
-  "timestamp": "2025-10-22T20:37:49.353662",
+  "timestamp": "2025-10-28T14:34:12.004325",
   "p1_4_fix": "Enhanced PII redaction with debug logging",
   "results": {
     "0": {
-      "avg_ms": 0.09,
-      "p95_ms": 0.12
+      "avg_ms": 0.0,
+      "p95_ms": 0.0
     },
     "1": {
-      "avg_ms": 0.22,
-      "p95_ms": 0.28
+      "avg_ms": 0.01,
+      "p95_ms": 0.02
     },
     "5": {
-      "avg_ms": 0.25,
-      "p95_ms": 0.32
+      "avg_ms": 0.03,
+      "p95_ms": 0.06
     },
     "10": {
-      "avg_ms": 0.2,
-      "p95_ms": 0.25
+      "avg_ms": 0.05,
+      "p95_ms": 0.05
     }
   },
   "validation": "Linear scaling confirmed",

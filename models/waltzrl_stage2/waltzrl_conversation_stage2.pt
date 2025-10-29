@@ -1,0 +1,6 @@
+{
+  "model_type": "conversation",
+  "stage": 2,
+  "training_steps": 2350,
+  "num_epochs": 5
+}

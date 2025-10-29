@@ -1,15 +1,15 @@
 {
   "test": "Circuit Breaker Latency",
-  "timestamp": "2025-10-22T20:37:50.261155",
+  "timestamp": "2025-10-28T14:34:12.279497",
   "circuit_closed": {
-    "avg_ms": 1.38,
-    "p95_ms": 0.82
+    "avg_ms": 1.35,
+    "p95_ms": 2.09
   },
   "circuit_open": {
-    "avg_ms": 0.82,
-    "p95_ms": 0.99
+    "avg_ms": 1.36,
+    "p95_ms": 8.31
   },
-  "overhead_ms": 0.56,
+  "overhead_ms": -0.02,
   "validation": "Circuit breaker adds minimal overhead",
   "status": "PASS"
 }

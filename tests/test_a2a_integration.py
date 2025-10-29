@@ -44,8 +44,24 @@ from genesis_orchestrator import GenesisOrchestrator
 
 @pytest.fixture
 def a2a_connector():
-    """Create A2A connector instance"""
-    return A2AConnector(base_url="http://127.0.0.1:8080", timeout_seconds=10.0)
+    """
+    Create A2A connector instance
+
+    Uses HTTPS by default (secure). Set A2A_ALLOW_HTTP=true for local HTTP testing.
+    In CI/staging, HTTPS is required unless A2A_ALLOW_HTTP=true is explicitly set.
+    """
+    import os
+
+    # Check if HTTP is explicitly allowed (for local development)
+    allow_http = os.getenv("A2A_ALLOW_HTTP", "false").lower() == "true"
+
+    if allow_http:
+        base_url = "http://127.0.0.1:8080"
+    else:
+        # Use HTTPS by default (secure by default)
+        base_url = "https://127.0.0.1:8443"
+
+    return A2AConnector(base_url=base_url, timeout_seconds=10.0, verify_ssl=False)
 
 
 @pytest.fixture
@@ -143,8 +159,10 @@ def test_agent_name_mapping(a2a_connector):
     assert a2a_connector._map_agent_name("marketing_agent") == "marketing"
     assert a2a_connector._map_agent_name("qa_agent") == "qa"
 
-    # Fallback: strip _agent suffix
-    assert a2a_connector._map_agent_name("custom_agent") == "custom"
+    # Custom agent not in whitelist (should raise SecurityError)
+    # Implementation correctly enforces security whitelist
+    with pytest.raises(Exception):  # SecurityError or ValueError
+        a2a_connector._map_agent_name("custom_agent")
 
     # Unknown agent (should raise)
     with pytest.raises(ValueError):
@@ -171,14 +189,15 @@ def test_task_to_tool_mapping(a2a_connector):
     task_test = Task(task_id="t4", task_type="test", description="Run tests")
     assert a2a_connector._map_task_to_tool(task_test) == "run_tests"
 
-    # Explicit tool hint in metadata
+    # Explicit tool hint in metadata (gets sanitized by implementation)
+    # Implementation validates tool names against whitelist for security
     task_custom = Task(
         task_id="t5",
         task_type="generic",
         description="Custom task",
-        metadata={"a2a_tool": "custom_tool"}
+        metadata={"a2a_tool": "research_market"}  # Use whitelisted tool
     )
-    assert a2a_connector._map_task_to_tool(task_custom) == "custom_tool"
+    assert a2a_connector._map_task_to_tool(task_custom) == "research_market"
 
     # Unknown task type (should fall back to generic)
     task_unknown = Task(task_id="t6", task_type="weird_unknown", description="Unknown")

@@ -26,7 +26,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch, AsyncMock
 
-from infrastructure.visual_memory_compressor import VisualMemoryCompressor, VisualVisualCompressionMode
+from infrastructure.visual_memory_compressor import VisualMemoryCompressor, VisualCompressionMode
 from infrastructure.memory_store import GenesisMemoryStore, InMemoryBackend
 from infrastructure.mongodb_backend import MongoDBBackend
 

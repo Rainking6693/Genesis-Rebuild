@@ -185,6 +185,12 @@ observability:
       service_name: genesis-orchestrator
       environment: production
       version: "1.0.0"
+    allowed_span_types:
+      - orchestration
+      - htdag
+      - halo
+      - aop
+      - execution
 
   # Metrics
   metrics:
@@ -202,6 +208,10 @@ observability:
       - agent_utilization
       - queue_depth
       - throughput
+    default_labels:
+      environment: production
+      service: genesis-orchestrator
+      version: "1.0.0"
 
   # Logging
   logging:

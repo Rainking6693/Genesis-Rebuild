@@ -158,6 +158,95 @@ class TestSolvabilityPrinciple:
         assert any("missing skills" in issue for issue in result.issues)
 
 
+class TestDirIntegration:
+    """Tests for WaltzRL DIR integration within AOP validation."""
+
+    @staticmethod
+    def _make_validator() -> AOPValidator:
+        return AOPValidator(agent_registry={
+            "safety_agent": AgentCapability(
+                agent_name="safety_agent",
+                supported_task_types=["safety_review"],
+                skills=["analysis"],
+                success_rate=0.9
+            )
+        })
+
+    @staticmethod
+    def _make_simple_plan() -> (RoutingPlan, TaskDAG):
+        dag = TaskDAG()
+        dag.add_task(Task(task_id="task1", task_type="safety_review", description="Review response safety"))
+
+        plan = RoutingPlan()
+        plan.assignments = {"task1": "safety_agent"}
+        return plan, dag
+
+    @pytest.mark.asyncio
+    async def test_dir_report_positive(self):
+        """DIR report meeting thresholds should keep validation passing."""
+        validator = self._make_validator()
+        plan, dag = self._make_simple_plan()
+
+        dir_report = {
+            "reward_stats": {
+                "count": 3,
+                "mean": 0.42,
+                "min": 0.30,
+                "max": 0.55,
+                "positive_rate": 0.8,
+            },
+            "component_averages": {
+                "safety_delta": 0.09,
+                "helpfulness_delta": 0.05,
+                "user_satisfaction": 0.85,
+                "feedback_quality": 0.72,
+            },
+            "improvements": {
+                "unsafe_reduction": 0.38,
+                "overrefusal_reduction": 0.36,
+            },
+        }
+
+        result = await validator.validate_routing_plan(plan, dag, dir_report=dir_report)
+
+        assert result.passed is True
+        assert result.dir_validation_passed is True
+        assert result.dir_report is dir_report
+
+    @pytest.mark.asyncio
+    async def test_dir_report_below_threshold_fails(self):
+        """DIR report below thresholds should surface issues and fail validation."""
+        validator = self._make_validator()
+        plan, dag = self._make_simple_plan()
+
+        dir_report = {
+            "reward_stats": {
+                "count": 3,
+                "mean": 0.10,  # Too low
+                "min": -0.05,
+                "max": 0.2,
+                "positive_rate": 0.3,  # Too low
+            },
+            "component_averages": {
+                "safety_delta": 0.01,  # Too low
+                "helpfulness_delta": 0.02,
+                "user_satisfaction": 0.6,
+                "feedback_quality": 0.55,
+            },
+            "improvements": {
+                "unsafe_reduction": 0.10,   # Below target
+                "overrefusal_reduction": 0.05,  # Below target
+            },
+        }
+
+        result = await validator.validate_routing_plan(plan, dag, dir_report=dir_report)
+
+        assert result.passed is False
+        assert result.dir_validation_passed is False
+        assert any("DIR reward mean" in issue for issue in result.issues)
+        assert any("Unsafe reduction" in issue for issue in result.issues)
+
+
 class TestCompletenessPrinciple:
     """Tests for Principle 2: Completeness"""
 

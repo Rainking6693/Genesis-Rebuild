@@ -28,6 +28,26 @@ from typing import Dict, List, Optional, Any, Callable
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Import Context Linter and Scratchpad
+try:
+    from infrastructure.context_linter import (
+        ContextLinter,
+        Message,
+        LintedContext,
+        get_context_linter
+    )
+    from infrastructure.scratchpad import get_scratchpad, Scratchpad
+    CONTEXT_LINTER_AVAILABLE = True
+except ImportError:
+    ContextLinter = None
+    Message = None
+    LintedContext = None
+    get_context_linter = None
+    get_scratchpad = None
+    Scratchpad = None
+    CONTEXT_LINTER_AVAILABLE = False
+    logger.warning("Context Linter and Scratchpad not available - context optimization disabled")
+
 # Import ReasoningBank and Replay Buffer
 try:
     from infrastructure.reasoning_bank import (
@@ -844,7 +864,9 @@ class IntentAbstractionLayer:
         genesis_agent: Any,
         reasoning_bank: Optional[ReasoningBank] = None,
         replay_buffer: Optional[ReplayBuffer] = None,
-        confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD
+        confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
+        context_linter: Optional[ContextLinter] = None,
+        scratchpad: Optional[Scratchpad] = None
     ):
         """
         Initialize Intent Abstraction Layer
@@ -854,11 +876,22 @@ class IntentAbstractionLayer:
             reasoning_bank: Optional ReasoningBank for pattern learning
             replay_buffer: Optional ReplayBuffer for trajectory recording
             confidence_threshold: Minimum confidence to use deterministic routing
+            context_linter: Optional ContextLinter for SLICE optimization
+            scratchpad: Optional Scratchpad for short-term memory
         """
         self.genesis = genesis_agent
         self.reasoning_bank = reasoning_bank
         self.replay_buffer = replay_buffer
         self.confidence_threshold = confidence_threshold
+
+        # Initialize context optimization
+        self.context_linter = context_linter
+        self.scratchpad = scratchpad
+        if CONTEXT_LINTER_AVAILABLE:
+            if self.context_linter is None:
+                self.context_linter = get_context_linter()
+            if self.scratchpad is None:
+                self.scratchpad = get_scratchpad()
 
         self.extractor = IntentExtractor(reasoning_bank=reasoning_bank)
         self.router = DeterministicRouter(genesis_agent)
@@ -867,13 +900,16 @@ class IntentAbstractionLayer:
             f"✅ IntentAbstractionLayer initialized "
             f"(ReasoningBank: {reasoning_bank is not None}, "
             f"ReplayBuffer: {replay_buffer is not None}, "
+            f"ContextLinter: {self.context_linter is not None}, "
+            f"Scratchpad: {self.scratchpad is not None}, "
             f"threshold: {confidence_threshold})"
         )
 
     def process(
         self,
         command: str,
-        use_llm_fallback: bool = True
+        use_llm_fallback: bool = True,
+        context_messages: Optional[List] = None
     ) -> Dict[str, Any]:
         """
         Process natural language command through intent abstraction
@@ -881,6 +917,7 @@ class IntentAbstractionLayer:
         Args:
             command: Natural language command
             use_llm_fallback: If confidence is low, fallback to LLM reasoning
+            context_messages: Optional context messages for linting
 
         Returns:
             Result dictionary with status, data, and metadata
@@ -893,6 +930,30 @@ class IntentAbstractionLayer:
         process_start = datetime.now(timezone.utc)
 
         try:
+            # Apply context linting if messages provided
+            linted_context = None
+            if context_messages and self.context_linter and CONTEXT_LINTER_AVAILABLE:
+                # Convert to Message objects if needed
+                messages = []
+                for msg in context_messages:
+                    if not isinstance(msg, Message):
+                        messages.append(Message(
+                            content=msg.get('content', ''),
+                            role=msg.get('role', 'user'),
+                            timestamp=datetime.now(timezone.utc),
+                            source=msg.get('source', 'unknown')
+                        ))
+                    else:
+                        messages.append(msg)
+
+                # Lint context
+                linted_context = self.context_linter.lint_context(messages)
+                logger.info(
+                    f"Context linted: {linted_context.original_tokens} → "
+                    f"{linted_context.cleaned_tokens} tokens "
+                    f"({linted_context.token_reduction_percent:.1f}% reduction)"
+                )
+
             # Extract intent
             intent = self.extractor.extract(command)
 
@@ -927,8 +988,23 @@ class IntentAbstractionLayer:
             execution_success = result.get('status') == 'success'
             self.extractor.store_successful_extraction(command, intent, execution_success)
 
-            # Add timing
+            # Store in scratchpad
+            if self.scratchpad and CONTEXT_LINTER_AVAILABLE:
+                self.scratchpad.write(
+                    content={"command": command, "intent": intent.to_dict(), "result": result},
+                    entry_type="intent_execution",
+                    agent="intent_layer",
+                    metadata={"success": execution_success}
+                )
+
+            # Add timing and context metrics
             result['processing_time_ms'] = (datetime.now(timezone.utc) - process_start).total_seconds() * 1000
+            if linted_context:
+                result['context_optimization'] = {
+                    'original_tokens': linted_context.original_tokens,
+                    'cleaned_tokens': linted_context.cleaned_tokens,
+                    'token_reduction_percent': linted_context.token_reduction_percent
+                }
 
             return result
 

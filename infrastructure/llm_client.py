@@ -26,7 +26,7 @@ class LLMProvider(Enum):
     GPT4O = "gpt-4o"
     CLAUDE_SONNET_4 = "claude-sonnet-4-20250514"
     CLAUDE_HAIKU_4_5 = "claude-haiku-4-5"        # NEW: Fast, cheap model
-    GEMINI_FLASH = "gemini-2.0-flash-exp"
+    GEMINI_FLASH = "gemini-2.0-flash-exp"        # Vision + text, ultra-cheap
 
 
 class LLMClient(ABC):
@@ -381,6 +381,261 @@ class OpenAIClient(LLMClient):
                     "prompt_tokens": response.usage.prompt_tokens,
                     "completion_tokens": response.usage.completion_tokens,
                     "total_tokens": response.usage.total_tokens
+                }
+            }
+
+        except Exception as e:
+            logger.error(f"Generate from token IDs error: {e}")
+            raise LLMClientError(f"Generation from token IDs failed: {e}")
+
+
+class GeminiClient(LLMClient):
+    """
+    Gemini 2.0 Flash client for vision tasks and high-throughput cheap operations
+
+    Optimized for:
+    - Vision tasks (image/screenshot analysis, OCR)
+    - High-throughput simple tasks
+    - Ultra-low cost operations (20X cheaper than Claude for vision)
+
+    Cost: $0.03/1M tokens (100X cheaper than GPT-4o)
+    """
+
+    def __init__(self, api_key: Optional[str] = None, model: str = "gemini-2.0-flash-exp"):
+        """
+        Initialize Gemini client
+
+        Args:
+            api_key: Google API key (defaults to GEMINI_API_KEY or GOOGLE_API_KEY env var)
+            model: Model name (default: gemini-2.0-flash-exp)
+        """
+        try:
+            from google import genai
+            self.genai = genai
+        except ImportError:
+            raise LLMClientError(
+                "Google GenAI package not installed. Run: pip install google-genai"
+            )
+
+        # Try both GEMINI_API_KEY and GOOGLE_API_KEY for backwards compatibility
+        self.api_key = api_key or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if not self.api_key:
+            raise LLMClientError(
+                "GEMINI_API_KEY or GOOGLE_API_KEY not set. Either pass api_key parameter or set environment variable.\n"
+                "Get your API key from: https://aistudio.google.com/apikey"
+            )
+
+        self.client = genai.Client(api_key=self.api_key)
+        self.model = model
+
+        # Initialize context profile manager
+        self.profile_manager = get_profile_manager()
+
+        logger.info(f"Gemini client initialized with model: {model}")
+
+    async def generate_structured_output(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        response_schema: Dict[str, Any],
+        temperature: float = 0.0
+    ) -> Dict[str, Any]:
+        """
+        Generate structured JSON output using Gemini
+
+        Note: Gemini doesn't have native JSON mode yet, so we include schema in prompt
+        and parse the response carefully.
+        """
+        try:
+            # Combine system and user prompts (Gemini doesn't separate them)
+            combined_prompt = (
+                f"{system_prompt}\n\n"
+                f"{user_prompt}\n\n"
+                f"IMPORTANT: Respond with valid JSON only (no markdown, no explanations).\n"
+                f"Expected schema:\n{json.dumps(response_schema, indent=2)}"
+            )
+
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=combined_prompt,
+            )
+
+            content = response.text
+            if not content:
+                raise LLMClientError("Empty response from Gemini API")
+
+            # Gemini might wrap JSON in markdown code blocks
+            content = content.strip()
+            if content.startswith("```json"):
+                content = content[7:]  # Remove ```json
+            if content.startswith("```"):
+                content = content[3:]  # Remove ```
+            if content.endswith("```"):
+                content = content[:-3]  # Remove trailing ```
+            content = content.strip()
+
+            result = json.loads(content)
+
+            logger.debug(f"Gemini response: {len(content)} chars")
+
+            return result
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse Gemini JSON response: {e}")
+            logger.error(f"Raw response: {content[:500]}")
+            raise LLMClientError(f"Invalid JSON from Gemini: {e}")
+        except Exception as e:
+            logger.error(f"Gemini API error: {e}")
+            raise LLMClientError(f"Gemini API call failed: {e}")
+
+    async def generate_text(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float = 0.7,
+        max_tokens: int = 4096,
+        context_profile: Optional[ContextProfile] = None,
+        auto_select_profile: bool = True
+    ) -> str:
+        """
+        Generate unstructured text output with optional context profile
+
+        Supports both text-only and multimodal (text + image) inputs.
+        Pass images in user_prompt as PIL Image objects or file paths.
+        """
+        # Auto-select profile if not specified
+        if auto_select_profile and not context_profile:
+            context_length = len(system_prompt) + len(user_prompt)
+            has_video = "video" in user_prompt.lower() or "frame" in user_prompt.lower()
+            has_code = "code" in user_prompt.lower() or "repository" in user_prompt.lower()
+
+            context_profile = self.profile_manager.select_profile(
+                task_type=system_prompt,
+                context_length=context_length,
+                has_video=has_video,
+                has_code=has_code
+            )
+
+            logger.info(f"Auto-selected profile: {context_profile.value}")
+
+        # Validate context length if profile specified
+        if context_profile:
+            estimated_tokens = estimate_tokens_from_chars(system_prompt + user_prompt)
+
+            is_valid, error_msg = self.profile_manager.validate_context_length(
+                profile=context_profile,
+                context_length=estimated_tokens
+            )
+
+            if not is_valid:
+                logger.warning(error_msg)
+
+            # Log cost savings
+            config = self.profile_manager.get_config(context_profile)
+            savings = self.profile_manager.estimate_cost_savings(
+                profile=context_profile,
+                tokens=estimated_tokens,
+                baseline_cost_per_1m=0.03  # $0.03/1M tokens for Gemini
+            )
+            logger.info(
+                f"Profile cost savings: ${savings['savings']:.4f} "
+                f"({savings['savings_pct']:.1f}%) - {config.description}"
+            )
+
+        try:
+            # Combine system and user prompts
+            combined_prompt = f"{system_prompt}\n\n{user_prompt}"
+
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=combined_prompt,
+            )
+
+            content = response.text
+            if not content:
+                raise LLMClientError("Empty response from Gemini API")
+
+            logger.debug(f"Gemini text response: {len(content)} chars")
+
+            return content
+
+        except Exception as e:
+            logger.error(f"Gemini text generation error: {e}")
+            raise LLMClientError(f"Gemini text generation failed: {e}")
+
+    async def tokenize(
+        self,
+        text: str,
+        return_ids: bool = True
+    ) -> List[int]:
+        """
+        Tokenize text using tiktoken as approximation (Gemini doesn't expose tokenizer)
+
+        Note: This is an approximation using cl100k_base encoding.
+        For production, consider using character-based estimation (1 token ≈ 4 chars).
+        """
+        try:
+            import tiktoken
+        except ImportError:
+            raise LLMClientError(
+                "tiktoken not installed. Run: pip install tiktoken"
+            )
+
+        try:
+            # Use cl100k_base as approximation for Gemini tokens
+            encoding = tiktoken.get_encoding("cl100k_base")
+            token_ids = encoding.encode(text)
+
+            logger.debug(f"Tokenized {len(text)} chars → {len(token_ids)} tokens (estimated)")
+
+            return token_ids
+
+        except Exception as e:
+            logger.error(f"Tokenization error: {e}")
+            raise LLMClientError(f"Tokenization failed: {e}")
+
+    async def generate_from_token_ids(
+        self,
+        prompt_token_ids: List[int],
+        max_tokens: int = 1024,
+        temperature: float = 0.7
+    ) -> Dict[str, Any]:
+        """
+        Generate from token IDs (decode and call Gemini API)
+
+        Note: Gemini API doesn't support direct token ID input.
+        We decode to text as a workaround.
+        """
+        try:
+            import tiktoken
+        except ImportError:
+            raise LLMClientError(
+                "tiktoken not installed. Run: pip install tiktoken"
+            )
+
+        try:
+            # Decode token IDs to text
+            encoding = tiktoken.get_encoding("cl100k_base")
+            text = encoding.decode(prompt_token_ids)
+
+            # Generate using Gemini API
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=text,
+            )
+
+            content = response.text
+            if not content:
+                raise LLMClientError("Empty response from Gemini API")
+
+            # Return vLLM-compatible response
+            return {
+                "text": content,
+                "token_ids": encoding.encode(content),  # Estimated token IDs
+                "usage": {
+                    "prompt_tokens": len(prompt_token_ids),
+                    "completion_tokens": len(encoding.encode(content)),
+                    "total_tokens": len(prompt_token_ids) + len(encoding.encode(content))
                 }
             }
 
@@ -794,11 +1049,10 @@ class LLMFactory:
             return OpenAIClient(api_key=api_key, **kwargs)
         elif provider == LLMProvider.CLAUDE_SONNET_4:
             return AnthropicClient(api_key=api_key, **kwargs)
+        elif provider == LLMProvider.CLAUDE_HAIKU_4_5:
+            return AnthropicClient(api_key=api_key, model="claude-haiku-4-5", **kwargs)
         elif provider == LLMProvider.GEMINI_FLASH:
-            raise LLMClientError(
-                "Gemini Flash provider not yet implemented. "
-                "Use GPT4O or CLAUDE_SONNET_4."
-            )
+            return GeminiClient(api_key=api_key, **kwargs)
         else:
             raise ValueError(f"Unsupported LLM provider: {provider}")
 
@@ -933,8 +1187,15 @@ class RoutedLLMClient(LLMClient):
             model="claude-sonnet-4-20250514"
         )
 
-        # TODO: Add Gemini client when implemented
-        self.gemini_client = None
+        # Initialize Gemini client (graceful fallback if not available)
+        try:
+            self.gemini_client = GeminiClient(
+                api_key=api_keys.get("gemini") or api_keys.get("google")
+            )
+            logger.info("Gemini client initialized for vision routing")
+        except LLMClientError as e:
+            self.gemini_client = None
+            logger.warning(f"Gemini client not available: {e}. Vision tasks will fall back to Sonnet.")
 
         logger.info(
             f"RoutedLLMClient initialized for {agent_name} "

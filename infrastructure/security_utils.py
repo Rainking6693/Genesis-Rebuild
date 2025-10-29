@@ -83,9 +83,9 @@ def validate_storage_path(
         resolved_storage = storage_dir.resolve()
         resolved_base = base_dir.resolve()
 
-        # Allow pytest temp directories in test mode
-        if allow_test_paths and "/pytest-" in str(resolved_storage):
-            logger.debug(f"Test mode: Allowing pytest path '{resolved_storage}'")
+        # Allow pytest temp directories and tempfile.TemporaryDirectory in test mode
+        if allow_test_paths and ("/pytest-" in str(resolved_storage) or str(resolved_storage).startswith("/tmp/")):
+            logger.debug(f"Test mode: Allowing test path '{resolved_storage}'")
             return True
 
         # Check if storage_dir is relative to base_dir

@@ -1,16 +1,16 @@
 {
   "test": "Safety Wrapper End-to-End Latency",
-  "timestamp": "2025-10-22T20:36:51.237692",
+  "timestamp": "2025-10-28T14:33:21.551980",
   "iterations": 100,
   "metrics": {
-    "p50_ms": 0.19,
-    "p95_ms": 0.4,
-    "p99_ms": 0.57,
-    "avg_ms": 0.21,
-    "min_ms": 0.16,
-    "max_ms": 0.58,
+    "p50_ms": 0.26,
+    "p95_ms": 1.82,
+    "p99_ms": 16.14,
+    "avg_ms": 0.55,
+    "min_ms": 0.22,
+    "max_ms": 16.26,
     "avg_feedback_ms": 0.08,
-    "avg_revision_ms": 0.07
+    "avg_revision_ms": 0.12
   },
   "target": "<200ms P95",
   "status": "PASS"

@@ -201,6 +201,7 @@ def test_https_enforcement_in_production():
     os.environ["ENVIRONMENT"] = "production"
 
     try:
+        # HTTP should be rejected in production (even with A2A_ALLOW_HTTP)
         with pytest.raises(ValueError, match="HTTPS required"):
             connector = A2AConnector(base_url="http://127.0.0.1:8080")
 
@@ -211,14 +212,46 @@ def test_https_enforcement_in_production():
         del os.environ["ENVIRONMENT"]
 
 
-# Test 11: HTTPS warning in development
+# Test 11: HTTPS enforcement in CI/staging
+def test_https_enforcement_in_ci():
+    """Test that HTTP is rejected in CI unless A2A_ALLOW_HTTP=true"""
+    # Clean environment
+    for key in ["ENVIRONMENT", "CI", "A2A_ALLOW_HTTP"]:
+        if key in os.environ:
+            del os.environ[key]
+
+    os.environ["CI"] = "true"
+
+    try:
+        # HTTP should be rejected in CI by default
+        with pytest.raises(ValueError, match="HTTPS required in CI/staging"):
+            connector = A2AConnector(base_url="http://127.0.0.1:8080")
+
+        # HTTPS should work
+        connector = A2AConnector(base_url="https://127.0.0.1:8443")
+        assert connector.base_url.startswith("https://")
+
+        # HTTP should work when A2A_ALLOW_HTTP=true (for testing)
+        os.environ["A2A_ALLOW_HTTP"] = "true"
+        connector = A2AConnector(base_url="http://127.0.0.1:8080")
+        assert connector.base_url.startswith("http://")
+
+    finally:
+        for key in ["CI", "A2A_ALLOW_HTTP"]:
+            if key in os.environ:
+                del os.environ[key]
+
+
+# Test 12: HTTPS warning in development
 def test_https_warning_in_development():
     """Test that HTTP triggers warning in development"""
-    # No ENVIRONMENT set = development
-    if "ENVIRONMENT" in os.environ:
-        del os.environ["ENVIRONMENT"]
+    # Clean environment
+    for key in ["ENVIRONMENT", "CI", "A2A_ALLOW_HTTP"]:
+        if key in os.environ:
+            del os.environ[key]
 
     with patch('infrastructure.a2a_connector.logger') as mock_logger:
+        # Without A2A_ALLOW_HTTP, should warn
         connector = A2AConnector(base_url="http://127.0.0.1:8080")
 
         # Should log warning
@@ -227,7 +260,7 @@ def test_https_warning_in_development():
         assert len(warning_calls) > 0
 
 
-# Test 12: Authorization checks with AgentAuthRegistry
+# Test 13: Authorization checks with AgentAuthRegistry
 @pytest.mark.asyncio
 async def test_authorization_checks():
     """Test that orchestrator authorization is enforced"""
@@ -257,7 +290,7 @@ async def test_authorization_checks():
         )
 
 
-# Test 13: Payload size limits
+# Test 14: Payload size limits
 def test_payload_size_limits():
     """Test that oversized payloads are rejected"""
     connector = A2AConnector()
@@ -278,7 +311,7 @@ def test_payload_size_limits():
         connector._prepare_arguments(task, {})
 
 
-# Test 14: JSON schema validation
+# Test 15: JSON schema validation
 @pytest.mark.asyncio
 async def test_json_schema_validation():
     """Test that A2A responses are validated"""
@@ -306,7 +339,7 @@ async def test_json_schema_validation():
         })
 
 
-# Test 15: Valid JSON schema passes
+# Test 16: Valid JSON schema passes
 @pytest.mark.asyncio
 async def test_valid_json_schema_passes():
     """Test that valid A2A responses pass validation"""
@@ -337,7 +370,7 @@ async def test_valid_json_schema_passes():
     assert result == {"data": "success"}
 
 
-# Test 16: Sanitize task description
+# Test 17: Sanitize task description
 def test_sanitize_task_description():
     """Test that task descriptions are sanitized"""
     connector = A2AConnector()
@@ -356,7 +389,7 @@ def test_sanitize_task_description():
     assert "ignore previous instructions" not in arguments["description"].lower()
 
 
-# Test 17: Sanitize task metadata
+# Test 18: Sanitize task metadata
 def test_sanitize_task_metadata():
     """Test that task metadata is sanitized"""
     connector = A2AConnector()
@@ -383,7 +416,7 @@ def test_sanitize_task_metadata():
     # They are sanitized for prompt injection but not for credentials
 
 
-# Test 18: HTTP session reuse
+# Test 19: HTTP session reuse
 @pytest.mark.asyncio
 async def test_http_session_reuse():
     """Test that HTTP session is reused across requests"""
@@ -417,7 +450,7 @@ async def test_http_session_reuse():
     # Cannot check connector._session.closed here as it may be None after __aexit__
 
 
-# Test 19: Circuit breaker with rate limiting
+# Test 20: Circuit breaker with rate limiting
 @pytest.mark.asyncio
 async def test_circuit_breaker_with_rate_limiting():
     """Test that rate limiting is checked before circuit breaker"""
@@ -436,7 +469,7 @@ async def test_circuit_breaker_with_rate_limiting():
         })
 
 
-# Test 20: Error text redaction
+# Test 21: Error text redaction
 @pytest.mark.asyncio
 async def test_error_text_redaction():
     """Test that error responses have credentials redacted"""
@@ -469,7 +502,7 @@ async def test_error_text_redaction():
         assert "[REDACTED" in error_message
 
 
-# Test 21: Tool name whitelist validation
+# Test 22: Tool name whitelist validation
 def test_tool_name_whitelist_validation():
     """Test that only whitelisted tool names are allowed"""
     connector = A2AConnector()
@@ -486,7 +519,7 @@ def test_tool_name_whitelist_validation():
     assert result == "generate_backend"  # Fallback
 
 
-# Test 22: Agent name whitelist validation
+# Test 23: Agent name whitelist validation
 def test_agent_name_whitelist_validation():
     """Test that only whitelisted agent names are allowed"""
     connector = A2AConnector()
@@ -502,7 +535,7 @@ def test_agent_name_whitelist_validation():
         connector._map_agent_name("malicious_hacker_agent")
 
 
-# Test 23: Context manager cleanup
+# Test 24: Context manager cleanup
 @pytest.mark.asyncio
 async def test_context_manager_cleanup():
     """Test that context manager properly cleans up session"""
@@ -517,7 +550,7 @@ async def test_context_manager_cleanup():
     assert session.closed
 
 
-# Test 24: Rate limit recording
+# Test 25: Rate limit recording
 def test_rate_limit_recording():
     """Test that requests are recorded for rate limiting"""
     connector = A2AConnector()
@@ -533,7 +566,7 @@ def test_rate_limit_recording():
     assert len(connector.agent_request_timestamps["marketing"]) == initial_agent_count + 1
 
 
-# Test 25: Multiple tool name injection patterns
+# Test 26: Multiple tool name injection patterns
 def test_multiple_tool_name_injection_patterns():
     """Test various tool name injection patterns"""
     connector = A2AConnector()

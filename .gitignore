@@ -6,3 +6,23 @@ results/
 *.json
 __pycache__/
 *.pyc
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Python cache
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+.coverage.*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

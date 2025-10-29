@@ -1,14 +1,14 @@
 {
   "test": "Concurrent Agent Safety (15 agents \u00d7 100 requests)",
-  "timestamp": "2025-10-22T20:37:31.466196",
+  "timestamp": "2025-10-28T14:34:11.982079",
   "num_agents": 15,
   "requests_per_agent": 100,
   "total_requests": 1500,
-  "elapsed_seconds": 1.68,
-  "throughput_rps": 891.06,
+  "elapsed_seconds": 2.66,
+  "throughput_rps": 564.05,
   "latency": {
-    "avg_ms": 16.63,
-    "p95_ms": 23.63
+    "avg_ms": 26.23,
+    "p95_ms": 75.35
   },
   "validation": "No contention or race conditions detected",
   "status": "PASS"

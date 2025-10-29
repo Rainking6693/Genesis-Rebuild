@@ -269,6 +269,149 @@ class DeepSeekOCRService:
 
         return results
 
+    def warmup_cache(
+        self,
+        sample_images: Optional[List[str]] = None,
+        modes: Optional[List[str]] = None
+    ) -> Dict:
+        """
+        Warmup OCR cache by pre-processing frequently used images.
+
+        ISSUE 6 FIX: Cache warmup strategy to improve first-request performance.
+
+        Strategy:
+        1. Process sample images with different modes
+        2. Cache results for instant retrieval
+        3. Report cache hit rates and warmup success
+
+        Args:
+            sample_images: List of image paths to pre-process (default: test samples)
+            modes: OCR modes to warmup (default: ["document", "raw"])
+
+        Returns:
+            Dict with warmup statistics:
+                - images_processed: Number of images warmed up
+                - cache_entries_created: Number of cache files created
+                - total_warmup_time: Time spent in warmup (seconds)
+                - failures: List of failed image paths
+                - success_rate: Percentage of successful warmups
+
+        Example:
+            service = DeepSeekOCRService()
+            result = service.warmup_cache([
+                "/path/to/common_invoice.png",
+                "/path/to/common_receipt.png"
+            ])
+            print(f"Warmed up {result['cache_entries_created']} cache entries")
+        """
+        if modes is None:
+            modes = ["document", "raw"]
+
+        if sample_images is None:
+            # Use test samples if available
+            test_images_dir = Path(__file__).parent.parent.parent / "tests" / "test_images"
+            if test_images_dir.exists():
+                sample_images = [
+                    str(p) for p in test_images_dir.glob("*.png")
+                ][:5]  # Limit to 5 test images
+            else:
+                logger.warning("No sample images provided and test_images directory not found")
+                return {
+                    'images_processed': 0,
+                    'cache_entries_created': 0,
+                    'total_warmup_time': 0.0,
+                    'failures': [],
+                    'success_rate': 0.0
+                }
+
+        logger.info(f"Starting cache warmup: {len(sample_images)} images, {len(modes)} modes")
+        start_time = time.time()
+
+        cache_entries_created = 0
+        failures = []
+        images_processed = 0
+
+        for image_path in sample_images:
+            if not Path(image_path).exists():
+                logger.warning(f"Sample image not found: {image_path}")
+                failures.append(image_path)
+                continue
+
+            for mode in modes:
+                try:
+                    # Process and cache
+                    result = self.process_image(image_path, mode=mode)
+                    if 'error' not in result:
+                        cache_entries_created += 1
+                    images_processed += 1
+                except Exception as e:
+                    logger.error(f"Warmup failed for {image_path} (mode={mode}): {e}")
+                    failures.append(f"{image_path}:{mode}")
+
+        total_warmup_time = time.time() - start_time
+        total_attempts = len(sample_images) * len(modes)
+        success_rate = (cache_entries_created / total_attempts * 100) if total_attempts > 0 else 0.0
+
+        warmup_stats = {
+            'images_processed': images_processed,
+            'cache_entries_created': cache_entries_created,
+            'total_warmup_time': total_warmup_time,
+            'failures': failures,
+            'success_rate': success_rate
+        }
+
+        logger.info(
+            f"Cache warmup complete: {cache_entries_created} entries in {total_warmup_time:.2f}s "
+            f"({success_rate:.1f}% success)"
+        )
+
+        return warmup_stats
+
+    def get_cache_stats(self) -> Dict:
+        """
+        Get cache statistics for monitoring.
+
+        Returns:
+            Dict with cache statistics:
+                - cache_dir: Cache directory path
+                - cache_enabled: Whether caching is enabled
+                - total_entries: Number of cached results
+                - cache_size_mb: Total cache size in MB
+                - oldest_entry: Timestamp of oldest cache entry
+                - newest_entry: Timestamp of newest cache entry
+        """
+        if not self.enable_cache:
+            return {
+                'cache_enabled': False,
+                'cache_dir': str(self.cache_dir),
+                'total_entries': 0,
+                'cache_size_mb': 0.0
+            }
+
+        cache_files = list(self.cache_dir.glob("*.json"))
+        total_entries = len(cache_files)
+
+        # Calculate total cache size
+        total_size_bytes = sum(f.stat().st_size for f in cache_files)
+        cache_size_mb = total_size_bytes / (1024 * 1024)
+
+        # Find oldest and newest entries
+        oldest_entry = None
+        newest_entry = None
+        if cache_files:
+            sorted_files = sorted(cache_files, key=lambda f: f.stat().st_mtime)
+            oldest_entry = datetime.fromtimestamp(sorted_files[0].stat().st_mtime).isoformat()
+            newest_entry = datetime.fromtimestamp(sorted_files[-1].stat().st_mtime).isoformat()
+
+        return {
+            'cache_enabled': True,
+            'cache_dir': str(self.cache_dir),
+            'total_entries': total_entries,
+            'cache_size_mb': round(cache_size_mb, 2),
+            'oldest_entry': oldest_entry,
+            'newest_entry': newest_entry
+        }
+
     def health_check(self) -> Dict:
         """Health check endpoint"""
         return {

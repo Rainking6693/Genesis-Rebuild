@@ -20,6 +20,14 @@ from infrastructure.task_dag import TaskDAG, Task
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_DIR_THRESHOLDS = {
+    "min_reward_mean": 0.2,
+    "min_positive_rate": 0.6,
+    "min_safety_delta": 0.05,
+    "target_unsafe_reduction": 0.35,
+    "target_overrefusal_reduction": 0.35,
+}
+
 
 # Data structures for HALO router integration (Phase 1.4 will implement full HALO)
 @dataclass
@@ -51,6 +59,8 @@ class ValidationResult:
     issues: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
     quality_score: Optional[float] = None  # 0.0 to 1.0
+    dir_validation_passed: Optional[bool] = None
+    dir_report: Optional[Dict[str, Any]] = None
 
     @property
     def is_valid(self) -> bool:
@@ -80,6 +90,7 @@ class ValidationResult:
             f"  Solvability: {'✓' if self.solvability_passed else '✗'}\n"
             f"  Completeness: {'✓' if self.completeness_passed else '✗'}\n"
             f"  Non-redundancy: {'✓' if self.redundancy_passed else '✗'}\n"
+            f"  DIR Validation: {'✓' if self.dir_validation_passed else '—'}\n"
             f"  Issues: {len(self.issues)}\n"
             f"  Warnings: {len(self.warnings)}"
         )
@@ -118,7 +129,9 @@ class AOPValidator:
         self,
         routing_plan: RoutingPlan,
         dag: TaskDAG,
-        max_budget: Optional[float] = None
+        max_budget: Optional[float] = None,
+        dir_report: Optional[Dict[str, Any]] = None,
+        dir_thresholds: Optional[Dict[str, float]] = None
     ) -> ValidationResult:
         """
         Validate routing plan with 3 principles + budget constraint + security checks:
@@ -127,11 +140,14 @@ class AOPValidator:
         3. Non-redundancy: No duplicate work?
         4. Budget validation: Does plan fit within budget? (DAAO Phase 2)
         5. Security: DAG cycle detection and depth limits (Phase 3)
+        6. Optional WaltzRL DIR validation for collaborative safety
 
         Args:
             routing_plan: Routing plan from HALO router (possibly DAAO-optimized)
             dag: Task DAG from HTDAG decomposition
             max_budget: Optional maximum budget in USD (DAAO Phase 2)
+            dir_report: Optional DIR report dictionary from WaltzRL evaluations
+            dir_thresholds: Optional overrides for DIR validation thresholds
 
         Returns:
             ValidationResult with pass/fail status and quality score
@@ -198,6 +214,72 @@ class AOPValidator:
             result.issues.extend(security_result["issues"])
             result.warnings.extend(security_result.get("warnings", []))
             self.logger.warning(f"Security check FAILED: {len(security_result['issues'])} issues")
+
+        # Optional WaltzRL DIR validation
+        if dir_report:
+            thresholds = DEFAULT_DIR_THRESHOLDS.copy()
+            if dir_thresholds:
+                thresholds.update(dir_thresholds)
+
+            dir_passed = True
+            reward_stats = dir_report.get("reward_stats", {})
+            component_averages = dir_report.get("component_averages", {})
+            improvements = dir_report.get("improvements", {})
+
+            mean_reward = reward_stats.get("mean", 0.0)
+            positive_rate = reward_stats.get("positive_rate", 0.0)
+            safety_delta = component_averages.get("safety_delta", 0.0)
+
+            if mean_reward < thresholds["min_reward_mean"]:
+                result.issues.append(
+                    f"DIR reward mean {mean_reward:.2f} below threshold "
+                    f"{thresholds['min_reward_mean']:.2f}"
+                )
+                dir_passed = False
+
+            if positive_rate < thresholds["min_positive_rate"]:
+                result.issues.append(
+                    f"DIR positive reward rate {positive_rate:.2f} below threshold "
+                    f"{thresholds['min_positive_rate']:.2f}"
+                )
+                dir_passed = False
+
+            if safety_delta < thresholds["min_safety_delta"]:
+                result.issues.append(
+                    f"Average safety improvement {safety_delta:.3f} below threshold "
+                    f"{thresholds['min_safety_delta']:.3f}"
+                )
+                dir_passed = False
+
+            unsafe_reduction = improvements.get("unsafe_reduction")
+            if unsafe_reduction is not None and unsafe_reduction < thresholds["target_unsafe_reduction"]:
+                result.issues.append(
+                    f"Unsafe reduction {unsafe_reduction:.2f} below target "
+                    f"{thresholds['target_unsafe_reduction']:.2f}"
+                )
+                dir_passed = False
+
+            overrefusal_reduction = improvements.get("overrefusal_reduction")
+            if overrefusal_reduction is not None and overrefusal_reduction < thresholds["target_overrefusal_reduction"]:
+                result.issues.append(
+                    f"Over-refusal reduction {overrefusal_reduction:.2f} below target "
+                    f"{thresholds['target_overrefusal_reduction']:.2f}"
+                )
+                dir_passed = False
+
+            if unsafe_reduction is None or overrefusal_reduction is None:
+                result.warnings.append(
+                    "DIR report missing comparative metrics; unable to verify reduction targets"
+                )
+
+            result.dir_validation_passed = dir_passed
+            result.dir_report = dir_report
+
+            if not dir_passed:
+                result.passed = False
+                self.logger.warning("DIR validation FAILED", extra={"dir_report": dir_report})
+            else:
+                self.logger.info("DIR validation passed", extra={"dir_report": dir_report})
 
         # Calculate quality score (from ORCHESTRATION_DESIGN.md reward model)
         if result.passed:

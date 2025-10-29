@@ -69,6 +69,11 @@ docs = [
     "sphinx-rtd-theme>=2.0.0",
 ]
 
+openenv = [
+    "playwright>=1.40.0",
+    "supabase>=2.0.0",
+]
+
 # Black configuration
 [tool.black]
 line-length = 100
@@ -197,6 +202,9 @@ severity = "medium"
 confidence = "medium"
 
 # pytest configuration (basic - full config in pytest.ini)
+# NOTE: Plugins (asyncio, rerunfailures) are ENABLED by default when installed
+#       Markers registered in pytest.ini for graceful fallback when missing
+#       Use SANDBOX_MODE=1 environment variable to disable plugins if needed
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests"]

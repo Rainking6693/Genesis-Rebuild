@@ -1,17 +1,17 @@
 {
   "test": "Phase 3 Regression Validation",
-  "timestamp": "2025-10-22T20:37:51.646036",
+  "timestamp": "2025-10-28T15:34:14.043278",
   "phase3_baseline": {
     "halo_routing_ms": 110.18,
     "total_system_ms": 131.57
   },
   "waltzrl_overhead": {
-    "avg_ms": 0.65,
-    "p95_ms": 0.69
+    "avg_ms": 1.19,
+    "p95_ms": 3.72
   },
   "combined_system": {
-    "avg_ms": 132.22,
-    "p95_ms": 132.26,
+    "avg_ms": 132.76,
+    "p95_ms": 135.29,
     "target_ms": 400
   },
   "regression_detected": false,

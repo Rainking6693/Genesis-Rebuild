@@ -1,0 +1,19 @@
+================================================================================
+AGENT-FLAN DATASET ANALYSIS SUMMARY
+================================================================================
+
+DATASET OVERVIEW:
+  Total Examples: 0
+  Number of Splits: 0
+
+SPLITS:
+
+GENESIS AGENT CATEGORIZATION:
+  uncategorized: 0
+
+GENESIS-RELEVANT SUBSET:
+  Total Selected: 0
+
+INSTRUCTION TYPE DISTRIBUTION:
+
+================================================================================
