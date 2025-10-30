@@ -1,0 +1,603 @@
+openapi: 3.1.0
+info:
+  title: Genesis HTDAG Task Decomposition API
+  version: 1.0.0
+  description: |
+    API for hierarchical task decomposition into directed acyclic graphs (DAGs).
+
+    Based on Deep Agent (arXiv:2502.07056), this endpoint decomposes complex user requests
+    into structured task hierarchies with dependencies.
+
+    **Key Features:**
+    - LLM-based decomposition with security hardening
+    - Recursive task breakdown (max 5 levels)
+    - Cycle detection and DAG validation
+    - Test-time compute optimization (best-of-N, beam search)
+    - Graceful fallback to heuristic decomposition
+    - Circuit breaker for repeated LLM failures
+
+    **Author:** Hudson (Code Review & Quality Specialist)
+    **Created:** 2025-10-30
+    **Source File:** `infrastructure/htdag_planner.py`
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+  - url: https://staging.genesis.ai/api
+    description: Staging server
+  - url: https://genesis.ai/api
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /orchestrate/decompose:
+    post:
+      summary: Decompose user request into hierarchical task DAG
+      description: |
+        Decomposes a high-level user request into a directed acyclic graph (DAG) of subtasks.
+
+        **Decomposition Process:**
+        1. Sanitize and validate input (max 5000 chars, no malicious patterns)
+        2. LLM generates initial task breakdown
+        3. Security validation (prompt injection detection)
+        4. Recursive decomposition of complex tasks (max depth 5)
+        5. Cycle detection and DAG validation
+        6. Optional test-time compute optimization (best-of-N sampling)
+
+        **Example Use Cases:**
+        - "Build a SaaS product for project management"
+          → Design, Implement, Test, Deploy, Market tasks
+        - "Analyze sales data and create dashboard"
+          → Data collection, Analysis, Visualization tasks
+
+        **Limits:**
+        - Max request length: 5000 characters
+        - Max recursion depth: 5 levels
+        - Max total tasks: 1000 per DAG
+        - Max updates per DAG: 10
+
+      operationId: decomposeTask
+      tags:
+        - Orchestration
+        - HTDAG
+
+      parameters:
+        - name: X-Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: |
+            Required idempotency key for task decomposition.
+            Prevents duplicate DAGs from accidental retries.
+
+        - name: X-Schema-Version
+          in: header
+          required: false
+          schema:
+            type: string
+            pattern: '^v\d+\.\d+\.\d+$'
+            default: "v1.0.0"
+
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_request
+              properties:
+                user_request:
+                  type: string
+                  minLength: 10
+                  maxLength: 5000
+                  description: High-level task description from user
+                  example: "Build a SaaS product for small business project management with team collaboration features"
+
+                context:
+                  type: object
+                  description: Optional context for decomposition
+                  additionalProperties: true
+                  properties:
+                    domain:
+                      type: string
+                      description: Domain hint (e.g., "web_app", "data_analysis", "marketing")
+                      example: "web_app"
+                    constraints:
+                      type: object
+                      description: Constraints on decomposition
+                      properties:
+                        max_depth:
+                          type: integer
+                          minimum: 1
+                          maximum: 5
+                          default: 5
+                        max_tasks:
+                          type: integer
+                          minimum: 1
+                          maximum: 1000
+                          default: 100
+                        priority:
+                          type: string
+                          enum: ["low", "medium", "high", "critical"]
+                          default: "medium"
+                    user_preferences:
+                      type: object
+                      description: User preferences for decomposition
+                      properties:
+                        granularity:
+                          type: string
+                          enum: ["coarse", "medium", "fine"]
+                          default: "medium"
+                          description: Task granularity level
+
+                enable_testtime_compute:
+                  type: boolean
+                  default: false
+                  description: |
+                    Enable test-time compute optimization (best-of-N, beam search).
+                    Increases quality but also latency and cost.
+
+                testtime_strategy:
+                  type: string
+                  enum: ["best_of_n", "beam_search", "multi_agent_verification"]
+                  default: "best_of_n"
+                  description: Test-time compute strategy (if enabled)
+
+                testtime_samples:
+                  type: integer
+                  minimum: 1
+                  maximum: 20
+                  default: 5
+                  description: Number of samples for test-time compute
+
+            examples:
+              simple_request:
+                summary: Simple web app decomposition
+                value:
+                  user_request: "Build a todo list web app with user authentication"
+                  context:
+                    domain: "web_app"
+                    constraints:
+                      max_depth: 3
+                      priority: "medium"
+
+              complex_request:
+                summary: Complex SaaS product with test-time compute
+                value:
+                  user_request: "Build a SaaS product for small business project management with team collaboration, time tracking, and reporting features"
+                  context:
+                    domain: "web_app"
+                    constraints:
+                      max_depth: 5
+                      max_tasks: 50
+                      priority: "high"
+                    user_preferences:
+                      granularity: "fine"
+                  enable_testtime_compute: true
+                  testtime_strategy: "best_of_n"
+                  testtime_samples: 10
+
+              data_analysis:
+                summary: Data analysis task
+                value:
+                  user_request: "Analyze sales data from Q4 2024, identify trends, and create executive dashboard"
+                  context:
+                    domain: "data_analysis"
+                    constraints:
+                      max_depth: 4
+
+      responses:
+        '200':
+          description: Success - Task decomposed into DAG
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+                format: uuid
+            X-Schema-Version:
+              schema:
+                type: string
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - metadata
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - dag_id
+                      - tasks
+                      - dependencies
+                    properties:
+                      dag_id:
+                        type: integer
+                        description: Unique DAG identifier
+                        example: 42
+
+                      tasks:
+                        type: array
+                        description: List of tasks in DAG
+                        items:
+                          type: object
+                          required:
+                            - task_id
+                            - description
+                            - task_type
+                            - status
+                          properties:
+                            task_id:
+                              type: string
+                              description: Unique task identifier
+                              example: "task_1"
+                            description:
+                              type: string
+                              description: Task description
+                              example: "Design database schema"
+                            task_type:
+                              type: string
+                              description: Task category
+                              enum: ["design", "implement", "test", "deploy", "marketing", "support", "analytics", "security"]
+                              example: "design"
+                            status:
+                              type: string
+                              enum: ["pending", "ready", "in_progress", "completed", "failed"]
+                              default: "pending"
+                              example: "pending"
+                            priority:
+                              type: number
+                              minimum: 0.0
+                              maximum: 1.0
+                              description: Task priority (0=low, 1=high)
+                              example: 0.8
+                            estimated_complexity:
+                              type: string
+                              enum: ["trivial", "easy", "medium", "hard", "expert"]
+                              example: "medium"
+
+                      dependencies:
+                        type: object
+                        description: Task dependencies (task_id -> [parent_task_ids])
+                        additionalProperties:
+                          type: array
+                          items:
+                            type: string
+                        example:
+                          task_2: ["task_1"]
+                          task_3: ["task_1"]
+                          task_4: ["task_2", "task_3"]
+
+                      root_tasks:
+                        type: array
+                        description: Tasks with no dependencies (entry points)
+                        items:
+                          type: string
+                        example: ["task_1"]
+
+                      leaf_tasks:
+                        type: array
+                        description: Tasks with no dependents (completion points)
+                        items:
+                          type: string
+                        example: ["task_4"]
+
+                      decomposition_metadata:
+                        type: object
+                        description: Metadata about decomposition process
+                        properties:
+                          method:
+                            type: string
+                            enum: ["llm", "heuristic", "testtime_compute"]
+                            example: "llm"
+                          llm_model:
+                            type: string
+                            example: "gpt-4o"
+                          recursion_depth:
+                            type: integer
+                            example: 3
+                          total_tasks:
+                            type: integer
+                            example: 12
+                          testtime_samples_used:
+                            type: integer
+                            example: 5
+                          best_sample_score:
+                            type: number
+                            example: 0.92
+
+                  metadata:
+                    type: object
+                    required:
+                      - request_id
+                      - timestamp
+                      - execution_time_ms
+                    properties:
+                      request_id:
+                        type: string
+                        format: uuid
+                      timestamp:
+                        type: string
+                        format: date-time
+                      execution_time_ms:
+                        type: integer
+                        example: 2345
+                      tokens_used:
+                        type: integer
+                        example: 1234
+                      trace_id:
+                        type: string
+                        format: uuid
+
+              examples:
+                simple_dag:
+                  summary: Simple 4-task DAG
+                  value:
+                    data:
+                      dag_id: 42
+                      tasks:
+                        - task_id: "task_1"
+                          description: "Design database schema"
+                          task_type: "design"
+                          status: "pending"
+                          priority: 0.8
+                          estimated_complexity: "medium"
+                        - task_id: "task_2"
+                          description: "Implement backend API"
+                          task_type: "implement"
+                          status: "pending"
+                          priority: 0.7
+                          estimated_complexity: "hard"
+                        - task_id: "task_3"
+                          description: "Build frontend UI"
+                          task_type: "implement"
+                          status: "pending"
+                          priority: 0.6
+                          estimated_complexity: "medium"
+                        - task_id: "task_4"
+                          description: "Deploy to production"
+                          task_type: "deploy"
+                          status: "pending"
+                          priority: 0.9
+                          estimated_complexity: "easy"
+                      dependencies:
+                        task_2: ["task_1"]
+                        task_3: ["task_1"]
+                        task_4: ["task_2", "task_3"]
+                      root_tasks: ["task_1"]
+                      leaf_tasks: ["task_4"]
+                      decomposition_metadata:
+                        method: "llm"
+                        llm_model: "gpt-4o"
+                        recursion_depth: 2
+                        total_tasks: 4
+                    metadata:
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+                      execution_time_ms: 2345
+                      tokens_used: 1234
+
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                request_too_long:
+                  summary: Request exceeds max length
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Request exceeds maximum length"
+                      hint: "Request must be <= 5000 characters"
+                      details:
+                        length: 6000
+                        max_length: 5000
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+                malicious_input:
+                  summary: Security validation failed
+                  value:
+                    error:
+                      code: "SECURITY_ERROR"
+                      message: "Request contains suspicious patterns"
+                      hint: "Remove prompt injection attempts or system commands"
+                      details:
+                        detected_patterns: ["ignore_previous_instructions", "system_command"]
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '409':
+          description: Conflict - Idempotency key mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "IDEMPOTENCY_MISMATCH"
+                  message: "Idempotency key already used with different parameters"
+                  hint: "Use a new idempotency key or retry with exact same parameters"
+                  details:
+                    existing_dag_id: 41
+                  request_id: "550e8400-e29b-41d4-a716-446655440000"
+                  timestamp: "2025-10-30T12:00:00Z"
+
+        '422':
+          description: Unprocessable Entity - Decomposition failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                llm_failure:
+                  summary: LLM decomposition failed
+                  value:
+                    error:
+                      code: "DECOMPOSITION_ERROR"
+                      message: "LLM decomposition failed after 3 retries"
+                      hint: "Simplify request or try again later"
+                      details:
+                        llm_error: "Rate limit exceeded"
+                        fallback_used: true
+                        fallback_success: false
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+                cycle_detected:
+                  summary: Cyclic dependency detected
+                  value:
+                    error:
+                      code: "DECOMPOSITION_ERROR"
+                      message: "Cyclic dependency detected in task graph"
+                      hint: "Task dependencies must form a DAG (no cycles)"
+                      details:
+                        cycle: ["task_2", "task_3", "task_4", "task_2"]
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+                too_many_tasks:
+                  summary: Task limit exceeded
+                  value:
+                    error:
+                      code: "RESOURCE_ERROR"
+                      message: "Decomposition exceeded maximum task limit"
+                      hint: "Reduce scope or increase max_tasks limit"
+                      details:
+                        tasks_generated: 1050
+                        max_tasks: 1000
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - request_id
+            - timestamp
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            hint:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+            request_id:
+              type: string
+              format: uuid
+            timestamp:
+              type: string
+              format: date-time
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - Missing API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Forbidden - Invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    TooManyRequests:
+      description: Too Many Requests
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ServiceUnavailable:
+      description: Service Unavailable
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: Orchestration
+    description: Multi-layer orchestration system
+  - name: HTDAG
+    description: Hierarchical task decomposition

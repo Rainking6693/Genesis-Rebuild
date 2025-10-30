@@ -7,12 +7,38 @@ from azure.identity.aio import AzureCliCredential
 from tool_echo import echo
 
 def math_eval(expression: str) -> str:
-    """Evaluate a basic math expression (only digits, +, -, *, /, parentheses, spaces)."""
-    import re
-    if not re.match(r'^[\d\+\-\*/\(\)\s]+$', expression):
-        return "Error: invalid characters in expression"
+    """Evaluate a basic math expression (only digits, +, -, *, /, parentheses, spaces).
+
+    Security: Uses AST-based safe evaluation instead of eval() to prevent RCE attacks.
+    """
+    import ast
+    import operator
+
+    # Allowed operators (whitelist)
+    ops = {
+        ast.Add: operator.add,
+        ast.Sub: operator.sub,
+        ast.Mult: operator.mul,
+        ast.Div: operator.truediv,
+        ast.USub: operator.neg,
+    }
+
+    def eval_node(node):
+        """Recursively evaluate AST node (safe, no code execution)"""
+        if isinstance(node, ast.Num):  # Python 3.7 compatibility
+            return node.n
+        elif isinstance(node, ast.Constant):  # Python 3.8+
+            return node.value
+        elif isinstance(node, ast.BinOp):
+            return ops[type(node.op)](eval_node(node.left), eval_node(node.right))
+        elif isinstance(node, ast.UnaryOp):
+            return ops[type(node.op)](eval_node(node.operand))
+        else:
+            raise ValueError(f"Unsupported operation: {type(node).__name__}")
+
     try:
-        result = eval(expression, {"__builtins__": {}}, {})
+        tree = ast.parse(expression, mode='eval')
+        result = eval_node(tree.body)
         return str(result)
     except Exception as e:
         return f"Error: {str(e)}"

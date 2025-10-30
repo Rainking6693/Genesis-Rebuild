@@ -318,20 +318,35 @@ class DeepSeekOCRCompressor:
         Extract grounding boxes from raw output
 
         Format: <|ref|>label<|/ref|><|det|>[[x1,y1,x2,y2], ...]<|/det|>
+
+        Security: Uses ast.literal_eval() to prevent RCE attacks via malicious OCR outputs.
         """
+        import ast
+
         pattern = r'<\|ref\|>(.*?)<\|/ref\|><\|det\|>(.*?)<\|/det\|>'
         matches = re.findall(pattern, raw_output, re.DOTALL)
 
         boxes = []
         for label, coords_str in matches:
             try:
-                # Parse coordinates (normalized 0-999)
-                coords_list = eval(coords_str)
+                # SECURITY FIX: Use ast.literal_eval() instead of eval()
+                # This prevents RCE if OCR model returns malicious code
+                # Only allows safe Python literals (list, tuple, int, float, str, dict)
+                coords_list = ast.literal_eval(coords_str)
+
+                # Validate coords_list is a list of valid coordinates
+                if not isinstance(coords_list, list):
+                    logger.warning(f"Grounding box coords not a list: {type(coords_list)}")
+                    continue
+
                 boxes.append({
                     "label": label.strip(),
                     "coords": coords_list,
                     "normalized": True  # Coords are 0-999, need denormalization
                 })
+            except (ValueError, SyntaxError) as e:
+                # ast.literal_eval raises ValueError for invalid literals
+                logger.warning(f"Failed to parse grounding box (possible malicious input): {e}")
             except Exception as e:
                 logger.warning(f"Failed to parse grounding box: {e}")
 

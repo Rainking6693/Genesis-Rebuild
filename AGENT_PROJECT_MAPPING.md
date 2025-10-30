@@ -1588,7 +1588,173 @@ Cora: Technical documentation
 
 ---
 
-## 🎯 EXECUTION ORDER (UPDATED October 25, 2025)
+## 📋 PHASE 7: STRATEGIC INTEGRATIONS (October 30 - November 22, 2025)
+
+**Status:** ⏳ **PLANNING PHASE** - Research complete, ready for implementation
+**Timeline:** 3-4 weeks (7 parallel work streams)
+**Full Details:** See `docs/PHASE_7_SEVEN_ADDITIONS_OCT30_2025.md`
+
+### 7.1 Training & Data Infrastructure (4 Systems)
+
+#### 7.1.1 DeepResearch Data Pipeline ⏳ **PLANNED**
+**Assigned:** Vanguard (lead), Nova (support), Thon (support)
+**Timeline:** 3 weeks
+**Purpose:** Generate 20,000+ synthetic training examples for all 15 agents
+**Deliverables:**
+- DeepResearch environment setup (Week 1)
+- 15 agent-specific prompt templates + 20,000 examples (Week 2)
+- Unsloth pipeline integration + validation (Week 3)
+**Technology:** Alibaba's 30.5B MoE model, ReAct + IterResearch modes
+**Success Criteria:** 20,000+ examples, ≥90% quality score (Hudson review)
+**Audit:** Hudson (quality), Cora (prompt design)
+
+#### 7.1.2 Agent Data Protocol (ADP) ⏳ **PLANNED**
+**Assigned:** Cora (lead), River (support), Thon (support)
+**Timeline:** 3 weeks
+**Purpose:** Unified training format enabling cross-agent learning (Legal ← Support)
+**Deliverables:**
+- ADP format specification + CaseBank schema mapping (Week 1)
+- Convert casebank.jsonl to ADP format (Week 2)
+- Cross-agent training validation: Legal+Support data (Week 3)
+**Technology:** arXiv:2510.24702 "interlingua" for agent training data
+**Success Criteria:** 100% CaseBank converted, ≥5% cross-agent improvement
+**Validation:** Vanguard (training benchmarks), Nova (fine-tuning)
+
+#### 7.1.3 Socratic-Zero Bootstrapping ⏳ **PLANNED**
+**Assigned:** Vanguard (lead), Cora (support), Nova (support), Thon (support)
+**Timeline:** 3 weeks
+**Purpose:** Bootstrap 5,000 examples from 100 seeds for reasoning-heavy agents
+**Deliverables:**
+- Socratic-Zero environment + 100 Analyst seed examples (Week 1)
+- Generate 5,000 examples (50x expansion) + quality check (Week 2)
+- Fine-tune Analyst + benchmark business reasoning tasks (Week 3)
+**Technology:** 3-agent system (Solver/Teacher/Generator), arXiv:2509.24726
+**Success Criteria:** 5,000+ examples, ≥80% quality, ≥10% performance improvement
+**Audit:** Hudson (quality review)
+
+#### 7.1.4 Memento CaseBank Enhancement ✅ **ALREADY INTEGRATED**
+**Status:** ✅ Completed in Phase 6 (October 25, 2025)
+**Deliverables:** 15-25% accuracy boost via case-based learning
+**Note:** Listed here for completeness, no additional work required
+
+### 7.2 Compliance & Safety (1 System)
+
+#### 7.2.1 SAE PII Probes ⏳ **PLANNED**
+**Assigned:** Sentinel (lead), Nova (support), Thon (support)
+**Timeline:** 3 weeks
+**Purpose:** 96% F1 PII detection for GDPR/CCPA compliance (10-500x cheaper than LLM judges)
+**Deliverables:**
+- Custom SAE implementation + classifier training (Week 1)
+- Sidecar service (port 8003) + WaltzRL integration (Week 2)
+- Test dataset validation + visual proof (Week 3)
+**Technology:** Goodfire/Rakuten SAE probes on Llama 3.1 8B activations
+**Success Criteria:** ≥95% F1 score, <100ms latency, zero critical PII false negatives
+**Audit:** Hudson (security), Alex (E2E visual validation)
+
+### 7.3 DevOps & Monitoring (2 Systems)
+
+#### 7.3.1 Rogue Automated Testing ⏳ **PLANNED**
+**Assigned:** Forge (lead), Alex (support)
+**Timeline:** 3 weeks
+**Purpose:** Replace manual testing with 1,500+ automated compliance scenarios
+**Deliverables:**
+- Rogue installation + Genesis A2A integration (Week 1)
+- Generate 1,500 test scenarios (15 agents × 100 tests) + baseline (Week 2)
+- CI/CD pipeline integration (GitHub Actions) (Week 3)
+**Technology:** Dynamic test generation, A2A protocol, CLI automation
+**Success Criteria:** 1,500+ scenarios, ≥95% pass rate, CI/CD blocking <95%
+**Review:** Hudson (compliance rules), Cora (test scenarios)
+
+#### 7.3.2 shadcn/ui Dashboard ⏳ **HIGH PRIORITY**
+**Assigned:** Alex (lead), Cora (design), Thon (backend)
+**Timeline:** 2-3 days (8-12 hours sprint)
+**Purpose:** Professional monitoring UI for 15 agents (OTEL traces, HALO routing, CaseBank)
+**Deliverables:**
+- Dashboard scaffolding + 6 core views (Day 1: 4 hours)
+- Data integration (Prometheus, OTEL, CaseBank) (Day 2: 4 hours)
+- Visual validation + security audit (Day 3: 2-4 hours)
+**Technology:** Next.js + TypeScript + Tailwind + Radix UI + shadcn/ui components
+**Success Criteria:** 6 views operational, real-time updates (<5s), 10+ screenshots, ≥9/10 UX score
+**Audit:** Hudson (security, auth), Cora (UX, information architecture)
+**Note:** Expedited timeline for October 30-31 sprint
+
+### 7.4 Research & Evaluation (1 System)
+
+#### 7.4.1 Orra Coordination Layer ⏳ **RESEARCH PHASE**
+**Assigned:** Oracle (lead), Cora (support), Nexus (support)
+**Timeline:** 3 weeks (research-first approach)
+**Purpose:** Evaluate "Plan Engine" for potential HTDAG enhancement
+**Deliverables:**
+- Deep research: Papers, GitHub, technical blogs (Week 1)
+- Proof-of-concept benchmark: HTDAG vs. Orra on 10 tasks (Week 2)
+- Decision: Integrate/complement/skip + integration design (Week 3)
+**Status:** ⚠️ **LIMITED INFORMATION** - TheUnwindAI website lacks technical specs
+**Success Criteria:** Detailed technical understanding OR decision to skip
+**Audit:** Hudson (security if integration approved)
+
+### 7.5 Phase 7 Timeline & Dependencies
+
+**Week 1 (Nov 4-8, 2025): Setup & Research**
+- Parallel Track A (Data): DeepResearch, ADP, Socratic-Zero
+- Parallel Track B (Safety): SAE PII Probes
+- Parallel Track C (DevOps): Rogue, shadcn/ui (8-12 hour sprint)
+- Research: Orra deep dive
+
+**Week 2 (Nov 11-15, 2025): Implementation**
+- Data: Generate 20K+ examples, convert CaseBank, bootstrap 5K examples
+- Safety: SAE integration with WaltzRL
+- DevOps: Generate 1,500 test scenarios, complete dashboard
+
+**Week 3 (Nov 18-22, 2025): Validation**
+- Data: Fine-tuning validation, cross-agent learning benchmarks
+- Safety: PII detection E2E testing
+- DevOps: CI/CD integration, visual validation
+- Orra: Integrate/complement/skip decision
+
+**Dependencies:**
+- DeepResearch → Unsloth (generated data feeds fine-tuning)
+- ADP → CaseBank (unified format enables cross-learning)
+- SAE Probes → WaltzRL (PII detection enhances safety)
+- Rogue → CI/CD (automated testing blocks unsafe merges)
+- shadcn/ui → Monitoring (dashboard visualizes all Phase 1-6 systems)
+
+### 7.6 Phase 7 Agent Assignments Summary
+
+| System | Lead | Support | Audit/Review |
+|--------|------|---------|--------------|
+| DeepResearch | Vanguard | Nova, Thon | Hudson, Cora |
+| SAE PII Probes | Sentinel | Nova, Thon | Hudson, Alex |
+| ADP | Cora | River, Thon | Vanguard, Nova |
+| Rogue | Forge | Alex | Hudson, Cora |
+| shadcn/ui | Alex | Cora, Thon | Hudson, Cora |
+| Socratic-Zero | Vanguard | Cora, Nova, Thon | Hudson |
+| Orra | Oracle | Cora, Nexus | Hudson (conditional) |
+
+### 7.7 Phase 7 Success Metrics
+
+**Training & Data:**
+- ✅ 20,000+ synthetic examples (DeepResearch)
+- ✅ 100% CaseBank converted to ADP
+- ✅ ≥5% cross-agent improvement (ADP)
+- ✅ 5,000+ bootstrapped examples (Socratic-Zero)
+
+**Compliance & Safety:**
+- ✅ ≥95% F1 PII detection (SAE Probes)
+- ✅ <100ms latency, 10x cost reduction
+
+**DevOps & Monitoring:**
+- ✅ 1,500+ test scenarios (Rogue)
+- ✅ ≥95% pass rate, CI/CD blocking
+- ✅ 6 dashboard views, 10+ screenshots (shadcn/ui)
+
+**Overall:**
+- ✅ 7/7 systems integrated (or 6/7 if Orra skipped)
+- ✅ Zero regressions on Phase 1-6 (maintain 227/229 = 99.1%)
+- ✅ Hudson approval ≥9/10 for all critical systems
+
+---
+
+## 🎯 EXECUTION ORDER (UPDATED October 30, 2025)
 
 **Week 2 (Days 8-11):** ✅ **COMPLETE**
 1. Phase 1: Core components
@@ -1621,53 +1787,64 @@ Cora: Technical documentation
     - Day 2 (Tier 3): OpenEnv External-Tool Agent, Long-Context Profile Optimization
     - Total Impact: 88-92% cost reduction, 227/229 tests passing (99.1%)
 
-**POST-DEPLOYMENT:**
+**Week 7 (October 30, 2025):** ✅ **COMPLETE**
+14. **Vertex AI Tuned Models Integration** - 6 Genesis agents with tuned Gemini models
+    - infrastructure/vertex_client.py (role-based routing)
+    - api/routes/agents.py (FastAPI endpoint)
+    - scripts/check_vertex_setup.py + smoke_test_vertex.py
+    - Graceful fallback to gemini-2.0-flash-001
+    - All 6 agents passing smoke tests
 
-**Week 1 Post-Deployment:**
-- Production deployment execution (7-day progressive rollout)
-- System stabilization and monitoring
-- Performance validation (46.3% faster, 52% cost reduction)
+**Week 8 (November 4-22, 2025):** ⏳ **PLANNED** ⭐ **CURRENT**
+15. **Phase 7: Strategic Integrations** - 7 cutting-edge systems (3-4 weeks)
+    - **Week 1 (Nov 4-8):** Setup & Research
+      - DeepResearch environment (Vanguard, Nova, Thon)
+      - ADP format specification (Cora, River, Thon)
+      - Socratic-Zero environment (Vanguard, Cora)
+      - SAE PII Probes research (Sentinel, Nova)
+      - Rogue + shadcn/ui setup (Forge, Alex) - 8-12 hour sprint
+      - Orra deep research (Oracle, Cora, Nexus)
+    - **Week 2 (Nov 11-15):** Implementation
+      - Generate 20K+ synthetic examples
+      - Convert CaseBank to ADP format
+      - SAE PII integration with WaltzRL
+      - Generate 1,500 Rogue test scenarios
+      - Complete shadcn/ui dashboard
+    - **Week 3 (Nov 18-22):** Validation
+      - Fine-tuning validation + cross-agent benchmarks
+      - PII detection E2E testing
+      - CI/CD integration + visual validation
+      - Orra decision: integrate/complement/skip
 
-**Week 2-3 Post-Deployment (IN PROGRESS):** ⭐ **CURRENT**
-11. **WaltzRL Safety Integration** (TIER 1) - 25% COMPLETE
-    - ✅ Design document complete (500+ lines)
-    - ✅ Feedback agent module complete (500 lines)
-    - ⏳ Conversation agent (assigned: Thon)
-    - ⏳ Safety wrapper (assigned: Thon)
-    - ⏳ DIR calculator (assigned: Thon)
-    - ⏳ Unit tests 50+ (assigned: Thon)
-    - ⏳ Code review (assigned: Hudson)
-    - ⏳ E2E testing with screenshots (assigned: Alex)
-    - ⏳ Stage 1: Feedback agent training (Week 2)
-    - ⏳ Stage 2: Joint DIR training (Week 3)
-    - ⏳ HALO router integration (Week 2-3)
-    - ⏳ Safety audit and validation (end of Week 3)
-    - Expected: 89% unsafe reduction + 78% over-refusal reduction
+**POST-PHASE 7 (November 25+):**
 
-**Week 3-4 Post-Deployment (TIER 2):**
-12. Early Experience Sandbox (Layer 2 pre-flight)
-13. Tensor Logic Reasoning (Layer 2 validation + Layer 6 RAG)
+**Weeks 9-10 (TIER 2):**
+16. Early Experience Sandbox (Layer 2 pre-flight)
+17. Tensor Logic Reasoning (Layer 2 validation + Layer 6 RAG)
 
-**Week 4+ Post-Deployment:**
-14. Layer 6 (Memory) implementation (DeepSeek-OCR + LangGraph Store + Hybrid RAG)
-15. Layer 4 (Economy) foundation (x402 protocol)
-16. Ongoing: Security, prompts, documentation
+**Weeks 11+ (TIER 3):**
+18. Layer 6 (Memory) final optimization (DeepSeek-OCR + LangGraph Store + Hybrid RAG)
+19. Layer 4 (Economy) foundation (x402 protocol)
+20. Ongoing: Security, prompts, documentation
 
 ---
 
-**CRITICAL PATH (October 25, 2025):**
+**CRITICAL PATH (October 30, 2025):**
 1. ✅ Phase 1-4 orchestration (COMPLETE)
 2. ✅ SE-Darwin integration (COMPLETE)
 3. ✅ OCR Integration (COMPLETE)
 4. ✅ WaltzRL Safety (COMPLETE)
 5. ✅ Phase 6 Optimization Sprint (COMPLETE - 88-92% cost reduction achieved)
-6. **NOW:** Production deployment (7-day progressive rollout 0% → 100%)
-7. **NEXT:** Post-deployment monitoring and stabilization (48 hours)
-8. **THEN:** Early Experience + Tensor Logic (Week 3-4 post-deployment)
-9. **FINALLY:** Layer 6 memory optimization (Week 4+ post-deployment)
+6. ✅ Vertex AI Tuned Models (COMPLETE - 6 agents with Gemini fine-tuning)
+7. **NOW:** Phase 7 Strategic Integrations (7 systems, 3-4 weeks)
+8. **NEXT:** shadcn/ui Dashboard (HIGH PRIORITY - 8-12 hour sprint Oct 30-31)
+9. **THEN:** Training data automation (DeepResearch, ADP, Socratic-Zero - Week 1-3)
+10. **FINALLY:** Compliance & testing (SAE PII, Rogue - Week 1-3)
 
 ---
 
 **END OF AGENT PROJECT MAPPING**
 
-**Next Step:** Execute production deployment (7-day progressive rollout 0% → 100%), then post-deployment monitoring and Layer 6 memory optimization
+**Next Step:** Phase 7 Strategic Integrations (November 4-22, 2025) with HIGH PRIORITY on shadcn/ui dashboard (Oct 30-31 sprint)
+
+**Updated:** October 30, 2025 - Added Phase 7 (7 strategic systems) + Vertex AI integration complete
