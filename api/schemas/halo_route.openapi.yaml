@@ -1,0 +1,562 @@
+openapi: 3.1.0
+info:
+  title: Genesis HALO Agent Routing API
+  version: 1.0.0
+  description: |
+    API for logic-based hierarchical agent routing.
+
+    Based on HALO (arXiv:2505.13516), this endpoint routes tasks from a DAG
+    to appropriate agents using declarative logic rules and capability matching.
+
+    **Key Features:**
+    - 30+ declarative routing rules (priority-ordered)
+    - Capability-based agent matching
+    - Load balancing across 15 agents
+    - Explainable agent selection (traceable reasoning)
+    - CaseBank integration (learn from past routing decisions)
+    - DAAO cost optimization integration
+
+    **Author:** Hudson (Code Review & Quality Specialist)
+    **Created:** 2025-10-30
+    **Source File:** `infrastructure/halo_router.py`
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+  - url: https://staging.genesis.ai/api
+    description: Staging server
+  - url: https://genesis.ai/api
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /orchestrate/route:
+    post:
+      summary: Route tasks to appropriate agents
+      description: |
+        Routes tasks from a DAG to suitable agents based on declarative rules and capabilities.
+
+        **Routing Algorithm:**
+        1. Apply declarative rules (priority order, highest first)
+        2. Capability-based matching (agent skills vs task requirements)
+        3. Load balancing (prefer agents with lower workload)
+        4. CaseBank lookup (learn from successful past routings)
+        5. Explainability (generate reasoning for each assignment)
+
+        **15 Available Agents:**
+        - spec: Requirements specification
+        - builder: Code generation (frontend/backend/database)
+        - qa: Quality assurance, testing
+        - security: Security audits
+        - deploy: Deployment, infrastructure
+        - marketing: Marketing strategy
+        - support: Customer support
+        - analyst: Data analysis
+        - legal: Legal compliance
+        - content: Content writing
+        - seo: SEO optimization
+        - email: Email campaigns
+        - billing: Billing, invoicing
+        - maintenance: System maintenance
+        - onboarding: User onboarding
+
+      operationId: routeTasks
+      tags:
+        - Orchestration
+        - HALO
+
+      parameters:
+        - name: X-Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Idempotency key for routing requests
+
+        - name: X-Schema-Version
+          in: header
+          required: false
+          schema:
+            type: string
+            default: "v1.0.0"
+
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - dag_id
+                - tasks
+              properties:
+                dag_id:
+                  type: integer
+                  description: DAG identifier from /orchestrate/decompose
+                  example: 42
+
+                tasks:
+                  type: array
+                  description: Tasks to route
+                  minItems: 1
+                  maxItems: 1000
+                  items:
+                    type: object
+                    required:
+                      - task_id
+                      - description
+                      - task_type
+                    properties:
+                      task_id:
+                        type: string
+                        example: "task_1"
+                      description:
+                        type: string
+                        example: "Design database schema"
+                      task_type:
+                        type: string
+                        enum: ["design", "implement", "test", "deploy", "marketing", "support", "analytics", "security"]
+                        example: "design"
+                      priority:
+                        type: number
+                        minimum: 0.0
+                        maximum: 1.0
+                        example: 0.8
+                      estimated_complexity:
+                        type: string
+                        enum: ["trivial", "easy", "medium", "hard", "expert"]
+                        example: "medium"
+                      required_skills:
+                        type: array
+                        items:
+                          type: string
+                        example: ["database", "postgresql", "schema_design"]
+
+                enable_casebank:
+                  type: boolean
+                  default: true
+                  description: Enable CaseBank learning from past successful routings
+
+                enable_cost_optimization:
+                  type: boolean
+                  default: false
+                  description: Enable DAAO cost optimization (route to cheaper models when possible)
+
+                max_workload_per_agent:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 10
+                  description: Maximum concurrent tasks per agent (load balancing)
+
+            examples:
+              simple_routing:
+                summary: Simple 4-task routing
+                value:
+                  dag_id: 42
+                  tasks:
+                    - task_id: "task_1"
+                      description: "Design database schema"
+                      task_type: "design"
+                      priority: 0.8
+                      estimated_complexity: "medium"
+                    - task_id: "task_2"
+                      description: "Implement REST API"
+                      task_type: "implement"
+                      priority: 0.7
+                      estimated_complexity: "hard"
+                    - task_id: "task_3"
+                      description: "Write integration tests"
+                      task_type: "test"
+                      priority: 0.6
+                      estimated_complexity: "medium"
+                    - task_id: "task_4"
+                      description: "Deploy to production"
+                      task_type: "deploy"
+                      priority: 0.9
+                      estimated_complexity: "easy"
+                  enable_casebank: true
+                  enable_cost_optimization: false
+
+              complex_routing_with_optimization:
+                summary: Complex routing with cost optimization
+                value:
+                  dag_id: 43
+                  tasks:
+                    - task_id: "task_1"
+                      description: "Create marketing strategy"
+                      task_type: "marketing"
+                      priority: 0.9
+                      estimated_complexity: "hard"
+                      required_skills: ["marketing", "strategy", "b2b"]
+                    - task_id: "task_2"
+                      description: "Write blog posts"
+                      task_type: "marketing"
+                      priority: 0.5
+                      estimated_complexity: "easy"
+                      required_skills: ["content_writing", "seo"]
+                    - task_id: "task_3"
+                      description: "Security audit"
+                      task_type: "security"
+                      priority: 1.0
+                      estimated_complexity: "expert"
+                      required_skills: ["security", "penetration_testing"]
+                  enable_casebank: true
+                  enable_cost_optimization: true
+                  max_workload_per_agent: 5
+
+      responses:
+        '200':
+          description: Success - Tasks routed to agents
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+                format: uuid
+            X-Schema-Version:
+              schema:
+                type: string
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - metadata
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - routing_plan
+                      - assignments
+                      - explanations
+                    properties:
+                      routing_plan:
+                        type: object
+                        description: Complete routing plan
+                        properties:
+                          is_complete:
+                            type: boolean
+                            description: True if all tasks assigned
+                            example: true
+
+                      assignments:
+                        type: object
+                        description: Task-to-agent mapping (task_id -> agent_name)
+                        additionalProperties:
+                          type: string
+                        example:
+                          task_1: "builder"
+                          task_2: "builder"
+                          task_3: "qa"
+                          task_4: "deploy"
+
+                      explanations:
+                        type: object
+                        description: Reasoning for each assignment (task_id -> explanation)
+                        additionalProperties:
+                          type: string
+                        example:
+                          task_1: "Builder agent selected: task_type='design' matches supported types, database skills available"
+                          task_2: "Builder agent selected: task_type='implement' matches supported types, API development capability"
+                          task_3: "QA agent selected: task_type='test' matches supported types, integration testing expertise"
+                          task_4: "Deploy agent selected: task_type='deploy' matches supported types, production deployment capability"
+
+                      unassigned_tasks:
+                        type: array
+                        description: Tasks without suitable agent
+                        items:
+                          type: string
+                        example: []
+
+                      workload:
+                        type: object
+                        description: Task count per agent (agent_name -> task_count)
+                        additionalProperties:
+                          type: integer
+                        example:
+                          builder: 2
+                          qa: 1
+                          deploy: 1
+                          spec: 0
+                          security: 0
+
+                      routing_metadata:
+                        type: object
+                        description: Metadata about routing process
+                        properties:
+                          rules_applied:
+                            type: integer
+                            description: Number of routing rules evaluated
+                            example: 12
+                          rules_matched:
+                            type: integer
+                            description: Number of rules that matched
+                            example: 4
+                          casebank_hits:
+                            type: integer
+                            description: Number of CaseBank matches used
+                            example: 2
+                          fallback_used:
+                            type: boolean
+                            description: True if capability matching was used (no rule matched)
+                            example: false
+                          cost_optimization_applied:
+                            type: boolean
+                            example: false
+
+                  metadata:
+                    type: object
+                    required:
+                      - request_id
+                      - timestamp
+                      - execution_time_ms
+                    properties:
+                      request_id:
+                        type: string
+                        format: uuid
+                      timestamp:
+                        type: string
+                        format: date-time
+                      execution_time_ms:
+                        type: integer
+                        example: 123
+                      trace_id:
+                        type: string
+                        format: uuid
+
+              examples:
+                complete_routing:
+                  summary: All tasks successfully routed
+                  value:
+                    data:
+                      routing_plan:
+                        is_complete: true
+                      assignments:
+                        task_1: "builder"
+                        task_2: "builder"
+                        task_3: "qa"
+                        task_4: "deploy"
+                      explanations:
+                        task_1: "Builder agent: task_type='design' + database skills"
+                        task_2: "Builder agent: task_type='implement' + API capability"
+                        task_3: "QA agent: task_type='test' + integration testing"
+                        task_4: "Deploy agent: task_type='deploy' + production capability"
+                      unassigned_tasks: []
+                      workload:
+                        builder: 2
+                        qa: 1
+                        deploy: 1
+                      routing_metadata:
+                        rules_applied: 12
+                        rules_matched: 4
+                        casebank_hits: 2
+                        fallback_used: false
+                        cost_optimization_applied: false
+                    metadata:
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+                      execution_time_ms: 123
+
+                partial_routing:
+                  summary: Some tasks unassigned (no suitable agent)
+                  value:
+                    data:
+                      routing_plan:
+                        is_complete: false
+                      assignments:
+                        task_1: "marketing"
+                        task_2: "content"
+                      explanations:
+                        task_1: "Marketing agent: task_type='marketing' + strategy skills"
+                        task_2: "Content agent: task_type='marketing' + writing skills"
+                      unassigned_tasks: ["task_3"]
+                      workload:
+                        marketing: 1
+                        content: 1
+                      routing_metadata:
+                        rules_applied: 15
+                        rules_matched: 2
+                        casebank_hits: 0
+                        fallback_used: true
+                        cost_optimization_applied: false
+                    metadata:
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+                      execution_time_ms: 156
+
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                empty_tasks:
+                  summary: No tasks provided
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Tasks array cannot be empty"
+                      hint: "Provide at least one task to route"
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+                invalid_task_type:
+                  summary: Invalid task type
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Invalid task type"
+                      hint: "Task type must be one of: design, implement, test, deploy, marketing, support, analytics, security"
+                      details:
+                        task_id: "task_1"
+                        task_type: "invalid"
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "NOT_FOUND"
+                  message: "DAG not found"
+                  hint: "Verify DAG ID from /orchestrate/decompose response"
+                  details:
+                    dag_id: 42
+                  request_id: "550e8400-e29b-41d4-a716-446655440000"
+                  timestamp: "2025-10-30T12:00:00Z"
+
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                no_suitable_agent:
+                  summary: No agent found for task
+                  value:
+                    error:
+                      code: "ROUTING_ERROR"
+                      message: "No suitable agent found for task"
+                      hint: "Task may require specialized agent not in registry"
+                      details:
+                        task_id: "task_5"
+                        task_type: "quantum_computing"
+                        required_skills: ["quantum", "qiskit"]
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+                all_agents_overloaded:
+                  summary: All agents at max capacity
+                  value:
+                    error:
+                      code: "AGENT_UNAVAILABLE"
+                      message: "All suitable agents at maximum workload"
+                      hint: "Wait for agents to complete tasks or increase max_workload_per_agent"
+                      details:
+                        task_id: "task_6"
+                        suitable_agents: ["builder", "qa"]
+                        current_workload: {"builder": 10, "qa": 10}
+                        max_workload: 10
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - request_id
+            - timestamp
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            hint:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+            request_id:
+              type: string
+              format: uuid
+            timestamp:
+              type: string
+              format: date-time
+
+  responses:
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: Orchestration
+    description: Multi-layer orchestration system
+  - name: HALO
+    description: Hierarchical agent logic orchestration

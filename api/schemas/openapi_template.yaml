@@ -1,0 +1,571 @@
+openapi: 3.1.0
+info:
+  title: Genesis API Template
+  version: 1.0.0
+  description: |
+    Reusable OpenAPI 3.1 template for Genesis multi-agent system APIs.
+
+    This template defines common components used across all Genesis endpoints:
+    - Structured error responses with ErrorCode enum
+    - Idempotency headers for mutation operations
+    - Semantic versioning headers
+    - Rate limiting headers
+    - Authentication via API key
+    - OTEL correlation IDs for distributed tracing
+
+    Author: Hudson (Code Review & Quality Specialist)
+    Created: 2025-10-30
+  contact:
+    name: Genesis Team
+    email: genesis@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+  - url: https://staging.genesis.ai/api
+    description: Staging server
+  - url: https://genesis.ai/api
+    description: Production server
+
+# Common security schemes
+security:
+  - ApiKeyAuth: []
+
+# Common components reused across all Genesis APIs
+components:
+
+  # Security Schemes
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        API key for authentication. Required in production, optional in development.
+        Obtain from environment variable: GENESIS_API_KEY or A2A_API_KEY.
+
+  # Common Parameters (reusable via $ref)
+  parameters:
+
+    IdempotencyKey:
+      name: X-Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+      description: |
+        UUID for idempotent requests. Required for POST/PUT/PATCH operations.
+        Repeat requests with same key within 24 hours return cached response.
+        Prevents duplicate operations (e.g., double billing, duplicate tasks).
+
+    SchemaVersion:
+      name: X-Schema-Version
+      in: header
+      required: false
+      schema:
+        type: string
+        pattern: '^v\d+\.\d+\.\d+$'
+        default: "v1.0.0"
+        example: "v1.2.3"
+      description: |
+        API schema version for backward compatibility.
+        Format: vMAJOR.MINOR.PATCH (semantic versioning).
+        Breaking changes increment MAJOR, new features increment MINOR, fixes increment PATCH.
+
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+        example: "7f8d9c2a-3b4e-5f6a-7c8d-9e0f1a2b3c4d"
+      description: |
+        Optional correlation ID for distributed tracing (OpenTelemetry).
+        If not provided, server generates one. Use to track requests across services.
+
+  # Common Headers (response headers)
+  headers:
+
+    X-RateLimit-Limit:
+      schema:
+        type: integer
+        example: 100
+      description: Maximum requests allowed per window (requests/minute)
+
+    X-RateLimit-Remaining:
+      schema:
+        type: integer
+        example: 95
+      description: Requests remaining in current window
+
+    X-RateLimit-Reset:
+      schema:
+        type: integer
+        format: int64
+        example: 1730332800
+      description: Unix timestamp when rate limit resets
+
+    X-Request-Id:
+      schema:
+        type: string
+        format: uuid
+        example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+      description: Unique request identifier for debugging
+
+    X-Schema-Version:
+      schema:
+        type: string
+        example: "v1.0.0"
+      description: API schema version used for this response
+
+  # Common Schemas
+  schemas:
+
+    # Error Code Enumeration
+    ErrorCode:
+      type: string
+      enum:
+        # Client Errors (4xx)
+        - VALIDATION_ERROR          # Invalid request parameters
+        - AUTHENTICATION_ERROR      # Missing or invalid API key
+        - AUTHORIZATION_ERROR       # Insufficient permissions
+        - NOT_FOUND                 # Resource not found
+        - CONFLICT                  # Resource conflict (e.g., duplicate)
+        - RATE_LIMIT_EXCEEDED       # Too many requests
+        - IDEMPOTENCY_MISMATCH      # Idempotency key reused with different params
+        - INVALID_SCHEMA_VERSION    # Unsupported schema version
+
+        # Server Errors (5xx)
+        - INTERNAL_ERROR            # Generic server error
+        - SERVICE_UNAVAILABLE       # Service temporarily unavailable
+        - TIMEOUT                   # Request timeout
+        - DATABASE_ERROR            # Database operation failed
+        - EXTERNAL_SERVICE_ERROR    # Downstream service failed
+        - CIRCUIT_BREAKER_OPEN      # Circuit breaker preventing requests
+
+        # Domain-Specific Errors
+        - DECOMPOSITION_ERROR       # Task decomposition failed
+        - ROUTING_ERROR             # Agent routing failed
+        - VALIDATION_ERROR_AOP      # AOP validation failed
+        - EXECUTION_ERROR           # Task execution failed
+        - LLM_ERROR                 # LLM call failed
+        - SECURITY_ERROR            # Security validation failed
+        - AGENT_UNAVAILABLE         # Agent not found or overloaded
+      description: |
+        Standardized error codes for all Genesis APIs.
+        Enables programmatic error handling by clients.
+
+    # Structured Error Response
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - request_id
+            - timestamp
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+              description: Human-readable error message
+              example: "Invalid request parameters"
+            hint:
+              type: string
+              description: Actionable hint for fixing the error
+              example: "Check that 'role' is one of: qa, support, analyst, legal, content, security"
+            details:
+              type: object
+              additionalProperties: true
+              description: Additional error context (field names, values, etc.)
+              example:
+                field: "role"
+                value: "invalid"
+                allowed: ["qa", "support", "analyst", "legal", "content", "security"]
+            request_id:
+              type: string
+              format: uuid
+              description: Unique request ID for debugging
+              example: "550e8400-e29b-41d4-a716-446655440000"
+            timestamp:
+              type: string
+              format: date-time
+              description: ISO8601 timestamp when error occurred
+              example: "2025-10-30T12:00:00Z"
+            trace_id:
+              type: string
+              format: uuid
+              description: OpenTelemetry trace ID for distributed tracing
+              example: "7f8d9c2a-3b4e-5f6a-7c8d-9e0f1a2b3c4d"
+      example:
+        error:
+          code: "VALIDATION_ERROR"
+          message: "Invalid request parameters"
+          hint: "Check that 'role' is one of: qa, support, analyst, legal, content, security"
+          details:
+            field: "role"
+            value: "invalid"
+            allowed: ["qa", "support", "analyst", "legal", "content", "security"]
+          request_id: "550e8400-e29b-41d4-a716-446655440000"
+          timestamp: "2025-10-30T12:00:00Z"
+          trace_id: "7f8d9c2a-3b4e-5f6a-7c8d-9e0f1a2b3c4d"
+
+    # Success Response Wrapper
+    SuccessResponse:
+      type: object
+      required:
+        - data
+        - metadata
+      properties:
+        data:
+          type: object
+          description: Response payload (schema varies by endpoint)
+          additionalProperties: true
+        metadata:
+          type: object
+          required:
+            - request_id
+            - timestamp
+          properties:
+            request_id:
+              type: string
+              format: uuid
+              description: Unique request ID
+              example: "550e8400-e29b-41d4-a716-446655440000"
+            timestamp:
+              type: string
+              format: date-time
+              description: ISO8601 timestamp of response
+              example: "2025-10-30T12:00:00Z"
+            execution_time_ms:
+              type: integer
+              description: Server-side execution time in milliseconds
+              example: 123
+            tokens_used:
+              type: integer
+              description: LLM tokens consumed (if applicable)
+              example: 456
+            trace_id:
+              type: string
+              format: uuid
+              description: OpenTelemetry trace ID
+              example: "7f8d9c2a-3b4e-5f6a-7c8d-9e0f1a2b3c4d"
+      example:
+        data:
+          result: "Success"
+        metadata:
+          request_id: "550e8400-e29b-41d4-a716-446655440000"
+          timestamp: "2025-10-30T12:00:00Z"
+          execution_time_ms: 123
+          tokens_used: 456
+
+    # Pagination (for list endpoints)
+    PaginationMeta:
+      type: object
+      required:
+        - page
+        - page_size
+        - total_items
+        - total_pages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number (1-indexed)
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Items per page
+          example: 20
+        total_items:
+          type: integer
+          minimum: 0
+          description: Total number of items across all pages
+          example: 150
+        total_pages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+          example: 8
+        has_next:
+          type: boolean
+          description: Whether there is a next page
+          example: true
+        has_prev:
+          type: boolean
+          description: Whether there is a previous page
+          example: false
+
+  # Common Responses (reusable via $ref)
+  responses:
+
+    # 400 Bad Request
+    BadRequest:
+      description: Invalid request parameters
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/X-Request-Id'
+        X-Schema-Version:
+          $ref: '#/components/headers/X-Schema-Version'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "VALIDATION_ERROR"
+              message: "Invalid request parameters"
+              hint: "Check field types and required fields"
+              request_id: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2025-10-30T12:00:00Z"
+
+    # 401 Unauthorized
+    Unauthorized:
+      description: Missing or invalid authentication
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/X-Request-Id'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "AUTHENTICATION_ERROR"
+              message: "Missing API key"
+              hint: "Include X-API-Key header with valid API key"
+              request_id: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2025-10-30T12:00:00Z"
+
+    # 403 Forbidden
+    Forbidden:
+      description: Insufficient permissions
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/X-Request-Id'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "AUTHORIZATION_ERROR"
+              message: "Invalid API key"
+              hint: "Verify your API key is correct and not expired"
+              request_id: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2025-10-30T12:00:00Z"
+
+    # 404 Not Found
+    NotFound:
+      description: Resource not found
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/X-Request-Id'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "NOT_FOUND"
+              message: "Resource not found"
+              hint: "Check that the resource ID exists"
+              request_id: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2025-10-30T12:00:00Z"
+
+    # 409 Conflict
+    Conflict:
+      description: Resource conflict (e.g., duplicate, idempotency mismatch)
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/X-Request-Id'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "IDEMPOTENCY_MISMATCH"
+              message: "Idempotency key already used with different parameters"
+              hint: "Use a new idempotency key or retry with same parameters"
+              request_id: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2025-10-30T12:00:00Z"
+
+    # 422 Unprocessable Entity
+    UnprocessableEntity:
+      description: Request is well-formed but semantically invalid
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/X-Request-Id'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "VALIDATION_ERROR_AOP"
+              message: "Routing plan failed AOP validation"
+              hint: "Ensure all tasks are assigned to capable agents"
+              details:
+                solvability: false
+                completeness: true
+                redundancy: true
+              request_id: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2025-10-30T12:00:00Z"
+
+    # 429 Rate Limit Exceeded
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/X-Request-Id'
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/X-RateLimit-Limit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/X-RateLimit-Remaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/X-RateLimit-Reset'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "RATE_LIMIT_EXCEEDED"
+              message: "Rate limit exceeded"
+              hint: "Wait 60 seconds before retrying"
+              details:
+                limit: 100
+                remaining: 0
+                reset: 1730332800
+              request_id: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2025-10-30T12:00:00Z"
+
+    # 500 Internal Server Error
+    InternalServerError:
+      description: Internal server error
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/X-Request-Id'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "INTERNAL_ERROR"
+              message: "An unexpected error occurred"
+              hint: "Contact support with request_id if issue persists"
+              request_id: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2025-10-30T12:00:00Z"
+
+    # 503 Service Unavailable
+    ServiceUnavailable:
+      description: Service temporarily unavailable
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/X-Request-Id'
+        Retry-After:
+          schema:
+            type: integer
+            example: 60
+          description: Seconds to wait before retrying
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "CIRCUIT_BREAKER_OPEN"
+              message: "Service temporarily unavailable"
+              hint: "Retry after 60 seconds"
+              details:
+                reason: "Circuit breaker open due to repeated failures"
+              request_id: "550e8400-e29b-41d4-a716-446655440000"
+              timestamp: "2025-10-30T12:00:00Z"
+
+# Example endpoint showing how to use common components
+paths:
+  /example:
+    post:
+      summary: Example endpoint using template components
+      description: |
+        This is an example showing how to reference common components.
+        Actual Genesis API specs will follow this pattern.
+      operationId: examplePost
+      tags:
+        - Example
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/SchemaVersion'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  example: "Hello, Genesis!"
+      responses:
+        '200':
+          description: Success
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/X-Request-Id'
+            X-Schema-Version:
+              $ref: '#/components/headers/X-Schema-Version'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+# Tags for organization
+tags:
+  - name: Orchestration
+    description: HTDAG/HALO/AOP orchestration endpoints
+  - name: Agents
+    description: Agent invocation and management
+  - name: Infrastructure
+    description: Observability, memory, security
+  - name: VertexAI
+    description: Tuned Gemini model endpoints
+  - name: A2A
+    description: Agent-to-Agent protocol endpoints
+  - name: Example
+    description: Template usage examples

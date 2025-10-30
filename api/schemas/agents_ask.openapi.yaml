@@ -1,0 +1,599 @@
+openapi: 3.1.0
+info:
+  title: Genesis Vertex AI Tuned Models API
+  version: 1.0.0
+  description: |
+    API for invoking Genesis tuned Gemini models by role.
+
+    This endpoint provides access to 6 specialized tuned models:
+    - **qa**: Quality assurance, testing scenarios
+    - **support**: Customer support, troubleshooting
+    - **analyst**: Data analysis, insights generation
+    - **legal**: Legal compliance, contract review
+    - **content**: Content writing, blog posts
+    - **security**: Security audits, vulnerability analysis
+
+    Each model is fine-tuned on domain-specific data for optimal performance.
+    Falls back to base Gemini 2.0 Flash model if tuned model unavailable.
+
+    **Author:** Hudson (Code Review & Quality Specialist)
+    **Created:** 2025-10-30
+    **Source File:** `api/routes/agents.py`
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+  - url: https://staging.genesis.ai/api
+    description: Staging server
+  - url: https://genesis.ai/api
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /agents/ask:
+    post:
+      summary: Call tuned Gemini model by role
+      description: |
+        Invoke a domain-specific tuned Gemini model to answer questions or generate content.
+
+        **Flow:**
+        1. Validate role and prompt
+        2. Load tuned model from Vertex AI (or fall back to base model)
+        3. Generate content using Gemini
+        4. Return response with metadata
+
+        **Rate Limits:** 100 requests/minute per API key
+        **Timeout:** 30 seconds
+        **Max Tokens:** 8192 output tokens
+
+      operationId: askAgent
+      tags:
+        - VertexAI
+        - Agents
+
+      parameters:
+        - name: X-Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: |
+            Optional idempotency key for retries.
+            Same key + params within 24h returns cached response.
+
+        - name: X-Schema-Version
+          in: header
+          required: false
+          schema:
+            type: string
+            pattern: '^v\d+\.\d+\.\d+$'
+            default: "v1.0.0"
+          description: API schema version
+
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: OpenTelemetry correlation ID
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - prompt
+              properties:
+                role:
+                  type: string
+                  enum:
+                    - qa
+                    - support
+                    - analyst
+                    - legal
+                    - content
+                    - security
+                  description: Agent role determining which tuned model to use
+                  example: "qa"
+
+                prompt:
+                  type: string
+                  minLength: 1
+                  maxLength: 10000
+                  description: User question or task description
+                  example: "Generate test cases for a login form with email and password fields"
+
+                temperature:
+                  type: number
+                  minimum: 0.0
+                  maximum: 2.0
+                  default: 0.7
+                  description: Sampling temperature (0=deterministic, 2=creative)
+                  example: 0.7
+
+                max_output_tokens:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                  default: 2048
+                  description: Maximum output tokens to generate
+                  example: 2048
+
+                top_p:
+                  type: number
+                  minimum: 0.0
+                  maximum: 1.0
+                  default: 0.95
+                  description: Nucleus sampling parameter
+                  example: 0.95
+
+                top_k:
+                  type: integer
+                  minimum: 1
+                  maximum: 40
+                  default: 40
+                  description: Top-k sampling parameter
+                  example: 40
+
+            examples:
+              qa_example:
+                summary: QA Agent - Generate test cases
+                value:
+                  role: "qa"
+                  prompt: "Generate test cases for a login form with email and password fields"
+                  temperature: 0.3
+                  max_output_tokens: 1024
+
+              support_example:
+                summary: Support Agent - Troubleshoot issue
+                value:
+                  role: "support"
+                  prompt: "User reports: 'Cannot log in, getting 'Invalid credentials' error despite correct password'"
+                  temperature: 0.5
+
+              analyst_example:
+                summary: Analyst Agent - Analyze data
+                value:
+                  role: "analyst"
+                  prompt: "Analyze website traffic: 10k visits/day, 2% conversion, $50 AOV. Recommend optimization strategies."
+                  temperature: 0.7
+                  max_output_tokens: 2048
+
+              legal_example:
+                summary: Legal Agent - Review contract
+                value:
+                  role: "legal"
+                  prompt: "Review this SaaS terms of service for potential issues: [contract text]"
+                  temperature: 0.2
+
+              content_example:
+                summary: Content Agent - Write blog post
+                value:
+                  role: "content"
+                  prompt: "Write a 500-word blog post about the benefits of AI agents for small businesses"
+                  temperature: 0.9
+                  max_output_tokens: 1500
+
+              security_example:
+                summary: Security Agent - Audit code
+                value:
+                  role: "security"
+                  prompt: "Audit this API endpoint for security vulnerabilities: [code snippet]"
+                  temperature: 0.3
+
+      responses:
+        '200':
+          description: Success - Model generated response
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+                format: uuid
+              description: Unique request ID
+            X-Schema-Version:
+              schema:
+                type: string
+              description: Schema version used
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+                example: 100
+              description: Rate limit (requests/minute)
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+                example: 95
+              description: Remaining requests in window
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+                format: int64
+              description: Unix timestamp when limit resets
+
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - metadata
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - role
+                      - answer
+                      - model_used
+                    properties:
+                      role:
+                        type: string
+                        enum: [qa, support, analyst, legal, content, security]
+                        description: Role that was invoked
+                        example: "qa"
+
+                      answer:
+                        type: string
+                        description: Generated response from model
+                        example: |
+                          Test Cases for Login Form:
+                          1. Valid email + valid password → Success
+                          2. Invalid email format → Error "Invalid email"
+                          3. Empty password → Error "Password required"
+                          4. Incorrect password → Error "Invalid credentials"
+                          5. SQL injection attempt → Sanitized, Error
+                          6. XSS attempt in email field → Sanitized, Error
+
+                      model_used:
+                        type: string
+                        description: Model that generated response (tuned or base)
+                        example: "projects/123/locations/us-central1/models/genesis-qa-v1"
+                        enum:
+                          - "tuned"
+                          - "base"
+
+                      confidence:
+                        type: number
+                        minimum: 0.0
+                        maximum: 1.0
+                        description: Model confidence score (if available)
+                        example: 0.92
+
+                  metadata:
+                    type: object
+                    required:
+                      - request_id
+                      - timestamp
+                      - execution_time_ms
+                      - tokens_used
+                    properties:
+                      request_id:
+                        type: string
+                        format: uuid
+                        description: Request ID for debugging
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+
+                      timestamp:
+                        type: string
+                        format: date-time
+                        description: ISO8601 response timestamp
+                        example: "2025-10-30T12:00:00Z"
+
+                      execution_time_ms:
+                        type: integer
+                        description: Server execution time (milliseconds)
+                        example: 1234
+
+                      tokens_used:
+                        type: object
+                        required:
+                          - input_tokens
+                          - output_tokens
+                          - total_tokens
+                        properties:
+                          input_tokens:
+                            type: integer
+                            example: 25
+                          output_tokens:
+                            type: integer
+                            example: 150
+                          total_tokens:
+                            type: integer
+                            example: 175
+
+                      fallback_used:
+                        type: boolean
+                        description: True if base model was used (tuned model failed)
+                        example: false
+
+                      trace_id:
+                        type: string
+                        format: uuid
+                        description: OpenTelemetry trace ID
+                        example: "7f8d9c2a-3b4e-5f6a-7c8d-9e0f1a2b3c4d"
+
+              examples:
+                success_tuned:
+                  summary: Successful response from tuned model
+                  value:
+                    data:
+                      role: "qa"
+                      answer: |
+                        Test Cases for Login Form:
+                        1. Valid credentials → Success (200)
+                        2. Invalid email format → Error "Invalid email" (400)
+                        3. Empty password → Error "Password required" (400)
+                        4. Incorrect password → Error "Invalid credentials" (401)
+                        5. SQL injection → Sanitized, Error (400)
+                        6. XSS in email → Sanitized, Error (400)
+                      model_used: "tuned"
+                      confidence: 0.92
+                    metadata:
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+                      execution_time_ms: 1234
+                      tokens_used:
+                        input_tokens: 25
+                        output_tokens: 150
+                        total_tokens: 175
+                      fallback_used: false
+
+                success_fallback:
+                  summary: Successful response from base model (fallback)
+                  value:
+                    data:
+                      role: "qa"
+                      answer: "Test cases: 1. Valid login, 2. Invalid email, 3. Empty password..."
+                      model_used: "base"
+                    metadata:
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+                      execution_time_ms: 1500
+                      tokens_used:
+                        input_tokens: 25
+                        output_tokens: 80
+                        total_tokens: 105
+                      fallback_used: true
+
+        '400':
+          description: Bad Request - Invalid parameters
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_role:
+                  summary: Invalid role
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Invalid role parameter"
+                      hint: "Role must be one of: qa, support, analyst, legal, content, security"
+                      details:
+                        field: "role"
+                        value: "invalid"
+                        allowed: ["qa", "support", "analyst", "legal", "content", "security"]
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+                empty_prompt:
+                  summary: Empty prompt
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Prompt cannot be empty"
+                      hint: "Provide a non-empty prompt string"
+                      details:
+                        field: "prompt"
+                        min_length: 1
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+                prompt_too_long:
+                  summary: Prompt exceeds max length
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Prompt exceeds maximum length"
+                      hint: "Prompt must be <= 10000 characters"
+                      details:
+                        field: "prompt"
+                        length: 12000
+                        max_length: 10000
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+        '401':
+          description: Unauthorized - Missing API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "AUTHENTICATION_ERROR"
+                  message: "Missing API key"
+                  hint: "Include X-API-Key header with valid API key"
+                  request_id: "550e8400-e29b-41d4-a716-446655440000"
+                  timestamp: "2025-10-30T12:00:00Z"
+
+        '403':
+          description: Forbidden - Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "AUTHORIZATION_ERROR"
+                  message: "Invalid API key"
+                  hint: "Verify your API key is correct and not expired"
+                  request_id: "550e8400-e29b-41d4-a716-446655440000"
+                  timestamp: "2025-10-30T12:00:00Z"
+
+        '429':
+          description: Rate Limit Exceeded
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "RATE_LIMIT_EXCEEDED"
+                  message: "Rate limit exceeded (100 requests/minute)"
+                  hint: "Wait 42 seconds before retrying"
+                  details:
+                    limit: 100
+                    remaining: 0
+                    reset: 1730332842
+                  request_id: "550e8400-e29b-41d4-a716-446655440000"
+                  timestamp: "2025-10-30T12:00:00Z"
+
+        '422':
+          description: Unprocessable Entity - Model execution failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                quota_exceeded:
+                  summary: Vertex AI quota exceeded
+                  value:
+                    error:
+                      code: "LLM_ERROR"
+                      message: "Vertex AI quota exceeded"
+                      hint: "Upgrade your Vertex AI quota or wait for quota reset"
+                      details:
+                        provider: "vertex_ai"
+                        error_type: "quota_exceeded"
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+                safety_filter:
+                  summary: Content blocked by safety filter
+                  value:
+                    error:
+                      code: "LLM_ERROR"
+                      message: "Content blocked by safety filter"
+                      hint: "Rephrase prompt to avoid potentially harmful content"
+                      details:
+                        provider: "vertex_ai"
+                        error_type: "safety_filter"
+                        blocked_categories: ["HARM_CATEGORY_HATE_SPEECH"]
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      timestamp: "2025-10-30T12:00:00Z"
+
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "INTERNAL_ERROR"
+                  message: "Both tuned and base models failed"
+                  hint: "Contact support with request_id if issue persists"
+                  details:
+                    tuned_error: "Connection timeout"
+                    base_error: "Service unavailable"
+                  request_id: "550e8400-e29b-41d4-a716-446655440000"
+                  timestamp: "2025-10-30T12:00:00Z"
+
+        '503':
+          description: Service Unavailable
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                example: 60
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "SERVICE_UNAVAILABLE"
+                  message: "Vertex AI service temporarily unavailable"
+                  hint: "Retry after 60 seconds"
+                  details:
+                    provider: "vertex_ai"
+                    status: "503"
+                  request_id: "550e8400-e29b-41d4-a716-446655440000"
+                  timestamp: "2025-10-30T12:00:00Z"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication (required in production)
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - request_id
+            - timestamp
+          properties:
+            code:
+              type: string
+              enum:
+                - VALIDATION_ERROR
+                - AUTHENTICATION_ERROR
+                - AUTHORIZATION_ERROR
+                - RATE_LIMIT_EXCEEDED
+                - LLM_ERROR
+                - INTERNAL_ERROR
+                - SERVICE_UNAVAILABLE
+            message:
+              type: string
+            hint:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+            request_id:
+              type: string
+              format: uuid
+            timestamp:
+              type: string
+              format: date-time
+            trace_id:
+              type: string
+              format: uuid
+
+tags:
+  - name: VertexAI
+    description: Tuned Gemini model invocation
+  - name: Agents
+    description: Agent-related operations
