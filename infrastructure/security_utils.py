@@ -426,3 +426,106 @@ def validate_dag_depth(adjacency_list: dict, max_depth: int = 10) -> Tuple[bool,
     is_valid = max_observed_depth <= max_depth
 
     return is_valid, max_observed_depth
+
+
+def safe_eval(input_str: str, max_length: int = 10000) -> any:
+    """
+    Safely evaluate string input using ast.literal_eval().
+
+    SECURITY FIX (October 30, 2025): Replaces unsafe eval() calls throughout codebase.
+    Prevents Remote Code Execution (RCE) attacks via malicious inputs.
+
+    CVSS 8.6 MITIGATION: Blocks arbitrary code execution while allowing safe literals.
+
+    Only allows Python literals:
+    - Strings, bytes, numbers (int, float, complex)
+    - Tuples, lists, dicts, sets, booleans, None
+
+    Blocks dangerous operations:
+    - Function calls (e.g., __import__('os').system('rm -rf /'))
+    - Attribute access (e.g., obj.__class__.__bases__)
+    - Code execution (exec, compile, eval)
+
+    Args:
+        input_str: String to evaluate (e.g., "[1, 2, 3]", "{'a': 1}")
+        max_length: Maximum input length to prevent DoS (default: 10KB)
+
+    Returns:
+        Evaluated Python object (list, dict, int, str, etc.)
+
+    Raises:
+        ValueError: If input contains malicious patterns or invalid literals
+        SyntaxError: If input is not valid Python syntax
+
+    Examples:
+        >>> safe_eval("[1, 2, 3]")
+        [1, 2, 3]
+
+        >>> safe_eval("{'key': 'value'}")
+        {'key': 'value'}
+
+        >>> safe_eval("__import__('os').system('ls')")
+        ValueError: Dangerous pattern detected: __import__
+
+        >>> safe_eval("a" * 20000)
+        ValueError: Input too long: 20000 > 10000
+
+    Integration:
+        Use this function instead of eval() for:
+        - Parsing JSON-like strings from external sources
+        - Converting OCR output to Python objects
+        - Deserializing user-provided configuration
+        - Processing LLM-generated structured data
+
+    Security Testing:
+        See tests/test_eval_patches.py for comprehensive test suite
+        including RCE attack vectors and bypass attempts.
+    """
+    # Validate input type
+    if not isinstance(input_str, str):
+        raise ValueError(f"Input must be string, got {type(input_str).__name__}")
+
+    # Validate length (prevent DoS)
+    if len(input_str) > max_length:
+        raise ValueError(f"Input too long: {len(input_str)} > {max_length}")
+
+    # Detect dangerous patterns (defense in depth)
+    dangerous_patterns = [
+        '__import__',
+        'os.system',
+        'subprocess',
+        'exec(',
+        'eval(',
+        'compile(',
+        'open(',
+        '__builtins__',
+        '__class__',
+        '__bases__',
+        '__subclasses__',
+        '__globals__',
+        '__code__',
+        'lambda',
+        'input(',
+        'globals(',
+        'locals(',
+        'vars(',
+        'dir(',
+        'getattr',
+        'setattr',
+        'delattr',
+        'hasattr',
+    ]
+
+    for pattern in dangerous_patterns:
+        if pattern in input_str:
+            logger.warning(f"Blocked malicious pattern in safe_eval: {pattern}")
+            raise ValueError(f"Dangerous pattern detected: {pattern}")
+
+    # Use ast.literal_eval (safe)
+    try:
+        result = ast.literal_eval(input_str)
+        logger.debug(f"safe_eval: Successfully parsed {type(result).__name__}")
+        return result
+    except (ValueError, SyntaxError) as e:
+        logger.warning(f"safe_eval failed: {e}")
+        raise ValueError(f"Invalid literal: {e}") from e

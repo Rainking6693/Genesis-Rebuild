@@ -466,11 +466,32 @@ class WorldModel:
         logger.info(f"Model saved: {self.model_path}")
 
     def _load_model(self):
-        """Load model from disk"""
+        """Load model from disk (SECURE)"""
         if not TORCH_AVAILABLE:
             return
 
-        checkpoint = torch.load(self.model_path)
+        # SECURITY FIX (Oct 30, 2025): Use secure checkpoint loading
+        # to prevent checkpoint poisoning attacks (CVSS 7.8)
+        try:
+            from infrastructure.secure_checkpoint import load_checkpoint_secure
+
+            # Convert to safetensors path if loading legacy .pt
+            checkpoint_path = Path(self.model_path)
+            if checkpoint_path.suffix in [".pt", ".pth"]:
+                logger.warning(
+                    f"Loading legacy PyTorch checkpoint: {checkpoint_path}\n"
+                    f"SECURITY WARNING: This uses torch.load() which can execute arbitrary code!\n"
+                    f"Please migrate to .safetensors format using migrate_pytorch_to_safetensors()"
+                )
+                # Fallback to torch.load with weights_only=True (safer)
+                checkpoint = torch.load(self.model_path, map_location="cpu", weights_only=True)
+            else:
+                # Load with secure checkpoint loader (safetensors + SHA256)
+                checkpoint = load_checkpoint_secure(checkpoint_path, device="cpu")
+        except ImportError:
+            # Fallback if secure_checkpoint not available
+            logger.warning("secure_checkpoint module not available, using torch.load (INSECURE!)")
+            checkpoint = torch.load(self.model_path, map_location="cpu", weights_only=True)
 
         self.model.load_state_dict(checkpoint["model_state"])
         self.optimizer.load_state_dict(checkpoint["optimizer_state"])
