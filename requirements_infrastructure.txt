@@ -15,3 +15,10 @@ openapi-core>=0.19.0          # OpenAPI 3.1 specification validation
 redis>=5.0.0                   # Redis client for distributed state
 pyyaml>=6.0                    # YAML configuration parsing
 pydantic>=2.0                  # Data validation and serialization
+
+# LangGraph Store API Dependencies
+# ==================================
+# Required for persistent multi-agent memory storage
+langgraph>=0.3.22               # LangGraph framework for stateful agents
+langsmith>=0.4.38               # LangSmith for observability
+motor>=3.3.0                    # Async MongoDB driver for Python
