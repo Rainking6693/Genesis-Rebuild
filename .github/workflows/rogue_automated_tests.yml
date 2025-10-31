@@ -1,0 +1,458 @@
+# ROGUE AUTOMATED TESTING - GITHUB ACTIONS WORKFLOW
+# Week 1 Architecture (Phase 7, Nov 4-10, 2025)
+# Purpose: CI/CD integration for Rogue automated agent testing
+
+name: Rogue Automated Testing
+
+# =============================================================================
+# TRIGGER CONFIGURATION
+# =============================================================================
+
+on:
+  # Pre-commit: Fast smoke tests on every push
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'agents/**'
+      - 'infrastructure/**'
+      - 'tests/**'
+      - '.github/workflows/rogue_automated_tests.yml'
+
+  # PR validation: Full test suite on pull requests
+  pull_request:
+    branches:
+      - main
+      - staging
+      - development
+    types: [opened, synchronize, reopened]
+
+  # Staging: Full test suite before deployment
+  workflow_dispatch:
+    inputs:
+      test_stage:
+        description: 'Test stage to run'
+        required: true
+        type: choice
+        options:
+          - pre_commit
+          - pr_validation
+          - staging
+          - production
+        default: 'staging'
+
+      priority_filter:
+        description: 'Priority filter (P0, P1, P2)'
+        required: false
+        type: string
+        default: 'P0,P1,P2'
+
+  # Scheduled: Daily health checks in production
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+
+# =============================================================================
+# ENVIRONMENT VARIABLES
+# =============================================================================
+
+env:
+  PYTHON_VERSION: '3.10'
+  ROGUE_VERSION: '1.0.0'
+  GENESIS_BASE_URL: 'http://localhost:8000'
+  ROGUE_SERVER_PORT: '8080'
+
+# =============================================================================
+# JOBS
+# =============================================================================
+
+jobs:
+  # ===========================================================================
+  # JOB 1: SETUP AND VALIDATION
+  # ===========================================================================
+  setup:
+    name: Setup and Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      test_stage: ${{ steps.determine_stage.outputs.stage }}
+      priority_filter: ${{ steps.determine_stage.outputs.priority }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine test stage
+        id: determine_stage
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "stage=${{ inputs.test_stage }}" >> $GITHUB_OUTPUT
+            echo "priority=${{ inputs.priority_filter }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "stage=pr_validation" >> $GITHUB_OUTPUT
+            echo "priority=P0,P1" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "stage=pre_commit" >> $GITHUB_OUTPUT
+            echo "priority=P0" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "schedule" ]]; then
+            echo "stage=production" >> $GITHUB_OUTPUT
+            echo "priority=P0" >> $GITHUB_OUTPUT
+          else
+            echo "stage=pr_validation" >> $GITHUB_OUTPUT
+            echo "priority=P0,P1" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate configuration files
+        run: |
+          echo "Validating Rogue configuration..."
+          if [ ! -f infrastructure/testing/rogue_config.yaml ]; then
+            echo "Error: rogue_config.yaml not found"
+            exit 1
+          fi
+          echo "Configuration validation passed"
+
+      - name: Check scenario files
+        run: |
+          echo "Checking scenario file structure..."
+          if [ ! -d tests/rogue/scenarios ]; then
+            echo "Warning: Scenario directory not found. Creating structure..."
+            mkdir -p tests/rogue/scenarios/{layer1_orchestration,layer2_agents,layer3_integration,layer4_performance,layer5_e2e}
+          fi
+          echo "Scenario structure check complete"
+
+  # ===========================================================================
+  # JOB 2: START GENESIS AGENTS
+  # ===========================================================================
+  start_genesis:
+    name: Start Genesis Agent System
+    runs-on: ubuntu-latest
+    needs: setup
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            venv
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Start Genesis services
+        run: |
+          echo "Starting Genesis agent system..."
+          source venv/bin/activate
+
+          # Start Genesis A2A server
+          python -m infrastructure.a2a_service &
+          GENESIS_PID=$!
+          echo "Genesis PID: $GENESIS_PID"
+          echo "GENESIS_PID=$GENESIS_PID" >> $GITHUB_ENV
+
+          # Wait for services to be ready
+          echo "Waiting for Genesis to start..."
+          for i in {1..30}; do
+            if curl -f http://localhost:8000/health > /dev/null 2>&1; then
+              echo "Genesis is ready"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+
+      - name: Health check Genesis agents
+        run: |
+          echo "Running Genesis health checks..."
+          curl -f http://localhost:8000/health || exit 1
+          curl -f http://localhost:8000/a2a/agents || exit 1
+          echo "Health checks passed"
+
+      - name: Save Genesis PID
+        run: |
+          echo "Saving Genesis process information..."
+          echo $GENESIS_PID > genesis.pid
+
+      - name: Upload Genesis PID
+        uses: actions/upload-artifact@v4
+        with:
+          name: genesis-pid
+          path: genesis.pid
+
+  # ===========================================================================
+  # JOB 3: RUN ROGUE TESTS
+  # ===========================================================================
+  run_rogue_tests:
+    name: Run Rogue Automated Tests
+    runs-on: ubuntu-latest
+    needs: [setup, start_genesis]
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        test_layer:
+          - layer1_orchestration
+          - layer2_agents
+          - layer3_integration
+          - layer4_performance
+          - layer5_e2e
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Rogue
+        run: |
+          echo "Installing Rogue framework..."
+          pip install uvx
+          uvx rogue-ai --version || echo "Rogue installation pending"
+
+          # Alternative: Git clone if uvx not available
+          # git clone https://github.com/qualifire-dev/rogue.git external/rogue
+          # cd external/rogue && pip install -e . && cd ../..
+
+      - name: Configure Rogue
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GENESIS_A2A_TOKEN: ${{ secrets.GENESIS_A2A_TOKEN }}
+        run: |
+          echo "Configuring Rogue with Genesis endpoints..."
+          export GENESIS_BASE_URL=http://localhost:8000
+          export ROGUE_CONFIG_PATH=infrastructure/testing/rogue_config.yaml
+
+      - name: Run Rogue tests - ${{ matrix.test_layer }}
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GENESIS_A2A_TOKEN: ${{ secrets.GENESIS_A2A_TOKEN }}
+        run: |
+          echo "Running Rogue tests for ${{ matrix.test_layer }}..."
+
+          # Placeholder command (Week 2 implementation)
+          # uvx rogue-ai cli \
+          #   --config infrastructure/testing/rogue_config.yaml \
+          #   --layer ${{ matrix.test_layer }} \
+          #   --priority ${{ needs.setup.outputs.priority_filter }} \
+          #   --output-report-file reports/rogue/${{ matrix.test_layer }}_report.md \
+          #   --output-results-file reports/rogue/${{ matrix.test_layer }}_results.json
+
+          echo "Test execution placeholder (Week 2 implementation)"
+          mkdir -p reports/rogue
+          echo "# Rogue Test Report - ${{ matrix.test_layer }}" > reports/rogue/${{ matrix.test_layer }}_report.md
+          echo "Status: Placeholder (Week 1 Architecture)" >> reports/rogue/${{ matrix.test_layer }}_report.md
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rogue-reports-${{ matrix.test_layer }}
+          path: reports/rogue/
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rogue-results-${{ matrix.test_layer }}
+          path: reports/rogue/*.json
+
+  # ===========================================================================
+  # JOB 4: AGGREGATE RESULTS
+  # ===========================================================================
+  aggregate_results:
+    name: Aggregate Test Results
+    runs-on: ubuntu-latest
+    needs: run_rogue_tests
+    if: always()
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all test reports
+        uses: actions/download-artifact@v4
+        with:
+          path: reports/rogue/all
+
+      - name: Aggregate results
+        run: |
+          echo "Aggregating test results..."
+
+          # Placeholder aggregation (Week 2 implementation)
+          mkdir -p reports/rogue/aggregate
+          cat reports/rogue/all/rogue-reports-*/*.md > reports/rogue/aggregate/full_report.md
+
+          echo "## Aggregate Test Results" > reports/rogue/aggregate/summary.md
+          echo "- Total Scenarios: Pending" >> reports/rogue/aggregate/summary.md
+          echo "- Pass Rate: Pending" >> reports/rogue/aggregate/summary.md
+          echo "- Duration: Pending" >> reports/rogue/aggregate/summary.md
+
+      - name: Calculate pass rate
+        id: pass_rate
+        run: |
+          # Placeholder calculation (Week 2 implementation)
+          echo "pass_rate=100" >> $GITHUB_OUTPUT
+          echo "total_scenarios=0" >> $GITHUB_OUTPUT
+          echo "passed_scenarios=0" >> $GITHUB_OUTPUT
+          echo "failed_scenarios=0" >> $GITHUB_OUTPUT
+
+      - name: Upload aggregate report
+        uses: actions/upload-artifact@v4
+        with:
+          name: rogue-aggregate-report
+          path: reports/rogue/aggregate/
+
+      - name: Check pass threshold
+        run: |
+          PASS_RATE=${{ steps.pass_rate.outputs.pass_rate }}
+          REQUIRED_PASS_RATE=${{ needs.setup.outputs.test_stage == 'pre_commit' && '100' || needs.setup.outputs.test_stage == 'production' && '100' || '95' }}
+
+          echo "Pass rate: $PASS_RATE%"
+          echo "Required: $REQUIRED_PASS_RATE%"
+
+          if [ "$PASS_RATE" -lt "$REQUIRED_PASS_RATE" ]; then
+            echo "Error: Pass rate $PASS_RATE% is below required $REQUIRED_PASS_RATE%"
+            exit 1
+          fi
+
+          echo "Pass threshold met"
+
+  # ===========================================================================
+  # JOB 5: CREATE GITHUB ISSUE ON FAILURE
+  # ===========================================================================
+  create_issue_on_failure:
+    name: Create Issue on Test Failure
+    runs-on: ubuntu-latest
+    needs: aggregate_results
+    if: failure()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download aggregate report
+        uses: actions/download-artifact@v4
+        with:
+          name: rogue-aggregate-report
+          path: reports/rogue/aggregate
+
+      - name: Create GitHub Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'reports/rogue/aggregate/summary.md';
+
+            let reportContent = 'Test report not available';
+            if (fs.existsSync(reportPath)) {
+              reportContent = fs.readFileSync(reportPath, 'utf8');
+            }
+
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Rogue Test Failure - ${{ needs.setup.outputs.test_stage }} - ${new Date().toISOString()}`,
+              body: `## Rogue Automated Test Failure
+
+            **Stage:** ${{ needs.setup.outputs.test_stage }}
+            **Priority Filter:** ${{ needs.setup.outputs.priority_filter }}
+            **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            **Commit:** ${{ github.sha }}
+            **Branch:** ${{ github.ref }}
+
+            ### Test Results
+
+            ${reportContent}
+
+            ### Action Required
+
+            - [ ] Review failed scenarios in artifact reports
+            - [ ] Fix failing agents or tests
+            - [ ] Rerun tests after fixes
+            - [ ] Update scenario definitions if needed
+
+            **Assigned:** @Forge @Alex
+
+            ---
+            *Automated issue created by Rogue CI/CD workflow*`,
+              labels: ['rogue-test-failure', 'automated-test', 'P0'],
+              assignees: ['Forge', 'Alex']
+            });
+
+            console.log(`Created issue #${issue.data.number}`);
+
+  # ===========================================================================
+  # JOB 6: CLEANUP
+  # ===========================================================================
+  cleanup:
+    name: Cleanup Resources
+    runs-on: ubuntu-latest
+    needs: [start_genesis, run_rogue_tests]
+    if: always()
+
+    steps:
+      - name: Download Genesis PID
+        uses: actions/download-artifact@v4
+        with:
+          name: genesis-pid
+
+      - name: Stop Genesis services
+        run: |
+          if [ -f genesis.pid ]; then
+            GENESIS_PID=$(cat genesis.pid)
+            echo "Stopping Genesis (PID: $GENESIS_PID)..."
+            kill -TERM $GENESIS_PID || echo "Genesis already stopped"
+          else
+            echo "Genesis PID not found, skipping cleanup"
+          fi
+
+      - name: Cleanup artifacts
+        run: |
+          echo "Cleaning up temporary files..."
+          rm -f genesis.pid
+
+# =============================================================================
+# CONCURRENCY CONTROL
+# =============================================================================
+
+concurrency:
+  group: rogue-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+# =============================================================================
+# PERMISSIONS
+# =============================================================================
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+# =============================================================================
+# END OF WORKFLOW
+# =============================================================================

@@ -338,21 +338,24 @@ class OpenAPIValidationMiddleware(BaseHTTPMiddleware):
         return f"ip:{client_ip}"
 
     async def _extract_request_data(self, request: Request) -> Dict:
-        """
-        Extract request data (body, query, headers) for validation.
-
-        Args:
-            request: HTTP request
-
-        Returns:
-            Dictionary with body, query, headers
-        """
+        """Extract request data (body, query, headers) for validation."""
         try:
-            # Try to parse JSON body
             if request.method in ["POST", "PUT", "PATCH"]:
-                try:
-                    body = await request.json()
-                except:
+                # Cache request body so it can be reused (validation + idempotency)
+                if hasattr(request.state, "_openapi_raw_body"):
+                    raw_body = request.state._openapi_raw_body
+                else:
+                    raw_body = await request.body()
+                    request.state._openapi_raw_body = raw_body
+                    # Allow downstream handlers to read the cached body
+                    request._body = raw_body
+
+                if raw_body:
+                    try:
+                        body = json.loads(raw_body.decode("utf-8"))
+                    except (UnicodeDecodeError, json.JSONDecodeError):
+                        body = {}
+                else:
                     body = {}
             else:
                 body = {}
