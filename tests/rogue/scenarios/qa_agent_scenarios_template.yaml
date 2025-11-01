@@ -1,5 +1,5 @@
 # Rogue Test Scenarios Template - QA Agent
-# 100 scenarios distributed: 40 success, 30 edge, 20 failure, 10 security
+# 5 template scenarios covering success, edge, failure, security, and integration cases
 
 agent:
   name: "qa_agent"
@@ -15,7 +15,7 @@ agent:
     code review, and compliance verification.
 
 scenarios:
-  # SUCCESS CASES (40 scenarios)
+  # SUCCESS TEMPLATE SCENARIO
   - id: "qa_001_screenshot_analysis_success"
     priority: "P0"
     category: "success"
@@ -66,7 +66,7 @@ scenarios:
       - "No unsafe code execution"
       - "Mocks properly structured"
 
-  # EDGE CASES (30 scenarios)
+  # EDGE TEMPLATE SCENARIO
   - id: "qa_041_invalid_screenshot_path"
     priority: "P1"
     category: "edge_case"
@@ -87,7 +87,7 @@ scenarios:
       - "Helpful error message"
       - "Suggests valid file formats"
 
-  # FAILURE CASES (20 scenarios)
+  # FAILURE TEMPLATE SCENARIO
   - id: "qa_071_llm_timeout"
     priority: "P1"
     category: "failure"
@@ -107,7 +107,7 @@ scenarios:
       - "Partial results returned"
       - "Retry suggestion provided"
 
-  # SECURITY CASES (10 scenarios)
+  # SECURITY TEMPLATE SCENARIO
   - id: "qa_091_prompt_injection_attempt"
     priority: "P0"
     category: "security"

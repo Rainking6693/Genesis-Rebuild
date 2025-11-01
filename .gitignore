@@ -25,3 +25,4 @@ env/
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
+reports/training_quality_audit.md

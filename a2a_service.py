@@ -292,6 +292,17 @@ AGENT_CARDS = {
         defaultInputModes=["text", "json"],
         defaultOutputModes=["text", "json", "markdown", "html"]
     ),
+    "billing": AgentCard(
+        name="Billing Agent",
+        version="1.0.0",
+        description="Subscription and revenue operations specialist. Manages invoicing, payment processing, subscription lifecycle events, and revenue analytics for Genesis deployments.",
+        capabilities=["subscription_management", "payment_processing", "invoice_generation",
+                     "refund_management", "revenue_reporting", "usage_reconciliation"],
+        skills=["stripe_integration", "revenue_operations", "billing_automation",
+               "subscription_lifecycle", "financial_reporting", "tax_compliance"],
+        defaultInputModes=["text", "json"],
+        defaultOutputModes=["text", "json", "markdown", "csv"]
+    ),
     "builder": AgentCard(
         name="Builder Agent",
         version="1.0.0",
@@ -302,6 +313,17 @@ AGENT_CARDS = {
                "database_design", "api_design", "devops", "architecture"],
         defaultInputModes=["text", "json"],
         defaultOutputModes=["text", "json", "markdown", "code"]
+    ),
+    "email": AgentCard(
+        name="Email Agent",
+        version="1.0.0",
+        description="Lifecycle messaging and deliverability specialist. Crafts campaigns, builds templates, orchestrates drip sequences, and tracks engagement across channels.",
+        capabilities=["transactional_messaging", "campaign_automation", "template_rendering",
+                     "deliverability_monitoring", "audience_segmentation", "engagement_analytics"],
+        skills=["email_copywriting", "crm_integration", "template_design",
+               "deliverability_ops", "audience_insights", "marketing_automation"],
+        defaultInputModes=["text", "json"],
+        defaultOutputModes=["text", "json", "markdown", "html"]
     ),
     "deploy": AgentCard(
         name="Deploy Agent",
@@ -314,6 +336,17 @@ AGENT_CARDS = {
         defaultInputModes=["text", "json"],
         defaultOutputModes=["text", "json", "markdown"]
     ),
+    "maintenance": AgentCard(
+        name="Maintenance Agent",
+        version="1.0.0",
+        description="Reliability and lifecycle management specialist. Monitors health, applies automated fixes, and coordinates dependency updates for sustained uptime.",
+        capabilities=["service_health_monitoring", "auto_remediation", "dependency_updates",
+                     "incident_escalation", "runbook_execution", "maintenance_window_planning"],
+        skills=["site_reliability", "observability", "automation_scripting",
+               "incident_response", "change_management", "dependency_management"],
+        defaultInputModes=["text", "json"],
+        defaultOutputModes=["text", "json", "markdown"]
+    ),
     "spec": AgentCard(
         name="Spec Agent",
         version="1.0.0",
@@ -322,6 +355,17 @@ AGENT_CARDS = {
                      "design_validation", "requirements_analysis", "technical_writing"],
         skills=["technical_writing", "system_design", "api_design", "documentation",
                "architecture", "requirements_analysis", "design_patterns"],
+        defaultInputModes=["text", "json"],
+        defaultOutputModes=["text", "json", "markdown", "html"]
+    ),
+    "onboarding": AgentCard(
+        name="Onboarding Agent",
+        version="1.0.0",
+        description="Customer onboarding and activation specialist. Designs guided walkthroughs, coordinates account provisioning, and ensures early lifecycle success metrics are met.",
+        capabilities=["guided_tour_creation", "account_activation", "training_workflows",
+                     "adoption_reporting", "handoff_coordination", "persona_customization"],
+        skills=["customer_success", "journey_mapping", "product_training",
+               "communication_design", "activation_metrics", "workflow_automation"],
         defaultInputModes=["text", "json"],
         defaultOutputModes=["text", "json", "markdown", "html"]
     ),
@@ -377,6 +421,17 @@ AGENT_CARDS = {
                      "audience_analysis", "conversion_optimization", "brand_development"],
         skills=["marketing_strategy", "social_media", "content_marketing", "seo",
                "copywriting", "campaign_management", "analytics"],
+        defaultInputModes=["text", "json"],
+        defaultOutputModes=["text", "json", "markdown", "html"]
+    ),
+    "seo": AgentCard(
+        name="SEO Agent",
+        version="1.0.0",
+        description="Organic acquisition and technical SEO specialist. Performs site audits, optimizes content, and monitors search visibility for Genesis properties.",
+        capabilities=["technical_seo_audit", "keyword_research", "content_gap_analysis",
+                     "structured_data_generation", "search_visibility_monitoring", "link_profile_management"],
+        skills=["seo_strategy", "site_crawling", "analytics_integration",
+               "content_optimization", "schema_markup", "competitive_analysis"],
         defaultInputModes=["text", "json"],
         defaultOutputModes=["text", "json", "markdown", "html"]
     ),

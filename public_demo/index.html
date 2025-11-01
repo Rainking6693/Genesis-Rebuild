@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genesis Research Platform - Public Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        .metric-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .initiative {
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .initiative h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .initiative p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .highlight {
+            background: #e3f2fd;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 5px 5px 5px 0;
+            font-size: 0.9em;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .status-active {
+            background: #4caf50;
+            color: white;
+        }
+        .status-research {
+            background: #ff9800;
+            color: white;
+        }
+        .status-optional {
+            background: #9e9e9e;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Genesis Research Platform</h1>
+            <p class="subtitle">Multi-Agent AI System - Public Research Trace</p>
+        </header>
+
+        <div class="metrics-grid" id="metrics">
+            <!-- Metrics loaded from JSON -->
+        </div>
+
+        <div class="section">
+            <h2>System Overview</h2>
+            <p>Genesis is a recursive multi-agent AI system that autonomously spawns, manages, and optimizes entire businesses. This demo provides a transparent view of ongoing research and development.</p>
+            
+            <div style="margin-top: 20px;">
+                <h3>Architecture</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Layer 1:</strong> Genesis Meta-Agent (HTDAG + HALO + AOP orchestration)</li>
+                    <li><strong>Layer 2:</strong> Self-Improving Agents (SE-Darwin evolution)</li>
+                    <li><strong>Layer 3:</strong> Agent Communication (A2A protocol)</li>
+                    <li><strong>Layer 4:</strong> Agent Economy (x402 payment protocol)</li>
+                    <li><strong>Layer 5:</strong> Swarm Optimization (Inclusive Fitness)</li>
+                    <li><strong>Layer 6:</strong> Shared Memory (MongoDB + Redis)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Current Initiatives</h2>
+            <div id="initiatives">
+                <!-- Initiatives loaded from JSON -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Research Highlights</h2>
+            <div id="highlights">
+                <!-- Highlights loaded from JSON -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Performance Metrics</h2>
+            <p><strong>Test Pass Rate:</strong> 99.1% (227/229 tests passing)</p>
+            <p><strong>Cost Reduction:</strong> 88-92% via Phase 6 optimizations</p>
+            <p><strong>Production Readiness:</strong> 9.2/10</p>
+            <p><strong>Code Coverage:</strong> 90.64% (SE-Darwin), 67% (system-wide)</p>
+        </div>
+
+        <div class="footer">
+            <p>Last Updated: <span id="lastUpdated"></span></p>
+            <p>This is a research platform. Metrics are updated periodically.</p>
+        </div>
+    </div>
+
+    <script>
+        // Load data from JSON
+        fetch('data/public_demo_payload.json')
+            .then(response => response.json())
+            .then(data => {
+                // Render metrics
+                const metricsDiv = document.getElementById('metrics');
+                const metrics = data.metrics;
+                metricsDiv.innerHTML = `
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.system_health}</div>
+                        <div class="metric-label">System Health</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.active_agents}</div>
+                        <div class="metric-label">Active Agents</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.success_rate}</div>
+                        <div class="metric-label">Success Rate</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.weekly_cost}</div>
+                        <div class="metric-label">Weekly Cost</div>
+                    </div>
+                `;
+
+                // Render initiatives
+                const initiativesDiv = document.getElementById('initiatives');
+                const initiatives = data.initiatives;
+                let initiativesHTML = '';
+                for (const [key, value] of Object.entries(initiatives)) {
+                    const statusClass = key === 'discorl' || key === 'orra' ? 'status-research' : 'status-optional';
+                    const statusText = key === 'discorl' || key === 'orra' ? 'Research' : 'Optional';
+                    initiativesHTML += `
+                        <div class="initiative">
+                            <h3>${key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')} <span class="status-badge ${statusClass}">${statusText}</span></h3>
+                            <p>${value.summary}</p>
+                            <div>
+                                ${value.highlights.map(h => `<span class="highlight">${h}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                initiativesDiv.innerHTML = initiativesHTML;
+
+                // Render highlights
+                const highlightsDiv = document.getElementById('highlights');
+                highlightsDiv.innerHTML = data.highlights.map(h => `<p style="margin-bottom: 10px;">• ${h}</p>`).join('');
+
+                // Update last updated time
+                document.getElementById('lastUpdated').textContent = new Date(data.generated_at).toLocaleString();
+            })
+            .catch(error => {
+                console.error('Error loading data:', error);
+                document.getElementById('metrics').innerHTML = '<p>Error loading metrics. Please check data file.</p>';
+            });
+    </script>
+</body>
+</html>
+

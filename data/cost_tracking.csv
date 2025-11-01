@@ -1,0 +1,2 @@
+timestamp,agent,operation,tokens_used,cost_usd,model_id,notes
+2025-11-01T13:24:21.577209,genesis_finetuning,fine-tuning,0,10.0,manual,Manual entry

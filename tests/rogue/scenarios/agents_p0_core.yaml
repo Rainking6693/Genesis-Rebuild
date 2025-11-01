@@ -1,5 +1,5 @@
 # Rogue Test Scenarios - Agent Core Functionality P0 Critical Tests
-# 140 scenarios total: 15 agents × 10 core tests each
+# 150 scenarios total: 15 agents × 10 core tests each
 # Agents: QA, Support, Legal, Analyst, Content, Security, Builder, Deploy, Spec, Reflection, SE-Darwin, WaltzRL Conversation, WaltzRL Feedback, Marketing, Email
 
 agents_p0_core:

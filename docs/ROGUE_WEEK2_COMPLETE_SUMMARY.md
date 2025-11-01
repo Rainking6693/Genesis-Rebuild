@@ -14,7 +14,7 @@ Week 2 of Rogue Automated Testing implementation is **100% COMPLETE**. All criti
 
 1. **✅ Rogue Framework Installed** - v0.2.0 operational with uvx
 2. **✅ Test Orchestrator Built** - 741-line production-ready rogue_runner.py
-3. **✅ 506 Test Scenarios Created** - 101% of 500-scenario target (260 P0 + 241 P1 + 5 templates)
+3. **✅ 506 Test Scenarios Created** - 101% of 500-scenario target (263 P0 + 243 P1 + 5 templates)
 4. **✅ 3 Critical Blockers Resolved** - 100% infrastructure operational
 5. **✅ A2A Protocol Compliance** - All 15 agents with per-agent card endpoints
 6. **✅ Full Validation Executing** - 506 scenarios loading successfully (100% load rate)
@@ -31,7 +31,7 @@ Week 2 of Rogue Automated Testing implementation is **100% COMPLETE**. All criti
 **After Week 2:**
 - Rogue framework: ✅ Installed and operational
 - Test orchestrator: ✅ 741 lines, production-ready
-- Test scenarios: ✅ 506 scenarios (260 P0, 241 P1, 5 templates)
+- Test scenarios: ✅ 506 scenarios (263 P0, 243 P1, 5 templates)
 - A2A compliance: ✅ 100% (all 15 agents, all 7 required fields)
 - Validation capability: ✅ 100% (all scenarios loading, zero HTTP 404 errors)
 
@@ -60,7 +60,7 @@ Week 2 of Rogue Automated Testing implementation is **100% COMPLETE**. All criti
 
 **Deliverables:**
 - `rogue_runner.py` - 741-line production test orchestrator
-- `scenario_loader.py` - 332-line YAML validator with custom category support
+- `scenario_loader.py` - 351-line YAML validator with custom category support
 - Parallel execution (5 workers), smart caching, cost tracking
 - Early termination, comprehensive reporting (JSON + Markdown)
 
@@ -75,7 +75,7 @@ Week 2 of Rogue Automated Testing implementation is **100% COMPLETE**. All criti
 
 **Files Created:**
 - `/home/genesis/genesis-rebuild/infrastructure/testing/rogue_runner.py` (741 lines)
-- `/home/genesis/genesis-rebuild/infrastructure/testing/scenario_loader.py` (332 lines)
+- `/home/genesis/genesis-rebuild/infrastructure/testing/scenario_loader.py` (351 lines)
 
 **Performance:**
 - Estimated runtime: 10-30 minutes for 500 scenarios
@@ -86,7 +86,7 @@ Week 2 of Rogue Automated Testing implementation is **100% COMPLETE**. All criti
 
 ### 3. Test Scenarios Created (Alex + Cora)
 
-**P0 Scenarios (260 total) - Alex:**
+**P0 Scenarios (263 total) - Alex:**
 - `orchestration_p0.yaml` - 110 orchestration layer tests
   - HTDAG decomposition (30 scenarios)
   - HALO routing (40 scenarios)
@@ -94,7 +94,7 @@ Week 2 of Rogue Automated Testing implementation is **100% COMPLETE**. All criti
 - `agents_p0_core.yaml` - 150 agent core functionality tests
   - 15 agents × 10 core tests each
 
-**P1 Scenarios (241 total) - Cora:**
+**P1 Scenarios (243 total) - Cora:**
 - `orchestration_p1.yaml` - 50 advanced orchestration tests
 - 15 agent-specific P1 files (13 scenarios each):
   - qa_agent_p1.yaml, support_agent_p1.yaml, legal_agent_p1.yaml
@@ -202,7 +202,7 @@ Week 2 of Rogue Automated Testing implementation is **100% COMPLETE**. All criti
 **Files Modified:**
 - `/home/genesis/genesis-rebuild/infrastructure/testing/scenario_loader.py` (4 functions updated)
 
-**Status:** ✅ COMPLETE - 170+ custom categories now supported
+**Status:** ✅ COMPLETE - 152 custom categories now supported
 
 ---
 
@@ -267,10 +267,10 @@ python infrastructure/testing/rogue_runner.py \
 | **Infrastructure** |
 | Rogue installed | ❌ No | ✅ Yes (v0.2.0) | +100% |
 | Test orchestrator | ❌ None | ✅ 741 lines | +100% |
-| Scenario validator | ❌ None | ✅ 332 lines | +100% |
+| Scenario validator | ❌ None | ✅ 351 lines | +100% |
 | **Test Scenarios** |
-| P0 scenarios | 0 | 260 | +260 |
-| P1 scenarios | 0 | 241 | +241 |
+| P0 scenarios | 0 | 263 | +263 |
+| P1 scenarios | 0 | 243 | +243 |
 | Total scenarios | 0 | 506 | +506 |
 | Target (500) | 0% | 101% | +101% |
 | **A2A Compliance** |
@@ -291,7 +291,7 @@ python infrastructure/testing/rogue_runner.py \
 
 **Created:**
 - `infrastructure/testing/rogue_runner.py` (741 lines) - Test orchestrator
-- `infrastructure/testing/scenario_loader.py` (332 lines) - YAML validator
+- `infrastructure/testing/scenario_loader.py` (351 lines) - YAML validator
 
 **Modified:**
 - `a2a_service.py` (+481 lines, now 697 total) - Per-agent A2A endpoints
@@ -380,7 +380,7 @@ curl http://localhost:8000/a2a/agents/qa/card | jq .
 **Schema Compliance:**
 - ✅ All 506 scenarios have required fields (id, name, description, priority, category, tags, input, expected_output)
 - ✅ All 241 P1 scenarios have descriptions (100% fixed)
-- ✅ 170+ custom categories supported (100% flexible)
+- ✅ 152 custom categories supported (100% flexible)
 - ✅ Zero validation errors
 
 **Loading Performance:**
@@ -433,8 +433,8 @@ curl http://localhost:8000/a2a/agents/qa/card | jq .
 ### Validation Cost (Estimated)
 
 **Per Full Run (506 scenarios):**
-- P0 scenarios (260): ~$3.12 (GPT-4o @ $0.012/scenario)
-- P1 scenarios (241): ~$2.31 (Gemini Flash @ $0.0096/scenario)
+- P0 scenarios (263): ~$3.16 (GPT-4o @ $0.012/scenario)
+- P1 scenarios (243): ~$2.33 (Gemini Flash @ $0.0096/scenario)
 - Orchestration overhead: ~$0.50
 - **Total per run:** ~$5.93
 
@@ -482,7 +482,7 @@ curl http://localhost:8000/a2a/agents/qa/card | jq .
 
 - ✅ Rogue framework installed and operational
 - ✅ Test orchestrator production-ready (741 lines, comprehensive error handling)
-- ✅ Scenario validator robust (332 lines, supports 170+ categories)
+- ✅ Scenario validator robust (351 lines, supports 152 categories)
 - ✅ A2A service fully compliant (all 15 agents, all 7 required fields)
 - ✅ Documentation comprehensive (15,000+ lines)
 

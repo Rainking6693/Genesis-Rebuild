@@ -1,0 +1,118 @@
+# QA Agent - DeepResearch Training Data Generation Template
+
+## Agent Role
+You are a Quality Assurance and Automated Testing Specialist. Your expertise includes test generation, bug detection, code review, integration testing, and performance validation. You help ensure software quality through comprehensive testing strategies.
+
+## Task Categories
+
+1. **Test Generation** - Creating unit tests, integration tests, and E2E tests
+2. **Bug Detection** - Identifying edge cases, error conditions, and potential failures
+3. **Code Review** - Analyzing code quality, security vulnerabilities, and best practices
+4. **Integration Testing** - Testing API endpoints, microservices, and third-party integrations
+5. **Performance Testing** - Load testing, stress testing, and performance benchmarking
+
+## Example Tasks (10-15 diverse scenarios)
+
+### Easy Tasks (30%)
+1. Generate pytest test cases for a simple Python function that calculates Fibonacci numbers
+2. Review a 50-line JavaScript function for basic syntax errors and code style violations
+3. Create test cases for a REST API endpoint that returns user profile data
+4. Identify edge cases for a password validation function (min 8 chars, 1 uppercase, 1 number)
+5. Write unit tests for a utility function that formats dates in MM/DD/YYYY format
+
+### Medium Tasks (45%)
+6. Design an integration test suite for a multi-step checkout process (cart → shipping → payment → confirmation)
+7. Analyze a React component for potential performance issues (unnecessary re-renders, memory leaks)
+8. Create test scenarios for a file upload API that supports PDF, JPG, PNG (max 10MB)
+9. Review a database migration script for potential data loss or integrity violations
+10. Generate E2E tests using Playwright for a login flow with 2FA authentication
+11. Identify security vulnerabilities in an authentication middleware (JWT validation, XSS, CSRF)
+12. Design load tests for an API endpoint that should handle 1000 requests/second
+
+### Hard Tasks (25%)
+13. Create a comprehensive test suite for a distributed transaction system with rollback logic
+14. Review a microservices architecture for race conditions, deadlocks, and cascading failures
+15. Design performance benchmarks for a real-time collaboration system (WebSocket, CRDT)
+16. Analyze a complex state machine for unreachable states, infinite loops, and transition errors
+17. Generate fuzz testing scenarios for a parser handling user-generated content (injection attacks)
+
+## Quality Criteria
+
+**Specificity:** Each generated task should include concrete details (technologies, constraints, success criteria)
+
+**Complexity:**
+- Easy: Single function/component, clear requirements, standard testing patterns
+- Medium: Multiple components, some integration, realistic constraints
+- Hard: Distributed systems, concurrency, security, performance at scale
+
+**Realism:** Tasks should reflect real-world QA agent use cases:
+- Actual testing frameworks (pytest, Jest, Playwright, JUnit)
+- Common software patterns (REST APIs, auth flows, data validation)
+- Production concerns (performance, security, edge cases)
+
+**Diversity:** Cover all 5 task categories across different:
+- Programming languages (Python, JavaScript, Java, Go, Rust)
+- Testing types (unit, integration, E2E, performance, security)
+- Domains (web apps, APIs, databases, distributed systems)
+
+## Output Format (JSON)
+
+```json
+{
+  "task": "Generate pytest test cases for a REST API endpoint that creates new user accounts",
+  "context": "The API endpoint is POST /api/users with JSON body {email, password, name}. It should validate email format, enforce password strength (min 8 chars, 1 uppercase, 1 number), and return 201 on success or 400 on validation errors. The endpoint uses FastAPI and PostgreSQL.",
+  "expected_output": "A complete pytest test suite covering: (1) successful account creation, (2) invalid email format, (3) weak password, (4) duplicate email, (5) missing required fields, (6) SQL injection attempt. Tests should use pytest fixtures for database setup/teardown and mock external email verification service.",
+  "tools_used": ["search", "visit"],
+  "difficulty": "medium",
+  "agent_name": "qa_agent",
+  "task_category": "test_generation"
+}
+```
+
+## Generation Instructions
+
+When using DeepResearch (Tongyi-DeepResearch-30B-A3B) to generate training examples:
+
+1. **Use ReAct Mode (70% of examples):**
+   - Thought → Action → Observation loops
+   - Search for testing best practices, framework documentation
+   - Visit specific documentation pages (pytest.org, playwright.dev)
+   - Generate contextually rich training examples
+
+2. **Use IterResearch Mode (30% of examples):**
+   - For complex/hard tasks requiring deeper research
+   - n=3 rollouts with fusion for higher quality
+   - Example: Security vulnerability analysis, distributed system testing
+
+3. **Ensure Diversity:**
+   - Rotate through all 5 task categories
+   - Mix programming languages and frameworks
+   - Vary difficulty levels (30% easy, 45% medium, 25% hard)
+
+4. **Validate Quality:**
+   - Each example should be self-contained and actionable
+   - Context should provide enough detail for agent to succeed
+   - Expected output should demonstrate expert-level QA knowledge
+   - Tools used should be realistic (actual search queries, real docs)
+
+## Target Distribution for QA Agent
+
+- **Total Examples:** 1,333 (out of 20,000 across all 15 agents)
+- **Easy:** 400 examples (30%)
+- **Medium:** 600 examples (45%)
+- **Hard:** 333 examples (25%)
+- **ReAct Mode:** 933 examples (70%)
+- **IterResearch Mode:** 400 examples (30%)
+
+## Integration with Unsloth Pipeline
+
+Generated examples will be converted to Unsloth format:
+```json
+{
+  "instruction": "<task from above>",
+  "input": "<context from above>",
+  "output": "<expected_output from above>"
+}
+```
+
+These will be used to fine-tune Genesis QA agent for improved testing capabilities.

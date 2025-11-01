@@ -78,17 +78,22 @@ def setup_logger(name: str, level: int = logging.INFO) -> logging.Logger:
 
     # File Handler - JSON structured logs
     log_file = LOGS_DIR / f"{name.replace('.', '_')}.log"
-    file_handler = logging.handlers.RotatingFileHandler(
-        log_file,
-        maxBytes=10*1024*1024,  # 10MB
-        backupCount=5
-    )
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(StructuredFormatter())
+
+    disable_file_logs = os.getenv("GENESIS_DISABLE_FILE_LOGS") == "1"
+
+    if not disable_file_logs:
+        file_handler = logging.handlers.RotatingFileHandler(
+            log_file,
+            maxBytes=10*1024*1024,  # 10MB
+            backupCount=5
+        )
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(StructuredFormatter())
 
     # Add handlers
     logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
+    if not disable_file_logs:
+        logger.addHandler(file_handler)
 
     return logger
 
