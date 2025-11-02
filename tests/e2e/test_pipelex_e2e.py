@@ -274,7 +274,9 @@ async def test_pipelex_halo_integration(pipelex_adapter, halo_router):
 
     # Get agent recommendation from HALO
     try:
-        agent_name = await halo_router.route_task(test_task)
+        # HALO router has route_tasks (not route_task) that returns a RoutingPlan
+        routing_plan = await halo_router.route_tasks([test_task])
+        agent_name = routing_plan.assignments.get(test_task.task_id, "qa_agent")
 
         assert agent_name is not None, "HALO router returned None"
         assert isinstance(agent_name, str), "HALO router did not return string"

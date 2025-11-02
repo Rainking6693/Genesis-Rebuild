@@ -193,6 +193,7 @@ class TestWorkflowExecution:
     @pytest.mark.asyncio
     async def test_execute_nonexistent_workflow(self, pipelex_adapter):
         """Test executing non-existent workflow fails gracefully"""
+        # PipelexAdapter wraps FileNotFoundError into ValueError
         with pytest.raises(ValueError, match="Workflow file not found"):
             await pipelex_adapter.execute_workflow(
                 workflow_path="nonexistent.plx",
@@ -202,19 +203,46 @@ class TestWorkflowExecution:
     @pytest.mark.asyncio
     async def test_execute_with_timeout(self, pipelex_adapter, workflow_templates):
         """Test workflow execution timeout"""
+        from unittest.mock import patch, AsyncMock
+        import asyncio
+
         workflow_path = str(workflow_templates["ecommerce"])
-        
+
         if not Path(workflow_path).exists():
             pytest.skip(f"Workflow template not found: {workflow_path}")
-        
-        adapter = PipelexAdapter(timeout_seconds=1)  # Very short timeout
-        
-        # This will timeout or fail gracefully
-        with pytest.raises((TimeoutError, RuntimeError, ValueError)):
-            await adapter.execute_workflow(
+
+        # Create adapter with HALO router and ModelRegistry for fallback
+        mock_halo_router = AsyncMock()
+        mock_halo_router.route_tasks = AsyncMock(return_value=type('obj', (object,), {
+            'assignments': {'task_1': 'builder_agent'},
+            'explanations': {}
+        })())
+
+        mock_model_registry = AsyncMock()
+        mock_model_registry.chat_async = AsyncMock(return_value={"output": "fallback result"})
+
+        adapter = PipelexAdapter(
+            timeout_seconds=0.1,  # Very short timeout
+            halo_router=mock_halo_router,
+            model_registry=mock_model_registry
+        )
+
+        # Mock _execute_workflow_internal to simulate slow execution
+        async def slow_execution(*args, **kwargs):
+            await asyncio.sleep(2)  # Sleep longer than timeout
+            return {"output": "should not reach"}
+
+        genesis_task = {"description": "Test timeout", "business_type": "ecommerce"}
+
+        with patch.object(adapter, '_execute_workflow_internal', side_effect=slow_execution):
+            # With genesis_task, timeout triggers fallback (returns result with fallback flag)
+            result = await adapter.execute_workflow(
                 workflow_path=workflow_path,
-                inputs={"business_niche": "test"}
+                inputs={"business_niche": "test"},
+                genesis_task=genesis_task
             )
+            # Should have used fallback due to timeout
+            assert result.get("used_fallback") is True
 
 
 class TestFallbackExecution:
@@ -233,10 +261,15 @@ class TestFallbackExecution:
             "description": "Create business",
             "niche": "test"
         }
-        
+
         # Fallback should execute via ModelRegistry
-        result = await adapter._fallback_execution(genesis_task, "ecommerce")
-        
+        # _fallback_execution signature: (genesis_task, business_type, inputs)
+        result = await adapter._fallback_execution(
+            genesis_task=genesis_task,
+            business_type="ecommerce",
+            inputs={"business_niche": "test"}
+        )
+
         assert result is not None
         assert "fallback" in result
         assert result["fallback"] is True
