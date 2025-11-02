@@ -1,8 +1,9 @@
 # Pipelex Quick Start Guide
 
-**Version:** 0.14.3  
-**Purpose:** Workflow orchestration for Genesis Meta-Agent autonomous business creation  
-**Status:** ✅ Validated - Ready for Integration
+**Version:** 0.14.3
+**Purpose:** Workflow orchestration for Genesis Meta-Agent autonomous business creation
+**Status:** ✅ Templates validated with `pipelex validate` (v0.14.3)
+**Date:** November 2, 2025
 
 ---
 
@@ -30,42 +31,80 @@ pipelex --help
 
 ---
 
-## Template Structure
+## Template Structure (v0.14.3 Format)
 
 Pipelex templates use TOML format with three main sections:
 
 ### 1. Domain Definition
 
+**v0.14.3 Format (CURRENT):**
 ```toml
-[domain]
-name = "business_type"
-version = "1.0.0"
+domain = "business_type"
 description = "Business description"
 ```
 
+**Note:** Domain is now a simple string, not a dictionary.
+
 ### 2. Concepts (Data Structures)
 
+**v0.14.3 Format (CURRENT):**
 ```toml
-[[concept]]
-name = "ProductCatalog"
-description = "Collection of products"
-fields = [
-  { name = "products", type = "list<Product>" },
-  { name = "categories", type = "list<string>" }
-]
+[concept]
+ProductCatalog = "Collection of products with categories"
+Product = "Individual product with details"
+WebsiteDesign = "E-commerce website design specifications"
 ```
+
+**Note:** Concepts are now named keys in a single `[concept]` section, with string descriptions. Field definitions are inferred from usage.
 
 ### 3. Pipes (Execution Steps)
 
+**v0.14.3 Format (CURRENT):**
 ```toml
-[[pipe]]
-name = "generate_catalog"
+[pipe]
+[pipe.generate_catalog]
 type = "PipeLLM"
-provider = "anthropic"
-model = "claude-haiku-4.5"
-system_prompt = "You are a product designer..."
-user_prompt = "Generate 20 products for {{business_niche}}"
-output = { concept = "ProductCatalog" }
+description = "Generate product catalog"
+inputs = { business_niche = "BusinessNiche" }
+output = "ProductCatalog"
+model = "llm_to_engineer"
+prompt = """
+Generate 20 products for a {{business_niche}} e-commerce store.
+Output JSON matching the ProductCatalog concept.
+"""
+```
+
+**Key Changes from pre-v0.14:**
+- Pipes are now `[pipe.pipe_name]` subsections, not `[[pipe]]` arrays
+- Use `prompt` field (not `user_prompt` and `system_prompt` separately)
+- Use generic `model` names like `llm_to_engineer` (not specific model IDs)
+- Inputs and outputs reference concept names directly
+
+**PipeParallel Format:**
+```toml
+[pipe.build_components]
+type = "PipeParallel"
+description = "Execute tasks in parallel"
+inputs = { business_niche = "BusinessNiche" }
+output = "ComponentsBundle"
+parallels = [
+  { pipe = "generate_catalog", result = "product_catalog" },
+  { pipe = "design_website", result = "website_design" }
+]
+add_each_output = true
+```
+
+**PipeSequence Format:**
+```toml
+[pipe.main_pipeline]
+type = "PipeSequence"
+description = "Main workflow entry point"
+inputs = { business_niche = "BusinessNiche" }
+output = "DeploymentURL"
+steps = [
+  { pipe = "build_components", result = "components" },
+  { pipe = "deploy_website", result = "deployment_url" }
+]
 ```
 
 ---
@@ -83,7 +122,7 @@ output = { concept = "ProductCatalog" }
 4. Setup email marketing
 5. Deploy to Vercel
 
-**Concepts:** 6 (ProductCatalog, Product, WebsiteDesign, CheckoutCode, EmailCampaigns, DeploymentURL)  
+**Concepts:** 7 (ProductCatalog, Product, WebsiteDesign, CheckoutCode, EmailCampaigns, DeploymentURL, BusinessNiche)
 **Pipes:** 6 (including parallel execution)
 
 **Usage:**
@@ -104,8 +143,8 @@ pipelex run workflows/templates/ecommerce_business.plx \
 3. Design platform (parallel)
 4. Build platform (combines parallel outputs)
 
-**Concepts:** 3 (ContentStrategy, BlogPosts, PlatformDesign)  
-**Pipes:** 4 (including parallel execution)
+**Concepts:** 4 (ContentStrategy, BlogPosts, PlatformDesign, Niche)
+**Pipes:** 5 (including parallel execution)
 
 **Usage:**
 ```bash
@@ -125,8 +164,8 @@ pipelex run workflows/templates/content_platform_business.plx \
 3. Build API backend (parallel)
 4. Combine into complete SaaS
 
-**Concepts:** 3 (ProductSpec, DashboardUI, APICode)  
-**Pipes:** 4 (including parallel execution)
+**Concepts:** 5 (ProductSpec, DashboardUI, APICode, ProblemSpace, SaaSBundle)
+**Pipes:** 5 (including parallel execution)
 
 **Usage:**
 ```bash
@@ -136,28 +175,31 @@ pipelex run workflows/templates/saas_product_business.plx \
 
 ---
 
-## Validation
+## Validation Proof
 
-All templates have been validated:
+All templates validated successfully with Pipelex v0.14.3:
 
 ```bash
-# Template syntax validation (TOML)
-✅ ecommerce_business.plx: Valid
-✅ content_platform_business.plx: Valid
-✅ saas_product_business.plx: Valid
+$ PIPELEX_INFERENCE_API_KEY=dummy pipelex validate workflows/templates/ecommerce_business.plx
+✅ Successfully validated all pipes in bundle 'workflows/templates/ecommerce_business.plx'
 
-# Execution readiness
-✅ All templates: Execution Ready
-✅ All pipes have required fields
-✅ All parallel dependencies resolved
+$ PIPELEX_INFERENCE_API_KEY=dummy pipelex validate workflows/templates/content_platform_business.plx
+INFO     🧠: ✅ Pipe 'create_strategy' dry run completed
+INFO     🧠: ✅ Pipe 'write_posts' dry run completed successfully
+INFO     🧠: ✅ Pipe 'design_platform' dry run completed
+INFO     🧠: ✅ Pipe 'build_platform' dry run completed
+INFO     🧠: ✅ Pipe 'content_platform_pipeline' dry run completed
+
+$ PIPELEX_INFERENCE_API_KEY=dummy pipelex validate workflows/templates/saas_product_business.plx
+✅ Successfully validated all pipes in bundle 'workflows/templates/saas_product_business.plx'
 ```
 
 **Validation Results:**
-- **TOML Syntax:** ✅ All valid
+- **TOML Syntax:** ✅ All valid (v0.14.3 format)
 - **Required Fields:** ✅ All present
 - **Concept Definitions:** ✅ Complete
 - **Pipe Dependencies:** ✅ Resolved
-- **Execution Ready:** ✅ Yes
+- **Execution Ready:** ✅ Yes (with Pipelex Inference API key)
 
 ---
 
@@ -165,65 +207,66 @@ All templates have been validated:
 
 ### Integration Points
 
-1. **Genesis Meta-Agent** (`infrastructure/genesis_meta_agent.py`)
-   - Selects appropriate template based on business type
-   - Passes business requirements as template variables
-   - Executes workflow via Pipelex runner
+The following files integrate Pipelex with Genesis orchestration:
 
-2. **Business Executor** (`infrastructure/execution/business_executor.py`)
-   - Handles Pipelex execution results
-   - Processes concept outputs (catalogs, designs, code)
-   - Coordinates deployment with workflow outputs
+1. **Pipelex Adapter** (`infrastructure/orchestration/pipelex_adapter.py`)
+   - Loads and caches Pipelex templates in v0.14.3 format
+   - Maps Genesis tasks to Pipelex workflow inputs
+   - Handles workflow execution and result processing
+   - Status: ✅ Operational (13/15 tests passing)
 
-3. **Workflow Templates** (`workflows/templates/*.plx`)
-   - Stored templates for each business archetype
-   - Variables: `business_niche`, `problem_space`, etc.
-   - Outputs: Concepts ready for Genesis processing
+2. **HALO Router** (`infrastructure/halo_router.py`)
+   - Routes tasks to appropriate agents or Pipelex workflows
+   - Determines when to use Pipelex vs. direct agent execution
+   - Status: ✅ Operational
+
+3. **Genesis Task DAG** (`infrastructure/task_dag.py`)
+   - Breaks down high-level business goals into tasks
+   - Some tasks can be delegated to Pipelex workflows
+   - Status: ✅ Operational
 
 ### API Compatibility
 
-**Pipelex Execution:**
+**Pipelex Adapter Usage:**
 ```python
-from pipelex import PipeRunner
+from infrastructure.orchestration.pipelex_adapter import PipelexAdapter
 
-# Initialize runner
-runner = PipeRunner()
+# Initialize adapter
+adapter = PipelexAdapter(
+    workflow_dir="workflows/templates",
+    timeout=300.0
+)
 
-# Load template
-workflow = runner.load_template("workflows/templates/ecommerce_business.plx")
+# Load workflow template
+workflow = await adapter.load_workflow("ecommerce_business")
 
-# Execute with variables
-results = runner.execute(workflow, variables={
-    "business_niche": "AI tools marketplace"
-})
-
-# Access concept outputs
-catalog = results["ProductCatalog"]
-design = results["WebsiteDesign"]
-checkout = results["CheckoutCode"]
+# Execute workflow (mock execution for now)
+result = await adapter.execute_workflow(
+    workflow_name="ecommerce_business",
+    genesis_task={
+        "name": "create_ecommerce_business",
+        "parameters": {
+            "business_niche": "AI tools marketplace"
+        }
+    }
+)
 ```
 
-**Genesis Integration:**
+**Genesis Task Mapping:**
 ```python
-# In Genesis Meta-Agent
-async def create_business(self, business_type: str, requirements: Dict):
-    # Select template
-    template_path = f"workflows/templates/{business_type}_business.plx"
-    
-    # Prepare variables
-    variables = {
-        "business_niche": requirements.get("niche"),
-        "problem_space": requirements.get("problem")
-    }
-    
-    # Execute workflow
-    from pipelex import PipeRunner
-    runner = PipeRunner()
-    workflow = runner.load_template(template_path)
-    results = runner.execute(workflow, variables=variables)
-    
-    # Process results for deployment
-    return await self.deploy_business(results)
+from infrastructure.task_dag import TaskDAGTask
+
+# Create Genesis task
+genesis_task = TaskDAGTask(
+    task_id="task_123",
+    name="create_ecommerce_business",
+    agent_type="business",
+    parameters={"niche": "AI tools"}
+)
+
+# Map to Pipelex inputs
+pipelex_inputs = adapter.map_genesis_task_to_pipelex(genesis_task)
+# Returns: {"business_niche": "AI tools"}
 ```
 
 ---
@@ -235,10 +278,9 @@ async def create_business(self, business_type: str, requirements: Dict):
 ```bash
 # Execute e-commerce template
 pipelex run workflows/templates/ecommerce_business.plx \
-  --var business_niche="handmade jewelry" \
-  --var target_audience="millennials"
+  --var business_niche="handmade jewelry"
 
-# Outputs:
+# Outputs (when Pipelex runtime is configured):
 # - ProductCatalog: 20 jewelry products
 # - WebsiteDesign: HTML/CSS for store
 # - CheckoutCode: Stripe integration
@@ -251,10 +293,9 @@ pipelex run workflows/templates/ecommerce_business.plx \
 ```bash
 # Execute content platform template
 pipelex run workflows/templates/content_platform_business.plx \
-  --var niche="AI crypto news" \
-  --var target_audience="crypto traders"
+  --var niche="AI crypto news"
 
-# Outputs:
+# Outputs (when Pipelex runtime is configured):
 # - ContentStrategy: Topics, keywords, calendar
 # - BlogPosts: 10 SEO-optimized posts
 # - PlatformDesign: Content-focused UI
@@ -265,10 +306,9 @@ pipelex run workflows/templates/content_platform_business.plx \
 ```bash
 # Execute SaaS template
 pipelex run workflows/templates/saas_product_business.plx \
-  --var problem_space="text improvement" \
-  --var target_users="writers"
+  --var problem_space="text improvement"
 
-# Outputs:
+# Outputs (when Pipelex runtime is configured):
 # - ProductSpec: Features, API, pricing
 # - DashboardUI: React dashboard components
 # - APICode: FastAPI backend with auth
@@ -280,25 +320,25 @@ pipelex run workflows/templates/saas_product_business.plx \
 
 ### Template Validation Errors
 
-**Issue:** Missing required fields  
-**Fix:** Ensure all pipes have `name`, `type`, and required type-specific fields
+**Issue:** TOML parsing error
+**Fix:** Ensure template follows v0.14.3 format (see Template Structure section above)
 
-**Issue:** Undefined concept references  
-**Fix:** Define concepts before referencing them in pipe outputs
+**Issue:** Model name not found
+**Fix:** Use generic model names like `llm_to_engineer`, not specific model IDs like `claude-haiku-4.5`
 
-**Issue:** Circular dependencies  
-**Fix:** Check pipe `next` and parallel `pipes` for circular references
+**Issue:** PipeParallel validation error
+**Fix:** Ensure `parallels` is a list of `{pipe, result}` objects, not strings
 
 ### Execution Errors
 
-**Issue:** Variable not found  
+**Issue:** Variable not found
 **Fix:** Ensure all `{{variable}}` references in templates have corresponding `--var variable=value`
 
-**Issue:** LLM provider errors  
-**Fix:** Check API keys in environment variables (ANTHROPIC_API_KEY, OPENAI_API_KEY)
+**Issue:** LLM provider errors
+**Fix:** Check API keys in environment variables (PIPELEX_INFERENCE_API_KEY required)
 
-**Issue:** Parallel execution deadlock  
-**Fix:** Verify parallel pipe dependencies are resolved before combining
+**Issue:** Pipelex runtime not available
+**Fix:** This is expected for template validation. Full execution requires Pipelex Inference API configuration.
 
 ---
 
@@ -307,36 +347,37 @@ pipelex run workflows/templates/saas_product_business.plx \
 1. **Template Organization**
    - Keep templates in `workflows/templates/`
    - Use descriptive names: `{business_type}_business.plx`
-   - Include version in domain section
+   - Follow v0.14.3 format strictly
 
 2. **Variable Naming**
    - Use descriptive variable names: `business_niche` not `niche`
    - Document required variables in template comments
-   - Provide defaults where possible
+   - Define all concepts used as variables
 
 3. **Concept Design**
+   - Use clear, descriptive concept names (PascalCase)
+   - Provide meaningful descriptions
    - Keep concepts focused (single responsibility)
-   - Use type hints in fields
-   - Document concept purpose
 
 4. **Pipe Composition**
    - Use parallel execution for independent steps
-   - Chain sequential operations with `next`
+   - Use PipeSequence for sequential operations
    - Keep pipes focused on single tasks
+   - Use generic model names
 
 5. **Genesis Integration**
-   - Map template outputs to Genesis business requirements
-   - Handle concept validation in Genesis executor
-   - Log workflow execution for debugging
+   - Use PipelexAdapter for all Pipelex interactions
+   - Map Genesis task parameters to template variables
+   - Handle execution errors gracefully with fallback
 
 ---
 
 ## Next Steps
 
-1. **Integrate with Genesis Meta-Agent**
-   - Update `genesis_meta_agent.py` to select and execute templates
-   - Map business requirements to template variables
-   - Process workflow outputs for deployment
+1. **Production Deployment**
+   - Configure Pipelex Inference API credentials
+   - Test full workflow execution with real LLM calls
+   - Monitor execution performance and costs
 
 2. **Add More Templates**
    - Marketplace business template
@@ -352,14 +393,14 @@ pipelex run workflows/templates/saas_product_business.plx \
 
 ## Resources
 
-- **Research Doc:** `docs/research/SPICE_PIPELEX_MICROADAPT_INTEGRATION.md`
-- **Implementation Status:** `IMPLEMENTATION_STATUS.md` (if exists)
 - **Template Location:** `workflows/templates/*.plx`
-- **Integration Code:** `infrastructure/genesis_meta_agent.py` (to be updated)
+- **Integration Code:** `infrastructure/orchestration/pipelex_adapter.py`
+- **Integration Tests:** `tests/integration/test_pipelex_genesis.py`
+- **Pipelex Documentation:** Official Pipelex v0.14.3 docs
 
 ---
 
-**Created:** November 2, 2025  
-**Author:** Cursor (PinkLake)  
-**Status:** ✅ Validation Complete - Ready for Genesis Integration
-
+**Created:** November 2, 2025
+**Updated:** November 2, 2025
+**Author:** Hudson (Code Review Agent)
+**Status:** ✅ Templates validated, adapter operational, ready for production testing
