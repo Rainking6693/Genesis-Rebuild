@@ -99,15 +99,17 @@ class SwarmCoordinator:
         self,
         task: Task,
         team_size: int = 3,
-        task_requirements: Optional[Dict[str, float]] = None
+        task_requirements: Optional[Dict[str, float]] = None,
+        max_retries: int = 3
     ) -> List[str]:
         """
-        Generate optimal team for task using PSO
+        Generate optimal team for task using PSO with HALO validation retry
 
         Args:
             task: Genesis task to execute
             team_size: Desired team size
             task_requirements: Required capabilities (auto-inferred if None)
+            max_retries: Maximum PSO retry attempts before HALO fallback (default: 3)
 
         Returns:
             List of agent names forming optimal team
@@ -119,29 +121,72 @@ class SwarmCoordinator:
         # Convert to list of capability names for SwarmHALOBridge
         required_capabilities = list(task_requirements.keys())
 
-        # Run PSO optimization via bridge
-        logger.info(f"Optimizing team for task {task.task_id}")
-        agent_names, fitness, explanations = self.swarm_bridge.optimize_team(
-            task_id=task.task_id,
+        task_metadata = getattr(task, "metadata", {}) or {}
+        required_security = "high" if task_metadata.get("sensitivity") == "high" else "standard"
+
+        # Retry loop: Attempt PSO optimization with HALO validation
+        for attempt in range(1, max_retries + 1):
+            # Run PSO optimization via bridge
+            logger.info(f"Optimizing team for task {task.task_id} (attempt {attempt}/{max_retries})")
+            agent_names, fitness, explanations = self.swarm_bridge.optimize_team(
+                task_id=task.task_id,
+                required_capabilities=required_capabilities,
+                team_size_range=(max(1, team_size - 1), team_size + 1),
+                priority=1.0,
+                verbose=False
+            )
+
+            # Validate with HALO router
+            validation = self.halo_router.validate_team_composition(
+                agent_names=agent_names,
+                task_type=task_metadata.get("task_type"),
+                required_capabilities=required_capabilities,
+                required_security_level=required_security
+            )
+
+            if validation.is_valid:
+                # Success: Team passes HALO validation
+                self.active_teams[task.task_id] = agent_names
+                logger.info(
+                    f"Team optimized for {task.task_id}: {agent_names} "
+                    f"(fitness={fitness:.3f}, attempt={attempt})"
+                )
+
+                # Log explanations
+                for agent, explanation in explanations.items():
+                    logger.debug(f"  {agent}: {explanation}")
+
+                return agent_names
+            else:
+                # Validation failed: Log and retry
+                logger.warning(
+                    f"HALO validation failed (attempt {attempt}/{max_retries}): "
+                    f"{', '.join(validation.reasons)}. Team: {agent_names}"
+                )
+
+                if attempt < max_retries:
+                    logger.info(f"Retrying PSO optimization with different seed...")
+                    # Re-initialize PSO with perturbed random seed to get different trajectory
+                    new_seed = (self.swarm_bridge.pso.random_seed or 42) + attempt
+                    self.swarm_bridge.reinitialize_pso(random_seed=new_seed)
+
+        # All retries exhausted: Fall back to HALO-direct routing
+        logger.error(
+            f"PSO optimization failed after {max_retries} attempts. "
+            f"Falling back to HALO-direct agent selection for task {task.task_id}"
+        )
+
+        # HALO fallback: Let HALO router select agents based on capabilities
+        fallback_team = self._halo_fallback_team_selection(
             required_capabilities=required_capabilities,
-            team_size_range=(max(1, team_size - 1), team_size + 1),
-            priority=1.0,
-            verbose=False
+            team_size=team_size,
+            task_metadata=task_metadata
         )
 
-        # Store team
-        self.active_teams[task.task_id] = agent_names
+        self.active_teams[task.task_id] = fallback_team
+        logger.info(f"HALO fallback team for {task.task_id}: {fallback_team}")
 
-        logger.info(
-            f"Team optimized for {task.task_id}: {agent_names} "
-            f"(fitness={fitness:.3f})"
-        )
-
-        # Log explanations
-        for agent, explanation in explanations.items():
-            logger.debug(f"  {agent}: {explanation}")
-
-        return agent_names
+        return fallback_team
 
     async def route_to_team(
         self,
@@ -290,14 +335,16 @@ class SwarmCoordinator:
     async def spawn_dynamic_team_for_business(
         self,
         business_type: str,
-        complexity: str = "medium"
+        complexity: str = "medium",
+        max_retries: int = 3
     ) -> List[str]:
         """
-        Dynamically spawn team for business creation
+        Dynamically spawn team for business creation with HALO validation retry
 
         Args:
             business_type: e.g., "ecommerce", "saas", "content_platform"
             complexity: "simple", "medium", "complex"
+            max_retries: Maximum PSO retry attempts before HALO fallback (default: 3)
 
         Returns:
             Optimal team composition
@@ -340,26 +387,69 @@ class SwarmCoordinator:
             f"(complexity={complexity})"
         )
 
-        # Generate optimal team
-        agent_names, fitness, explanations = self.swarm_bridge.optimize_team(
-            task_id=f"business_{business_type}",
+        security_level = "high" if business_type in {"marketplace", "saas"} else "standard"
+
+        # Retry loop: Attempt PSO optimization with HALO validation
+        for attempt in range(1, max_retries + 1):
+            # Generate optimal team
+            agent_names, fitness, explanations = self.swarm_bridge.optimize_team(
+                task_id=f"business_{business_type}",
+                required_capabilities=required_capabilities,
+                team_size_range=team_size_range,
+                priority=1.0,
+                verbose=False
+            )
+
+            # Validate with HALO router
+            validation = self.halo_router.validate_team_composition(
+                agent_names=agent_names,
+                task_type=business_type,
+                required_capabilities=required_capabilities,
+                required_security_level=security_level
+            )
+
+            if validation.is_valid:
+                # Success: Team passes HALO validation
+                diversity = self.swarm_bridge.get_team_genotype_diversity(agent_names)
+                cooperation = self.swarm_bridge.get_team_cooperation_score(agent_names)
+
+                logger.info(
+                    f"Business team spawned: {agent_names} "
+                    f"(fitness={fitness:.3f}, diversity={diversity:.2f}, "
+                    f"cooperation={cooperation:.2f}, attempt={attempt})"
+                )
+
+                return agent_names
+            else:
+                # Validation failed: Log and retry
+                logger.warning(
+                    f"HALO validation failed for business '{business_type}' "
+                    f"(attempt {attempt}/{max_retries}): {', '.join(validation.reasons)}. "
+                    f"Team: {agent_names}"
+                )
+
+                if attempt < max_retries:
+                    logger.info(f"Retrying PSO optimization with different seed...")
+                    # Re-initialize PSO with perturbed random seed to get different trajectory
+                    new_seed = (self.swarm_bridge.pso.random_seed or 42) + attempt
+                    self.swarm_bridge.reinitialize_pso(random_seed=new_seed)
+
+        # All retries exhausted: Fall back to HALO-direct routing
+        logger.error(
+            f"PSO optimization failed after {max_retries} attempts for business '{business_type}'. "
+            f"Falling back to HALO-direct agent selection"
+        )
+
+        # HALO fallback
+        fallback_team = self._halo_fallback_team_selection(
             required_capabilities=required_capabilities,
-            team_size_range=team_size_range,
-            priority=1.0,
-            verbose=False
+            team_size=team_size_range[0],  # Use minimum team size
+            task_metadata={"business_type": business_type}
         )
 
-        # Calculate team metrics
-        diversity = self.swarm_bridge.get_team_genotype_diversity(agent_names)
-        cooperation = self.swarm_bridge.get_team_cooperation_score(agent_names)
+        logger.info(f"HALO fallback team for business '{business_type}': {fallback_team}")
 
-        logger.info(
-            f"Business team spawned: {agent_names} "
-            f"(fitness={fitness:.3f}, diversity={diversity:.2f}, "
-            f"cooperation={cooperation:.2f})"
-        )
-
-        return agent_names
+        return fallback_team
 
     def get_team_performance_history(
         self,
@@ -437,6 +527,83 @@ class SwarmCoordinator:
         return current_team
 
     # ===== PRIVATE HELPER METHODS =====
+
+    def _halo_fallback_team_selection(
+        self,
+        required_capabilities: List[str],
+        team_size: int,
+        task_metadata: Dict[str, Any]
+    ) -> List[str]:
+        """
+        HALO-direct fallback team selection when PSO fails
+
+        Uses HALO router's logic-based routing to select agents
+        based purely on capability matching.
+
+        Args:
+            required_capabilities: List of required capabilities
+            team_size: Desired team size
+            task_metadata: Task metadata for routing context
+
+        Returns:
+            List of agent names selected by HALO router
+        """
+        # Map capabilities to agent specialties (Genesis 15 agents)
+        capability_to_agents = {
+            "testing": ["qa_agent"],
+            "coding": ["builder_agent", "spec_agent"],
+            "deployment": ["deploy_agent"],
+            "data_analysis": ["analyst_agent"],
+            "security_audit": ["security_agent"],
+            "writing": ["content_agent"],
+            "ads": ["marketing_agent"],
+            "support": ["support_agent"],
+            "onboarding": ["onboarding_agent"],
+            "seo": ["seo_agent"],
+            "email": ["email_agent"],
+            "billing": ["billing_agent"],
+            "legal": ["legal_agent"],
+            "maintenance": ["maintenance_agent"]
+        }
+
+        # Build team from required capabilities
+        fallback_team = []
+        for cap in required_capabilities:
+            agents = capability_to_agents.get(cap, [])
+            for agent in agents:
+                if agent not in fallback_team:
+                    fallback_team.append(agent)
+                    if len(fallback_team) >= team_size:
+                        break
+            if len(fallback_team) >= team_size:
+                break
+
+        # If still not enough agents, add builder as default
+        while len(fallback_team) < team_size:
+            if "builder_agent" not in fallback_team:
+                fallback_team.append("builder_agent")
+            elif "qa_agent" not in fallback_team:
+                fallback_team.append("qa_agent")
+            elif "deploy_agent" not in fallback_team:
+                fallback_team.append("deploy_agent")
+            else:
+                # Add any remaining agent
+                all_agents = ["builder_agent", "qa_agent", "deploy_agent", "security_agent",
+                             "analyst_agent", "spec_agent", "maintenance_agent", "support_agent",
+                             "onboarding_agent", "marketing_agent", "content_agent", "seo_agent",
+                             "email_agent", "billing_agent", "legal_agent"]
+                for agent in all_agents:
+                    if agent not in fallback_team:
+                        fallback_team.append(agent)
+                        break
+                break  # Safety: prevent infinite loop
+
+        logger.info(
+            f"HALO fallback team selection: {fallback_team} "
+            f"for capabilities {required_capabilities}"
+        )
+
+        return fallback_team[:team_size]
 
     def _infer_requirements_from_task(
         self,

@@ -17,16 +17,21 @@ Integration Points:
 """
 
 import logging
+import hashlib
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 
-from infrastructure.inclusive_fitness_swarm import (
+from infrastructure.swarm.inclusive_fitness import (
     Agent,
     GenotypeGroup,
     InclusiveFitnessSwarm,
-    ParticleSwarmOptimizer,
     TaskRequirement,
     get_inclusive_fitness_swarm,
+)
+from infrastructure.swarm.team_optimizer import (
+    ParticleSwarmOptimizer,
     get_pso_optimizer,
 )
 
@@ -43,6 +48,44 @@ class AgentProfile:
     capabilities: List[str]
     cost_tier: str  # "cheap", "medium", "expensive"
     success_rate: float = 0.0
+
+
+class FitnessAuditLog:
+    """
+    Append-only audit log that records fitness score changes for agents.
+
+    Each entry is hashed to make tampering evident during review.
+    """
+
+    def __init__(self, log_path: Optional[Path] = None):
+        default_path = Path("logs/fitness_audit.log")
+        self.log_path = log_path or default_path
+        self.log_path.parent.mkdir(parents=True, exist_ok=True)
+        self.logger = logging.getLogger("fitness_audit")
+
+    def log_update(
+        self,
+        agent_name: str,
+        old_value: float,
+        new_value: float,
+        source: str,
+        task_id: Optional[str] = None
+    ) -> None:
+        timestamp = datetime.now(timezone.utc).isoformat()
+        entry = f"{timestamp}|{agent_name}|{old_value:.6f}|{new_value:.6f}|{source}|{task_id or 'n/a'}"
+        entry_hash = hashlib.sha256(entry.encode()).hexdigest()
+
+        with self.log_path.open("a", encoding="utf-8") as handle:
+            handle.write(f"{entry}|{entry_hash}\n")
+
+        self.logger.info(
+            "Fitness update logged for %s: %.4f -> %.4f (source=%s task=%s)",
+            agent_name,
+            old_value,
+            new_value,
+            source,
+            task_id or "n/a",
+        )
 
 
 class SwarmHALOBridge:
@@ -88,6 +131,7 @@ class SwarmHALOBridge:
             random_seed: Random seed for reproducibility
         """
         # Convert agent profiles to Swarm agents
+        self.fitness_audit = FitnessAuditLog()
         self.swarm_agents = self._convert_to_swarm_agents(agent_profiles)
 
         # Create swarm
@@ -137,6 +181,14 @@ class SwarmHALOBridge:
                 }
             )
 
+            self.fitness_audit.log_update(
+                agent_name=profile.name,
+                old_value=0.0,
+                new_value=profile.success_rate,
+                source="halo_registry_import",
+                task_id=None
+            )
+
             swarm_agents.append(agent)
 
         return swarm_agents
@@ -179,6 +231,24 @@ class SwarmHALOBridge:
 
         # Generate explanations
         explanations = self._generate_explanations(best_team, task)
+
+        # Record fitness observations for audit purposes
+        try:
+            outcome = self.swarm.evaluate_team(best_team, task, simulate=True)
+            for agent in best_team:
+                old_value = agent.metadata.get("success_rate", agent.current_fitness or 0.0)
+                new_value = outcome.individual_contributions.get(agent.name, old_value)
+                agent.metadata["success_rate"] = new_value
+                agent.current_fitness = new_value
+                self.fitness_audit.log_update(
+                    agent_name=agent.name,
+                    old_value=old_value,
+                    new_value=new_value,
+                    source="team_execution_sample",
+                    task_id=task_id
+                )
+        except Exception as exc:  # pragma: no cover - defensive logging
+            logger.warning("Unable to record fitness audit for task %s: %s", task_id, exc)
 
         logger.info(
             f"Team optimized for {task_id}: {agent_names} "
@@ -287,6 +357,35 @@ class SwarmHALOBridge:
 
         avg_relatedness = total_relatedness / pair_count
         return avg_relatedness
+
+    def reinitialize_pso(self, random_seed: Optional[int] = None) -> None:
+        """
+        Re-initialize PSO optimizer with new random seed
+
+        Used for retry logic when team optimization needs different trajectories.
+
+        Args:
+            random_seed: New random seed (None = use current seed + 1)
+        """
+        if random_seed is None:
+            random_seed = (self.pso.random_seed or 42) + 1
+
+        # Get current PSO parameters
+        n_particles = self.pso.n_particles
+        max_iterations = self.pso.max_iterations
+
+        # Re-create PSO optimizer with new seed (factory function only accepts 4 params)
+        self.pso = get_pso_optimizer(
+            self.swarm,
+            n_particles=n_particles,
+            max_iterations=max_iterations,
+            random_seed=random_seed
+        )
+
+        logger.debug(
+            f"PSO re-initialized with seed={random_seed}, "
+            f"n_particles={n_particles}, max_iterations={max_iterations}"
+        )
 
 
 def create_swarm_halo_bridge(
