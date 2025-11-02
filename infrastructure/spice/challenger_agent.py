@@ -31,7 +31,7 @@ from typing import Dict, List, Optional, Any, Tuple
 
 # Genesis infrastructure
 from infrastructure import get_logger
-from infrastructure.llm_client import get_llm_client, LLMClient
+from infrastructure.llm_client import LLMFactory, LLMProvider, LLMClient
 from infrastructure.security_utils import sanitize_agent_name, redact_credentials
 
 # OTEL observability
@@ -124,11 +124,11 @@ class ChallengerAgent:
         Initialize Challenger Agent.
 
         Args:
-            llm_client: LLM client for task generation (default: Mistral for SPICE)
+            llm_client: LLM client for task generation (default: Claude Haiku for SPICE)
             corpus_dir: Directory containing benchmark corpora
             grounding_threshold: Minimum similarity for grounding validation (0.0-1.0)
         """
-        self.llm_client = llm_client or get_llm_client(model="mistral-large-latest")
+        self.llm_client = llm_client or LLMFactory.create(LLMProvider.CLAUDE_HAIKU_4_5)
         self.corpus_dir = corpus_dir or Path("/home/genesis/genesis-rebuild/benchmarks/scenarios")
         self.grounding_threshold = grounding_threshold
 

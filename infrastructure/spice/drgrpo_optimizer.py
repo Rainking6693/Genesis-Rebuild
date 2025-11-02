@@ -29,7 +29,7 @@ from typing import Dict, List, Optional, Any, Tuple
 
 # Genesis infrastructure
 from infrastructure import get_logger
-from infrastructure.llm_client import get_llm_client, LLMClient
+from infrastructure.llm_client import LLMFactory, LLMProvider, LLMClient
 
 # SPICE components
 from infrastructure.spice.challenger_agent import ChallengerAgent, FrontierTask

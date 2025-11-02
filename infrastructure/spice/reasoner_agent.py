@@ -29,7 +29,7 @@ from typing import Dict, List, Optional, Any
 
 # Genesis infrastructure
 from infrastructure import get_logger
-from infrastructure.llm_client import get_llm_client, LLMClient
+from infrastructure.llm_client import LLMFactory, LLMProvider, LLMClient
 from infrastructure.se_operators import (
     RevisionOperator,
     RecombinationOperator,
@@ -110,12 +110,12 @@ class ReasonerAgent:
         Initialize Reasoner Agent.
 
         Args:
-            llm_client: LLM client for solution generation (default: Mistral)
+            llm_client: LLM client for solution generation (default: Claude Haiku)
             revision_operator: SE-Darwin revision operator
             recombination_operator: SE-Darwin recombination operator
             refinement_operator: SE-Darwin refinement operator
         """
-        self.llm_client = llm_client or get_llm_client(model="mistral-large-latest")
+        self.llm_client = llm_client or LLMFactory.create(LLMProvider.CLAUDE_HAIKU_4_5)
 
         # SE-Darwin operators (lazy initialization)
         self._revision_operator = revision_operator
