@@ -1,0 +1,53 @@
+# Rogue Configuration for Genesis Testing
+# Automated testing framework for A2A-based multi-agent system
+
+# Working directory for Rogue execution
+workdir: /home/genesis/genesis-rebuild/rogue_config
+
+# Debug mode
+debug: true
+
+# Protocol and transport configuration
+protocol: a2a
+transport: http
+
+# Genesis A2A service endpoint
+evaluated_agent_url: http://localhost:8000/a2a
+
+# Authentication configuration
+evaluated_agent_auth_type: api_key
+# API key will be passed via environment variable A2A_API_KEY or command line
+
+# Input/output files
+input_scenarios_file: /home/genesis/genesis-rebuild/rogue_config/scenarios.json
+output_report_file: /home/genesis/genesis-rebuild/rogue_config/rogue_report.json
+
+# LLM Judge configuration
+judge_llm: gpt-4
+# API key will be passed via environment variable OPENAI_API_KEY
+
+# Deep test mode (comprehensive evaluation)
+deep_test_mode: true
+
+# Business context for Genesis
+business_context: |
+  Genesis is a recursive multi-agent AI system that autonomously spawns, manages,
+  and optimizes entire businesses. The system consists of 15 specialized agents:
+  - Marketing Agent: Market research, positioning, GTM strategy
+  - Builder Agent: Frontend/backend code generation, API design
+  - Content Agent: Marketing copy, blog posts, documentation
+  - Deploy Agent: CI/CD pipelines, infrastructure provisioning
+  - Support Agent: Customer support automation, ticket handling
+  - QA Agent: Test generation, coverage analysis, bug detection
+  - SEO Agent: SEO optimization, keyword research, analytics
+  - Email Agent: Email campaigns, newsletter automation
+  - Legal Agent: Contract generation, compliance checks, T&C
+  - Security Agent: Security audits, vulnerability scanning
+  - Billing Agent: Pricing models, subscription management, invoicing
+  - Analyst Agent: Business analytics, performance metrics, insights
+  - Maintenance Agent: System monitoring, updates, performance tuning
+  - Onboarding Agent: User onboarding flows, tutorials, documentation
+  - Spec Agent: Technical specifications, API documentation, architecture
+
+  The system uses triple-layer orchestration (HTDAG + HALO + AOP) with A2A protocol
+  for agent-to-agent communication. All agents expose tools via A2A endpoints.

@@ -96,6 +96,88 @@ if OtelConsoleLogExporter and LogExportResult:
         OtelConsoleLogExporter._genesis_patched = True  # type: ignore[attr-defined]
 
 
+# Model-specific metrics (extended for fine-tuned models)
+try:
+    from opentelemetry import metrics
+    meter = metrics.get_meter(__name__)
+    
+    # Model performance metrics
+    model_latency = meter.create_histogram(
+        "model.latency_ms",
+        description="Model inference latency in milliseconds"
+    )
+    model_cost = meter.create_counter(
+        "model.cost_usd",
+        description="Model inference cost in USD"
+    )
+    model_errors = meter.create_counter(
+        "model.errors",
+        description="Model inference errors"
+    )
+    model_fallbacks = meter.create_counter(
+        "model.fallbacks",
+        description="Model fallback count (fine-tuned → baseline)"
+    )
+    model_requests = meter.create_counter(
+        "model.requests",
+        description="Total model requests"
+    )
+    
+    MODEL_METRICS_AVAILABLE = True
+except ImportError:
+    MODEL_METRICS_AVAILABLE = False
+    model_latency = None
+    model_cost = None
+    model_errors = None
+    model_fallbacks = None
+    model_requests = None
+    logger.warning("OpenTelemetry metrics not available")
+
+
+def track_model_call(
+    agent_name: str,
+    model_id: str,
+    latency_ms: float,
+    cost_usd: float = 0.0,
+    error: bool = False,
+    is_fallback: bool = False
+):
+    """
+    Track model call metrics
+    
+    Args:
+        agent_name: Name of the agent
+        model_id: Model ID used
+        latency_ms: Request latency in milliseconds
+        cost_usd: Request cost in USD
+        error: Whether request failed
+        is_fallback: Whether fallback model was used
+    """
+    if not MODEL_METRICS_AVAILABLE:
+        return
+    
+    labels = {
+        "agent": agent_name,
+        "model": model_id,
+        "variant": "finetuned" if "ft:" in model_id else "baseline"
+    }
+    
+    if model_latency:
+        model_latency.record(latency_ms, labels)
+    
+    if model_cost:
+        model_cost.add(cost_usd, labels)
+    
+    if model_requests:
+        model_requests.add(1, labels)
+    
+    if error and model_errors:
+        model_errors.add(1, labels)
+    
+    if is_fallback and model_fallbacks:
+        model_fallbacks.add(1, labels)
+
+
 class SpanType(Enum):
     """Span type classification for filtering"""
     ORCHESTRATION = "orchestration"  # Top-level orchestration flow

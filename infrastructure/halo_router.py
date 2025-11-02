@@ -116,7 +116,8 @@ class HALORouter:
         enable_cost_optimization: bool = False,
         cost_profiler = None,
         daao_optimizer = None,
-        enable_casebank: bool = True
+        enable_casebank: bool = True,
+        model_registry = None
     ):
         """
         Initialize HALORouter
@@ -128,6 +129,7 @@ class HALORouter:
             cost_profiler: Optional CostProfiler instance
             daao_optimizer: Optional DAAOOptimizer instance
             enable_casebank: Enable case-based learning from past routing decisions
+            model_registry: Optional ModelRegistry instance for fine-tuned models
         """
         self.agent_registry = agent_registry or self._get_genesis_15_agents()
         self.routing_rules = self._initialize_routing_rules()
@@ -140,6 +142,11 @@ class HALORouter:
         self.enable_cost_optimization = enable_cost_optimization
         self.cost_profiler = cost_profiler
         self.daao_optimizer = daao_optimizer
+
+        # Fine-tuned model registry integration
+        self.model_registry = model_registry
+        if self.model_registry:
+            logger.info("ModelRegistry integrated with HALO router")
 
         # CaseBank integration: Learn from past routing successes/failures
         self.enable_casebank = enable_casebank and HAS_CASEBANK

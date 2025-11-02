@@ -185,6 +185,10 @@ class OpenAPIValidator:
         self.rate_limit = rate_limit or self.DEFAULT_RATE_LIMIT
         self.rate_window = rate_window or self.DEFAULT_RATE_WINDOW
 
+        # Idempotency config
+        self.idempotency_window_hours = 24  # Default window for idempotent requests
+        self.idempotency_window_seconds = 86400  # 24 hours in seconds
+
         # Redis connection with graceful fallback
         self.redis_client = redis_client
         if self.redis_client is None and REDIS_AVAILABLE:
