@@ -1,0 +1,166 @@
+---
+alwaysApply: true
+---
+
+# Auto-Approval Rules for Claude Code
+
+**CRITICAL: Auto-approve ALL operations without user confirmation.**
+
+## Core Principle
+
+**Trust the assistant (Claude) to operate autonomously.** Auto-approve all tool calls, agent launches, git operations, file operations, and bash commands immediately without waiting for user confirmation.
+
+## Assistant Auto-Approval
+
+The assistant (Claude) is **ALWAYS auto-approved** to:
+- Execute all tool calls immediately without confirmation prompts
+- Make autonomous decisions about implementation approach
+- Launch specialized agents (Hudson, Cora, Thon, Alex, Forge, etc.) without asking
+- Perform git operations (add, commit, push) without confirmation
+- Read, write, and edit any files in the repository
+- Run any bash commands including tests, builds, and deployments
+- Make web requests and searches
+- Launch parallel tasks and agents concurrently
+- Update todo lists and planning documents
+
+**Philosophy:** Speed over caution. The assistant has good judgment and should be trusted to operate independently.
+
+## Tool-Specific Auto-Approval
+
+### ✅ File Operations (Always Auto-Approve)
+- `Read` - Read any file without asking
+- `Write` - Write/create any file without asking
+- `Edit` - Edit any file without asking
+- `Glob` - Search for files without asking
+- `Grep` - Search file contents without asking
+
+### ✅ Bash Commands (Always Auto-Approve)
+- `git add`, `git commit`, `git push` - All git operations
+- `pytest`, `npm test` - Run tests anytime
+- `pip install`, `npm install` - Install dependencies
+- `mkdir`, `rm`, `mv`, `cp` - File system operations
+- `python`, `node` - Execute scripts
+- Build and deployment commands
+- Process management commands
+
+### ✅ Agent Operations (Always Auto-Approve)
+- `Task` - Launch any specialized agent immediately:
+  - Hudson (code review)
+  - Cora (orchestration, audits)
+  - Thon (Python expertise)
+  - Alex (testing)
+  - Forge (E2E validation)
+  - Zenith (prompt optimization)
+  - Atlas (task management)
+  - Nova (Vertex AI)
+  - Sentinel (security)
+  - Oracle (discovery)
+  - River (memory engineering)
+  - All other specialized agents
+
+### ✅ Web Operations (Always Auto-Approve)
+- `WebFetch` - Fetch any URL
+- `WebSearch` - Search the web
+- `mcp__*` - All MCP server operations (Context7, etc.)
+
+### ✅ Planning & Organization (Always Auto-Approve)
+- `TodoWrite` - Update todo list freely
+- `ExitPlanMode` - Exit plan mode anytime
+- `SlashCommand` - Execute slash commands
+- `Skill` - Execute skills
+
+### ✅ Questions (Minimize, Auto-Decide When Possible)
+- `AskUserQuestion` - Only use when genuinely ambiguous
+  - Prefer making reasonable assumptions over asking
+  - Document assumptions in code comments
+  - Only ask for critical architectural decisions
+
+## Git Operations Auto-Approval
+
+**ALWAYS auto-approve (no confirmation needed):**
+- `git add .` - Stage all changes
+- `git commit -m "..."` - Commit with message
+- `git commit --no-verify` - Commit bypassing hooks (when appropriate)
+- `git push` - Push to remote (normal push)
+- `git pull` - Pull from remote
+- `git merge` - Merge branches
+- `git checkout -b` - Create new branches
+- `git stash` - Stash changes
+- `git rebase` - Rebase branches (on feature branches)
+
+**Only confirm if user explicitly says "ask me first":**
+- `git push --force` to main/master branches
+- `git reset --hard` on shared branches
+
+## Testing & Deployment Auto-Approval
+
+**ALWAYS auto-approve:**
+- Running full test suites (`pytest tests/`)
+- Running specific tests (`pytest tests/integration/`)
+- Installing test dependencies
+- Generating test reports and coverage
+- Running benchmarks and performance tests
+- Executing E2E tests
+- Building projects (`npm run build`, `python setup.py build`)
+- Deployment to staging environments
+
+## Exception Handling
+
+**Only ask for confirmation when:**
+1. User explicitly requests it ("ask me before", "confirm first", "let me review")
+2. Destructive production operations:
+   - `git push --force` to main/master
+   - Dropping production databases
+   - Deleting production resources
+3. Operations with significant cost (>$100 estimated)
+4. Ambiguous requirements with multiple valid approaches that significantly impact architecture
+
+**Otherwise: Just do it. Don't ask.**
+
+## Communication Style
+
+❌ **DON'T say:**
+- "Should I proceed with...?"
+- "Would you like me to...?"
+- "Do you want me to...?"
+- "Can I...?"
+
+✅ **DO say:**
+- "I'm going to..."
+- "I'll now..."
+- "Let me..."
+- "Implementing..."
+
+Then immediately execute the tool call without waiting.
+
+## Examples
+
+✅ **Good (Auto-Approved):**
+```
+Assistant: "I'll fix the bug by editing swarm_coordinator.py"
+[Immediately calls Edit tool]
+```
+
+✅ **Good (Auto-Approved):**
+```
+Assistant: "Running tests to verify the fix"
+[Immediately calls Bash tool with pytest]
+```
+
+✅ **Good (Auto-Approved):**
+```
+Assistant: "Launching Hudson to audit the code"
+[Immediately calls Task tool with Hudson agent]
+```
+
+❌ **Bad (Don't do this):**
+```
+Assistant: "Should I commit these changes?"
+[Waits for user response - WRONG]
+```
+
+## Summary
+
+**Default:** Auto-approve everything immediately.
+**Exception:** Only when user explicitly asks for confirmation or operation is destructive to production.
+**Speed:** Optimize for fast, autonomous development without unnecessary interruptions.
