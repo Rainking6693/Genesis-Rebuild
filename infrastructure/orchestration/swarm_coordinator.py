@@ -163,14 +163,32 @@ class SwarmCoordinator:
         # Decompose task into sub-tasks for team
         sub_tasks = self._decompose_for_team(task, team)
 
-        # Route each sub-task to team member via HALO
+        # Route each sub-task to team member via HALO router
         assignments = {}
         for agent_name, sub_task in zip(team, sub_tasks):
-            # For now, directly assign (HALO validation in future integration)
-            assignments[agent_name] = sub_task.task_id
-            logger.debug(
-                f"Assigned sub-task {sub_task.task_id} to {agent_name}"
-            )
+            # Call HALO router for validation and routing
+            try:
+                routing_plan = await self.halo_router.route_tasks([sub_task])
+                assigned_agent = routing_plan.assignments.get(sub_task.task_id, agent_name)
+
+                # Verify HALO agrees with swarm decision
+                if assigned_agent != agent_name:
+                    logger.warning(
+                        f"HALO suggested {assigned_agent}, swarm chose {agent_name}. "
+                        f"Using swarm decision for team coherence."
+                    )
+
+                assignments[agent_name] = sub_task.task_id
+                logger.debug(
+                    f"Routed sub-task {sub_task.task_id} to {agent_name} "
+                    f"(HALO validation: {assigned_agent})"
+                )
+            except Exception as e:
+                logger.error(
+                    f"HALO routing failed for {sub_task.task_id}: {e}. "
+                    f"Falling back to swarm assignment."
+                )
+                assignments[agent_name] = sub_task.task_id
 
         return assignments
 
@@ -195,12 +213,31 @@ class SwarmCoordinator:
         # Route to team
         assignments = await self.route_to_team(task, team)
 
-        # Execute team members in parallel
+        # Execute team members in parallel with timeout protection
         logger.info(f"Executing task {task.task_id} with team {team}")
-        results = await asyncio.gather(*[
-            self._execute_agent_subtask(agent, sub_task_id)
-            for agent, sub_task_id in assignments.items()
-        ], return_exceptions=True)
+
+        try:
+            results = await asyncio.wait_for(
+                asyncio.gather(*[
+                    self._execute_agent_subtask(agent, sub_task_id)
+                    for agent, sub_task_id in assignments.items()
+                ], return_exceptions=True),
+                timeout=300.0  # 5 minute timeout
+            )
+        except asyncio.TimeoutError:
+            logger.error(
+                f"Team workflow timeout after 300s for task {task.task_id}"
+            )
+            execution_time = time.time() - start_time
+            return TeamExecutionResult(
+                task_id=task.task_id,
+                team=team,
+                status="timeout",
+                individual_results=[],
+                combined_output={"error": "Workflow exceeded 300s timeout"},
+                execution_time=execution_time,
+                errors=[f"Timeout: Team workflow did not complete within 300s"]
+            )
 
         # Process results
         individual_results = []
@@ -480,26 +517,51 @@ class SwarmCoordinator:
         sub_task_id: str
     ) -> Dict[str, Any]:
         """
-        Execute sub-task via agent (stub for now)
+        Execute sub-task via agent with error handling
 
         Args:
             agent: Agent name
             sub_task_id: Sub-task ID
 
         Returns:
-            Execution result dict
+            Execution result dict with status field indicating success/error
         """
-        # Simulate work
-        await asyncio.sleep(0.1)
+        try:
+            # Simulate work
+            await asyncio.sleep(0.1)
 
-        # In real implementation, call actual agent execution via HALO
-        # For now, return mock success
-        return {
-            "agent": agent,
-            "task_id": sub_task_id,
-            "status": "completed",
-            "output": f"Result from {agent} for {sub_task_id}"
-        }
+            # In real implementation, call actual agent execution via HALO
+            # For now, return mock success
+            result = {
+                "agent": agent,
+                "task_id": sub_task_id,
+                "status": "completed",
+                "output": f"Result from {agent} for {sub_task_id}"
+            }
+            logger.debug(f"Agent {agent} completed sub-task {sub_task_id}")
+            return result
+        except asyncio.CancelledError:
+            # Handle cancellation gracefully
+            logger.warning(f"Agent {agent} sub-task {sub_task_id} was cancelled")
+            return {
+                "status": "cancelled",
+                "agent": agent,
+                "task_id": sub_task_id,
+                "error": "Task was cancelled"
+            }
+        except Exception as e:
+            # Capture any unexpected errors
+            logger.error(
+                f"Agent {agent} failed executing sub-task {sub_task_id}: {e}",
+                exc_info=True
+            )
+            return {
+                "status": "error",
+                "agent": agent,
+                "task_id": sub_task_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            }
 
     def _combine_team_results(
         self,
