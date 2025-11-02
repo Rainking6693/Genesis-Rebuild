@@ -240,6 +240,7 @@ class PipelexAdapter:
                 # Create task for HALO router
                 task = TaskDAGTask(
                     task_id=f"pipelex_{hash(task_description) % 100000}",
+                    task_type="business_creation",
                     description=task_description
                 )
                 
@@ -298,24 +299,37 @@ class PipelexAdapter:
         
         # OTEL tracing
         obs_manager = None
+        context = None
         if OTEL_AVAILABLE:
             try:
                 obs_manager = get_observability_manager()
+                # Create correlation context for tracing
+                context = CorrelationContext(
+                    correlation_id=f"pipelex_{workflow_path}_{hash(str(inputs)) % 100000}"
+                )
             except Exception as e:
                 logger.warning(f"Could not get observability manager: {e}")
+                context = None
         
         # Execute workflow with timeout
         try:
             if obs_manager:
-                with obs_manager.start_span(
+                # Use OTEL context manager for tracing
+                with obs_manager.span(
                     name=f"pipelex.execute_workflow",
                     span_type=SpanType.ORCHESTRATION,
-                    attributes={
-                        "workflow.path": workflow_path,
-                        "workflow.business_type": business_type or "unknown",
-                        "workflow.inputs": str(inputs)
-                    }
-                ):
+                    context=context
+                ) as span:
+                    # Set span attributes
+                    if hasattr(span, 'set_attribute'):
+                        span.set_attribute("workflow.path", workflow_path)
+                        span.set_attribute("workflow.business_type", business_type or "unknown")
+                        span.set_attribute("workflow.inputs", str(inputs))
+                    elif hasattr(obs_manager, 'set_attribute'):
+                        obs_manager.set_attribute("workflow.path", workflow_path)
+                        obs_manager.set_attribute("workflow.business_type", business_type or "unknown")
+                        obs_manager.set_attribute("workflow.inputs", str(inputs))
+                    
                     result = await asyncio.wait_for(
                         self._execute_workflow_internal(workflow_path, inputs),
                         timeout=self.timeout_seconds
@@ -358,29 +372,62 @@ class PipelexAdapter:
         Returns:
             Dictionary of concept outputs
         """
-        if not self.runner:
-            raise RuntimeError("Pipelex runner not available")
+        # Try Pipelex execution first
+        if self.runner and PIPELEX_AVAILABLE:
+            try:
+                # Use Pipelex CLI execution (run in executor)
+                loop = asyncio.get_event_loop()
+                
+                # Execute via Pipelex CLI (subprocess)
+                import subprocess
+                import json
+                
+                # Prepare environment with inputs
+                env = os.environ.copy()
+                for key, value in inputs.items():
+                    env[f"PIPELEX_VAR_{key.upper()}"] = str(value)
+                
+                # Execute pipelex run command
+                proc = await asyncio.create_subprocess_exec(
+                    "./venv/bin/pipelex",
+                    "run",
+                    str(workflow_path),
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    env=env,
+                    cwd=str(Path(workflow_path).parent.parent.parent)
+                )
+                
+                stdout, stderr = await asyncio.wait_for(
+                    proc.communicate(),
+                    timeout=self.timeout_seconds
+                )
+                
+                if proc.returncode == 0:
+                    # Parse output (Pipelex may output JSON or text)
+                    try:
+                        results = json.loads(stdout.decode())
+                    except json.JSONDecodeError:
+                        # If not JSON, treat as text result
+                        results = {"output": stdout.decode()}
+                    
+                    # Convert to Genesis format
+                    genesis_results = {}
+                    for concept_name, concept_data in results.items():
+                        genesis_results[concept_name.lower().replace(" ", "_")] = concept_data
+                    
+                    return genesis_results
+                else:
+                    error_msg = stderr.decode() if stderr else "Unknown error"
+                    logger.error(f"Pipelex execution failed: {error_msg}")
+                    raise RuntimeError(f"Pipelex execution failed: {error_msg}")
+            
+            except Exception as e:
+                logger.warning(f"Pipelex execution error: {e}, falling back to agent execution")
+                raise
         
-        # Load workflow template
-        loop = asyncio.get_event_loop()
-        workflow = await loop.run_in_executor(
-            None,
-            lambda: self.runner.load_template(workflow_path)
-        )
-        
-        # Execute workflow (synchronous call wrapped in executor)
-        results = await loop.run_in_executor(
-            None,
-            lambda: self.runner.execute(workflow, variables=inputs)
-        )
-        
-        # Convert results to Genesis format
-        genesis_results = {}
-        for concept_name, concept_data in results.items():
-            # Clean up concept outputs for Genesis processing
-            genesis_results[concept_name.lower().replace(" ", "_")] = concept_data
-        
-        return genesis_results
+        # Fallback: Execute via agents directly
+        raise RuntimeError("Pipelex runner not available, use fallback execution")
     
     async def _fallback_execution(
         self,
