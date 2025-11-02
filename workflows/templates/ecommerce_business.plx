@@ -1,140 +1,141 @@
 # E-commerce Business Workflow Template
 # Generated for Genesis Meta-Agent autonomous business creation
+# v0.14.3 format
 
-[domain]
-name = "ecommerce_business"
-version = "1.0.0"
+domain = "ecommerce_business"
 description = "Complete e-commerce business with product catalog, checkout, and marketing"
 
-# Concept: ProductCatalog
-[[concept]]
-name = "ProductCatalog"
-description = "Collection of products with categories"
-fields = [
-  { name = "products", type = "list<Product>" },
-  { name = "categories", type = "list<string>" },
-  { name = "total_products", type = "integer" }
-]
+[concept]
+ProductCatalog = "Collection of products with categories, including products list, categories list, and total product count"
+Product = "Individual product with id, name, price, description, image URL, and category"
+WebsiteDesign = "E-commerce website design specifications with homepage HTML, product page HTML, CSS styles, and brand colors"
+CheckoutCode = "Stripe checkout integration code including checkout component, payment handler, and success page"
+EmailCampaigns = "Marketing email campaigns collection with list of campaigns and total count"
+DeploymentURL = "Deployed website URL with deployment status"
+BusinessNiche = "The specific business niche for the e-commerce store"
+ComponentsBundle = "Combined bundle of catalog, website design, and checkout code"
 
-# Concept: Product
-[[concept]]
-name = "Product"
-description = "Individual product with details"
-fields = [
-  { name = "id", type = "string" },
-  { name = "name", type = "string" },
-  { name = "price", type = "float" },
-  { name = "description", type = "string" },
-  { name = "image_url", type = "string" },
-  { name = "category", type = "string" }
-]
-
-# Concept: WebsiteDesign
-[[concept]]
-name = "WebsiteDesign"
-description = "E-commerce website design specifications"
-fields = [
-  { name = "homepage_html", type = "string" },
-  { name = "product_page_html", type = "string" },
-  { name = "styles_css", type = "string" },
-  { name = "brand_colors", type = "list<string>" }
-]
-
-# Concept: CheckoutCode
-[[concept]]
-name = "CheckoutCode"
-description = "Stripe checkout integration code"
-fields = [
-  { name = "checkout_component", type = "string" },
-  { name = "payment_handler", type = "string" },
-  { name = "success_page", type = "string" }
-]
-
-# Concept: EmailCampaigns
-[[concept]]
-name = "EmailCampaigns"
-description = "Marketing email campaigns"
-fields = [
-  { name = "campaigns", type = "list<string>" },
-  { name = "total_campaigns", type = "integer" }
-]
-
-# Concept: DeploymentURL
-[[concept]]
-name = "DeploymentURL"
-description = "Deployed website URL"
-fields = [
-  { name = "url", type = "string" },
-  { name = "status", type = "string" }
-]
-
-# Pipe 1: Generate Product Catalog (via Content Agent)
-[[pipe]]
-name = "generate_catalog"
+[pipe]
+[pipe.generate_catalog]
 type = "PipeLLM"
-provider = "anthropic"
-model = "claude-haiku-4.5"
-system_prompt = """You are a product designer creating an e-commerce catalog.
-Generate realistic products with descriptions, prices, and categories.
-Output JSON format matching the ProductCatalog concept."""
-user_prompt = "Generate 20 products for a {{business_niche}} e-commerce store"
-output = { concept = "ProductCatalog" }
+description = "Generate product catalog via Content Agent - creates realistic products with descriptions, prices, and categories"
+inputs = { business_niche = "BusinessNiche" }
+output = "ProductCatalog"
+model = "llm_to_engineer"
+prompt = """
+Generate a product catalog for a {{business_niche}} e-commerce store.
 
-# Pipe 2: Design Website (parallel with catalog)
-[[pipe]]
-name = "design_website"
+Create 20 realistic products with:
+- Unique product IDs
+- Product names
+- Prices (realistic for the niche)
+- Detailed descriptions
+- Image URLs (placeholder format)
+- Categories
+
+Output JSON matching the ProductCatalog concept.
+"""
+
+[pipe.design_website]
 type = "PipeLLM"
-provider = "openai"
-model = "gpt-4o"
-system_prompt = """You are a web designer creating modern e-commerce websites.
-Generate HTML/CSS for homepage and product pages.
-Use responsive design with mobile-first approach."""
-user_prompt = "Design a modern e-commerce homepage for {{business_niche}}"
-output = { concept = "WebsiteDesign" }
+description = "Design website in parallel with catalog - creates modern responsive e-commerce UI"
+inputs = { business_niche = "BusinessNiche" }
+output = "WebsiteDesign"
+model = "llm_to_engineer"
+prompt = """
+Design a modern e-commerce website for {{business_niche}}.
 
-# Pipe 3: Generate Checkout (parallel with catalog)
-[[pipe]]
-name = "generate_checkout"
+Create:
+- Homepage HTML with hero section, featured products, and call-to-action
+- Product page HTML template
+- Responsive CSS styles with mobile-first approach
+- Brand color palette (3-5 colors)
+
+Output JSON matching the WebsiteDesign concept.
+"""
+
+[pipe.generate_checkout]
 type = "PipeLLM"
-provider = "anthropic"
-model = "claude-sonnet-4"
-system_prompt = """You are a full-stack developer building Stripe checkout systems.
-Generate React components with TypeScript for payment processing.
-Include error handling and success confirmation."""
-user_prompt = "Create a Stripe checkout integration for {{business_niche}}"
-output = { concept = "CheckoutCode" }
+description = "Generate Stripe checkout integration in parallel - creates payment processing code"
+inputs = { business_niche = "BusinessNiche" }
+output = "CheckoutCode"
+model = "llm_to_engineer"
+prompt = """
+Create a Stripe checkout integration for {{business_niche}}.
 
-# Pipe 4: Parallel Execution (catalog + design + checkout)
-[[pipe]]
-name = "build_components"
+Generate TypeScript React components:
+- Checkout component with Stripe Elements
+- Payment handler with error handling
+- Success confirmation page
+
+Output JSON matching the CheckoutCode concept.
+"""
+
+[pipe.build_components]
 type = "PipeParallel"
-pipes = ["generate_catalog", "design_website", "generate_checkout"]
-next = "setup_email_marketing"
+description = "Execute catalog, design, and checkout generation in parallel"
+inputs = { business_niche = "BusinessNiche" }
+output = "ComponentsBundle"
+parallels = [
+  { pipe = "generate_catalog", result = "product_catalog" },
+  { pipe = "design_website", result = "website_design" },
+  { pipe = "generate_checkout", result = "checkout_code" }
+]
+add_each_output = true
 
-# Pipe 5: Email Marketing Setup
-[[pipe]]
-name = "setup_email_marketing"
+[pipe.setup_email_marketing]
 type = "PipeLLM"
-provider = "anthropic"
-model = "claude-haiku-4.5"
-system_prompt = """You are a marketing automation expert.
-Create engaging email campaigns for customer acquisition and retention.
-Include welcome series, abandoned cart, and promotional emails."""
-user_prompt = "Create 5 email campaigns for {{business_niche}} customers based on {{ProductCatalog}}"
-output = { concept = "EmailCampaigns" }
+description = "Create email marketing campaigns based on product catalog"
+inputs = { business_niche = "BusinessNiche", product_catalog = "ProductCatalog" }
+output = "EmailCampaigns"
+model = "llm_to_engineer"
+prompt = """
+Create 5 email marketing campaigns for {{business_niche}} customers.
 
-# Pipe 6: Deploy to Vercel (final step - currently placeholder)
-[[pipe]]
-name = "deploy_website"
+Based on this product catalog:
+@product_catalog
+
+Create campaigns for:
+1. Welcome series for new customers
+2. Abandoned cart recovery
+3. New product announcements
+4. Seasonal promotions
+5. Customer retention/loyalty
+
+Output JSON matching the EmailCampaigns concept.
+"""
+
+[pipe.deploy_website]
 type = "PipeLLM"
-provider = "anthropic"
-model = "claude-haiku-4.5"
-system_prompt = """You are a deployment specialist.
-Generate deployment configuration and instructions for Vercel.
-Include environment variables for Stripe and email services."""
-user_prompt = """Generate Vercel deployment config for:
-- Website: {{WebsiteDesign}}
-- Checkout: {{CheckoutCode}}
-- Catalog: {{ProductCatalog}}
-- Marketing: {{EmailCampaigns}}"""
-output = { concept = "DeploymentURL" }
+description = "Generate Vercel deployment configuration and instructions"
+inputs = { website_design = "WebsiteDesign", checkout_code = "CheckoutCode", product_catalog = "ProductCatalog", email_campaigns = "EmailCampaigns" }
+output = "DeploymentURL"
+model = "llm_to_engineer"
+prompt = """
+Generate Vercel deployment configuration.
+
+Components to deploy:
+- Website: @website_design
+- Checkout: @checkout_code
+- Catalog: @product_catalog
+- Marketing: @email_campaigns
+
+Create deployment config with:
+- Vercel configuration file
+- Environment variables for Stripe and email services
+- Build commands
+- Deployment URL (placeholder)
+
+Output JSON matching the DeploymentURL concept.
+"""
+
+[pipe.ecommerce_pipeline]
+type = "PipeSequence"
+description = "Main entry point - executes full e-commerce business creation pipeline"
+inputs = { business_niche = "BusinessNiche" }
+output = "DeploymentURL"
+steps = [
+  { pipe = "build_components", result = "components" },
+  { pipe = "setup_email_marketing", result = "email_campaigns" },
+  { pipe = "deploy_website", result = "deployment_url" }
+]
