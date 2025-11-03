@@ -616,19 +616,29 @@ class GenesisLangGraphStore(BaseStore):
         """
         collection_names = await self.db.list_collection_names()
 
-        namespaces = []
+        namespaces_set = set()
         for coll_name in collection_names:
             if coll_name.startswith("system."):
                 continue
 
-            # Convert collection name back to namespace tuple
-            namespace = tuple(coll_name.split("_"))
+            # Get the collection and read the namespace from any document
+            # Since all documents in a collection have the same namespace,
+            # we just need to read one document to get the namespace structure
+            collection = self.db[coll_name]
+            try:
+                sample_doc = await collection.find_one({}, {"namespace": 1})
+                if sample_doc and "namespace" in sample_doc:
+                    # Convert list back to tuple
+                    namespace = tuple(sample_doc["namespace"])
 
-            # Filter by prefix if provided
-            if prefix is None or namespace[:len(prefix)] == prefix:
-                namespaces.append(namespace)
+                    # Filter by prefix if provided
+                    if prefix is None or namespace[:len(prefix)] == prefix:
+                        namespaces_set.add(namespace)
+            except Exception as e:
+                logger.warning(f"Failed to read namespace from collection {coll_name}: {e}")
+                continue
 
-        return namespaces
+        return sorted(list(namespaces_set))
 
     async def clear_namespace(
         self,
