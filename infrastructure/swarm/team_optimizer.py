@@ -55,6 +55,9 @@ class TeamParticle:
             self.best_position = self.position.copy()
 
 
+MAX_ALLOWED_ITERATIONS = 1000
+
+
 class ParticleSwarmOptimizer:
     """
     Discrete Particle Swarm Optimization for team composition.
@@ -96,6 +99,11 @@ class ParticleSwarmOptimizer:
         """
         self.swarm = swarm
         self.n_particles = n_particles
+        if max_iterations < 1 or max_iterations > MAX_ALLOWED_ITERATIONS:
+            raise ValueError(
+                f"max_iterations must be between 1 and {MAX_ALLOWED_ITERATIONS}, got {max_iterations}"
+            )
+
         self.max_iterations = max_iterations
         self.w = w
         self.c1 = c1
@@ -134,6 +142,7 @@ class ParticleSwarmOptimizer:
         """
         particles = []
         min_size, max_size = task.team_size_range
+        max_size = min(max_size, self.n_agents)
 
         for _ in range(self.n_particles):
             # Random team size
@@ -162,6 +171,23 @@ class ParticleSwarmOptimizer:
             particles.append(particle)
 
         return particles
+
+    def _validate_task_requirement(self, task: TaskRequirement) -> None:
+        min_size, max_size = task.team_size_range
+        available_agents = self.n_agents
+
+        if min_size < 1:
+            raise ValueError(f"Team size minimum must be at least 1 (got {min_size})")
+        if max_size < min_size:
+            raise ValueError(
+                f"Team size maximum ({max_size}) must be greater than or equal to minimum ({min_size})"
+            )
+        if max_size > available_agents:
+            raise ValueError(
+                f"Requested maximum team size ({max_size}) exceeds available agents ({available_agents})"
+            )
+        if len(task.required_capabilities) > 100:
+            raise ValueError("Too many required capabilities specified (max 100)")
 
     def _decode_team(self, position: np.ndarray) -> List[Agent]:
         """
@@ -334,6 +360,8 @@ class ParticleSwarmOptimizer:
         Returns:
             Tuple of (best_team, best_fitness)
         """
+        self._validate_task_requirement(task)
+
         logger.info(f"Starting PSO optimization for task {task.task_id}")
 
         # Initialize particles

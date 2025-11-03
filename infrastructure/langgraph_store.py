@@ -26,6 +26,8 @@ Usage:
 """
 
 import asyncio
+import json
+import os
 from typing import Optional, Dict, List, Any, Tuple
 from datetime import datetime, timedelta, timezone
 import logging
@@ -33,6 +35,17 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from langgraph.store.base import BaseStore
 
 logger = logging.getLogger(__name__)
+
+try:  # Optional dependency: compliance layer may not be available during early boot
+    from infrastructure.memory.compliance_layer import MemoryComplianceLayer
+except Exception:  # pragma: no cover - compliance layer is optional
+    MemoryComplianceLayer = None  # type: ignore
+
+try:  # Optional dependency: DeepSeek compression
+    from infrastructure.memory.deepseek_compression import DeepSeekCompressor, CompressedMemory
+except Exception:  # pragma: no cover - fallback when compression unavailable
+    DeepSeekCompressor = None  # type: ignore
+    CompressedMemory = None  # type: ignore
 
 
 class GenesisLangGraphStore(BaseStore):
@@ -102,6 +115,23 @@ class GenesisLangGraphStore(BaseStore):
         self.db = self.client[database_name]
         self._timeout_ms = timeout_ms
         self._indexes_created = False
+        self.compliance: Optional[MemoryComplianceLayer] = None
+
+        if MemoryComplianceLayer is not None:
+            try:
+                self.compliance = MemoryComplianceLayer(self)
+                logger.info("Memory compliance layer enabled")
+            except Exception as exc:
+                logger.warning("Failed to initialise memory compliance layer: %s", exc)
+
+        self.enable_compression = (
+            os.getenv("ENABLE_MEMORY_COMPRESSION", "true").lower() == "true"
+            and DeepSeekCompressor is not None
+        )
+        self.compression_min_bytes = int(os.getenv("MEMORY_COMPRESSION_MIN_BYTES", "600"))
+        self.compressor: Optional[DeepSeekCompressor] = DeepSeekCompressor() if self.enable_compression else None
+        if self.enable_compression and self.compressor:
+            logger.info("DeepSeek-OCR compression enabled for LangGraphStore")
         logger.info(f"Initialized GenesisLangGraphStore with database: {database_name}")
 
     def _validate_namespace(self, namespace: Tuple[str, ...]) -> None:
@@ -136,6 +166,89 @@ class GenesisLangGraphStore(BaseStore):
         """
         namespace_type = namespace[0]
         return self.TTL_POLICIES.get(namespace_type)
+
+    async def _compress_value(
+        self,
+        namespace: Tuple[str, ...],
+        value: Any,
+        metadata: Dict[str, Any],
+    ) -> Tuple[Any, Dict[str, Any]]:
+        """
+        Optionally compress `value` using DeepSeek-OCR.
+        """
+        if not self.enable_compression or not self.compressor:
+            return value, metadata
+
+        try:
+            namespace_label = list(namespace)
+            if isinstance(value, str):
+                original_text = value
+                original_type = "text"
+            else:
+                original_text = json.dumps(value, ensure_ascii=False)
+                original_type = "json"
+
+            original_bytes = len(original_text.encode("utf-8"))
+            if original_bytes < self.compression_min_bytes:
+                return value, metadata
+
+            compression_metadata = dict(metadata)
+            compression_metadata.setdefault("namespace", namespace_label)
+
+            compressed = await self.compressor.compress_memory(original_text, compression_metadata)
+            compressed_dict = compressed.to_dict()
+
+            metadata.setdefault("compression", {})
+            metadata["compression"].update(
+                {
+                    "algorithm": compressed.metadata.get("algorithm", "deepseek_ocr"),
+                    "ratio": compressed.compression_ratio,
+                    "original_bytes": compressed.original_size,
+                    "compressed_bytes": compressed.compressed_size,
+                    "stored_bytes": compressed.metadata.get("stored_bytes"),
+                    "saved_bytes": compressed.metadata.get("saved_bytes"),
+                    "chunk_count": compressed.metadata.get("chunk_count"),
+                    "timestamp": compressed.metadata.get("timestamp"),
+                    "namespace": list(namespace),
+                }
+            )
+
+            stored_value = {
+                "__compressed__": True,
+                "algorithm": compressed.metadata.get("algorithm", "deepseek_ocr"),
+                "original_type": original_type,
+                "payload": compressed_dict,
+            }
+            return stored_value, metadata
+        except Exception as exc:  # pragma: no cover - defensive logging
+            logger.warning("Failed to compress memory value: %s", exc, exc_info=True)
+            return value, metadata
+
+    async def _decompress_value(self, stored_value: Any, metadata: Dict[str, Any]) -> Any:
+        """
+        Decompress values stored with DeepSeek-OCR when required.
+        """
+        if not isinstance(stored_value, dict) or "__compressed__" not in stored_value:
+            return stored_value
+
+        if not self.enable_compression or not self.compressor or CompressedMemory is None:
+            return stored_value
+
+        try:
+            payload = stored_value.get("payload", {})
+            compressed = CompressedMemory.from_dict(payload)
+            namespace = metadata.get("compression", {}).get("namespace") or metadata.get("namespace")
+
+            full_text = compressed.reconstruct_full_text()
+            metadata.setdefault("compression", {})
+            metadata["compression"]["last_decompressed"] = datetime.now(timezone.utc).isoformat()
+
+            if stored_value.get("original_type") == "json":
+                return json.loads(full_text)
+            return full_text
+        except Exception as exc:  # pragma: no cover - defensive logging
+            logger.warning("Failed to decompress memory value: %s", exc, exc_info=True)
+            return stored_value
 
     async def setup_indexes(self) -> Dict[str, Any]:
         """
@@ -232,8 +345,9 @@ class GenesisLangGraphStore(BaseStore):
         self,
         namespace: Tuple[str, ...],
         key: str,
-        value: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None
+        value: Any,
+        metadata: Optional[Dict[str, Any]] = None,
+        actor: Optional[str] = None,
     ) -> None:
         """
         Store data in the specified namespace with TTL support.
@@ -262,14 +376,28 @@ class GenesisLangGraphStore(BaseStore):
         # Ensure TTL index exists for this collection
         await self._ensure_ttl_index(collection, namespace)
 
+        metadata_copy = metadata.copy() if metadata else {}
+        value_to_store: Any = value
+        if self.compliance:
+            value_to_store, metadata_copy = self.compliance.before_write(
+                namespace,
+                key,
+                value_to_store,
+                metadata_copy,
+                actor=actor,
+            )
+
+        if isinstance(value_to_store, (str, dict)) and self.enable_compression:
+            value_to_store, metadata_copy = await self._compress_value(namespace, value_to_store, metadata_copy)
+
         # Use timezone-aware UTC timestamp for MongoDB TTL
         now = datetime.now(timezone.utc)
 
         document = {
             "key": key,
             "namespace": list(namespace),
-            "value": value,
-            "metadata": metadata or {},
+            "value": value_to_store,
+            "metadata": metadata_copy,
             "created_at": now,
             "updated_at": now
         }
@@ -284,6 +412,14 @@ class GenesisLangGraphStore(BaseStore):
                 timeout=self._timeout_ms / 1000
             )
             logger.debug(f"Stored {namespace}:{key}")
+            if self.compliance:
+                self.compliance.record_access(
+                    namespace,
+                    key,
+                    actor,
+                    action="write",
+                    metadata=document.get("metadata"),
+                )
         except asyncio.TimeoutError:
             logger.error(f"Timeout storing {namespace}:{key}")
             raise TimeoutError(f"Put operation exceeded {self._timeout_ms}ms")
@@ -291,7 +427,8 @@ class GenesisLangGraphStore(BaseStore):
     async def get(
         self,
         namespace: Tuple[str, ...],
-        key: str
+        key: str,
+        actor: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Retrieve data from the specified namespace.
@@ -319,7 +456,20 @@ class GenesisLangGraphStore(BaseStore):
 
             if doc:
                 logger.debug(f"Retrieved {namespace}:{key}")
-                return doc.get("value")
+                if self.compliance:
+                    self.compliance.record_access(
+                        namespace,
+                        key,
+                        actor,
+                        action="read",
+                        metadata=doc.get("metadata"),
+                    )
+                value = doc.get("value")
+                metadata = doc.get("metadata", {})
+                value = await self._decompress_value(value, metadata)
+                doc["value"] = value
+                doc["metadata"] = metadata
+                return value
             else:
                 logger.debug(f"Key not found: {namespace}:{key}")
                 return None
@@ -330,7 +480,8 @@ class GenesisLangGraphStore(BaseStore):
     async def delete(
         self,
         namespace: Tuple[str, ...],
-        key: str
+        key: str,
+        actor: Optional[str] = None,
     ) -> bool:
         """
         Delete data from the specified namespace.
@@ -359,6 +510,13 @@ class GenesisLangGraphStore(BaseStore):
             deleted = result.deleted_count > 0
             if deleted:
                 logger.debug(f"Deleted {namespace}:{key}")
+                if self.compliance:
+                    self.compliance.record_access(
+                        namespace,
+                        key,
+                        actor,
+                        action="delete",
+                    )
             else:
                 logger.debug(f"Key not found for deletion: {namespace}:{key}")
             return deleted
@@ -370,7 +528,8 @@ class GenesisLangGraphStore(BaseStore):
         self,
         namespace: Tuple[str, ...],
         query: Optional[Dict[str, Any]] = None,
-        limit: int = 100
+        limit: int = 100,
+        actor: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
         Search for entries within the specified namespace.
@@ -400,6 +559,8 @@ class GenesisLangGraphStore(BaseStore):
 
         # Build query
         search_query = query or {}
+        if self.compliance:
+            search_query = self.compliance.sanitize_query(search_query)
 
         try:
             cursor = collection.find(search_query).limit(limit)
@@ -409,16 +570,29 @@ class GenesisLangGraphStore(BaseStore):
             )
 
             logger.debug(f"Search in {namespace} returned {len(results)} results")
-            return [
-                {
-                    "key": doc["key"],
-                    "value": doc["value"],
-                    "metadata": doc.get("metadata", {}),
-                    "created_at": doc.get("created_at"),
-                    "updated_at": doc.get("updated_at")
-                }
-                for doc in results
-            ]
+            if self.compliance:
+                self.compliance.record_access(
+                    namespace,
+                    "*",
+                    actor,
+                    action="search",
+                    metadata={"result_count": len(results)}
+                )
+
+            formatted_results: List[Dict[str, Any]] = []
+            for doc in results:
+                metadata = doc.get("metadata", {})
+                value = await self._decompress_value(doc.get("value"), metadata)
+                formatted_results.append(
+                    {
+                        "key": doc["key"],
+                        "value": value,
+                        "metadata": metadata,
+                        "created_at": doc.get("created_at"),
+                        "updated_at": doc.get("updated_at")
+                    }
+                )
+            return formatted_results
         except asyncio.TimeoutError:
             logger.error(f"Timeout searching {namespace}")
             raise TimeoutError(f"Search operation exceeded {self._timeout_ms}ms")

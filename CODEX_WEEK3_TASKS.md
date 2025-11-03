@@ -6,6 +6,20 @@
 
 ---
 
+## 📈 Progress Updates
+
+- **Nov 2:** Completed the swarm analytics deliverables ahead of Week 3 kickoff:
+- **Nov 3:** Delivered the Business Monitoring dashboard (BusinessesOverview + BusinessDetailView) and wired the new tab into the public demo.
+  - Added `scripts/analyze_swarm_performance.py` with simulation, reporting, and dashboard payload generation.
+  - Built `SwarmTeamsViewer` for the dashboard and exposed `/dashboard-api/swarm/metrics` via the FastAPI backend.
+  - Verified linting and analytics run successfully (`npm run lint`, `python scripts/analyze_swarm_performance.py --generations 6`).
+- **Nov 3:** Activated DeepSeek-OCR compression, LangGraph Store wiring, and the Memory Knowledge Graph dashboard.
+  - Implemented `DeepSeekCompressor`, LangGraphStore compression hooks, and Agentic RAG decompression fixes.
+  - Added Prometheus metrics + analytics API (`/api/memory/analytics`) powering `MemoryKnowledgeGraph`.
+  - Test run: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./venv/bin/pytest -p pytest_asyncio.plugin tests/memory/test_deepseek_compression.py`.
+
+---
+
 ## TASK 1: Graph-based Agent Planning (GAP) Implementation ⭐ HIGHEST PRIORITY
 
 ### Objective

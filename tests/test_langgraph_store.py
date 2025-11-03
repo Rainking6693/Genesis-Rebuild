@@ -34,8 +34,8 @@ async def store():
 
     yield test_store
 
-    # Cleanup: clear all test data
-    await test_store.db.drop_database("genesis_memory_test")
+    # Cleanup: clear all test data (use client.drop_database, not db.drop_database)
+    await test_store.client.drop_database("genesis_memory_test")
     await test_store.close()
 
 
