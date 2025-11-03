@@ -41,9 +41,16 @@ class Task:
         elif self.task_id is None and self.id is None:
             raise ValueError("Either task_id or id must be provided")
 
-        # Validate required fields
+        # Validate / infer required fields
         if self.task_type is None:
-            raise ValueError("task_type is required")
+            inferred_type = None
+            if isinstance(self.metadata, dict):
+                inferred_type = (
+                    self.metadata.get("business_type")
+                    or self.metadata.get("task_type")
+                    or self.metadata.get("agent_type")
+                )
+            self.task_type = inferred_type or "generic"
         if self.description is None:
             raise ValueError("description is required")
 

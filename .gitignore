@@ -18,6 +18,15 @@ env/
 .coverage
 .coverage.*
 
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Temp outputs (adjust if these are intentional)
+out/
+
 # Environment files
 .env
 .env.local

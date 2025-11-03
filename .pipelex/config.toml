@@ -1,0 +1,23 @@
+# Pipelex Configuration for Genesis Project
+# Generated: November 2, 2025
+
+[settings]
+telemetry_enabled = false
+
+[providers]
+# Primary LLM providers for Genesis
+anthropic_api_key = "$ANTHROPIC_API_KEY"
+openai_api_key = "$OPENAI_API_KEY"
+mistral_api_key = "$MISTRAL_API_KEY"
+
+# Default provider for pipe generation
+default_provider = "anthropic"
+default_model = "claude-haiku-4.5"
+
+[execution]
+# Parallel execution settings
+max_parallel_pipes = 5
+timeout_seconds = 300
+
+[logging]
+level = "INFO"
