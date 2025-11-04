@@ -89,18 +89,18 @@ class TrafficSplit:
     Traffic split configuration for A/B testing.
 
     Attributes:
-        deployed_model_ids: Map of deployed_model_id → traffic percentage
+        splits: Map of deployed_model_id → traffic percentage
         strategy: Traffic split strategy
     """
-    deployed_model_ids: Dict[str, int] = field(default_factory=dict)
+    splits: Dict[str, int] = field(default_factory=dict)
     strategy: TrafficSplitStrategy = TrafficSplitStrategy.SINGLE
 
     def validate(self):
         """Validate traffic split."""
-        if not self.deployed_model_ids:
-            raise ValueError("deployed_model_ids cannot be empty")
+        if not self.splits:
+            raise ValueError("splits cannot be empty")
 
-        total = sum(self.deployed_model_ids.values())
+        total = sum(self.splits.values())
         if total != 100:
             raise ValueError(f"Traffic percentages must sum to 100, got {total}")
 
@@ -194,7 +194,7 @@ class ModelEndpoints:
         await endpoints.update_traffic_split(
             endpoint_id=endpoint.name,
             traffic_split=TrafficSplit(
-                deployed_model_ids={"model_v1": 50, "model_v2": 50},
+                splits={"model_v1": 50, "model_v2": 50},
                 strategy=TrafficSplitStrategy.AB_TEST
             )
         )
@@ -493,11 +493,11 @@ class ModelEndpoints:
         try:
             # Update traffic split
             endpoint.update(
-                traffic_split=traffic_split.deployed_model_ids
+                traffic_split=traffic_split.splits
             )
 
             logger.info(
-                f"Traffic split updated: {traffic_split.deployed_model_ids}"
+                f"Traffic split updated: {traffic_split.splits}"
             )
 
             return True
