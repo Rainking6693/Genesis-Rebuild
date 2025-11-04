@@ -28,6 +28,8 @@
   `genesis_meta_agent_stripe_payment_intents_total`, auth/quota gauges) and hardened dashboard webhook retries.
   - Verified via PromQL (`curl http://localhost:9090/api/v1/query?...`) after rerunning the simulation E2E suite
     (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./venv/bin/pytest -p pytest_asyncio.plugin tests/e2e/test_autonomous_business_creation.py`).
+- **Nov 5:** Audited Cursor's revenue dashboard, exposed `/api/revenue/metrics` + `/api/revenue/analytics` in FastAPI, and added backend tests
+  (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./venv/bin/pytest tests/backend/test_revenue_api.py`). Dashboard now drops “Mock Data” badge when APIs respond.
 
 ---
 

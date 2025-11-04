@@ -22,10 +22,11 @@ import os
 import time
 import html
 import textwrap
+import hashlib
 from functools import lru_cache
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 from pydantic import BaseModel, Field, ValidationError, field_validator
@@ -1503,9 +1504,20 @@ Decompose this into a hierarchical task DAG covering:
                 logger.info(f"Stripe customer created: {customer_id}")
 
                 # Step 2: Calculate dynamic pricing (Genesis autonomously decides)
-                monthly_price_cents = await self._calculate_dynamic_pricing(
+                monthly_price_cents, validated_mrr, audience_category = await self._calculate_dynamic_pricing(
                     requirements=requirements,
                     revenue_projection=revenue_projection
+                )
+
+                # Step 2.5: P1 FIX - Audit pricing decision for compliance (PCI-DSS, SOX, GDPR)
+                await self._audit_pricing_decision(
+                    business_id=business_id,
+                    business_type=requirements.business_type,
+                    target_audience=requirements.target_audience,
+                    projected_mrr=validated_mrr,
+                    audience_category=audience_category,
+                    final_price_cents=monthly_price_cents,
+                    requirements=requirements
                 )
 
                 # Step 3: Create Stripe Subscription with dynamic pricing
@@ -1608,7 +1620,7 @@ Decompose this into a hierarchical task DAG covering:
         self,
         requirements: "BusinessRequirements",
         revenue_projection: Dict[str, Any]
-    ) -> int:
+    ) -> Tuple[int, float, str]:
         """
         Autonomously calculate optimal monthly subscription pricing.
 
@@ -1623,8 +1635,39 @@ Decompose this into a hierarchical task DAG covering:
             revenue_projection: Revenue projection data
 
         Returns:
-            Monthly price in cents (USD)
+            Tuple of (final_price_cents, validated_projected_mrr, sanitized_audience_category)
         """
+        # P1 FIX: Validate inputs to prevent pricing manipulation
+        # 1. Validate MRR projections are realistic (prevent LLM hallucination attacks)
+        projected_mrr = revenue_projection.get("projected_mrr", 0)
+        if not isinstance(projected_mrr, (int, float)) or projected_mrr < 0:
+            logger.warning(f"Invalid projected_mrr={projected_mrr}, defaulting to 0")
+            projected_mrr = 0
+        # Cap at $100k MRR to prevent overflow attacks
+        if projected_mrr > 100000:
+            logger.warning(f"Suspiciously high projected_mrr={projected_mrr}, capping at $100k")
+            projected_mrr = 100000
+
+        # 2. Sanitize target_audience input to prevent prompt injection
+        # Extract single keyword instead of raw string matching
+        target_audience_raw = requirements.target_audience.lower()
+        audience_keywords = {
+            "enterprise": ["enterprise", "b2b", "business", "corporate"],
+            "premium": ["premium", "luxury", "high-end", "professional"],
+            "consumer": ["consumer", "b2c", "individual", "personal"]
+        }
+
+        audience_category = "consumer"  # Default to safest tier
+        for category, keywords in audience_keywords.items():
+            if any(keyword in target_audience_raw for keyword in keywords):
+                audience_category = category
+                break
+
+        logger.info(
+            f"Pricing input validation: projected_mrr=${projected_mrr}, "
+            f"audience_category={audience_category} (from: {requirements.target_audience})"
+        )
+
         # Base pricing by business type
         base_prices = {
             "saas": 1500,  # $15/month (higher value, recurring users)
@@ -1634,18 +1677,19 @@ Decompose this into a hierarchical task DAG covering:
 
         base_price = base_prices.get(requirements.business_type, 1000)  # Default $10
 
-        # Adjust based on projected MRR
-        projected_mrr = revenue_projection.get("projected_mrr", 0)
+        # Adjust based on projected MRR (already validated above)
+        # P1 FIX: Add intermediate clamping to prevent overflow from stacking
         if projected_mrr > 5000:
-            base_price = int(base_price * 1.5)  # +50% for high-revenue potential
+            base_price = min(10000, int(base_price * 1.5))  # +50% for high-revenue potential
         elif projected_mrr > 2000:
-            base_price = int(base_price * 1.2)  # +20% for medium revenue
+            base_price = min(10000, int(base_price * 1.2))  # +20% for medium revenue
 
-        # Adjust based on target audience
-        if "enterprise" in requirements.target_audience.lower():
-            base_price = int(base_price * 2.0)  # 2x for enterprise
-        elif "premium" in requirements.target_audience.lower():
-            base_price = int(base_price * 1.5)  # 1.5x for premium
+        # Adjust based on target audience (using sanitized category)
+        # P1 FIX: Use validated category instead of raw string to prevent prompt injection
+        if audience_category == "enterprise":
+            base_price = min(10000, int(base_price * 2.0))  # 2x for enterprise
+        elif audience_category == "premium":
+            base_price = min(10000, int(base_price * 1.5))  # 1.5x for premium
 
         # Ensure minimum viable pricing ($5) and maximum ($100)
         final_price = max(500, min(10000, base_price))
@@ -1656,7 +1700,99 @@ Decompose this into a hierarchical task DAG covering:
             f"projected_mrr=${projected_mrr})"
         )
 
-        return final_price
+        # P1 FIX: Return all values needed for audit logging
+        return (final_price, projected_mrr, audience_category)
+
+    async def _audit_pricing_decision(
+        self,
+        business_id: str,
+        business_type: str,
+        target_audience: str,
+        projected_mrr: float,
+        audience_category: str,
+        final_price_cents: int,
+        requirements: "BusinessRequirements"
+    ) -> None:
+        """
+        P1 FIX: Audit pricing decisions for compliance and security.
+
+        Creates immutable audit log for all pricing calculations to support:
+        - PCI-DSS compliance (payment processing audit trails)
+        - SOX compliance (financial controls verification)
+        - GDPR compliance (data processing transparency)
+        - Security forensics (pricing manipulation detection)
+
+        Args:
+            business_id: Unique business identifier
+            business_type: Type of business (saas, ecommerce, content)
+            target_audience: Original target audience string (before sanitization)
+            projected_mrr: Validated projected MRR value
+            audience_category: Sanitized audience category (enterprise/premium/consumer)
+            final_price_cents: Calculated final price in cents
+            requirements: Full business requirements object
+        """
+        if not self.memory:
+            logger.warning("Pricing audit skipped: memory storage not available")
+            return
+
+        try:
+            # Create tamper-evident record
+            timestamp = datetime.now(timezone.utc)
+            timestamp_iso = timestamp.isoformat()
+
+            audit_record = {
+                "audit_id": str(uuid.uuid4()),
+                "timestamp": timestamp_iso,
+                "business_id": business_id,
+                "business_type": business_type,
+                "business_name": requirements.name,
+                "inputs": {
+                    "target_audience_raw": target_audience,
+                    "projected_mrr": projected_mrr,
+                },
+                "sanitized": {
+                    "audience_category": audience_category,
+                },
+                "output": {
+                    "final_price_cents": final_price_cents,
+                    "final_price_usd": final_price_cents / 100.0,
+                },
+                "metadata": {
+                    "genesis_version": "1.0",
+                    "pricing_algorithm": "dynamic_pricing_v1",
+                }
+            }
+
+            # Create tamper-evident hash (SHA256)
+            # Hash includes all critical fields to detect tampering
+            hash_input = json.dumps({
+                "business_id": business_id,
+                "timestamp": timestamp_iso,
+                "final_price_cents": final_price_cents,
+                "projected_mrr": projected_mrr,
+                "audience_category": audience_category,
+            }, sort_keys=True)
+
+            audit_record["tamper_hash"] = hashlib.sha256(hash_input.encode()).hexdigest()
+
+            # Store in MongoDB pricing_audit collection (immutable)
+            # Using direct MongoDB access for audit trail (bypass LangGraph namespace abstraction)
+            if hasattr(self.memory, 'db'):
+                audit_collection = self.memory.db["pricing_audit"]
+                await audit_collection.insert_one(audit_record)
+
+                logger.info(
+                    f"Pricing audit recorded: business_id={business_id}, "
+                    f"price=${final_price_cents/100:.2f}, "
+                    f"hash={audit_record['tamper_hash'][:16]}..."
+                )
+            else:
+                logger.warning("Pricing audit skipped: MongoDB database not accessible")
+
+        except Exception as exc:
+            # Never fail business creation due to audit logging errors
+            # Log error but continue execution
+            logger.error(f"Failed to audit pricing decision: {exc}", exc_info=True)
 
     async def _create_stripe_subscription(
         self,

@@ -115,9 +115,10 @@ class ProductGenerator:
 
         if self.use_local_llms and OPENAI_AVAILABLE:
             # Use local LLM (OpenAI-compatible API) - COST-FREE
+            # P0 FIX: Use sentinel value instead of "not-needed"
             self.local_client = OpenAI(
                 base_url=f"{self.local_llm_url}/v1",
-                api_key="not-needed"  # Local LLM doesn't require API key
+                api_key="local-llm-sentinel"  # Sentinel value, not user credentials
             )
             logger.info("Local LLM client initialized (llama-3.1-8b)")
         elif ANTHROPIC_AVAILABLE and self.api_key:

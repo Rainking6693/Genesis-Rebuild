@@ -175,12 +175,17 @@ class OpenAIClient(LLMClient):
         self.use_local_llm = os.getenv("USE_LOCAL_LLMS", "false").lower() == "true"
         self.local_llm_url = os.getenv("LOCAL_LLM_URL", "http://127.0.0.1:8003")
 
+        # P0 FIX: Validate local LLM URL to prevent SSRF attacks
+        if self.use_local_llm:
+            self._validate_local_llm_url(self.local_llm_url)
+
         if self.use_local_llm:
             # Local LLM mode (FREE)
-            self.api_key = "not-needed"  # Local LLM doesn't need API key
+            # P0 FIX: Use None for local mode (no real API key needed)
+            self.api_key = None
             self.client = openai.AsyncOpenAI(
                 base_url=f"{self.local_llm_url}/v1",
-                api_key=self.api_key
+                api_key="local-llm-sentinel"  # Sentinel value, not user credentials
             )
             self.model = "llama-3.1-8b"  # Local model
             logger.info(f"OpenAI client initialized with LOCAL LLM: {self.local_llm_url} (COST-FREE)")
@@ -197,6 +202,49 @@ class OpenAIClient(LLMClient):
 
         # Initialize context profile manager
         self.profile_manager = get_profile_manager()
+
+    def _validate_local_llm_url(self, url: str) -> None:
+        """
+        Validate local LLM URL for SSRF protection.
+
+        P0 Security Fix: Prevents Server-Side Request Forgery attacks by:
+        - Restricting to HTTP/HTTPS schemes only
+        - Whitelisting localhost addresses only
+        - Restricting port range to 8000-9000
+
+        Args:
+            url: Local LLM URL to validate
+
+        Raises:
+            LLMClientError: If URL fails validation
+        """
+        from urllib.parse import urlparse
+
+        try:
+            parsed = urlparse(url)
+        except Exception as e:
+            raise LLMClientError(f"Invalid URL format: {url}")
+
+        # Only allow HTTP/HTTPS schemes
+        if parsed.scheme not in ("http", "https"):
+            raise LLMClientError(
+                f"Invalid URL scheme '{parsed.scheme}'. Only http/https allowed."
+            )
+
+        # Whitelist allowed hosts (localhost only)
+        ALLOWED_HOSTS = ["127.0.0.1", "localhost", "::1"]
+        if parsed.hostname not in ALLOWED_HOSTS:
+            raise LLMClientError(
+                f"Security: Only localhost allowed for local LLM. Got: {parsed.hostname}"
+            )
+
+        # Restrict port range to typical local LLM ports
+        if parsed.port and (parsed.port < 8000 or parsed.port > 9000):
+            raise LLMClientError(
+                f"Security: Port must be 8000-9000 for local LLM. Got: {parsed.port}"
+            )
+
+        logger.info(f"Local LLM URL validated: {url}")
 
     async def generate_structured_output(
         self,

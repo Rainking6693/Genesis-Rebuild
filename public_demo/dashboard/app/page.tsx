@@ -12,6 +12,7 @@ import { MemoryKnowledgeGraph } from '@/components/MemoryKnowledgeGraph'
 import { AgentOverview } from '@/components/AgentOverview'
 import { BusinessesOverview } from '@/components/BusinessesOverview'
 import { BusinessDetailView } from '@/components/BusinessDetailView'
+import { RevenueDashboard } from '@/components/RevenueDashboard'
 import type { BusinessSummary } from '@/components/BusinessesOverview'
 
 export default function Dashboard() {
@@ -29,7 +30,7 @@ export default function Dashboard() {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="overview">Agent Overview</TabsTrigger>
             <TabsTrigger value="traces">OTEL Traces</TabsTrigger>
             <TabsTrigger value="halo">HALO Router</TabsTrigger>
@@ -39,6 +40,7 @@ export default function Dashboard() {
             <TabsTrigger value="swarm">Swarm Teams</TabsTrigger>
             <TabsTrigger value="memory">Memory Graph</TabsTrigger>
             <TabsTrigger value="businesses">Businesses</TabsTrigger>
+            <TabsTrigger value="revenue">Revenue</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -82,6 +84,10 @@ export default function Dashboard() {
               />
               <BusinessDetailView businessId={selectedBusiness?.id} businessName={selectedBusiness?.name} />
             </div>
+          </TabsContent>
+
+          <TabsContent value="revenue" className="mt-6">
+            <RevenueDashboard key={refreshKey} />
           </TabsContent>
         </Tabs>
       </main>

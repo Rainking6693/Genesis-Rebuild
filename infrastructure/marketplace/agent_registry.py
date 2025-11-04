@@ -10,12 +10,16 @@ wrapped with persistent backends later (Redis, Postgres, etc.).
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
+
+# Agent ID validation pattern: alphanumeric, underscore, hyphen only
+AGENT_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_-]+$')
 
 
 class AvailabilityStatus(str, Enum):
@@ -157,8 +161,20 @@ class AgentRegistry:
         availability: AvailabilityStatus = AvailabilityStatus.ONLINE,
         metadata: Optional[Dict[str, object]] = None,
     ) -> AgentProfile:
+        # Validate agent_id format
+        if not AGENT_ID_PATTERN.match(agent_id):
+            raise ValueError(f"Invalid agent_id format: '{agent_id}'. Must contain only alphanumeric, underscore, or hyphen characters.")
+        
         if agent_id in self._agents:
             raise AgentAlreadyRegisteredError(f"Agent '{agent_id}' is already registered.")
+        
+        # Validate cost
+        if cost_per_task < 0:
+            raise ValueError(f"Cost per task must be non-negative, got {cost_per_task}")
+        
+        # Validate capacity
+        if capacity_per_hour <= 0:
+            raise ValueError(f"Capacity per hour must be positive, got {capacity_per_hour}")
 
         profile = AgentProfile(
             agent_id=agent_id,

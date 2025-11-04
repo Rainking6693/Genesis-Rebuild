@@ -93,6 +93,10 @@ class TransactionLedger:
         currency: str = "USD",
         context: Optional[Dict[str, object]] = None,
     ) -> TransactionRecord:
+        # Validate amount
+        if amount <= 0:
+            raise ValueError(f"Transaction amount must be positive, got {amount}")
+        
         transaction_id = uuid.uuid4().hex
         record = TransactionRecord(
             transaction_id=transaction_id,
