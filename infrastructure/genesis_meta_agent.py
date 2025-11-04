@@ -55,16 +55,19 @@ try:  # Stripe is optional; we degrade gracefully when unavailable.
 except Exception:  # pragma: no cover - optional dependency
     stripe = None  # type: ignore
 
-# Product generation (optional - requires Anthropic API)
+# Product generation (optional - requires Anthropic API or local LLM)
 try:
-    from infrastructure.product_generator import ProductGenerator, ProductRequirements, BusinessType
-    from infrastructure.product_validator import ProductValidator
+    from infrastructure.products.product_generator import ProductGenerator, ProductRequirements, BusinessType
+    from infrastructure.products.product_validator import ProductValidator
+    from infrastructure.products.product_templates import BUSINESS_TEMPLATES, get_template
     PRODUCT_GENERATION_AVAILABLE = True
 except ImportError:
     PRODUCT_GENERATION_AVAILABLE = False
     ProductGenerator = None  # type: ignore
     ProductValidator = None  # type: ignore
-    logger.info("Product generation not available - install anthropic SDK")
+    BUSINESS_TEMPLATES = {}  # type: ignore
+    get_template = None  # type: ignore
+    logger.info("Product generation not available - install required SDK")
 
 # A2A integration (optional)
 try:

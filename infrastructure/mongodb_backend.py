@@ -408,32 +408,41 @@ class MongoDBBackend:
             "mongodb.search",
             SpanType.EXECUTION
         ) as span:
-            collection = self._get_collection(namespace)
+            namespace_type, namespace_id = namespace
+            collection = self._get_collection((namespace_type, namespace_id if namespace_id != "*" else namespace_id))
+
+            # Build namespace filter (support wildcard namespace_id)
+            namespace_filter: Dict[str, Any] = {}
+            if namespace_type != "*":
+                namespace_filter["namespace.0"] = namespace_type
+            if namespace_id != "*":
+                namespace_filter["namespace.1"] = namespace_id
 
             try:
-                # Full-text search with namespace filter
-                results = collection.find(
-                    {
-                        "namespace": list(namespace),
-                        "$text": {"$search": query}
-                    },
-                    {
-                        "score": {"$meta": "textScore"}  # Include relevance score
+                query_text = (query or "").strip()
+                if query_text and query_text != "*":
+                    mongo_filter = {
+                        **namespace_filter,
+                        "$text": {"$search": query_text}
                     }
-                ).sort(
-                    [("score", {"$meta": "textScore"})]  # Sort by relevance
-                ).limit(limit)
+                    projection = {"score": {"$meta": "textScore"}}
+                    cursor = collection.find(mongo_filter, projection).sort(
+                        [("score", {"$meta": "textScore"})]
+                    ).limit(limit)
+                else:
+                    mongo_filter = namespace_filter if namespace_filter else {}
+                    cursor = collection.find(mongo_filter).limit(limit)
 
-                entries = [MemoryEntry.from_dict(doc) for doc in results]
+                entries = [MemoryEntry.from_dict(doc) for doc in cursor]
 
                 span.set_attribute("results_found", len(entries))
-                span.set_attribute("query", query)
+                span.set_attribute("query", query_text or "*")
 
                 logger.debug(
-                    f"MongoDB search: {namespace} query='{query}' found={len(entries)}",
+                    f"MongoDB search: {namespace} query='{query_text or '*'}' found={len(entries)}",
                     extra={
                         "namespace": namespace,
-                        "query": query,
+                        "query": query_text or "*",
                         "results_count": len(entries)
                     }
                 )
@@ -447,7 +456,7 @@ class MongoDBBackend:
                     extra={"namespace": namespace, "query": query}
                 )
                 # Fallback to regex search if text search fails
-                return await self._fallback_search(namespace, query, limit)
+                return await self._fallback_search(namespace, query or "*", limit)
 
     async def _fallback_search(
         self,
@@ -458,15 +467,22 @@ class MongoDBBackend:
         """Fallback to regex search if text search fails"""
         collection = self._get_collection(namespace)
 
-        results = collection.find(
-            {
-                "namespace": list(namespace),
-                "$or": [
-                    {"key": {"$regex": query, "$options": "i"}},
-                    {"value": {"$regex": query, "$options": "i"}}
-                ]
-            }
-        ).limit(limit)
+        namespace_type, namespace_id = namespace
+        namespace_filter: Dict[str, Any] = {}
+        if namespace_type != "*":
+            namespace_filter["namespace.0"] = namespace_type
+        if namespace_id != "*":
+            namespace_filter["namespace.1"] = namespace_id
+
+        regex_filter = {
+            **namespace_filter,
+            "$or": [
+                {"key": {"$regex": query, "$options": "i"}},
+                {"value": {"$regex": query, "$options": "i"}}
+            ],
+        }
+
+        results = collection.find(regex_filter).limit(limit)
 
         return [MemoryEntry.from_dict(doc) for doc in results]
 

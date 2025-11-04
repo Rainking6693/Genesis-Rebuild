@@ -37,7 +37,7 @@ except ImportError:
     logging.warning("Vertex AI SDK not available - install google-cloud-aiplatform")
 
 # Genesis infrastructure
-from infrastructure.observability import get_tracer, trace_operation
+from infrastructure.observability import get_observability_manager, traced_operation, SpanType
 from infrastructure.vertex_ai.model_registry import (
     ModelRegistry,
     ModelMetadata,
@@ -46,7 +46,7 @@ from infrastructure.vertex_ai.model_registry import (
 )
 
 logger = logging.getLogger("vertex_ai.fine_tuning")
-tracer = get_tracer("vertex_ai.fine_tuning")
+obs_manager = get_observability_manager()
 
 
 class TuningType(Enum):
@@ -174,7 +174,8 @@ class TuningJobConfig:
     Complete configuration for a fine-tuning job.
 
     Attributes:
-        job_name: Unique job name
+        name: Job identifier (short name)
+        job_name: Full Vertex AI job name
         base_model: Base model to fine-tune (e.g., "gemini-2.0-flash")
         tuning_type: Type of fine-tuning
         dataset: Training dataset configuration
@@ -193,6 +194,7 @@ class TuningJobConfig:
         early_stopping_patience: Early stopping patience (epochs)
         tags: Metadata tags
     """
+    name: str
     job_name: str
     base_model: str
     tuning_type: TuningType
@@ -241,6 +243,7 @@ class TuningJobResult:
     Result of a fine-tuning job.
 
     Attributes:
+        job_id: Job identifier (short ID)
         job_name: Job name
         status: Final status
         tuned_model_uri: GCS path to tuned model
@@ -248,9 +251,10 @@ class TuningJobResult:
         start_time: Training start time
         end_time: Training end time
         duration_seconds: Total training time
-        vertex_ai_job_id: Vertex AI job ID
+        vertex_ai_job_id: Vertex AI job ID (full resource name)
         error_message: Error message if failed
     """
+    job_id: str
     job_name: str
     status: TuningJobStatus
     tuned_model_uri: Optional[str] = None
@@ -353,13 +357,14 @@ class FineTuningPipeline:
             f"location={self.location}"
         )
 
-    @trace_operation("fine_tuning.prepare_se_darwin_dataset")
+    @traced_operation("fine_tuning.prepare_se_darwin_dataset", SpanType.INFRASTRUCTURE)
     async def prepare_se_darwin_dataset(
         self,
         archive_path: str,
         output_gcs_uri: str,
         max_trajectories: int = 1000,
-        quality_threshold: float = 0.8
+        quality_threshold: float = 0.8,
+        min_test_pass_rate: float = 0.7
     ) -> TrainingDataset:
         """
         Prepare training dataset from SE-Darwin evolution archives.
@@ -371,6 +376,7 @@ class FineTuningPipeline:
             output_gcs_uri: GCS path for output JSONL file
             max_trajectories: Maximum number of trajectories to include
             quality_threshold: Minimum quality score (0-1)
+            min_test_pass_rate: Minimum test pass rate to include trajectory (0-1)
 
         Returns:
             TrainingDataset configuration
@@ -470,7 +476,7 @@ class FineTuningPipeline:
             format="jsonl"
         )
 
-    @trace_operation("fine_tuning.prepare_halo_routing_dataset")
+    @traced_operation("fine_tuning.prepare_halo_routing_dataset", SpanType.INFRASTRUCTURE)
     async def prepare_halo_routing_dataset(
         self,
         routing_decisions_path: str,
@@ -578,7 +584,7 @@ class FineTuningPipeline:
             format="jsonl"
         )
 
-    @trace_operation("fine_tuning.submit_tuning_job")
+    @traced_operation("fine_tuning.submit_tuning_job", SpanType.INFRASTRUCTURE)
     async def submit_tuning_job(
         self,
         config: TuningJobConfig,
@@ -611,7 +617,10 @@ class FineTuningPipeline:
         )
 
         # Create result object
+        # Generate job_id from job_name (extract last component or use as-is)
+        job_id = config.job_name.split('/')[-1] if '/' in config.job_name else config.job_name
         result = TuningJobResult(
+            job_id=job_id,
             job_name=config.job_name,
             status=TuningJobStatus.PENDING,
             start_time=datetime.utcnow()
@@ -841,7 +850,7 @@ class FineTuningPipeline:
 
         return result
 
-    @trace_operation("fine_tuning.register_tuned_model")
+    @traced_operation("fine_tuning.register_tuned_model", SpanType.INFRASTRUCTURE)
     async def register_tuned_model(
         self,
         result: TuningJobResult,

@@ -33,14 +33,41 @@ try:
     from google.cloud.aiplatform import Model, Endpoint
     VERTEX_AI_AVAILABLE = True
 except ImportError:
+    # Make monitoring_v3 and other imports available for test mocking even when SDK not installed
+    monitoring_v3 = None
+    aiplatform = None
+    Model = None
+    Endpoint = None
     VERTEX_AI_AVAILABLE = False
     logging.warning("Vertex AI SDK not available")
 
 # Genesis infrastructure
-from infrastructure.observability import get_tracer, trace_operation
+from infrastructure.observability import get_observability_manager, traced_operation, SpanType
 
 logger = logging.getLogger("vertex_ai.monitoring")
-tracer = get_tracer("vertex_ai.monitoring")
+obs_manager = get_observability_manager()
+
+# Module exports
+__all__ = [
+    # Google Cloud imports
+    'monitoring_v3',
+    # Enums
+    'MetricType',
+    'AlertSeverity',
+    # Data classes
+    'ModelMetrics',
+    'CostMetrics',
+    'QualityMetrics',
+    'AlertRule',
+    # Main classes
+    'VertexAIMonitoring',
+    'CostTracker',
+    'QualityMonitor',
+    # Factory functions
+    'get_vertex_ai_monitoring',
+    'get_cost_tracker',
+    'get_quality_monitor',
+]
 
 
 class MetricType(Enum):
@@ -283,7 +310,7 @@ class VertexAIMonitoring:
 
         logger.info(f"VertexAIMonitoring initialized: project={self.project_id}")
 
-    @trace_operation("monitoring.collect_performance_metrics")
+    @traced_operation("monitoring.collect_performance_metrics", SpanType.INFRASTRUCTURE)
     async def collect_performance_metrics(
         self,
         endpoint_id: str,
@@ -348,7 +375,7 @@ class VertexAIMonitoring:
 
         return metrics
 
-    @trace_operation("monitoring.calculate_cost_metrics")
+    @traced_operation("monitoring.calculate_cost_metrics", SpanType.INFRASTRUCTURE)
     async def calculate_cost_metrics(
         self,
         endpoint_id: str,
@@ -432,7 +459,7 @@ class VertexAIMonitoring:
 
         return metrics
 
-    @trace_operation("monitoring.collect_quality_metrics")
+    @traced_operation("monitoring.collect_quality_metrics", SpanType.INFRASTRUCTURE)
     async def collect_quality_metrics(
         self,
         endpoint_id: str,
@@ -492,7 +519,7 @@ class VertexAIMonitoring:
         self.alert_rules = [r for r in self.alert_rules if r.rule_name != rule_name]
         logger.info(f"Alert rule removed: {rule_name}")
 
-    @trace_operation("monitoring.check_alerts")
+    @traced_operation("monitoring.check_alerts", SpanType.INFRASTRUCTURE)
     async def check_alerts(
         self,
         endpoint_id: str

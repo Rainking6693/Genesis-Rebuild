@@ -38,10 +38,10 @@ except ImportError:
     logging.warning("Vertex AI SDK not available - install google-cloud-aiplatform")
 
 # Genesis infrastructure
-from infrastructure.observability import get_tracer, trace_operation
+from infrastructure.observability import get_observability_manager, traced_operation, SpanType
 
 logger = logging.getLogger("vertex_ai.model_registry")
-tracer = get_tracer("vertex_ai.model_registry")
+obs_manager = get_observability_manager()
 
 
 class DeploymentStage(Enum):
@@ -247,7 +247,7 @@ class ModelRegistry:
         """Generate cache key from name and version."""
         return f"{name}:{version}"
 
-    @trace_operation("model_registry.upload_model")
+    @traced_operation("model_registry.upload_model", SpanType.INFRASTRUCTURE)
     async def upload_model(
         self,
         metadata: ModelMetadata,
@@ -362,7 +362,7 @@ class ModelRegistry:
             logger.error(f"Model upload failed: {e}")
             raise
 
-    @trace_operation("model_registry.get_model")
+    @traced_operation("model_registry.get_model", SpanType.INFRASTRUCTURE)
     async def get_model(
         self,
         name: str,
@@ -396,7 +396,7 @@ class ModelRegistry:
             logger.error(f"Failed to load model from Vertex AI: {e}")
             raise
 
-    @trace_operation("model_registry.list_models")
+    @traced_operation("model_registry.list_models", SpanType.INFRASTRUCTURE)
     async def list_models(
         self,
         stage: Optional[DeploymentStage] = None,
@@ -442,7 +442,7 @@ class ModelRegistry:
 
         return results
 
-    @trace_operation("model_registry.promote_model")
+    @traced_operation("model_registry.promote_model", SpanType.INFRASTRUCTURE)
     async def promote_model(
         self,
         name: str,
@@ -502,7 +502,7 @@ class ModelRegistry:
 
         return metadata
 
-    @trace_operation("model_registry.update_performance_metrics")
+    @traced_operation("model_registry.update_performance_metrics", SpanType.INFRASTRUCTURE)
     async def update_performance_metrics(
         self,
         name: str,
@@ -547,7 +547,7 @@ class ModelRegistry:
 
         return metadata
 
-    @trace_operation("model_registry.update_cost_metrics")
+    @traced_operation("model_registry.update_cost_metrics", SpanType.INFRASTRUCTURE)
     async def update_cost_metrics(
         self,
         name: str,
@@ -590,7 +590,7 @@ class ModelRegistry:
 
         return metadata
 
-    @trace_operation("model_registry.delete_model")
+    @traced_operation("model_registry.delete_model", SpanType.INFRASTRUCTURE)
     async def delete_model(
         self,
         name: str,
@@ -635,7 +635,7 @@ class ModelRegistry:
 
         return True
 
-    @trace_operation("model_registry.compare_versions")
+    @traced_operation("model_registry.compare_versions", SpanType.INFRASTRUCTURE)
     async def compare_versions(
         self,
         name: str,

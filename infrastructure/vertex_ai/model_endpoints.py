@@ -38,11 +38,11 @@ except ImportError:
     logging.warning("Vertex AI SDK not available - install google-cloud-aiplatform")
 
 # Genesis infrastructure
-from infrastructure.observability import get_tracer, trace_operation
+from infrastructure.observability import get_observability_manager, traced_operation, SpanType
 from infrastructure.vertex_ai.model_registry import ModelRegistry, ModelMetadata
 
 logger = logging.getLogger("vertex_ai.model_endpoints")
-tracer = get_tracer("vertex_ai.model_endpoints")
+obs_manager = get_observability_manager()
 
 
 class TrafficSplitStrategy(Enum):
@@ -50,7 +50,8 @@ class TrafficSplitStrategy(Enum):
     SINGLE = "single"          # 100% to one model
     CANARY = "canary"          # 90/10 split (baseline/canary)
     AB_TEST = "ab_test"        # 50/50 split
-    GRADUAL_ROLLOUT = "gradual"  # Progressive rollout (0% → 100%)
+    GRADUAL = "gradual"        # Progressive rollout (0% → 100%)
+    BLUE_GREEN = "blue_green"  # Blue/green deployment
 
 
 @dataclass
@@ -89,18 +90,18 @@ class TrafficSplit:
     Traffic split configuration for A/B testing.
 
     Attributes:
-        deployed_model_ids: Map of deployed_model_id → traffic percentage
+        splits: Map of deployed_model_id → traffic percentage
         strategy: Traffic split strategy
     """
-    deployed_model_ids: Dict[str, int] = field(default_factory=dict)
+    splits: Dict[str, int] = field(default_factory=dict)
     strategy: TrafficSplitStrategy = TrafficSplitStrategy.SINGLE
 
     def validate(self):
         """Validate traffic split."""
-        if not self.deployed_model_ids:
-            raise ValueError("deployed_model_ids cannot be empty")
+        if not self.splits:
+            raise ValueError("splits cannot be empty")
 
-        total = sum(self.deployed_model_ids.values())
+        total = sum(self.splits.values())
         if total != 100:
             raise ValueError(f"Traffic percentages must sum to 100, got {total}")
 
@@ -111,28 +112,32 @@ class EndpointConfig:
     Complete endpoint configuration.
 
     Attributes:
-        endpoint_name: Human-readable endpoint name
+        name: Human-readable endpoint name
         display_name: Display name in Vertex AI console
         description: Endpoint purpose
         machine_type: GCP machine type (e.g., "n1-standard-4", "g2-standard-4")
         accelerator_type: GPU/TPU type (e.g., "NVIDIA_TESLA_T4", "NVIDIA_L4")
         accelerator_count: Number of accelerators
+        network: VPC network for Private Service Access (format: projects/{project}/global/networks/{network})
         auto_scaling: Auto-scaling configuration
         traffic_split: Traffic split for A/B testing
-        enable_access_logging: Enable request/response logging
+        enable_request_logging: Enable request/response logging (for predictions)
+        enable_access_logging: Enable access logging (for network traffic)
         enable_container_logging: Enable container-level logging
         dedicated_endpoint: Use dedicated endpoint (isolated network)
         spot_instance: Use Spot VMs (cost optimization)
         labels: GCP resource labels
     """
-    endpoint_name: str
+    name: str
     display_name: str
     description: str = ""
     machine_type: str = "n1-standard-4"
     accelerator_type: Optional[str] = None
     accelerator_count: int = 0
+    network: str = ""
     auto_scaling: AutoScalingConfig = field(default_factory=AutoScalingConfig)
     traffic_split: Optional[TrafficSplit] = None
+    enable_request_logging: bool = True
     enable_access_logging: bool = True
     enable_container_logging: bool = True
     dedicated_endpoint: bool = False
@@ -141,8 +146,8 @@ class EndpointConfig:
 
     def validate(self):
         """Validate endpoint configuration."""
-        if not self.endpoint_name:
-            raise ValueError("endpoint_name required")
+        if not self.name:
+            raise ValueError("name required")
         self.auto_scaling.validate()
         if self.traffic_split:
             self.traffic_split.validate()
@@ -168,7 +173,7 @@ class ModelEndpoints:
         # Create endpoint
         endpoint = await endpoints.create_endpoint(
             config=EndpointConfig(
-                endpoint_name="gemini-flash-routing-endpoint",
+                name="gemini-flash-routing-endpoint",
                 display_name="Routing Agent Endpoint",
                 machine_type="g2-standard-4",
                 accelerator_type="NVIDIA_L4",
@@ -194,7 +199,7 @@ class ModelEndpoints:
         await endpoints.update_traffic_split(
             endpoint_id=endpoint.name,
             traffic_split=TrafficSplit(
-                deployed_model_ids={"model_v1": 50, "model_v2": 50},
+                splits={"model_v1": 50, "model_v2": 50},
                 strategy=TrafficSplitStrategy.AB_TEST
             )
         )
@@ -238,7 +243,7 @@ class ModelEndpoints:
             f"location={self.location}"
         )
 
-    @trace_operation("model_endpoints.create_endpoint")
+    @traced_operation("model_endpoints.create_endpoint", SpanType.INFRASTRUCTURE)
     async def create_endpoint(
         self,
         config: EndpointConfig,
@@ -264,7 +269,7 @@ class ModelEndpoints:
         config.validate()
 
         logger.info(
-            f"Creating endpoint: {config.endpoint_name} "
+            f"Creating endpoint: {config.name} "
             f"(dedicated={config.dedicated_endpoint})"
         )
 
@@ -278,7 +283,7 @@ class ModelEndpoints:
         try:
             # Create endpoint
             endpoint = Endpoint.create(
-                display_name=config.display_name or config.endpoint_name,
+                display_name=config.display_name or config.name,
                 description=config.description,
                 labels=labels,
                 dedicated_endpoint_enabled=config.dedicated_endpoint,
@@ -304,15 +309,21 @@ class ModelEndpoints:
             logger.error(f"Endpoint creation failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.deploy_model")
+    @traced_operation("model_endpoints.deploy_model", SpanType.INFRASTRUCTURE)
     async def deploy_model(
         self,
         endpoint_id: str,
         model_name: str,
         model_version: str,
         deployed_model_display_name: Optional[str] = None,
+        display_name: Optional[str] = None,  # Backward compatibility
         traffic_percentage: int = 100,
         config: Optional[EndpointConfig] = None,
+        machine_type: Optional[str] = None,  # Backward compatibility
+        accelerator_type: Optional[str] = None,  # Backward compatibility
+        accelerator_count: int = 0,  # Backward compatibility
+        min_replica_count: int = 1,  # Backward compatibility
+        max_replica_count: int = 1,  # Backward compatibility
         sync: bool = True
     ) -> str:
         """
@@ -323,8 +334,14 @@ class ModelEndpoints:
             model_name: Model name from registry
             model_version: Model version
             deployed_model_display_name: Display name for deployment
+            display_name: Alias for deployed_model_display_name (backward compatibility)
             traffic_percentage: Percentage of traffic (0-100)
             config: Endpoint config (machine type, accelerator, auto-scaling)
+            machine_type: Machine type (if config not provided)
+            accelerator_type: Accelerator type (if config not provided)
+            accelerator_count: Accelerator count (if config not provided)
+            min_replica_count: Min replicas (if config not provided)
+            max_replica_count: Max replicas (if config not provided)
             sync: Wait for deployment to complete (15-25 minutes)
 
         Returns:
@@ -336,6 +353,10 @@ class ModelEndpoints:
         """
         start_time = time.time()
 
+        # Backward compatibility: use display_name if deployed_model_display_name not provided
+        if not deployed_model_display_name and display_name:
+            deployed_model_display_name = display_name
+
         # Get model from registry
         model, metadata = await self.model_registry.get_model(model_name, model_version)
 
@@ -346,11 +367,18 @@ class ModelEndpoints:
             endpoint = Endpoint(endpoint_id)
             self.endpoint_cache[endpoint_id] = endpoint
 
-        # Use default config if not provided
+        # Build config from individual parameters if not provided
         if not config:
             config = EndpointConfig(
-                endpoint_name=endpoint.display_name,
-                display_name=endpoint.display_name
+                name=endpoint.display_name if hasattr(endpoint, 'display_name') else endpoint_id,
+                display_name=endpoint.display_name if hasattr(endpoint, 'display_name') else endpoint_id,
+                machine_type=machine_type or "n1-standard-4",
+                accelerator_type=accelerator_type,
+                accelerator_count=accelerator_count,
+                auto_scaling=AutoScalingConfig(
+                    min_replica_count=min_replica_count,
+                    max_replica_count=max_replica_count
+                )
             )
         else:
             config.validate()
@@ -389,7 +417,7 @@ class ModelEndpoints:
             logger.error(f"Model deployment failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.predict")
+    @traced_operation("model_endpoints.predict", SpanType.INFRASTRUCTURE)
     async def predict(
         self,
         endpoint_id: str,
@@ -457,7 +485,7 @@ class ModelEndpoints:
             logger.error(f"Prediction failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.update_traffic_split")
+    @traced_operation("model_endpoints.update_traffic_split", SpanType.INFRASTRUCTURE)
     async def update_traffic_split(
         self,
         endpoint_id: str,
@@ -493,11 +521,11 @@ class ModelEndpoints:
         try:
             # Update traffic split
             endpoint.update(
-                traffic_split=traffic_split.deployed_model_ids
+                traffic_split=traffic_split.splits
             )
 
             logger.info(
-                f"Traffic split updated: {traffic_split.deployed_model_ids}"
+                f"Traffic split updated: {traffic_split.splits}"
             )
 
             return True
@@ -506,7 +534,7 @@ class ModelEndpoints:
             logger.error(f"Traffic split update failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.undeploy_model")
+    @traced_operation("model_endpoints.undeploy_model", SpanType.INFRASTRUCTURE)
     async def undeploy_model(
         self,
         endpoint_id: str,
@@ -546,7 +574,7 @@ class ModelEndpoints:
             logger.error(f"Model undeployment failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.delete_endpoint")
+    @traced_operation("model_endpoints.delete_endpoint", SpanType.INFRASTRUCTURE)
     async def delete_endpoint(
         self,
         endpoint_id: str,
@@ -584,7 +612,7 @@ class ModelEndpoints:
             logger.error(f"Endpoint deletion failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.list_endpoints")
+    @traced_operation("model_endpoints.list_endpoints", SpanType.INFRASTRUCTURE)
     async def list_endpoints(
         self,
         filter_labels: Optional[Dict[str, str]] = None,
@@ -627,7 +655,7 @@ class ModelEndpoints:
             logger.error(f"Endpoint listing failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.get_endpoint_stats")
+    @traced_operation("model_endpoints.get_endpoint_stats", SpanType.INFRASTRUCTURE)
     async def get_endpoint_stats(
         self,
         endpoint_id: str
@@ -640,7 +668,7 @@ class ModelEndpoints:
 
         Returns:
             {
-                "endpoint_name": "...",
+                "name": "...",
                 "deployed_models": [
                     {
                         "id": "...",
@@ -679,7 +707,7 @@ class ModelEndpoints:
             })
 
         return {
-            "endpoint_name": endpoint.display_name,
+            "name": endpoint.display_name,
             "resource_name": endpoint.resource_name,
             "deployed_models": deployed_models,
             "total_traffic_percentage": total_traffic,
