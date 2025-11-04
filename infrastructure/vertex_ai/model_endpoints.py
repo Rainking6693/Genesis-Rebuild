@@ -50,7 +50,8 @@ class TrafficSplitStrategy(Enum):
     SINGLE = "single"          # 100% to one model
     CANARY = "canary"          # 90/10 split (baseline/canary)
     AB_TEST = "ab_test"        # 50/50 split
-    GRADUAL_ROLLOUT = "gradual"  # Progressive rollout (0% → 100%)
+    GRADUAL = "gradual"        # Progressive rollout (0% → 100%)
+    BLUE_GREEN = "blue_green"  # Blue/green deployment
 
 
 @dataclass
