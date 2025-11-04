@@ -361,7 +361,8 @@ class FineTuningPipeline:
         archive_path: str,
         output_gcs_uri: str,
         max_trajectories: int = 1000,
-        quality_threshold: float = 0.8
+        quality_threshold: float = 0.8,
+        min_test_pass_rate: float = 0.7
     ) -> TrainingDataset:
         """
         Prepare training dataset from SE-Darwin evolution archives.
@@ -373,6 +374,7 @@ class FineTuningPipeline:
             output_gcs_uri: GCS path for output JSONL file
             max_trajectories: Maximum number of trajectories to include
             quality_threshold: Minimum quality score (0-1)
+            min_test_pass_rate: Minimum test pass rate to include trajectory (0-1)
 
         Returns:
             TrainingDataset configuration
