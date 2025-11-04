@@ -38,11 +38,11 @@ except ImportError:
     logging.warning("Vertex AI SDK not available - install google-cloud-aiplatform")
 
 # Genesis infrastructure
-from infrastructure.observability import get_tracer, trace_operation
+from infrastructure.observability import get_observability_manager, traced_operation, SpanType
 from infrastructure.vertex_ai.model_registry import ModelRegistry, ModelMetadata
 
 logger = logging.getLogger("vertex_ai.model_endpoints")
-tracer = get_tracer("vertex_ai.model_endpoints")
+obs_manager = get_observability_manager()
 
 
 class TrafficSplitStrategy(Enum):
@@ -238,7 +238,7 @@ class ModelEndpoints:
             f"location={self.location}"
         )
 
-    @trace_operation("model_endpoints.create_endpoint")
+    @traced_operation("model_endpoints.create_endpoint", SpanType.INFRASTRUCTURE)
     async def create_endpoint(
         self,
         config: EndpointConfig,
@@ -304,7 +304,7 @@ class ModelEndpoints:
             logger.error(f"Endpoint creation failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.deploy_model")
+    @traced_operation("model_endpoints.deploy_model", SpanType.INFRASTRUCTURE)
     async def deploy_model(
         self,
         endpoint_id: str,
@@ -389,7 +389,7 @@ class ModelEndpoints:
             logger.error(f"Model deployment failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.predict")
+    @traced_operation("model_endpoints.predict", SpanType.INFRASTRUCTURE)
     async def predict(
         self,
         endpoint_id: str,
@@ -457,7 +457,7 @@ class ModelEndpoints:
             logger.error(f"Prediction failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.update_traffic_split")
+    @traced_operation("model_endpoints.update_traffic_split", SpanType.INFRASTRUCTURE)
     async def update_traffic_split(
         self,
         endpoint_id: str,
@@ -506,7 +506,7 @@ class ModelEndpoints:
             logger.error(f"Traffic split update failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.undeploy_model")
+    @traced_operation("model_endpoints.undeploy_model", SpanType.INFRASTRUCTURE)
     async def undeploy_model(
         self,
         endpoint_id: str,
@@ -546,7 +546,7 @@ class ModelEndpoints:
             logger.error(f"Model undeployment failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.delete_endpoint")
+    @traced_operation("model_endpoints.delete_endpoint", SpanType.INFRASTRUCTURE)
     async def delete_endpoint(
         self,
         endpoint_id: str,
@@ -584,7 +584,7 @@ class ModelEndpoints:
             logger.error(f"Endpoint deletion failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.list_endpoints")
+    @traced_operation("model_endpoints.list_endpoints", SpanType.INFRASTRUCTURE)
     async def list_endpoints(
         self,
         filter_labels: Optional[Dict[str, str]] = None,
@@ -627,7 +627,7 @@ class ModelEndpoints:
             logger.error(f"Endpoint listing failed: {e}")
             raise
 
-    @trace_operation("model_endpoints.get_endpoint_stats")
+    @traced_operation("model_endpoints.get_endpoint_stats", SpanType.INFRASTRUCTURE)
     async def get_endpoint_stats(
         self,
         endpoint_id: str

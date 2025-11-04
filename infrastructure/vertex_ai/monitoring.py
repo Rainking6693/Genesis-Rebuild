@@ -37,10 +37,10 @@ except ImportError:
     logging.warning("Vertex AI SDK not available")
 
 # Genesis infrastructure
-from infrastructure.observability import get_tracer, trace_operation
+from infrastructure.observability import get_observability_manager, traced_operation, SpanType
 
 logger = logging.getLogger("vertex_ai.monitoring")
-tracer = get_tracer("vertex_ai.monitoring")
+obs_manager = get_observability_manager()
 
 
 class MetricType(Enum):
@@ -283,7 +283,7 @@ class VertexAIMonitoring:
 
         logger.info(f"VertexAIMonitoring initialized: project={self.project_id}")
 
-    @trace_operation("monitoring.collect_performance_metrics")
+    @traced_operation("monitoring.collect_performance_metrics", SpanType.INFRASTRUCTURE)
     async def collect_performance_metrics(
         self,
         endpoint_id: str,
@@ -348,7 +348,7 @@ class VertexAIMonitoring:
 
         return metrics
 
-    @trace_operation("monitoring.calculate_cost_metrics")
+    @traced_operation("monitoring.calculate_cost_metrics", SpanType.INFRASTRUCTURE)
     async def calculate_cost_metrics(
         self,
         endpoint_id: str,
@@ -432,7 +432,7 @@ class VertexAIMonitoring:
 
         return metrics
 
-    @trace_operation("monitoring.collect_quality_metrics")
+    @traced_operation("monitoring.collect_quality_metrics", SpanType.INFRASTRUCTURE)
     async def collect_quality_metrics(
         self,
         endpoint_id: str,
@@ -492,7 +492,7 @@ class VertexAIMonitoring:
         self.alert_rules = [r for r in self.alert_rules if r.rule_name != rule_name]
         logger.info(f"Alert rule removed: {rule_name}")
 
-    @trace_operation("monitoring.check_alerts")
+    @traced_operation("monitoring.check_alerts", SpanType.INFRASTRUCTURE)
     async def check_alerts(
         self,
         endpoint_id: str

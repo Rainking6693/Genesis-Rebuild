@@ -37,7 +37,7 @@ except ImportError:
     logging.warning("Vertex AI SDK not available - install google-cloud-aiplatform")
 
 # Genesis infrastructure
-from infrastructure.observability import get_tracer, trace_operation
+from infrastructure.observability import get_observability_manager, traced_operation, SpanType
 from infrastructure.vertex_ai.model_registry import (
     ModelRegistry,
     ModelMetadata,
@@ -46,7 +46,7 @@ from infrastructure.vertex_ai.model_registry import (
 )
 
 logger = logging.getLogger("vertex_ai.fine_tuning")
-tracer = get_tracer("vertex_ai.fine_tuning")
+obs_manager = get_observability_manager()
 
 
 class TuningType(Enum):
@@ -353,7 +353,7 @@ class FineTuningPipeline:
             f"location={self.location}"
         )
 
-    @trace_operation("fine_tuning.prepare_se_darwin_dataset")
+    @traced_operation("fine_tuning.prepare_se_darwin_dataset", SpanType.INFRASTRUCTURE)
     async def prepare_se_darwin_dataset(
         self,
         archive_path: str,
@@ -470,7 +470,7 @@ class FineTuningPipeline:
             format="jsonl"
         )
 
-    @trace_operation("fine_tuning.prepare_halo_routing_dataset")
+    @traced_operation("fine_tuning.prepare_halo_routing_dataset", SpanType.INFRASTRUCTURE)
     async def prepare_halo_routing_dataset(
         self,
         routing_decisions_path: str,
@@ -578,7 +578,7 @@ class FineTuningPipeline:
             format="jsonl"
         )
 
-    @trace_operation("fine_tuning.submit_tuning_job")
+    @traced_operation("fine_tuning.submit_tuning_job", SpanType.INFRASTRUCTURE)
     async def submit_tuning_job(
         self,
         config: TuningJobConfig,
@@ -841,7 +841,7 @@ class FineTuningPipeline:
 
         return result
 
-    @trace_operation("fine_tuning.register_tuned_model")
+    @traced_operation("fine_tuning.register_tuned_model", SpanType.INFRASTRUCTURE)
     async def register_tuned_model(
         self,
         result: TuningJobResult,
