@@ -12,6 +12,7 @@ Documentation: https://vercel.com/docs/rest-api
 """
 
 import asyncio
+import base64
 import httpx
 import logging
 from typing import Dict, Any, List, Optional
@@ -245,6 +246,80 @@ class VercelClient:
         except httpx.HTTPError as e:
             logger.error(f"HTTP error creating deployment: {e}")
             raise VercelAPIError(f"HTTP error: {str(e)}")
+
+    async def create_static_deployment(
+        self,
+        name: str,
+        files: Dict[str, bytes],
+        project_settings: Optional[Dict[str, Any]] = None,
+        target: str = "production"
+    ) -> VercelDeployment:
+        """
+        Create a static deployment from in-memory files.
+
+        Args:
+            name: Deployment (project) name
+            files: Mapping of file paths -> bytes/str content
+            project_settings: Optional projectSettings configuration
+            target: Deployment target (default production)
+
+        Returns:
+            VercelDeployment metadata
+
+        Raises:
+            VercelAPIError: If deployment fails
+        """
+        payload: Dict[str, Any] = {
+            "name": name,
+            "target": target,
+            "files": []
+        }
+
+        if project_settings:
+            payload["projectSettings"] = project_settings
+
+        for path, content in files.items():
+            if isinstance(content, str):
+                content_bytes = content.encode("utf-8")
+            else:
+                content_bytes = content
+            payload["files"].append({
+                "file": path,
+                "data": base64.b64encode(content_bytes).decode("utf-8")
+            })
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    self._build_url("/v13/deployments"),
+                    headers=self.headers,
+                    json=payload,
+                    timeout=30.0
+                )
+
+            if response.status_code in (200, 201):
+                data = response.json()
+                logger.info(f"Created static deployment: {data['id']} for {name}")
+                return VercelDeployment(
+                    id=data["id"],
+                    url=data["url"],
+                    state=data["readyState"],
+                    created_at=datetime.fromtimestamp(data["createdAt"] / 1000),
+                    project_id=data.get("projectId", ""),
+                    ready_state=data.get("readyState")
+                )
+
+            error_data = response.json()
+            error_msg = error_data.get("error", {}).get("message", "Unknown error")
+            raise VercelAPIError(
+                f"Failed to create static deployment: {error_msg}",
+                status_code=response.status_code,
+                response=error_data
+            )
+
+        except httpx.HTTPError as exc:
+            logger.error(f"HTTP error creating static deployment: {exc}")
+            raise VercelAPIError(f"HTTP error: {exc}")
 
     async def get_deployment_status(self, deployment_id: str) -> VercelDeployment:
         """

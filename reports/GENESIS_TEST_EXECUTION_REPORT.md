@@ -136,21 +136,18 @@
 
 **New Non-Blocking Issues Found:**
 
-**P2 (Non-Blocking):**
-1. **User Input Validation** (30 min)
-   - Issue: BusinessRequirements doesn't validate user-provided data
-   - Impact: Malformed input could cause downstream errors
-   - Fix: Add Pydantic validators for required fields
+**P2 (Resolved – Nov 3):**
+1. **User Input Validation**
+   - ✅ `BusinessRequirements` now normalized via Pydantic schema (blank/short fields rejected).
+   - ✅ Validation errors surface as `BusinessCreationError` before orchestration begins.
 
-2. **Dashboard Webhook Retry Logic** (1 hour)
-   - Issue: `_notify_dashboard()` doesn't retry on transient failures
-   - Impact: Lost events if dashboard temporarily unavailable
-   - Fix: Add exponential backoff retry (3 attempts)
+2. **Dashboard Webhook Retry Logic**
+   - ✅ `_notify_dashboard()` implements async exponential backoff (configurable attempts, default 3).
+   - ✅ Client-side 4xx responses stop retries; transient failures retry with jittered sleep.
 
-3. **Cost Tracking Not Wired** (45 min)
-   - Issue: `_calculate_deployment_costs()` not called in main flow
-   - Impact: Cost data available but not tracked
-   - Fix: Call in `_execute_deployment_task()` after success
+3. **Cost Tracking Wiring**
+   - ✅ `_calculate_deployment_costs()` executed on every run; results stored in `BusinessCreationResult.metadata`.
+   - ✅ Prometheus `deployment_costs_total` counter increments per business (`deployment_type` label).
 
 **P3 (Optional):**
 1. **LRU Cache Not Used**

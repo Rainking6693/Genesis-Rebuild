@@ -3,17 +3,27 @@ Genesis Dashboard Backend API
 Provides endpoints for Prometheus metrics, OTEL traces, and CaseBank data
 """
 
+import asyncio
 import json
 import logging
+import os
+import secrets
+import time
+from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Any, Optional
-import asyncio
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Header, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 import httpx
+
+# Genesis memory infrastructure
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from scripts.analyze_memory_patterns import MemoryAnalytics
+from infrastructure.langgraph_store import get_store
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -21,18 +31,58 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Genesis Dashboard API", version="1.0.0")
 
-# CORS middleware for Next.js frontend
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
+if ENVIRONMENT == "production":
+    allowed_origins = [
+        os.getenv("DASHBOARD_PRIMARY_ORIGIN", "https://dashboard.genesis.local"),
+    ]
+    allow_credentials = False
+    allow_methods = ["GET", "POST"]
+    allow_headers = ["Content-Type", "Authorization"]
+elif ENVIRONMENT == "staging":
+    allowed_origins = [
+        os.getenv("DASHBOARD_STAGING_ORIGIN", "https://staging-dashboard.genesis.local"),
+    ]
+    allow_credentials = False
+    allow_methods = ["GET", "POST"]
+    allow_headers = ["Content-Type", "Authorization"]
+else:
+    allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    allow_credentials = True
+    allow_methods = ["*"]
+    allow_headers = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=allowed_origins,
+    allow_credentials=allow_credentials,
+    allow_methods=allow_methods,
+    allow_headers=allow_headers,
 )
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault(
+        "Content-Security-Policy",
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';",
+    )
+    response.headers.setdefault("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    return response
 
 # Configuration
 PROMETHEUS_URL = "http://localhost:9090"
 CASEBANK_PATH = Path("/home/genesis/genesis-rebuild/data/memory/casebank.jsonl")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SWARM_METRICS_PATH = REPO_ROOT / "public_demo/dashboard/public/swarm_metrics.json"
+
+SWARM_METRICS_API_TOKEN = os.getenv("SWARM_METRICS_API_TOKEN")
+SWARM_METRICS_RATE_LIMIT = int(os.getenv("SWARM_METRICS_RATE_LIMIT", "10"))
+SWARM_METRICS_RATE_WINDOW = int(os.getenv("SWARM_METRICS_RATE_WINDOW", "60"))
+_swarm_metrics_requests: Dict[str, List[float]] = defaultdict(list)
 
 
 # Models
@@ -91,6 +141,16 @@ class HumanApproval(BaseModel):
     status: str  # "pending", "approved", "rejected"
 
 
+class SwarmMetrics(BaseModel):
+    generated_at: str
+    summary: Dict[str, float]
+    generations: List[Dict[str, Any]]
+    top_teams: List[Dict[str, Any]]
+    cooperation_matrix: Dict[str, Dict[str, float]]
+    active_teams: List[Dict[str, Any]]
+    emergent_strategies: List[str]
+
+
 # Helper functions
 async def query_prometheus(query: str) -> Dict:
     """Query Prometheus API"""
@@ -124,6 +184,61 @@ def read_casebank() -> List[Dict]:
     except Exception as e:
         logger.error(f"Failed to read CaseBank: {e}")
         return []
+
+
+def read_swarm_metrics() -> Dict[str, Any]:
+    """Load swarm performance metrics produced by the analytics pipeline."""
+    if not SWARM_METRICS_PATH.exists():
+        raise FileNotFoundError("Swarm metrics are not available")
+
+    try:
+        with SWARM_METRICS_PATH.open("r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except json.JSONDecodeError as exc:
+        raise ValueError("Swarm metrics file is malformed") from exc
+
+
+def _enforce_swarm_metrics_rate_limit(client_ip: str) -> None:
+    now = time.time()
+    window = SWARM_METRICS_RATE_WINDOW
+    timestamps = _swarm_metrics_requests[client_ip]
+    _swarm_metrics_requests[client_ip] = [ts for ts in timestamps if now - ts < window]
+
+    if len(_swarm_metrics_requests[client_ip]) >= SWARM_METRICS_RATE_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Rate limit exceeded for swarm metrics endpoint",
+        )
+
+    _swarm_metrics_requests[client_ip].append(now)
+
+
+async def verify_swarm_metrics_access(
+    request: Request,
+    authorization: str = Header(None)
+) -> None:
+    if not SWARM_METRICS_API_TOKEN:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Swarm metrics token not configured",
+        )
+
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid Authorization header",
+        )
+
+    token = authorization[7:]
+    if not secrets.compare_digest(token, SWARM_METRICS_API_TOKEN):
+        logger.warning("Unauthorized attempt to access swarm metrics endpoint")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API token",
+        )
+
+    client_ip = request.client.host if request.client else "unknown"
+    _enforce_swarm_metrics_rate_limit(client_ip)
 
 
 # API Endpoints
@@ -312,6 +427,174 @@ async def get_human_approvals():
         return approvals
     except Exception as e:
         logger.error(f"Failed to get human approvals: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/swarm/metrics", response_model=SwarmMetrics)
+async def get_swarm_metrics(
+    _: None = Depends(verify_swarm_metrics_access)
+):
+    """Expose swarm optimisation metrics for the dashboard."""
+    try:
+        raw = read_swarm_metrics()
+        return SwarmMetrics.parse_obj(raw)
+    except FileNotFoundError as exc:
+        logger.warning(str(exc))
+        raise HTTPException(
+            status_code=404,
+            detail="Swarm metrics are not currently available",
+        )
+    except ValidationError as exc:
+        logger.error(f"Invalid swarm metrics payload: {exc}")
+        raise HTTPException(status_code=500, detail="Swarm metrics file is invalid.")
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.error(f"Failed to load swarm metrics: {exc}")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+async def verify_memory_analytics_access(
+    request: Request,
+    authorization: str = Header(None)
+) -> None:
+    """Verify API token for memory analytics endpoint (P1 security fix)."""
+    # Development mode: allow access without token
+    if ENVIRONMENT == "development":
+        return
+
+    api_token = os.getenv("MEMORY_ANALYTICS_API_TOKEN")
+
+    if not api_token:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Memory analytics authentication not configured",
+        )
+
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid Authorization header",
+        )
+
+    token = authorization[7:]
+    if not secrets.compare_digest(token, api_token):
+        logger.warning("Unauthorized attempt to access memory analytics endpoint")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API token",
+        )
+
+
+@app.get("/api/memory/analytics")
+async def get_memory_analytics(
+    _: None = Depends(verify_memory_analytics_access)
+):
+    """
+    Get comprehensive memory analytics data for dashboard visualization.
+
+    Returns knowledge graph nodes/edges, metrics, top patterns, and community clusters.
+
+    Via Context7 MCP: NetworkX community detection + React Flow graph visualization
+    Research sources documented in scripts/analyze_memory_patterns.py
+
+    Security: Requires Bearer token authentication (development mode bypassed)
+
+    Returns:
+        Dict with:
+        - nodes: List of memory nodes (agents, businesses, patterns, consensus)
+        - edges: List of relationships (learning, usage, evolution)
+        - metrics: Storage, retrieval frequency, cost savings, TTL predictions
+        - topPatterns: Most-retrieved patterns with effectiveness scores
+        - communities: Graph clusters from Louvain algorithm
+    """
+    try:
+        logger.info("Fetching memory analytics data...")
+
+        # Initialize memory store and analytics
+        store = get_store()
+        analytics = MemoryAnalytics(store)
+
+        # Build knowledge graph
+        graph = await analytics.build_knowledge_graph()
+
+        # Transform NetworkX graph to React Flow format
+        nodes = []
+        for node_id, node_data in graph.nodes(data=True):
+            nodes.append({
+                "id": node_id,
+                "type": node_data.get("type", "unknown"),
+                "label": node_id.replace("_", " ").title(),
+                "data": {
+                    "namespace": node_data.get("namespace", []),
+                    "createdAt": datetime.now(timezone.utc).isoformat(),
+                    "usageCount": node_data.get("entry_count", 0),
+                    "score": 0.8,  # Default score
+                }
+            })
+
+        edges = []
+        for source, target, edge_data in graph.edges(data=True):
+            edges.append({
+                "id": f"{source}_{target}",
+                "source": source,
+                "target": target,
+                "label": edge_data.get("relationship", "related"),
+                "weight": 1.0,
+                "type": edge_data.get("relationship", "usage"),
+            })
+
+        # Get analytics metrics
+        top_patterns = await analytics.get_most_retrieved_patterns(20)
+        communities = analytics.detect_communities(graph)
+        cost_savings = await analytics.calculate_cost_savings()
+        ttl_predictions = await analytics.predict_ttl_status()
+
+        # Get namespace summary for storage metrics
+        summary = await analytics.router.get_namespace_summary()
+        storage_by_namespace = dict(summary["by_type"])
+
+        # Build retrieval frequency map
+        retrieval_frequency = {
+            f"{p.namespace[-1]}_{p.key}": p.retrieval_count
+            for p in top_patterns[:10]
+        }
+
+        # Format response
+        response = {
+            "nodes": nodes,
+            "edges": edges,
+            "metrics": {
+                "storageByNamespace": storage_by_namespace,
+                "retrievalFrequency": retrieval_frequency,
+                "costSavings": cost_savings,
+                "ttlPredictions": ttl_predictions,
+            },
+            "topPatterns": [
+                {
+                    "key": p.key,
+                    "namespace": p.namespace,
+                    "retrievalCount": p.retrieval_count,
+                    "lastUsed": p.last_used.isoformat() if p.last_used else None,
+                }
+                for p in top_patterns
+            ],
+            "communities": [
+                {
+                    "id": c.id,
+                    "members": c.members,
+                    "cohesion": c.cohesion,
+                }
+                for c in communities
+            ],
+        }
+
+        logger.info(
+            f"Memory analytics: {len(nodes)} nodes, {len(edges)} edges, "
+            f"{len(communities)} communities"
+        )
+        return response
+
+    except Exception as e:
+        logger.error(f"Failed to get memory analytics: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

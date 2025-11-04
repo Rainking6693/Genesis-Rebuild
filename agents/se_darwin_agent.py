@@ -66,6 +66,7 @@ from typing import Dict, List, Optional, Any, Tuple, Set
 
 # Genesis infrastructure
 from infrastructure import get_logger
+from infrastructure.evolution.safety_benchmarks import SafetyBenchmark
 from infrastructure.trajectory_pool import (
     Trajectory,
     TrajectoryPool,
@@ -593,6 +594,23 @@ class SEDarwinAgent:
         self.refinement_operator = self._base_refinement_operator
 
         self.benchmark_runner = BenchmarkRunner()
+
+        # Optional FP16 acceleration for downstream Torch components (WorldModel, etc.)
+        self.use_fp16_training = os.getenv('ENABLE_FP16_TRAINING', 'false').lower() == 'true'
+        if self.use_fp16_training:
+            logger.info(
+                "[SEDarwinAgent] FP16 training toggle enabled – Torch components will attempt AMP"
+            )
+
+        # WaltzRL safety benchmark integration
+        self.enable_safety_benchmarks = os.getenv(
+            "ENABLE_WALTZRL_SAFETY_BENCHMARKS", "false"
+        ).lower() == "true"
+        self.safety_threshold = float(os.getenv("WALTZRL_SAFETY_THRESHOLD", "0.9"))
+        self.block_on_safety_failure = os.getenv(
+            "WALTZRL_BLOCK_ON_FAILURE", "false"
+        ).lower() == "true"
+        self._safety_benchmark: Optional[SafetyBenchmark] = None
 
         # P2-1 Fix: Initialize benchmark scenario loader
         self.benchmark_loader = BenchmarkScenarioLoader()
@@ -1575,6 +1593,50 @@ class SEDarwinAgent:
 
         return benchmark_result
 
+    def _get_safety_benchmark(self) -> SafetyBenchmark:
+        """Lazily instantiate the WaltzRL safety benchmark runner."""
+        if self._safety_benchmark is None:
+            self._safety_benchmark = SafetyBenchmark()
+        return self._safety_benchmark
+
+    async def _validate_trajectory_safety(self, trajectory: Trajectory) -> bool:
+        """
+        Run WaltzRL safety benchmarks before archiving a trajectory.
+
+        Returns:
+            True when the trajectory passes the safety threshold, False
+            otherwise.  Failures can optionally raise depending on the
+            ``WALTZRL_BLOCK_ON_FAILURE`` flag.
+        """
+        if not self.enable_safety_benchmarks:
+            return True
+
+        try:
+            benchmark = self._get_safety_benchmark()
+            metrics = await benchmark.evaluate_agent_safety(
+                agent_code=trajectory.code_after or trajectory.code_changes,
+                agent_type=self.agent_name,
+            )
+            overall = metrics.get("overall_safety_score", 1.0)
+            if overall >= self.safety_threshold:
+                return True
+
+            logger.warning(
+                "[SEDarwinAgent] Trajectory rejected due to safety score "
+                "(score=%.3f threshold=%.3f, trajectory=%s)",
+                overall,
+                self.safety_threshold,
+                trajectory.trajectory_id,
+            )
+            return False
+        except Exception as exc:
+            logger.warning(
+                "[SEDarwinAgent] Safety benchmark failed for trajectory %s: %s",
+                getattr(trajectory, "trajectory_id", "unknown"),
+                exc,
+            )
+            return not self.block_on_safety_failure
+
     async def _archive_trajectories(
         self,
         execution_results: List[TrajectoryExecutionResult]
@@ -1586,7 +1648,13 @@ class SEDarwinAgent:
             execution_results: Results to archive
         """
         for result in execution_results:
-            self.trajectory_pool.add_trajectory(result.trajectory)
+            if await self._validate_trajectory_safety(result.trajectory):
+                self.trajectory_pool.add_trajectory(result.trajectory)
+            else:
+                logger.info(
+                    "Skipping trajectory %s due to safety validation failure",
+                    result.trajectory.trajectory_id,
+                )
 
         logger.info(f"Archived {len(execution_results)} trajectories to pool")
 

@@ -1,0 +1,13 @@
+[Unit]
+Description=Local LLM Health Check Timer
+Documentation=https://github.com/genesis/genesis-rebuild
+Requires=llm-health-check.service
+
+[Timer]
+# Run every 5 minutes
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=llm-health-check.service
+
+[Install]
+WantedBy=timers.target

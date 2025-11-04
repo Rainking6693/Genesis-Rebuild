@@ -310,6 +310,29 @@ Set feature flags via `infrastructure.feature_flags`.
 
 ---
 
+### 12.1 Environment Variables
+
+When running the full autonomous flow (deployments + payments), set the following environment variables before launching the orchestration layer:
+
+```bash
+# Enable end-to-end mode
+export RUN_GENESIS_FULL_E2E=true
+
+# Vercel REST API credentials (required for live deployments)
+export VERCEL_TOKEN="qRbJRorD2kfr8A2lrs9aYA9Y"
+export VERCEL_TEAM_ID="team_RWhuisUTeew8ZnTctqTZSyfF"
+
+# Stripe (use test keys only – live keys are intentionally rejected)
+export STRIPE_SECRET_KEY="sk_test_51SPUxvAiF1G2UE7CAnC4XOzrmP6NPYA7YtjITxDM5e3LQooyTElWwOSFg1FvduCRYqIKisQ22T8wAiunTk5YV7bh00lB6j2oWL"
+export STRIPE_PUBLISHABLE_KEY="pk_test_51SPUxvAiF1G2UE7CwIk8nzi7HA8fZgzo8nyyNj4YDbw4qQLLhvXE1be2I2uNyGncBbRPKjY1AeB4Snj1EmpFLEMJ00azs7kDle"
+```
+
+> **Security note:** keep these variables in a secure `.env` file or secret manager in production. The Meta-Agent only enables real deployments when `RUN_GENESIS_FULL_E2E=true` _and_ the corresponding credentials are present.
+
+When the variables are omitted, the system falls back to simulation mode (no network calls or external dependencies required).
+
+---
+
 ## 13. Running the Test Suite
 
 ### 13.1 Prerequisites
@@ -369,6 +392,63 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./venv/bin/pytest -k revenue_projection tests/g
 | `META_AGENT_DEPLOYMENT_URL_MISSING` | 3+ consecutive successes without URL | Verify deployment agent and monitoring integration |
 | `META_AGENT_REVENUE_PROJECTION_ZERO` | >10% projections returning 0 | Investigate execution failures or capability gaps |
 | `META_AGENT_MEMORY_ERRORS` | Memory search/put exceptions > threshold | Check MongoDB connectivity or compression config |
+
+### 14.3 Prometheus Spot Checks
+
+After every simulation run, confirm counters moved:
+
+```bash
+# Deployment attempts/success/failure
+curl "http://localhost:9090/api/v1/query?query=genesis_meta_agent_vercel_deployments_total"
+
+# Stripe payment intents (test mode)
+curl "http://localhost:9090/api/v1/query?query=genesis_meta_agent_stripe_payment_intents_total"
+
+# Auth + quota protection
+curl "http://localhost:9090/api/v1/query?query=genesis_meta_agent_auth_failures_total"
+curl "http://localhost:9090/api/v1/query?query=genesis_meta_agent_quota_denied_total"
+
+# Cost tracking by deployment type
+curl "http://localhost:9090/api/v1/query?query=genesis_meta_agent_deployment_costs_total_usd"
+```
+
+Prometheus + Grafana stack lives under `monitoring/docker-compose.yml`.  
+Bring it up with `docker compose up -d` and visit:
+- Prometheus: http://localhost:9090  
+- Grafana: http://localhost:3000 (admin / admin)
+
+### 14.4 Dashboard & Webhook Integration
+
+1. **Backend API**  
+   ```
+   export ENVIRONMENT=development
+   cd genesis-dashboard/backend
+   uvicorn genesis-dashboard.backend.api:app --host 0.0.0.0 --port 8080
+   ```
+   Test with `curl http://localhost:8080/api/health`.
+
+2. **Webhook Target** – Set `GENESIS_DASHBOARD_URL` so the meta-agent posts lifecycle events:
+   ```
+   export GENESIS_DASHBOARD_URL="http://localhost:8080"
+   ```
+   Optional stub (until a full handler is implemented):
+   ```python
+   @app.post("/api/businesses/{business_id}/events")
+   async def ingest_business_event(business_id: str, payload: Dict[str, Any]):
+       logger.info("dashboard event %s → %s", business_id, payload.get("update_type"))
+       return {"status": "ok"}
+   ```
+
+3. **Next.js UI (shadcn/ui)**  
+   ```
+   cd public_demo/dashboard
+   npm install
+   DASHBOARD_API_ORIGIN=http://localhost:8080 \
+   PROMETHEUS_ORIGIN=http://localhost:9090 \
+   npm run dev
+   ```
+   Open http://localhost:3000 to view Agent Overview, Business Overview, OTEL traces, HALO analytics, etc.  
+   shadcn/ui supplies the reusable React primitives (Tabs, Cards, Tables) that style the dashboard.
 
 ---
 

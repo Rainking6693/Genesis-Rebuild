@@ -1,5 +1,5 @@
 {
-  "archive_id": "archive_test_agent_4f0cb4fa",
+  "archive_id": "archive_test_agent_e3e84803",
   "agent_name": "test_agent",
   "generations": [
     0,
@@ -9,15 +9,15 @@
   ],
   "successful_attempts": [],
   "failed_attempts": [
-    "gen2_attempt0_5ccb1e0b",
-    "gen2_attempt1_7f1b73f3",
-    "gen3_attempt0_b7b34135",
-    "gen3_attempt1_db192e48"
+    "gen2_attempt1_34ada561",
+    "gen2_attempt0_3d08ca76",
+    "gen3_attempt1_1d0b3a5c",
+    "gen3_attempt0_9f5493f2"
   ],
   "best_version": "gen1_attempt0",
   "best_score": 0.65,
   "total_attempts": 4,
   "acceptance_rate": 0.0,
-  "created_at": "2025-10-27T14:08:53.508399+00:00",
-  "updated_at": "2025-10-27T14:08:53.508407+00:00"
+  "created_at": "2025-11-02T17:14:01.294201+00:00",
+  "updated_at": "2025-11-02T17:14:01.294212+00:00"
 }
