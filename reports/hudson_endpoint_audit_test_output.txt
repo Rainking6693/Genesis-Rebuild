@@ -1,0 +1,29 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /home/genesis/genesis-rebuild/venv/bin/python3
+cachedir: .pytest_cache
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/genesis/genesis-rebuild
+configfile: pytest.ini
+plugins: benchmark-5.1.0, cov-7.0.0, Faker-37.12.0, rerunfailures-16.1, anyio-4.10.0, timeout-2.4.0, mock-3.15.1, xdist-3.8.0, libtmux-0.39.0, asyncio-1.2.0, hydra-core-1.3.2, langsmith-0.4.38
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 17 items
+
+tests/vertex/test_model_endpoints.py::test_create_endpoint_success PASSED [  5%]
+tests/vertex/test_model_endpoints.py::test_create_endpoint_with_network PASSED [ 11%]
+tests/vertex/test_model_endpoints.py::test_deploy_model_success PASSED   [ 17%]
+tests/vertex/test_model_endpoints.py::test_deploy_model_with_autoscaling PASSED [ 23%]
+tests/vertex/test_model_endpoints.py::test_predict_success PASSED        [ 29%]
+tests/vertex/test_model_endpoints.py::test_predict_batch PASSED          [ 35%]
+tests/vertex/test_model_endpoints.py::test_update_traffic_split_ab_testing PASSED [ 41%]
+tests/vertex/test_model_endpoints.py::test_update_traffic_split_gradual_rollout PASSED [ 47%]
+tests/vertex/test_model_endpoints.py::test_undeploy_model PASSED         [ 52%]
+tests/vertex/test_model_endpoints.py::test_delete_endpoint PASSED        [ 58%]
+tests/vertex/test_model_endpoints.py::test_list_endpoints PASSED         [ 64%]
+tests/vertex/test_model_endpoints.py::test_list_endpoints_with_filters PASSED [ 70%]
+tests/vertex/test_model_endpoints.py::test_get_endpoint_stats PASSED     [ 76%]
+tests/vertex/test_model_endpoints.py::test_traffic_split_strategy_enum PASSED [ 82%]
+tests/vertex/test_model_endpoints.py::test_traffic_split_initialization PASSED [ 88%]
+tests/vertex/test_model_endpoints.py::test_endpoint_config_initialization PASSED [ 94%]
+tests/vertex/test_model_endpoints.py::test_predict_with_custom_parameters PASSED [100%]
+
+======================== 17 passed, 5 warnings in 2.69s ========================

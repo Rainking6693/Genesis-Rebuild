@@ -1,0 +1,201 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /home/genesis/genesis-rebuild/venv/bin/python
+cachedir: .pytest_cache
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/genesis/genesis-rebuild
+configfile: pytest.ini
+plugins: benchmark-5.1.0, cov-7.0.0, Faker-37.12.0, rerunfailures-16.1, anyio-4.10.0, timeout-2.4.0, mock-3.15.1, xdist-3.8.0, libtmux-0.39.0, asyncio-1.2.0, hydra-core-1.3.2, langsmith-0.4.38
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 96 items
+
+tests/vertex/test_fine_tuning_pipeline.py::test_prepare_se_darwin_dataset_success FAILED [  1%]
+tests/vertex/test_fine_tuning_pipeline.py::test_prepare_se_darwin_dataset_filtering FAILED [  2%]
+tests/vertex/test_fine_tuning_pipeline.py::test_prepare_halo_routing_dataset_success FAILED [  3%]
+tests/vertex/test_fine_tuning_pipeline.py::test_prepare_halo_routing_dataset_validation FAILED [  4%]
+tests/vertex/test_fine_tuning_pipeline.py::test_submit_tuning_job_supervised FAILED [  5%]
+tests/vertex/test_fine_tuning_pipeline.py::test_submit_tuning_job_rlhf FAILED [  6%]
+tests/vertex/test_fine_tuning_pipeline.py::test_submit_tuning_job_distillation FAILED [  7%]
+tests/vertex/test_fine_tuning_pipeline.py::test_submit_tuning_job_parameter_efficient FAILED [  8%]
+tests/vertex/test_fine_tuning_pipeline.py::test_register_tuned_model_success FAILED [  9%]
+tests/vertex/test_fine_tuning_pipeline.py::test_register_tuned_model_with_metadata FAILED [ 10%]
+tests/vertex/test_fine_tuning_pipeline.py::test_tuning_type_enum PASSED  [ 11%]
+tests/vertex/test_fine_tuning_pipeline.py::test_tuning_job_status_enum PASSED [ 12%]
+tests/vertex/test_fine_tuning_pipeline.py::test_tuning_job_config_initialization PASSED [ 13%]
+tests/vertex/test_fine_tuning_pipeline.py::test_tuning_job_result_initialization PASSED [ 14%]
+tests/vertex/test_fine_tuning_pipeline.py::test_tuning_with_custom_hyperparameters FAILED [ 15%]
+tests/vertex/test_fine_tuning_pipeline.py::test_dataset_preparation_with_validation_split FAILED [ 16%]
+tests/vertex/test_model_endpoints.py::test_create_endpoint_success PASSED [ 17%]
+tests/vertex/test_model_endpoints.py::test_create_endpoint_with_network PASSED [ 18%]
+tests/vertex/test_model_endpoints.py::test_deploy_model_success PASSED   [ 19%]
+tests/vertex/test_model_endpoints.py::test_deploy_model_with_autoscaling PASSED [ 20%]
+tests/vertex/test_model_endpoints.py::test_predict_success PASSED        [ 21%]
+tests/vertex/test_model_endpoints.py::test_predict_batch PASSED          [ 22%]
+tests/vertex/test_model_endpoints.py::test_update_traffic_split_ab_testing PASSED [ 23%]
+tests/vertex/test_model_endpoints.py::test_update_traffic_split_gradual_rollout PASSED [ 25%]
+tests/vertex/test_model_endpoints.py::test_undeploy_model PASSED         [ 26%]
+tests/vertex/test_model_endpoints.py::test_delete_endpoint PASSED        [ 27%]
+tests/vertex/test_model_endpoints.py::test_list_endpoints PASSED         [ 28%]
+tests/vertex/test_model_endpoints.py::test_list_endpoints_with_filters PASSED [ 29%]
+tests/vertex/test_model_endpoints.py::test_get_endpoint_stats PASSED     [ 30%]
+tests/vertex/test_model_endpoints.py::test_traffic_split_strategy_enum PASSED [ 31%]
+tests/vertex/test_model_endpoints.py::test_traffic_split_initialization PASSED [ 32%]
+tests/vertex/test_model_endpoints.py::test_endpoint_config_initialization PASSED [ 33%]
+tests/vertex/test_model_endpoints.py::test_predict_with_custom_parameters PASSED [ 34%]
+tests/vertex/test_model_registry.py::test_upload_model_success PASSED    [ 35%]
+tests/vertex/test_model_registry.py::test_upload_model_with_parent_version PASSED [ 36%]
+tests/vertex/test_model_registry.py::test_get_model_success PASSED       [ 37%]
+tests/vertex/test_model_registry.py::test_get_model_not_found PASSED     [ 38%]
+tests/vertex/test_model_registry.py::test_list_models_filtered PASSED    [ 39%]
+tests/vertex/test_model_registry.py::test_promote_model PASSED           [ 40%]
+tests/vertex/test_model_registry.py::test_update_performance_metrics PASSED [ 41%]
+tests/vertex/test_model_registry.py::test_update_cost_metrics PASSED     [ 42%]
+tests/vertex/test_model_registry.py::test_delete_model PASSED            [ 43%]
+tests/vertex/test_model_registry.py::test_compare_versions PASSED        [ 44%]
+tests/vertex/test_model_registry.py::test_model_metadata_serialization PASSED [ 45%]
+tests/vertex/test_model_registry.py::test_deployment_stage_enum PASSED   [ 46%]
+tests/vertex/test_model_registry.py::test_model_source_enum PASSED       [ 47%]
+tests/vertex/test_model_registry.py::test_concurrent_model_access PASSED [ 48%]
+tests/vertex/test_monitoring.py::test_collect_performance_metrics_success FAILED [ 50%]
+tests/vertex/test_monitoring.py::test_collect_performance_metrics_latency FAILED [ 51%]
+tests/vertex/test_monitoring.py::test_collect_performance_metrics_throughput FAILED [ 52%]
+tests/vertex/test_monitoring.py::test_calculate_cost_metrics_monthly FAILED [ 53%]
+tests/vertex/test_monitoring.py::test_calculate_cost_metrics_by_model FAILED [ 54%]
+tests/vertex/test_monitoring.py::test_collect_quality_metrics_success PASSED [ 55%]
+tests/vertex/test_monitoring.py::test_collect_quality_metrics_accuracy PASSED [ 56%]
+tests/vertex/test_monitoring.py::test_collect_quality_metrics_drift_detection PASSED [ 57%]
+tests/vertex/test_monitoring.py::test_check_alerts_success FAILED        [ 58%]
+tests/vertex/test_monitoring.py::test_check_alerts_multiple_rules FAILED [ 59%]
+tests/vertex/test_monitoring.py::test_add_alert_rule FAILED              [ 60%]
+tests/vertex/test_monitoring.py::test_remove_alert_rule FAILED           [ 61%]
+tests/vertex/test_monitoring.py::test_metric_type_enum PASSED            [ 62%]
+tests/vertex/test_monitoring.py::test_model_metrics_initialization FAILED [ 63%]
+tests/vertex/test_monitoring.py::test_cost_metrics_initialization FAILED [ 64%]
+tests/vertex/test_monitoring.py::test_quality_metrics_initialization FAILED [ 65%]
+tests/vertex/test_monitoring.py::test_alert_rule_initialization FAILED   [ 66%]
+tests/vertex/test_monitoring.py::test_metrics_caching FAILED             [ 67%]
+tests/vertex/test_monitoring.py::test_cost_calculation_accuracy FAILED   [ 68%]
+tests/vertex/test_monitoring.py::test_alert_conditions_evaluation FAILED [ 69%]
+tests/vertex/test_vertex_client.py::TestVertexAIClientInitialization::test_model_registry_initialization PASSED [ 70%]
+tests/vertex/test_vertex_client.py::TestVertexAIClientInitialization::test_model_endpoints_initialization PASSED [ 71%]
+tests/vertex/test_vertex_client.py::TestVertexAIClientInitialization::test_monitoring_initialization FAILED [ 72%]
+tests/vertex/test_vertex_client.py::TestVertexAIClientInitialization::test_fine_tuning_pipeline_initialization PASSED [ 73%]
+tests/vertex/test_vertex_client.py::TestVertexAIClientInitialization::test_initialization_with_custom_location PASSED [ 75%]
+tests/vertex/test_vertex_client.py::TestVertexAIClientInitialization::test_initialization_preserves_project_id PASSED [ 76%]
+tests/vertex/test_vertex_client.py::TestVertexAIErrorHandling::test_get_model_error_handling PASSED [ 77%]
+tests/vertex/test_vertex_client.py::TestVertexAIErrorHandling::test_endpoint_not_found_error PASSED [ 78%]
+tests/vertex/test_vertex_client.py::TestVertexAIErrorHandling::test_invalid_tuning_config PASSED [ 79%]
+tests/vertex/test_vertex_client.py::TestVertexAIEnvironmentHandling::test_project_id_from_environment PASSED [ 80%]
+tests/vertex/test_vertex_client.py::TestVertexAIEnvironmentHandling::test_location_defaults PASSED [ 81%]
+tests/vertex/test_vertex_client.py::TestVertexAIEnvironmentHandling::test_credential_handling_mock_mode FAILED [ 82%]
+tests/vertex/test_vertex_client.py::TestVertexAIIntegration::test_registry_and_endpoints_integration PASSED [ 83%]
+tests/vertex/test_vertex_client.py::TestVertexAIIntegration::test_monitoring_with_endpoints FAILED [ 84%]
+tests/vertex/test_vertex_client.py::TestVertexAIIntegration::test_fine_tuning_with_registry PASSED [ 85%]
+tests/vertex/test_vertex_client.py::TestVertexAIIntegration::test_all_components_same_project FAILED [ 86%]
+tests/vertex/test_vertex_client.py::TestVertexAIFallbackBehavior::test_mock_mode_fallback FAILED [ 87%]
+tests/vertex/test_vertex_client.py::TestVertexAIFallbackBehavior::test_monitoring_without_real_api FAILED [ 88%]
+tests/vertex/test_vertex_client.py::TestVertexAIFallbackBehavior::test_endpoints_degraded_mode FAILED [ 89%]
+tests/vertex/test_vertex_client.py::TestVertexAICostTracking::test_cost_metrics_initialization FAILED [ 90%]
+tests/vertex/test_vertex_client.py::TestVertexAICostTracking::test_model_cost_tracking PASSED [ 91%]
+tests/vertex/test_vertex_client.py::TestVertexAIObservability::test_observability_import PASSED [ 92%]
+tests/vertex/test_vertex_client.py::TestVertexAIObservability::test_observability_available_in_all_modules PASSED [ 93%]
+tests/vertex/test_vertex_client.py::TestVertexAIAuthentication::test_authentication_initialization PASSED [ 94%]
+tests/vertex/test_vertex_client.py::TestVertexAIAuthentication::test_multiple_clients_independence PASSED [ 95%]
+tests/vertex/test_vertex_integration.py::test_upload_and_deploy_flow PASSED [ 96%]
+tests/vertex/test_vertex_integration.py::test_promote_and_rollback PASSED [ 97%]
+tests/vertex/test_vertex_integration.py::test_router_round_robin PASSED  [ 98%]
+tests/vertex/test_vertex_integration.py::test_router_fallback_to_base_model PASSED [100%]
+
+=========================== short test summary info ============================
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_prepare_se_darwin_dataset_success - ValueError: No valid training examples found in /tmp/tmpl_rtz_vm/archive.json
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_prepare_se_darwin_dataset_filtering - ValueError: No valid training examples found in /tmp/tmpdfv0d2wk/archive-filtered.json
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_prepare_halo_routing_dataset_success - ValueError: No valid routing decisions found in /tmp/tmpy7vkmvva/routing-decisions.jsonl
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_prepare_halo_routing_dataset_validation - ValueError: No valid routing decisions found in /tmp/tmpnc8j98z5/routing-valid.jsonl
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_submit_tuning_job_supervised - RuntimeError: staging_bucket should be passed to CustomJob.from_local_script or should be set using aiplatform.init(staging_bucket='gs://my-bucket')
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_submit_tuning_job_rlhf - RuntimeError: staging_bucket should be passed to CustomJob.from_local_script or should be set using aiplatform.init(staging_bucket='gs://my-bucket')
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_submit_tuning_job_distillation - RuntimeError: staging_bucket should be passed to CustomJob.from_local_script or should be set using aiplatform.init(staging_bucket='gs://my-bucket')
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_submit_tuning_job_parameter_efficient - RuntimeError: staging_bucket should be passed to CustomJob.from_local_script or should be set using aiplatform.init(staging_bucket='gs://my-bucket')
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_register_tuned_model_success - google.api_core.exceptions.PermissionDenied: 403 Vertex AI API has not been used in project test-project before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/aiplatform.googleapis.com/overview?project=test-project then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry. [reason: "SERVICE_DISABLED"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "aiplatform.googleapis.com"
+}
+metadata {
+  key: "serviceTitle"
+  value: "Vertex AI API"
+}
+metadata {
+  key: "containerInfo"
+  value: "test-project"
+}
+metadata {
+  key: "consumer"
+  value: "projects/test-project"
+}
+metadata {
+  key: "activationUrl"
+  value: "https://console.developers.google.com/apis/api/aiplatform.googleapis.com/overview?project=test-project"
+}
+, locale: "en-US"
+message: "Vertex AI API has not been used in project test-project before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/aiplatform.googleapis.com/overview?project=test-project then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."
+, links {
+  description: "Google developers console API activation"
+  url: "https://console.developers.google.com/apis/api/aiplatform.googleapis.com/overview?project=test-project"
+}
+]
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_register_tuned_model_with_metadata - google.api_core.exceptions.PermissionDenied: 403 Vertex AI API has not been used in project test-project before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/aiplatform.googleapis.com/overview?project=test-project then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry. [reason: "SERVICE_DISABLED"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "aiplatform.googleapis.com"
+}
+metadata {
+  key: "serviceTitle"
+  value: "Vertex AI API"
+}
+metadata {
+  key: "containerInfo"
+  value: "test-project"
+}
+metadata {
+  key: "consumer"
+  value: "projects/test-project"
+}
+metadata {
+  key: "activationUrl"
+  value: "https://console.developers.google.com/apis/api/aiplatform.googleapis.com/overview?project=test-project"
+}
+, locale: "en-US"
+message: "Vertex AI API has not been used in project test-project before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/aiplatform.googleapis.com/overview?project=test-project then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."
+, links {
+  description: "Google developers console API activation"
+  url: "https://console.developers.google.com/apis/api/aiplatform.googleapis.com/overview?project=test-project"
+}
+]
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_tuning_with_custom_hyperparameters - RuntimeError: staging_bucket should be passed to CustomJob.from_local_script or should be set using aiplatform.init(staging_bucket='gs://my-bucket')
+FAILED tests/vertex/test_fine_tuning_pipeline.py::test_dataset_preparation_with_validation_split - ValueError: No valid training examples found in /tmp/tmpf1dfsqpp/archive-split.json
+FAILED tests/vertex/test_monitoring.py::test_collect_performance_metrics_success - TypeError: 'NoneType' object is not callable
+FAILED tests/vertex/test_monitoring.py::test_collect_performance_metrics_latency - TypeError: 'NoneType' object is not callable
+FAILED tests/vertex/test_monitoring.py::test_collect_performance_metrics_throughput - TypeError: 'NoneType' object is not callable
+FAILED tests/vertex/test_monitoring.py::test_calculate_cost_metrics_monthly - TypeError: 'NoneType' object is not callable
+FAILED tests/vertex/test_monitoring.py::test_calculate_cost_metrics_by_model - TypeError: 'NoneType' object is not callable
+FAILED tests/vertex/test_monitoring.py::test_check_alerts_success - TypeError: VertexAIMonitoring.add_alert_rule() got an unexpected keyword argument 'rule_name'
+FAILED tests/vertex/test_monitoring.py::test_check_alerts_multiple_rules - TypeError: VertexAIMonitoring.add_alert_rule() got an unexpected keyword argument 'rule_name'
+FAILED tests/vertex/test_monitoring.py::test_add_alert_rule - TypeError: VertexAIMonitoring.add_alert_rule() got an unexpected keyword argument 'rule_name'
+FAILED tests/vertex/test_monitoring.py::test_remove_alert_rule - TypeError: VertexAIMonitoring.add_alert_rule() got an unexpected keyword argument 'rule_name'
+FAILED tests/vertex/test_monitoring.py::test_model_metrics_initialization - TypeError: ModelMetrics.__init__() got an unexpected keyword argument 'throughput'
+FAILED tests/vertex/test_monitoring.py::test_cost_metrics_initialization - TypeError: CostMetrics.__init__() got an unexpected keyword argument 'timestamp'
+FAILED tests/vertex/test_monitoring.py::test_quality_metrics_initialization - TypeError: QualityMetrics.__init__() got an unexpected keyword argument 'drift_detected'
+FAILED tests/vertex/test_monitoring.py::test_alert_rule_initialization - TypeError: AlertRule.__init__() got an unexpected keyword argument 'condition'
+FAILED tests/vertex/test_monitoring.py::test_metrics_caching - TypeError: 'NoneType' object is not callable
+FAILED tests/vertex/test_monitoring.py::test_cost_calculation_accuracy - TypeError: 'NoneType' object is not callable
+FAILED tests/vertex/test_monitoring.py::test_alert_conditions_evaluation - TypeError: VertexAIMonitoring.add_alert_rule() got an unexpected keyword argument 'rule_name'
+FAILED tests/vertex/test_vertex_client.py::TestVertexAIClientInitialization::test_monitoring_initialization - ImportError: Vertex AI SDK required
+FAILED tests/vertex/test_vertex_client.py::TestVertexAIEnvironmentHandling::test_credential_handling_mock_mode - ImportError: Vertex AI SDK required: pip install google-cloud-aiplatform
+FAILED tests/vertex/test_vertex_client.py::TestVertexAIIntegration::test_monitoring_with_endpoints - ImportError: Vertex AI SDK required
+FAILED tests/vertex/test_vertex_client.py::TestVertexAIIntegration::test_all_components_same_project - ImportError: Vertex AI SDK required
+FAILED tests/vertex/test_vertex_client.py::TestVertexAIFallbackBehavior::test_mock_mode_fallback - ImportError: Vertex AI SDK required: pip install google-cloud-aiplatform
+FAILED tests/vertex/test_vertex_client.py::TestVertexAIFallbackBehavior::test_monitoring_without_real_api - ImportError: Vertex AI SDK required
+FAILED tests/vertex/test_vertex_client.py::TestVertexAIFallbackBehavior::test_endpoints_degraded_mode - ImportError: Vertex AI SDK required: pip install google-cloud-aiplatform
+FAILED tests/vertex/test_vertex_client.py::TestVertexAICostTracking::test_cost_metrics_initialization - ImportError: Vertex AI SDK required
+================== 36 failed, 60 passed, 58 warnings in 4.01s ==================

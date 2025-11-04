@@ -1,0 +1,237 @@
+# Business Generation Prompts for Genesis Meta-Agent
+# Use these prompts to generate 3 complete businesses by Friday
+
+business_1_ecommerce:
+  name: "TechGear Store"
+  type: "ecommerce"
+  description: "Complete e-commerce store for tech accessories"
+  
+  prompt: |
+    Generate a production-ready e-commerce store with the following features:
+    
+    REQUIRED COMPONENTS:
+    1. Product Catalog (10 tech accessories)
+       - Product pages with images, descriptions, pricing
+       - Category filtering (phone cases, chargers, cables, etc.)
+       - Search functionality
+       - Stock management
+    
+    2. Shopping Cart & Checkout
+       - Add to cart functionality
+       - Cart persistence (localStorage)
+       - Stripe payment integration
+       - Order confirmation emails
+    
+    3. Email Marketing Automation
+       - Welcome email on signup
+       - Abandoned cart recovery (24h follow-up)
+       - Order confirmation & shipping updates
+       - SendGrid API integration
+    
+    4. Customer Support Chatbot
+       - FAQ automation (returns, shipping, support)
+       - Live chat interface
+       - Ticket creation for complex issues
+    
+    5. Analytics Dashboard
+       - Sales metrics (revenue, orders, avg order value)
+       - Product performance tracking
+       - Customer acquisition metrics
+    
+    6. Admin Panel
+       - Product management (CRUD operations)
+       - Order management
+       - Customer database
+       - Analytics overview
+    
+    TECH STACK:
+    - Frontend: Next.js 14 + React + Tailwind CSS
+    - Backend: Next.js API routes
+    - Database: Vercel Postgres (or SQLite for local)
+    - Payments: Stripe
+    - Email: SendGrid
+    - Deployment: Vercel
+    
+    DELIVERABLES:
+    - Complete source code (ready to deploy)
+    - README with setup instructions
+    - Environment variables template (.env.example)
+    - Sample product data (JSON)
+    - Deployment configuration (vercel.json)
+  
+  estimated_time_hours: 8
+  agents_required:
+    - builder_agent
+    - marketing_agent
+    - support_agent
+    - deploy_agent
+    - monitor_agent
+
+business_2_content:
+  name: "DevInsights Blog"
+  type: "content"
+  description: "Content platform for software development insights"
+  
+  prompt: |
+    Generate a production-ready content platform with the following features:
+    
+    REQUIRED COMPONENTS:
+    1. Blog System
+       - 5 sample articles (markdown format)
+       - Article categories (tutorials, news, reviews, opinion)
+       - Author profiles
+       - Comments system (optional: simple, no auth required)
+       - Reading time estimates
+       - Related articles recommendations
+    
+    2. Newsletter Automation
+       - Email subscription form
+       - Welcome email sequence
+       - Weekly digest compilation (top 3 articles)
+       - Unsubscribe management
+       - SendGrid/Mailchimp integration
+    
+    3. SEO Optimization
+       - Meta tags (title, description, OG tags)
+       - Sitemap.xml generation
+       - RSS feed
+       - Structured data (JSON-LD)
+       - Performance optimization (image lazy loading, code splitting)
+    
+    4. Social Media Integration
+       - Twitter/X share buttons
+       - LinkedIn share buttons
+       - Auto-tweet on new article (optional: via API)
+       - Social media preview cards
+    
+    5. Subscription Management
+       - Free tier: 3 articles/month
+       - Premium tier: Unlimited access ($9/month)
+       - Stripe subscription integration
+       - Member-only content gating
+    
+    6. Content CMS
+       - Simple admin interface for article creation
+       - Markdown editor with preview
+       - Draft/publish workflow
+       - Image upload
+    
+    TECH STACK:
+    - Frontend: Next.js 14 + React + Tailwind CSS
+    - CMS: MDX (markdown + React components)
+    - Database: Vercel Postgres (user subscriptions)
+    - Payments: Stripe (subscriptions)
+    - Email: SendGrid
+    - Deployment: Vercel
+    
+    DELIVERABLES:
+    - Complete source code
+    - 5 sample articles (markdown files)
+    - README with setup instructions
+    - .env.example
+    - vercel.json deployment config
+  
+  estimated_time_hours: 6
+  agents_required:
+    - content_agent
+    - builder_agent
+    - marketing_agent
+    - deploy_agent
+
+business_3_saas:
+  name: "TaskFlow Pro"
+  type: "saas"
+  description: "SaaS project management tool for small teams"
+  
+  prompt: |
+    Generate a production-ready SaaS application with the following features:
+    
+    REQUIRED COMPONENTS:
+    1. Dashboard UI
+       - User dashboard (task overview, recent activity)
+       - Project kanban board (To Do, In Progress, Done)
+       - Task creation/editing modal
+       - Drag-and-drop task management
+       - Team member collaboration view
+    
+    2. REST API (5 core endpoints)
+       - GET /api/projects (list projects)
+       - POST /api/projects (create project)
+       - GET /api/tasks (list tasks)
+       - POST /api/tasks (create task)
+       - PATCH /api/tasks/:id (update task status)
+       - DELETE /api/tasks/:id (delete task)
+    
+    3. User Authentication
+       - Email/password signup
+       - Email verification
+       - Login/logout
+       - Password reset flow
+       - JWT token-based auth
+       - Protected routes
+    
+    4. Stripe Billing Integration
+       - Free plan: 1 project, 10 tasks
+       - Pro plan: Unlimited projects/tasks ($19/month)
+       - Subscription checkout flow
+       - Billing portal (manage subscription)
+       - Webhook handling (subscription events)
+    
+    5. Documentation Site
+       - Getting started guide
+       - API documentation (endpoints, request/response)
+       - Pricing page
+       - FAQ
+       - Contact form
+    
+    6. Admin Dashboard
+       - User management
+       - Subscription overview
+       - Revenue metrics
+       - System health monitoring
+    
+    7. API Monitoring
+       - Request logging
+       - Error tracking
+       - Performance metrics (P50, P95, P99 latency)
+       - Rate limiting (100 req/min per user)
+    
+    TECH STACK:
+    - Frontend: Next.js 14 + React + Tailwind CSS + shadcn/ui
+    - Backend: Next.js API routes
+    - Database: Vercel Postgres (or SQLite)
+    - Auth: NextAuth.js
+    - Payments: Stripe
+    - Monitoring: Vercel Analytics
+    - Deployment: Vercel
+    
+    DELIVERABLES:
+    - Complete source code
+    - README with setup instructions
+    - .env.example
+    - API documentation (OpenAPI/Swagger)
+    - Database schema (Prisma schema)
+    - vercel.json
+  
+  estimated_time_hours: 10
+  agents_required:
+    - builder_agent
+    - security_agent
+    - legal_agent
+    - deploy_agent
+    - monitor_agent
+
+# Global configuration
+generation_config:
+  use_local_llm: true
+  model: "Qwen/Qwen2.5-VL-7B-Instruct"
+  max_concurrent_businesses: 3
+  enable_se_darwin: false  # Disable for initial generation, enable for refinement
+  enable_monitoring: true
+  output_base_dir: "businesses"
+  
+  # Overnight generation settings
+  start_time: "21:00"  # 9 PM
+  expected_completion: "09:00"  # 9 AM next day
+  retry_on_failure: true
+  max_retries: 2

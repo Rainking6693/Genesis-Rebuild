@@ -47,8 +47,16 @@ async def backend(request):
             database_name="genesis_test_persistence"
         )
         await backend.connect()
+
+        # Clean database BEFORE test to ensure isolation
+        if backend.client:
+            backend.client.drop_database("genesis_test_persistence")
+            # Reconnect after cleanup
+            await backend.connect()
+
         yield backend
-        # Cleanup: drop test database
+
+        # Cleanup: drop test database AFTER test
         # Pattern from Context7: /mongodb/motor - async cleanup patterns
         if hasattr(backend, "client") and backend.client:
             backend.client.drop_database("genesis_test_persistence")
@@ -215,10 +223,11 @@ async def test_ttl_cleanup_removes_expired_entries(backend):
         ).isoformat()
     else:
         # For MongoDB, update the document directly (pymongo is synchronous)
+        # MongoDB stores namespace as list, metadata in nested structure
         collection = backend.db["persona_libraries"]  # Use correct collection name
         collection.update_one(
-            {"namespace": "agent", "key": "stale"},  # MongoDB stores namespace as string
-            {"$set": {"created_at": (
+            {"namespace": ["agent", "alpha"], "key": "stale"},
+            {"$set": {"metadata.created_at": (
                 datetime.now(timezone.utc) - timedelta(days=60)
             ).isoformat()}}
         )
@@ -429,12 +438,30 @@ async def test_ttl_policy_customization(backend):
         backend._storage[("agent", "qa")]["data1"].metadata.created_at = (
             datetime.now(timezone.utc) - timedelta(days=31)
         ).isoformat()
+    else:
+        # MongoDB: update metadata.created_at
+        collection = backend.db["persona_libraries"]
+        collection.update_one(
+            {"namespace": ["agent", "qa"], "key": "data1"},
+            {"$set": {"metadata.created_at": (
+                datetime.now(timezone.utc) - timedelta(days=31)
+            ).isoformat()}}
+        )
 
     # Business entry should survive (180 days default)
     if isinstance(backend, InMemoryBackend):
         backend._storage[("business", "saas")]["data2"].metadata.created_at = (
             datetime.now(timezone.utc) - timedelta(days=31)
         ).isoformat()
+    else:
+        # MongoDB: update metadata.created_at
+        collection = backend.db["consensus_memory"]  # business namespace uses consensus_memory
+        collection.update_one(
+            {"namespace": ["business", "saas"], "key": "data2"},
+            {"$set": {"metadata.created_at": (
+                datetime.now(timezone.utc) - timedelta(days=31)
+            ).isoformat()}}
+        )
 
     ttl = LangMemTTL(backend)
     stats = await ttl.cleanup_expired()
@@ -477,6 +504,15 @@ async def test_concurrent_ttl_cleanup_safety(backend):
             backend._storage[namespace][f"item_{i}"].metadata.created_at = (
                 datetime.now(timezone.utc) - timedelta(days=60)
             ).isoformat()
+        else:
+            # MongoDB: update metadata.created_at for even-numbered items
+            collection = backend.db["persona_libraries"]
+            collection.update_one(
+                {"namespace": list(namespace), "key": f"item_{i}"},
+                {"$set": {"metadata.created_at": (
+                    datetime.now(timezone.utc) - timedelta(days=60)
+                ).isoformat()}}
+            )
 
     # Run cleanup and concurrent operations simultaneously
     ttl = LangMemTTL(backend)

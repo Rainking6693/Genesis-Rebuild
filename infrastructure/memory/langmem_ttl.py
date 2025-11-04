@@ -303,8 +303,27 @@ class LangMemTTL:
         if hasattr(self.backend, '_storage'):
             return list(self.backend._storage.keys())
 
+        # For MongoDBBackend, query all collections for distinct namespaces
+        if hasattr(self.backend, 'db'):
+            namespaces = set()
+            # Query all 4 collections
+            collections = [
+                'persona_libraries',    # agent namespace
+                'consensus_memory',     # business namespace
+                'whiteboard_methods',   # system namespace
+                'evolution_archive'     # short_term namespace
+            ]
+            for collection_name in collections:
+                collection = self.backend.db[collection_name]
+                # Find all documents and extract unique namespaces
+                # MongoDB's distinct() flattens arrays, so we need to query documents directly
+                for doc in collection.find({}, {'namespace': 1}):
+                    ns = doc.get('namespace')
+                    if isinstance(ns, list) and len(ns) == 2:
+                        namespaces.add(tuple(ns))
+            return list(namespaces)
+
         # For other backends, would need backend-specific implementation
-        # This is a simplified version for Week 1
         logger.warning("_get_all_namespaces not fully implemented for this backend")
         return []
 

@@ -1,0 +1,461 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /home/genesis/genesis-rebuild/venv/bin/python
+cachedir: .pytest_cache
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/genesis/genesis-rebuild
+configfile: pytest.ini
+plugins: benchmark-5.1.0, cov-7.0.0, Faker-37.12.0, rerunfailures-16.1, anyio-4.10.0, timeout-2.4.0, mock-3.15.1, xdist-3.8.0, libtmux-0.39.0, asyncio-1.2.0, hydra-core-1.3.2, langsmith-0.4.38
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 17 items
+
+tests/vertex/test_model_endpoints.py::test_create_endpoint_success PASSED [  5%]
+tests/vertex/test_model_endpoints.py::test_create_endpoint_with_network PASSED [ 11%]
+tests/vertex/test_model_endpoints.py::test_deploy_model_success FAILED   [ 17%]
+tests/vertex/test_model_endpoints.py::test_deploy_model_with_autoscaling FAILED [ 23%]
+tests/vertex/test_model_endpoints.py::test_predict_success FAILED        [ 29%]
+tests/vertex/test_model_endpoints.py::test_predict_batch FAILED          [ 35%]
+tests/vertex/test_model_endpoints.py::test_update_traffic_split_ab_testing FAILED [ 41%]
+tests/vertex/test_model_endpoints.py::test_update_traffic_split_gradual_rollout FAILED [ 47%]
+tests/vertex/test_model_endpoints.py::test_undeploy_model FAILED         [ 52%]
+tests/vertex/test_model_endpoints.py::test_delete_endpoint PASSED        [ 58%]
+tests/vertex/test_model_endpoints.py::test_list_endpoints PASSED         [ 64%]
+tests/vertex/test_model_endpoints.py::test_list_endpoints_with_filters PASSED [ 70%]
+tests/vertex/test_model_endpoints.py::test_get_endpoint_stats PASSED     [ 76%]
+tests/vertex/test_model_endpoints.py::test_traffic_split_strategy_enum PASSED [ 82%]
+tests/vertex/test_model_endpoints.py::test_traffic_split_initialization PASSED [ 88%]
+tests/vertex/test_model_endpoints.py::test_endpoint_config_initialization PASSED [ 94%]
+tests/vertex/test_model_endpoints.py::test_predict_with_custom_parameters FAILED [100%]
+
+=================================== FAILURES ===================================
+__________________________ test_deploy_model_success ___________________________
+tests/vertex/test_model_endpoints.py:226: in test_deploy_model_success
+    deployed_id = await model_endpoints.deploy_model(
+        endpoint   = <test_model_endpoints.mock_vertex_ai.<locals>.MockEndpoint object at 0x7c2c883288f0>
+        model_endpoints = <infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c88328440>
+        sample_endpoint_config = EndpointConfig(name='test-endpoint',
+               display_name='Test Endpoint',
+               description='A test endpoint',
+               machine_type='n1-standard-4',
+               accelerator_type=None,
+               accelerator_count=0,
+               network='',
+               auto_scaling=AutoScalingConfig(min_replica_count=1,
+                                              max_replica_count=10,
+                                              target_accelerator_duty_cycle=60,
+                                              scale_down_delay_minutes=5,
+                                              enable_scale_to_zero=False),
+               traffic_split=None,
+               enable_request_logging=True,
+               enable_access_logging=True,
+               enable_container_logging=True,
+               dedicated_endpoint=False,
+               spot_instance=False,
+               labels={'environment': 'test',
+                       'genesis_endpoint': 'true',
+                       'genesis_version': '1_0_0',
+                       'team': 'ml'})
+infrastructure/observability.py:711: in async_wrapper
+    return await func(*args, **kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+        args       = (<infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c88328440>,)
+        context    = None
+        func       = <function ModelEndpoints.deploy_model at 0x7c2c88451120>
+        kwargs     = {'accelerator_type': 'nvidia-tesla-t4',
+ 'display_name': 'Test Model Deployment',
+ 'endpoint_id': 'endpoint-1',
+ 'machine_type': 'n1-standard-4',
+ 'max_replica_count': 3,
+ 'min_replica_count': 1,
+ 'model_name': 'test-model',
+ 'model_version': '1.0.0'}
+        obs_manager = <infrastructure.observability.ObservabilityManager object at 0x7c2c9b5e1460>
+        operation_name = 'model_endpoints.deploy_model'
+        span_type  = <SpanType.INFRASTRUCTURE: 'infrastructure'>
+---------------------------- Captured stderr setup -----------------------------
+INFO:vertex_ai.model_endpoints:ModelEndpoints initialized: project=test-project, location=us-central1
+------------------------------ Captured log setup ------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:241 ModelEndpoints initialized: project=test-project, location=us-central1
+----------------------------- Captured stderr call -----------------------------
+INFO:vertex_ai.model_endpoints:Creating endpoint: test-endpoint (dedicated=False)
+INFO:vertex_ai.model_endpoints:Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+------------------------------ Captured log call -------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:271 Creating endpoint: test-endpoint (dedicated=False)
+INFO     vertex_ai.model_endpoints:model_endpoints.py:301 Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+______________________ test_deploy_model_with_autoscaling ______________________
+tests/vertex/test_model_endpoints.py:245: in test_deploy_model_with_autoscaling
+    deployed_id = await model_endpoints.deploy_model(
+        endpoint   = <test_model_endpoints.mock_vertex_ai.<locals>.MockEndpoint object at 0x7c2c8832b5f0>
+        model_endpoints = <infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c8835ac90>
+        sample_endpoint_config = EndpointConfig(name='test-endpoint',
+               display_name='Test Endpoint',
+               description='A test endpoint',
+               machine_type='n1-standard-4',
+               accelerator_type=None,
+               accelerator_count=0,
+               network='',
+               auto_scaling=AutoScalingConfig(min_replica_count=1,
+                                              max_replica_count=10,
+                                              target_accelerator_duty_cycle=60,
+                                              scale_down_delay_minutes=5,
+                                              enable_scale_to_zero=False),
+               traffic_split=None,
+               enable_request_logging=True,
+               enable_access_logging=True,
+               enable_container_logging=True,
+               dedicated_endpoint=False,
+               spot_instance=False,
+               labels={'environment': 'test',
+                       'genesis_endpoint': 'true',
+                       'genesis_version': '1_0_0',
+                       'team': 'ml'})
+infrastructure/observability.py:711: in async_wrapper
+    return await func(*args, **kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+        args       = (<infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c8835ac90>,)
+        context    = None
+        func       = <function ModelEndpoints.deploy_model at 0x7c2c88451120>
+        kwargs     = {'accelerator_type': 'nvidia-tesla-v100',
+ 'display_name': 'Autoscaling Deployment',
+ 'endpoint_id': 'endpoint-1',
+ 'machine_type': 'n1-standard-8',
+ 'max_replica_count': 10,
+ 'min_replica_count': 2,
+ 'model_name': 'autoscale-model',
+ 'model_version': '1.0.0'}
+        obs_manager = <infrastructure.observability.ObservabilityManager object at 0x7c2c9b5e1460>
+        operation_name = 'model_endpoints.deploy_model'
+        span_type  = <SpanType.INFRASTRUCTURE: 'infrastructure'>
+---------------------------- Captured stderr setup -----------------------------
+INFO:vertex_ai.model_endpoints:ModelEndpoints initialized: project=test-project, location=us-central1
+------------------------------ Captured log setup ------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:241 ModelEndpoints initialized: project=test-project, location=us-central1
+----------------------------- Captured stderr call -----------------------------
+INFO:vertex_ai.model_endpoints:Creating endpoint: test-endpoint (dedicated=False)
+INFO:vertex_ai.model_endpoints:Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+------------------------------ Captured log call -------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:271 Creating endpoint: test-endpoint (dedicated=False)
+INFO     vertex_ai.model_endpoints:model_endpoints.py:301 Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+_____________________________ test_predict_success _____________________________
+tests/vertex/test_model_endpoints.py:265: in test_predict_success
+    await model_endpoints.deploy_model(
+        endpoint   = <test_model_endpoints.mock_vertex_ai.<locals>.MockEndpoint object at 0x7c2c8823e630>
+        endpoint_id = 'endpoint-1'
+        model_endpoints = <infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c8823e150>
+        sample_endpoint_config = EndpointConfig(name='test-endpoint',
+               display_name='Test Endpoint',
+               description='A test endpoint',
+               machine_type='n1-standard-4',
+               accelerator_type=None,
+               accelerator_count=0,
+               network='',
+               auto_scaling=AutoScalingConfig(min_replica_count=1,
+                                              max_replica_count=10,
+                                              target_accelerator_duty_cycle=60,
+                                              scale_down_delay_minutes=5,
+                                              enable_scale_to_zero=False),
+               traffic_split=None,
+               enable_request_logging=True,
+               enable_access_logging=True,
+               enable_container_logging=True,
+               dedicated_endpoint=False,
+               spot_instance=False,
+               labels={'environment': 'test',
+                       'genesis_endpoint': 'true',
+                       'genesis_version': '1_0_0',
+                       'team': 'ml'})
+infrastructure/observability.py:711: in async_wrapper
+    return await func(*args, **kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+        args       = (<infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c8823e150>,)
+        context    = None
+        func       = <function ModelEndpoints.deploy_model at 0x7c2c88451120>
+        kwargs     = {'display_name': 'Test Deployment',
+ 'endpoint_id': 'endpoint-1',
+ 'model_name': 'test-model',
+ 'model_version': '1.0.0'}
+        obs_manager = <infrastructure.observability.ObservabilityManager object at 0x7c2c9b5e1460>
+        operation_name = 'model_endpoints.deploy_model'
+        span_type  = <SpanType.INFRASTRUCTURE: 'infrastructure'>
+---------------------------- Captured stderr setup -----------------------------
+INFO:vertex_ai.model_endpoints:ModelEndpoints initialized: project=test-project, location=us-central1
+------------------------------ Captured log setup ------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:241 ModelEndpoints initialized: project=test-project, location=us-central1
+----------------------------- Captured stderr call -----------------------------
+INFO:vertex_ai.model_endpoints:Creating endpoint: test-endpoint (dedicated=False)
+INFO:vertex_ai.model_endpoints:Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+------------------------------ Captured log call -------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:271 Creating endpoint: test-endpoint (dedicated=False)
+INFO     vertex_ai.model_endpoints:model_endpoints.py:301 Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+______________________________ test_predict_batch ______________________________
+tests/vertex/test_model_endpoints.py:289: in test_predict_batch
+    await model_endpoints.deploy_model(
+        endpoint   = <test_model_endpoints.mock_vertex_ai.<locals>.MockEndpoint object at 0x7c2c88229610>
+        endpoint_id = 'endpoint-1'
+        model_endpoints = <infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c88229130>
+        sample_endpoint_config = EndpointConfig(name='test-endpoint',
+               display_name='Test Endpoint',
+               description='A test endpoint',
+               machine_type='n1-standard-4',
+               accelerator_type=None,
+               accelerator_count=0,
+               network='',
+               auto_scaling=AutoScalingConfig(min_replica_count=1,
+                                              max_replica_count=10,
+                                              target_accelerator_duty_cycle=60,
+                                              scale_down_delay_minutes=5,
+                                              enable_scale_to_zero=False),
+               traffic_split=None,
+               enable_request_logging=True,
+               enable_access_logging=True,
+               enable_container_logging=True,
+               dedicated_endpoint=False,
+               spot_instance=False,
+               labels={'environment': 'test',
+                       'genesis_endpoint': 'true',
+                       'genesis_version': '1_0_0',
+                       'team': 'ml'})
+infrastructure/observability.py:711: in async_wrapper
+    return await func(*args, **kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+        args       = (<infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c88229130>,)
+        context    = None
+        func       = <function ModelEndpoints.deploy_model at 0x7c2c88451120>
+        kwargs     = {'display_name': 'Batch Deployment',
+ 'endpoint_id': 'endpoint-1',
+ 'model_name': 'batch-model',
+ 'model_version': '1.0.0'}
+        obs_manager = <infrastructure.observability.ObservabilityManager object at 0x7c2c9b5e1460>
+        operation_name = 'model_endpoints.deploy_model'
+        span_type  = <SpanType.INFRASTRUCTURE: 'infrastructure'>
+---------------------------- Captured stderr setup -----------------------------
+INFO:vertex_ai.model_endpoints:ModelEndpoints initialized: project=test-project, location=us-central1
+------------------------------ Captured log setup ------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:241 ModelEndpoints initialized: project=test-project, location=us-central1
+----------------------------- Captured stderr call -----------------------------
+INFO:vertex_ai.model_endpoints:Creating endpoint: test-endpoint (dedicated=False)
+INFO:vertex_ai.model_endpoints:Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+------------------------------ Captured log call -------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:271 Creating endpoint: test-endpoint (dedicated=False)
+INFO     vertex_ai.model_endpoints:model_endpoints.py:301 Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+_____________________ test_update_traffic_split_ab_testing _____________________
+tests/vertex/test_model_endpoints.py:317: in test_update_traffic_split_ab_testing
+    v1_id = await model_endpoints.deploy_model(
+        endpoint   = <test_model_endpoints.mock_vertex_ai.<locals>.MockEndpoint object at 0x7c2c882205c0>
+        endpoint_id = 'endpoint-1'
+        model_endpoints = <infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c88f5e960>
+        sample_endpoint_config = EndpointConfig(name='test-endpoint',
+               display_name='Test Endpoint',
+               description='A test endpoint',
+               machine_type='n1-standard-4',
+               accelerator_type=None,
+               accelerator_count=0,
+               network='',
+               auto_scaling=AutoScalingConfig(min_replica_count=1,
+                                              max_replica_count=10,
+                                              target_accelerator_duty_cycle=60,
+                                              scale_down_delay_minutes=5,
+                                              enable_scale_to_zero=False),
+               traffic_split=None,
+               enable_request_logging=True,
+               enable_access_logging=True,
+               enable_container_logging=True,
+               dedicated_endpoint=False,
+               spot_instance=False,
+               labels={'environment': 'test',
+                       'genesis_endpoint': 'true',
+                       'genesis_version': '1_0_0',
+                       'team': 'ml'})
+infrastructure/observability.py:711: in async_wrapper
+    return await func(*args, **kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+        args       = (<infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c88f5e960>,)
+        context    = None
+        func       = <function ModelEndpoints.deploy_model at 0x7c2c88451120>
+        kwargs     = {'display_name': 'V1',
+ 'endpoint_id': 'endpoint-1',
+ 'model_name': 'model-v1',
+ 'model_version': '1.0.0'}
+        obs_manager = <infrastructure.observability.ObservabilityManager object at 0x7c2c9b5e1460>
+        operation_name = 'model_endpoints.deploy_model'
+        span_type  = <SpanType.INFRASTRUCTURE: 'infrastructure'>
+---------------------------- Captured stderr setup -----------------------------
+INFO:vertex_ai.model_endpoints:ModelEndpoints initialized: project=test-project, location=us-central1
+------------------------------ Captured log setup ------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:241 ModelEndpoints initialized: project=test-project, location=us-central1
+----------------------------- Captured stderr call -----------------------------
+INFO:vertex_ai.model_endpoints:Creating endpoint: test-endpoint (dedicated=False)
+INFO:vertex_ai.model_endpoints:Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+------------------------------ Captured log call -------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:271 Creating endpoint: test-endpoint (dedicated=False)
+INFO     vertex_ai.model_endpoints:model_endpoints.py:301 Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+__________________ test_update_traffic_split_gradual_rollout ___________________
+tests/vertex/test_model_endpoints.py:352: in test_update_traffic_split_gradual_rollout
+    new_id = await model_endpoints.deploy_model(
+        endpoint   = <test_model_endpoints.mock_vertex_ai.<locals>.MockEndpoint object at 0x7c2c8823e330>
+        endpoint_id = 'endpoint-1'
+        model_endpoints = <infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c8823f560>
+        sample_endpoint_config = EndpointConfig(name='test-endpoint',
+               display_name='Test Endpoint',
+               description='A test endpoint',
+               machine_type='n1-standard-4',
+               accelerator_type=None,
+               accelerator_count=0,
+               network='',
+               auto_scaling=AutoScalingConfig(min_replica_count=1,
+                                              max_replica_count=10,
+                                              target_accelerator_duty_cycle=60,
+                                              scale_down_delay_minutes=5,
+                                              enable_scale_to_zero=False),
+               traffic_split=None,
+               enable_request_logging=True,
+               enable_access_logging=True,
+               enable_container_logging=True,
+               dedicated_endpoint=False,
+               spot_instance=False,
+               labels={'environment': 'test',
+                       'genesis_endpoint': 'true',
+                       'genesis_version': '1_0_0',
+                       'team': 'ml'})
+infrastructure/observability.py:711: in async_wrapper
+    return await func(*args, **kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+        args       = (<infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c8823f560>,)
+        context    = None
+        func       = <function ModelEndpoints.deploy_model at 0x7c2c88451120>
+        kwargs     = {'display_name': 'Gradual Rollout',
+ 'endpoint_id': 'endpoint-1',
+ 'model_name': 'new-model',
+ 'model_version': '3.0.0'}
+        obs_manager = <infrastructure.observability.ObservabilityManager object at 0x7c2c9b5e1460>
+        operation_name = 'model_endpoints.deploy_model'
+        span_type  = <SpanType.INFRASTRUCTURE: 'infrastructure'>
+---------------------------- Captured stderr setup -----------------------------
+INFO:vertex_ai.model_endpoints:ModelEndpoints initialized: project=test-project, location=us-central1
+------------------------------ Captured log setup ------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:241 ModelEndpoints initialized: project=test-project, location=us-central1
+----------------------------- Captured stderr call -----------------------------
+INFO:vertex_ai.model_endpoints:Creating endpoint: test-endpoint (dedicated=False)
+INFO:vertex_ai.model_endpoints:Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+------------------------------ Captured log call -------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:271 Creating endpoint: test-endpoint (dedicated=False)
+INFO     vertex_ai.model_endpoints:model_endpoints.py:301 Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+_____________________________ test_undeploy_model ______________________________
+tests/vertex/test_model_endpoints.py:379: in test_undeploy_model
+    deployed_id = await model_endpoints.deploy_model(
+        endpoint   = <test_model_endpoints.mock_vertex_ai.<locals>.MockEndpoint object at 0x7c2c8832a360>
+        endpoint_id = 'endpoint-1'
+        model_endpoints = <infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c88522a20>
+        sample_endpoint_config = EndpointConfig(name='test-endpoint',
+               display_name='Test Endpoint',
+               description='A test endpoint',
+               machine_type='n1-standard-4',
+               accelerator_type=None,
+               accelerator_count=0,
+               network='',
+               auto_scaling=AutoScalingConfig(min_replica_count=1,
+                                              max_replica_count=10,
+                                              target_accelerator_duty_cycle=60,
+                                              scale_down_delay_minutes=5,
+                                              enable_scale_to_zero=False),
+               traffic_split=None,
+               enable_request_logging=True,
+               enable_access_logging=True,
+               enable_container_logging=True,
+               dedicated_endpoint=False,
+               spot_instance=False,
+               labels={'environment': 'test',
+                       'genesis_endpoint': 'true',
+                       'genesis_version': '1_0_0',
+                       'team': 'ml'})
+infrastructure/observability.py:711: in async_wrapper
+    return await func(*args, **kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+        args       = (<infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c88522a20>,)
+        context    = None
+        func       = <function ModelEndpoints.deploy_model at 0x7c2c88451120>
+        kwargs     = {'display_name': 'Test',
+ 'endpoint_id': 'endpoint-1',
+ 'model_name': 'test-model',
+ 'model_version': '1.0.0'}
+        obs_manager = <infrastructure.observability.ObservabilityManager object at 0x7c2c9b5e1460>
+        operation_name = 'model_endpoints.deploy_model'
+        span_type  = <SpanType.INFRASTRUCTURE: 'infrastructure'>
+---------------------------- Captured stderr setup -----------------------------
+INFO:vertex_ai.model_endpoints:ModelEndpoints initialized: project=test-project, location=us-central1
+------------------------------ Captured log setup ------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:241 ModelEndpoints initialized: project=test-project, location=us-central1
+----------------------------- Captured stderr call -----------------------------
+INFO:vertex_ai.model_endpoints:Creating endpoint: test-endpoint (dedicated=False)
+INFO:vertex_ai.model_endpoints:Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+------------------------------ Captured log call -------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:271 Creating endpoint: test-endpoint (dedicated=False)
+INFO     vertex_ai.model_endpoints:model_endpoints.py:301 Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+_____________________ test_predict_with_custom_parameters ______________________
+tests/vertex/test_model_endpoints.py:499: in test_predict_with_custom_parameters
+    await model_endpoints.deploy_model(
+        endpoint   = <test_model_endpoints.mock_vertex_ai.<locals>.MockEndpoint object at 0x7c2c88315700>
+        endpoint_id = 'endpoint-1'
+        model_endpoints = <infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c88222180>
+        sample_endpoint_config = EndpointConfig(name='test-endpoint',
+               display_name='Test Endpoint',
+               description='A test endpoint',
+               machine_type='n1-standard-4',
+               accelerator_type=None,
+               accelerator_count=0,
+               network='',
+               auto_scaling=AutoScalingConfig(min_replica_count=1,
+                                              max_replica_count=10,
+                                              target_accelerator_duty_cycle=60,
+                                              scale_down_delay_minutes=5,
+                                              enable_scale_to_zero=False),
+               traffic_split=None,
+               enable_request_logging=True,
+               enable_access_logging=True,
+               enable_container_logging=True,
+               dedicated_endpoint=False,
+               spot_instance=False,
+               labels={'environment': 'test',
+                       'genesis_endpoint': 'true',
+                       'genesis_version': '1_0_0',
+                       'team': 'ml'})
+infrastructure/observability.py:711: in async_wrapper
+    return await func(*args, **kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+        args       = (<infrastructure.vertex_ai.model_endpoints.ModelEndpoints object at 0x7c2c88222180>,)
+        context    = None
+        func       = <function ModelEndpoints.deploy_model at 0x7c2c88451120>
+        kwargs     = {'display_name': 'Parameterized Model',
+ 'endpoint_id': 'endpoint-1',
+ 'model_name': 'param-model',
+ 'model_version': '1.0.0'}
+        obs_manager = <infrastructure.observability.ObservabilityManager object at 0x7c2c9b5e1460>
+        operation_name = 'model_endpoints.deploy_model'
+        span_type  = <SpanType.INFRASTRUCTURE: 'infrastructure'>
+---------------------------- Captured stderr setup -----------------------------
+INFO:vertex_ai.model_endpoints:ModelEndpoints initialized: project=test-project, location=us-central1
+------------------------------ Captured log setup ------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:241 ModelEndpoints initialized: project=test-project, location=us-central1
+----------------------------- Captured stderr call -----------------------------
+INFO:vertex_ai.model_endpoints:Creating endpoint: test-endpoint (dedicated=False)
+INFO:vertex_ai.model_endpoints:Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+------------------------------ Captured log call -------------------------------
+INFO     vertex_ai.model_endpoints:model_endpoints.py:271 Creating endpoint: test-endpoint (dedicated=False)
+INFO     vertex_ai.model_endpoints:model_endpoints.py:301 Endpoint created: projects/test-project/locations/us-central1/endpoints/endpoint-1 (0.00s)
+=========================== short test summary info ============================
+FAILED tests/vertex/test_model_endpoints.py::test_deploy_model_success - TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+FAILED tests/vertex/test_model_endpoints.py::test_deploy_model_with_autoscaling - TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+FAILED tests/vertex/test_model_endpoints.py::test_predict_success - TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+FAILED tests/vertex/test_model_endpoints.py::test_predict_batch - TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+FAILED tests/vertex/test_model_endpoints.py::test_update_traffic_split_ab_testing - TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+FAILED tests/vertex/test_model_endpoints.py::test_update_traffic_split_gradual_rollout - TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+FAILED tests/vertex/test_model_endpoints.py::test_undeploy_model - TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+FAILED tests/vertex/test_model_endpoints.py::test_predict_with_custom_parameters - TypeError: ModelEndpoints.deploy_model() got an unexpected keyword argument 'display_name'
+=================== 8 failed, 9 passed, 5 warnings in 2.96s ====================

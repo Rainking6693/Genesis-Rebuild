@@ -76,12 +76,17 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 # Configuration
-PROMETHEUS_URL = "http://localhost:9090"
+PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://localhost:9090")
+OTEL_COLLECTOR_URL = os.getenv("OTEL_COLLECTOR_URL", "http://localhost:4318")
 CASEBANK_PATH = Path("/home/genesis/genesis-rebuild/data/memory/casebank.jsonl")
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SWARM_METRICS_PATH = REPO_ROOT / "public_demo/dashboard/public/swarm_metrics.json"
 
 SWARM_METRICS_API_TOKEN = os.getenv("SWARM_METRICS_API_TOKEN")
+
+# Feature flags for real vs mock data
+USE_REAL_PROMETHEUS = os.getenv("USE_REAL_PROMETHEUS", "false").lower() == "true"
+USE_REAL_OTEL = os.getenv("USE_REAL_OTEL", "false").lower() == "true"
 SWARM_METRICS_RATE_LIMIT = int(os.getenv("SWARM_METRICS_RATE_LIMIT", "10"))
 SWARM_METRICS_RATE_WINDOW = int(os.getenv("SWARM_METRICS_RATE_WINDOW", "60"))
 _swarm_metrics_requests: Dict[str, List[float]] = defaultdict(list)
@@ -353,6 +358,10 @@ def _build_forecast_payload(report: RevenueReport, limit: int = 7) -> List[Dict[
 # Helper functions
 async def query_prometheus(query: str) -> Dict:
     """Query Prometheus API"""
+    if not USE_REAL_PROMETHEUS:
+        logger.debug(f"Prometheus query (mock mode): {query}")
+        return {"status": "error", "data": {"result": []}}
+
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
@@ -365,6 +374,43 @@ async def query_prometheus(query: str) -> Dict:
     except Exception as e:
         logger.error(f"Prometheus query failed: {e}")
         return {"status": "error", "data": {"result": []}}
+
+
+async def query_otel_traces(limit: int = 100) -> List[Dict]:
+    """Query OTEL collector for recent traces"""
+    if not USE_REAL_OTEL:
+        logger.debug("OTEL query (mock mode)")
+        return []
+
+    try:
+        async with httpx.AsyncClient() as client:
+            # Query OTEL collector's query endpoint
+            response = await client.get(
+                f"{OTEL_COLLECTOR_URL}/v1/traces",
+                params={"limit": limit},
+                timeout=5.0
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            # Parse OTEL trace data
+            traces = []
+            for resource_span in data.get("resourceSpans", []):
+                for scope_span in resource_span.get("scopeSpans", []):
+                    for span in scope_span.get("spans", []):
+                        traces.append({
+                            "trace_id": span.get("traceId", ""),
+                            "span_id": span.get("spanId", ""),
+                            "span_name": span.get("name", ""),
+                            "duration_ms": (span.get("endTimeUnixNano", 0) - span.get("startTimeUnixNano", 0)) / 1_000_000,
+                            "status": span.get("status", {}).get("code", "ok"),
+                            "timestamp": datetime.fromtimestamp(span.get("startTimeUnixNano", 0) / 1_000_000_000, tz=timezone.utc).isoformat(),
+                            "parent_span_id": span.get("parentSpanId")
+                        })
+            return traces
+    except Exception as e:
+        logger.error(f"OTEL query failed: {e}")
+        return []
 
 
 def read_casebank() -> List[Dict]:
@@ -583,7 +629,13 @@ async def get_casebank_entries():
 async def get_otel_traces():
     """Get recent OTEL traces"""
     try:
-        # Mock data (replace with real OTEL trace export endpoint)
+        # Query real OTEL collector if enabled
+        if USE_REAL_OTEL:
+            trace_data = await query_otel_traces(limit=100)
+            if trace_data:
+                return [OTELTrace(**trace) for trace in trace_data]
+
+        # Fallback to mock data
         traces = [
             OTELTrace(
                 trace_id="trace_001",
