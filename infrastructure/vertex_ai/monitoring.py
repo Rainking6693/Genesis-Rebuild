@@ -33,6 +33,11 @@ try:
     from google.cloud.aiplatform import Model, Endpoint
     VERTEX_AI_AVAILABLE = True
 except ImportError:
+    # Make monitoring_v3 and other imports available for test mocking even when SDK not installed
+    monitoring_v3 = None
+    aiplatform = None
+    Model = None
+    Endpoint = None
     VERTEX_AI_AVAILABLE = False
     logging.warning("Vertex AI SDK not available")
 
@@ -41,6 +46,28 @@ from infrastructure.observability import get_observability_manager, traced_opera
 
 logger = logging.getLogger("vertex_ai.monitoring")
 obs_manager = get_observability_manager()
+
+# Module exports
+__all__ = [
+    # Google Cloud imports
+    'monitoring_v3',
+    # Enums
+    'MetricType',
+    'AlertSeverity',
+    # Data classes
+    'ModelMetrics',
+    'CostMetrics',
+    'QualityMetrics',
+    'AlertRule',
+    # Main classes
+    'VertexAIMonitoring',
+    'CostTracker',
+    'QualityMonitor',
+    # Factory functions
+    'get_vertex_ai_monitoring',
+    'get_cost_tracker',
+    'get_quality_monitor',
+]
 
 
 class MetricType(Enum):
