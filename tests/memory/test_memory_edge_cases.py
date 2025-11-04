@@ -254,15 +254,17 @@ async def test_network_timeout_handling():
     # If it is running, the test validates timeout configuration works
     try:
         await backend.connect()
-        # If connection succeeds, verify operations work
-        await backend.save_memory(
+        # If connection succeeds, verify operations work through GenesisMemoryStore
+        store = GenesisMemoryStore(backend=backend)
+        await store.save_memory(
             ("agent", "test"),
             "key",
             {"value": "data"}
         )
         # Cleanup
-        await backend._client.drop_database("genesis_test_timeout")
-        backend._client.close()
+        if backend.client:
+            backend.client.drop_database("genesis_test_timeout")
+            backend.client.close()
     except (ConnectionFailure, ServerSelectionTimeoutError) as e:
         # Expected if MongoDB is down - timeout worked correctly
         assert "timeout" in str(e).lower() or "connect" in str(e).lower()

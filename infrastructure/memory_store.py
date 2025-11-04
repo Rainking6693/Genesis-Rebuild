@@ -443,6 +443,10 @@ class GenesisMemoryStore:
         if not isinstance(namespace, tuple) or len(namespace) != 2:
             raise ValueError(f"Namespace must be (type, id) tuple, got: {namespace}")
 
+        # Validate key (must be non-empty string)
+        if not key or not isinstance(key, str) or not key.strip():
+            raise ValueError(f"Key must be non-empty string, got: {repr(key)}")
+
         if not isinstance(value, dict):
             raise ValueError(f"Value must be dict, got: {type(value)}")
 

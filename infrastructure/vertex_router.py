@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import itertools
 import logging
-from typing import Dict, List, Optional, Tuple
+import time
+from typing import Dict, List, Optional, Tuple, Any
+from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,35 @@ except ImportError:  # pragma: no cover
     GenerativeModel = None  # type: ignore
 
 BASE_MODEL = "gemini-2.0-flash-001"
+
+
+@dataclass
+class UsageStats:
+    """Track usage statistics for a role/endpoint."""
+    
+    requests: int = 0
+    successful_requests: int = 0
+    failed_requests: int = 0
+    fallback_requests: int = 0
+    total_tokens: int = 0
+    total_latency_ms: float = 0.0
+    total_cost_usd: float = 0.0
+    last_request_time: Optional[float] = None
+    
+    @property
+    def avg_latency_ms(self) -> float:
+        """Calculate average latency."""
+        return self.total_latency_ms / max(self.requests, 1)
+    
+    @property
+    def success_rate(self) -> float:
+        """Calculate success rate (0-1)."""
+        return self.successful_requests / max(self.requests, 1)
+    
+    @property
+    def fallback_rate(self) -> float:
+        """Calculate fallback rate (0-1)."""
+        return self.fallback_requests / max(self.requests, 1)
 
 
 class WeightedRoundRobin:
@@ -65,6 +96,9 @@ class VertexModelRouter:
         project_id: str,
         location: str = "us-central1",
         enable_vertex: Optional[bool] = None,
+        cost_per_1k_tokens: float = 0.001,  # Default: $0.001 per 1K tokens
+        enable_cost_tracking: bool = True,
+        enable_latency_tracking: bool = True,
     ):
         self.project_id = project_id
         self.location = location
@@ -81,6 +115,17 @@ class VertexModelRouter:
 
         self._role_endpoints: Dict[str, List[Tuple[str, int]]] = {}  # role -> list of (endpoint, weight)
         self._balancers: Dict[str, WeightedRoundRobin] = {}
+        
+        # Cost and latency tracking
+        self._cost_per_1k_tokens = cost_per_1k_tokens
+        self._enable_cost_tracking = enable_cost_tracking
+        self._enable_latency_tracking = enable_latency_tracking
+        self._usage_stats: Dict[str, UsageStats] = {}  # role -> usage stats
+        
+        if self._enable_cost_tracking:
+            logger.info("Cost tracking enabled (${:.4f} per 1K tokens)".format(self._cost_per_1k_tokens))
+        if self._enable_latency_tracking:
+            logger.info("Latency tracking enabled")
 
     # ------------------------------------------------------------------ #
     # Registration
@@ -129,26 +174,89 @@ class VertexModelRouter:
         """
         role_key = (role or "").lower()
         endpoint = endpoint_override or self._select_endpoint(role_key)
+        
+        # Initialize stats tracking
+        start_time = time.time() if self._enable_latency_tracking else None
+        response_text = ""
+        used_fallback = False
+        request_successful = False
+        
+        # Get or create usage stats for this role
+        stats = self._usage_stats.setdefault(role_key, UsageStats())
 
         if endpoint and self._use_vertex:
             try:
                 endpoint_obj = aiplatform.Endpoint(endpoint)
                 prediction = endpoint_obj.predict(instances=[{"prompt": prompt}])
                 if prediction and prediction.predictions:
-                    return str(prediction.predictions[0])
+                    response_text = str(prediction.predictions[0])
+                    request_successful = True
             except Exception as exc:  # pragma: no cover - live failure path
                 logger.warning("Vertex endpoint %s failed for role %s: %s", endpoint, role_key, exc)
 
         # Fallback to base Gemini model using GenerativeModel if available.
-        if GenerativeModel is not None:
+        if not response_text and GenerativeModel is not None:
+            used_fallback = True
             try:
                 model = GenerativeModel(BASE_MODEL)
                 response = model.generate_content(prompt, generation_config={"temperature": temperature})
-                return getattr(response, "text", "") or ""
+                response_text = getattr(response, "text", "") or ""
+                request_successful = bool(response_text)
             except Exception as exc:  # pragma: no cover
                 logger.error("Base Gemini fallback failed: %s", exc)
-                return ""
-        return ""
+                response_text = ""
+        
+        # Track metrics
+        if self._enable_cost_tracking or self._enable_latency_tracking:
+            self._track_request(
+                role_key=role_key,
+                prompt=prompt,
+                response=response_text,
+                start_time=start_time,
+                used_fallback=used_fallback,
+                successful=request_successful,
+            )
+        
+        return response_text
+    
+    def _track_request(
+        self,
+        role_key: str,
+        prompt: str,
+        response: str,
+        start_time: Optional[float],
+        used_fallback: bool,
+        successful: bool,
+    ) -> None:
+        """Track request metrics."""
+        stats = self._usage_stats.get(role_key)
+        if not stats:
+            return
+        
+        # Update request counts
+        stats.requests += 1
+        if successful:
+            stats.successful_requests += 1
+        else:
+            stats.failed_requests += 1
+        if used_fallback:
+            stats.fallback_requests += 1
+        
+        # Track latency
+        if self._enable_latency_tracking and start_time is not None:
+            latency_ms = (time.time() - start_time) * 1000
+            stats.total_latency_ms += latency_ms
+            stats.last_request_time = time.time()
+        
+        # Track cost (rough estimate based on token count)
+        if self._enable_cost_tracking:
+            # Rough token estimate: ~4 chars per token
+            prompt_tokens = len(prompt) // 4
+            response_tokens = len(response) // 4
+            total_tokens = prompt_tokens + response_tokens
+            
+            stats.total_tokens += total_tokens
+            stats.total_cost_usd += (total_tokens / 1000) * self._cost_per_1k_tokens
 
     # ------------------------------------------------------------------ #
     # Helpers
@@ -167,4 +275,93 @@ class VertexModelRouter:
             role = role.lower()
             return {role: self._role_endpoints.get(role, [])}
         return dict(self._role_endpoints)
+    
+    # ------------------------------------------------------------------ #
+    # Cost & Latency Tracking
+    # ------------------------------------------------------------------ #
+    
+    def get_usage_stats(self, role: Optional[str] = None) -> Dict[str, Dict[str, Any]]:
+        """
+        Get usage statistics for roles.
+        
+        Args:
+            role: Optional role to filter by (None = all roles)
+        
+        Returns:
+            Dict mapping role -> stats dict
+        """
+        if role:
+            role = role.lower()
+            stats = self._usage_stats.get(role)
+            if not stats:
+                return {}
+            return {
+                role: {
+                    "requests": stats.requests,
+                    "successful_requests": stats.successful_requests,
+                    "failed_requests": stats.failed_requests,
+                    "fallback_requests": stats.fallback_requests,
+                    "success_rate": stats.success_rate,
+                    "fallback_rate": stats.fallback_rate,
+                    "total_tokens": stats.total_tokens,
+                    "total_cost_usd": stats.total_cost_usd,
+                    "avg_latency_ms": stats.avg_latency_ms,
+                    "last_request_time": stats.last_request_time,
+                }
+            }
+        
+        # Return all roles
+        return {
+            role_key: {
+                "requests": stats.requests,
+                "successful_requests": stats.successful_requests,
+                "failed_requests": stats.failed_requests,
+                "fallback_requests": stats.fallback_requests,
+                "success_rate": stats.success_rate,
+                "fallback_rate": stats.fallback_rate,
+                "total_tokens": stats.total_tokens,
+                "total_cost_usd": stats.total_cost_usd,
+                "avg_latency_ms": stats.avg_latency_ms,
+                "last_request_time": stats.last_request_time,
+            }
+            for role_key, stats in self._usage_stats.items()
+        }
+    
+    def get_total_cost(self) -> float:
+        """Get total cost across all roles."""
+        return sum(stats.total_cost_usd for stats in self._usage_stats.values())
+    
+    def get_avg_latency(self, role: Optional[str] = None) -> float:
+        """
+        Get average latency in milliseconds.
+        
+        Args:
+            role: Optional role to filter by (None = all roles)
+        
+        Returns:
+            Average latency in milliseconds
+        """
+        if role:
+            role = role.lower()
+            stats = self._usage_stats.get(role)
+            return stats.avg_latency_ms if stats else 0.0
+        
+        # Average across all roles
+        total_latency = sum(stats.total_latency_ms for stats in self._usage_stats.values())
+        total_requests = sum(stats.requests for stats in self._usage_stats.values())
+        return total_latency / max(total_requests, 1)
+    
+    def reset_stats(self, role: Optional[str] = None) -> None:
+        """
+        Reset usage statistics.
+        
+        Args:
+            role: Optional role to reset (None = reset all)
+        """
+        if role:
+            role = role.lower()
+            if role in self._usage_stats:
+                self._usage_stats[role] = UsageStats()
+        else:
+            self._usage_stats.clear()
 
