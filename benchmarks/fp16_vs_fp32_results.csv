@@ -1,0 +1,4 @@
+scenario,fp32_duration_s,fp16_duration_s,speedup,cuda_available,fp16_runtime_enabled,epochs,trajectories,fp16_overflow_rate
+warmup,0.21567714700000806,0.14526206700003286,1.484745133083913,False,False,1,128,0.0
+standard,0.7542895569999928,0.6499700800000028,1.1604988909643188,False,False,3,256,0.0
+stress,2.175378400999989,2.090605461999985,1.040549467865116,False,False,5,512,0.0

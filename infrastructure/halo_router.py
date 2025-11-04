@@ -13,10 +13,12 @@ Key Features:
 - CaseBank memory integration (Memento case-based reasoning)
 """
 import logging
+import os
 from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, field
 from infrastructure.task_dag import TaskDAG, Task, TaskStatus
 from infrastructure.agent_auth_registry import AgentAuthRegistry, SecurityError
+from infrastructure.safety.waltzrl_wrapper import WaltzRLSafetyWrapper
 
 # CaseBank integration for learning from past routing decisions
 try:
@@ -92,6 +94,20 @@ class RoutingPlan:
             workload[agent] = workload.get(agent, 0) + 1
         return workload
 
+@dataclass
+class TeamValidationResult:
+    """
+    Result of validating a proposed multi-agent team.
+
+    Attributes:
+        is_valid: Whether the team satisfies HALO constraints.
+        reasons: Human-readable explanations for any validation failures.
+        required_capabilities: Capabilities the team was expected to satisfy.
+    """
+
+    is_valid: bool
+    reasons: List[str] = field(default_factory=list)
+    required_capabilities: List[str] = field(default_factory=list)
 
 class HALORouter:
     """
@@ -177,11 +193,76 @@ class HALORouter:
                     self._capability_index[task_type] = []
                 self._capability_index[task_type].append((agent_name, agent_cap))
 
+        # WaltzRL safety integration
+        self.enable_waltzrl = os.getenv("ENABLE_WALTZRL", "true").lower() == "true"
+        self._safety_wrapper: Optional[WaltzRLSafetyWrapper] = None
+        if self.enable_waltzrl:
+            self._safety_wrapper = WaltzRLSafetyWrapper(feedback_only_mode=False)
+            logger.info("WaltzRL safety wrapper enabled for HALO router")
+
         self.logger = logger
         self.logger.info(
             f"Initialized HALORouter with {len(self.agent_registry)} agents "
             f"(cost_optimization={'enabled' if enable_cost_optimization else 'disabled'})"
         )
+
+    def validate_team_composition(
+        self,
+        agent_names: List[str],
+        task_type: Optional[str] = None,
+        required_capabilities: Optional[List[str]] = None,
+        required_security_level: str = "standard"
+    ) -> TeamValidationResult:
+        """
+        Validate a proposed team composition against HALO constraints.
+
+        Checks performed:
+            - Agents exist in registry and authentication store
+            - No duplicate agents
+            - Claimed capabilities cover required capabilities
+            - Security-sensitive tasks include appropriate agents
+        """
+        reasons: List[str] = []
+        required_capabilities = required_capabilities or []
+
+        if not agent_names:
+            reasons.append("Team must include at least one agent.")
+            return TeamValidationResult(False, reasons, required_capabilities)
+
+        # Duplicate detection
+        if len(set(agent_names)) != len(agent_names):
+            reasons.append("Duplicate agents detected in team.")
+
+        # Capability aggregation
+        available_capabilities: List[str] = []
+
+        for agent_name in agent_names:
+            capability = self.agent_registry.get(agent_name)
+            if capability is None:
+                reasons.append(f"Unknown agent '{agent_name}' not registered in HALO.")
+                continue
+
+            # Authentication check (if registry available)
+            if not self.auth_registry.is_registered(agent_name):
+                reasons.append(f"Agent '{agent_name}' is not authenticated with HALO.")
+
+            available_capabilities.extend(capability.skills)
+
+        # Required capabilities coverage
+        missing = sorted({cap for cap in required_capabilities if cap not in available_capabilities})
+        if missing:
+            reasons.append(
+                "Team missing required capabilities: " + ", ".join(missing)
+            )
+
+        # Security requirements
+        security_required = required_security_level.lower() == "high" or (
+            task_type and any(keyword in task_type.lower() for keyword in ("finance", "security", "compliance"))
+        )
+        if security_required and "security_agent" not in agent_names:
+            reasons.append("High-security task requires inclusion of security_agent.")
+
+        return TeamValidationResult(len(reasons) == 0, reasons, required_capabilities)
 
     def _get_genesis_15_agents(self) -> Dict[str, AgentCapability]:
         """
@@ -809,6 +890,55 @@ class HALORouter:
         workload = routing_plan.get_agent_workload()
         if workload:
             self.logger.info(f"Agent workload: {workload}")
+
+    async def route_with_safety(
+        self,
+        task: Dict[str, Any],
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Execute ``task`` using the provided executor while applying WaltzRL safety.
+
+        Args:
+            task: Task payload (must include a ``description`` or ``query`` field).
+            context: Optional dictionary containing an ``execute`` coroutine that
+                performs the underlying task execution and returns a draft result.
+
+        Returns:
+            The executor result augmented with a ``safety`` payload when WaltzRL is
+            enabled.  If WaltzRL is disabled the draft result is returned unchanged.
+        """
+        context = context or {}
+        executor = context.get("execute")
+
+        if executor is None or not callable(executor):
+            raise ValueError(
+                "route_with_safety requires a callable 'execute' entry in the context"
+            )
+
+        draft_result = await executor(task)
+
+        if not self.enable_waltzrl or self._safety_wrapper is None:
+            return draft_result
+
+        response_text = draft_result.get("response", "")
+        if not response_text:
+            return draft_result
+
+        agent_name = draft_result.get("agent") or draft_result.get("agent_name") or "unknown"
+        query = task.get("description") or task.get("query", "")
+
+        wrapped = self._safety_wrapper.wrap_agent_response(
+            agent_name=agent_name,
+            query=query,
+            response=response_text,
+            agent_metadata=draft_result,
+        )
+
+        draft_result["response"] = wrapped.response
+        draft_result["safety"] = wrapped.to_dict()
+
+        return draft_result
 
     async def create_specialized_agent(
         self,

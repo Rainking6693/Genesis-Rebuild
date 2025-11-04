@@ -23,6 +23,7 @@ Key Features:
 import asyncio
 import json
 import logging
+import os
 import numpy as np
 import pickle
 from collections import deque
@@ -44,6 +45,13 @@ except ImportError:
 from infrastructure import get_replay_buffer, OutcomeTag, get_logger
 
 logger = get_logger("world_model")
+
+try:
+    from infrastructure.training import FP16Trainer, FP16TrainingConfig
+except Exception as exc:  # pragma: no cover - fallback when training module unavailable
+    FP16Trainer = None  # type: ignore
+    FP16TrainingConfig = None  # type: ignore
+    logger.info("FP16 training utilities unavailable: %s", exc)
 
 
 @dataclass
@@ -114,6 +122,9 @@ class WorldModel:
             self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
             self.criterion = nn.MSELoss()
 
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.model.to(self.device)
+
             # Load if exists
             if self.model_path.exists():
                 self._load_model()
@@ -121,9 +132,29 @@ class WorldModel:
             # Fallback to simple heuristic model
             self.model = None
             self.heuristic_model = self._build_heuristic_model()
+            self.device = None
 
         # Training history
         self.training_history = []
+        self._fp16_trainer: Optional[FP16Trainer] = None
+        self._fp16_stats: Optional[Dict[str, Any]] = None
+
+        enable_fp16 = os.getenv("ENABLE_FP16_TRAINING", "false").lower() == "true"
+        self.fp16_enabled = (
+            TORCH_AVAILABLE
+            and FP16Trainer is not None
+            and enable_fp16
+            and torch.cuda.is_available()
+        )
+        if self.fp16_enabled:
+            self.fp16_config = FP16TrainingConfig()
+            logger.info("FP16 training enabled for WorldModel")
+        else:
+            self.fp16_config = None
+            if enable_fp16 and (not TORCH_AVAILABLE or not torch.cuda.is_available()):
+                logger.warning(
+                    "ENABLE_FP16_TRAINING set but CUDA/AMP is unavailable; proceeding with FP32"
+                )
 
         # Connect to Replay Buffer
         self.replay_buffer = get_replay_buffer()
@@ -247,29 +278,65 @@ class WorldModel:
         # Training loop
         self.model.train()
 
+        trainer = None
+        if self.fp16_enabled and FP16Trainer is not None:
+            try:
+                trainer = FP16Trainer(self.model, self.optimizer, self.fp16_config)
+                self._fp16_trainer = trainer
+            except RuntimeError as exc:
+                logger.warning("FP16 trainer initialization failed: %s. Falling back to FP32.", exc)
+                trainer = None
+                self.fp16_enabled = False
+
+        def compute_loss_fn(model, batch):
+            states = batch["states"]
+            actions = batch["actions"]
+            target_success = batch["success"]
+            target_improvement = batch["improvement"]
+
+            pred_success, pred_improvement = model(states, actions)
+            loss_success = self.criterion(pred_success.squeeze(), target_success)
+            loss_improvement = self.criterion(pred_improvement.squeeze(), target_improvement)
+            return loss_success + loss_improvement
+
+        overflow_batches = 0
+        clip_grad = None
+        if TORCH_AVAILABLE:
+            from torch.nn.utils import clip_grad_norm_
+
+            clip_grad = clip_grad_norm_
+
         for epoch in range(num_epochs):
             epoch_loss = 0.0
             num_batches = 0
 
             # Mini-batch training
             for i in range(0, len(X_states), batch_size):
-                batch_states = X_states[i:i + batch_size]
-                batch_actions = X_actions[i:i + batch_size]
-                batch_success = y_success[i:i + batch_size]
-                batch_improvement = y_improvement[i:i + batch_size]
+                batch_states = X_states[i:i + batch_size].to(self.device)
+                batch_actions = X_actions[i:i + batch_size].to(self.device)
+                batch_success = y_success[i:i + batch_size].to(self.device)
+                batch_improvement = y_improvement[i:i + batch_size].to(self.device)
 
-                # Forward pass
-                pred_success, pred_improvement = self.model(batch_states, batch_actions)
+                batch = {
+                    "states": batch_states,
+                    "actions": batch_actions,
+                    "success": batch_success,
+                    "improvement": batch_improvement,
+                }
 
-                # Compute loss
-                loss_success = self.criterion(pred_success.squeeze(), batch_success)
-                loss_improvement = self.criterion(pred_improvement.squeeze(), batch_improvement)
-                loss = loss_success + loss_improvement
-
-                # Backward pass
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
+                if trainer is not None:
+                    loss = trainer.training_step(batch, compute_loss_fn)
+                    step_ok = trainer.backward_and_step(loss)
+                    if not step_ok:
+                        overflow_batches += 1
+                        continue
+                else:
+                    self.optimizer.zero_grad(set_to_none=True)
+                    loss = compute_loss_fn(self.model, batch)
+                    loss.backward()
+                    if clip_grad is not None:
+                        clip_grad(self.model.parameters(), max_norm=1.0)
+                    self.optimizer.step()
 
                 epoch_loss += loss.item()
                 num_batches += 1
@@ -281,7 +348,13 @@ class WorldModel:
                 "epoch": epoch + 1,
                 "loss": avg_loss,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
+                "fp16_overflow_batches": overflow_batches,
             })
+
+        if trainer is not None:
+            self._fp16_stats = trainer.get_stats()
+            logger.info("FP16 training stats: %s", self._fp16_stats)
+            self._fp16_trainer = None
 
         # Save model
         self._save_model()

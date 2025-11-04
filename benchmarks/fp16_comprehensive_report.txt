@@ -1,0 +1,47 @@
+
+================================================================================
+FP16 COMPREHENSIVE BENCHMARK REPORT
+================================================================================
+
+Hardware: CPU only
+PyTorch Version: 2.7.1+cu126
+
+--------------------------------------------------------------------------------
+PERFORMANCE COMPARISON (FP16 vs FP32)
+--------------------------------------------------------------------------------
+
+Scenario: warmup
+  FP32 time:         0.19s
+  FP16 time:         0.15s
+  Speedup:           1.22x ○
+  FP32 loss:       0.0424
+  FP16 loss:       0.0423
+  Accuracy diff:     0.3% ✓
+  Overflow rate:     0.0% ✓
+
+Scenario: standard
+  FP32 time:         0.45s
+  FP16 time:         0.46s
+  Speedup:           0.98x ✗
+  FP32 loss:       0.0400
+  FP16 loss:       0.0393
+  Accuracy diff:     1.9% ✓
+  Overflow rate:     0.0% ✓
+
+Scenario: stress
+  FP32 time:         1.32s
+  FP16 time:         1.46s
+  Speedup:           0.90x ✗
+  FP32 loss:       0.0397
+  FP16 loss:       0.0396
+  Accuracy diff:     0.1% ✓
+  Overflow rate:     0.0% ✓
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+
+Average FP16 speedup: 1.03x
+Numerical stability: 6/6 runs stable
+
+================================================================================
