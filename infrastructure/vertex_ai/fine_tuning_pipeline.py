@@ -174,7 +174,8 @@ class TuningJobConfig:
     Complete configuration for a fine-tuning job.
 
     Attributes:
-        job_name: Unique job name
+        name: Job identifier (short name)
+        job_name: Full Vertex AI job name
         base_model: Base model to fine-tune (e.g., "gemini-2.0-flash")
         tuning_type: Type of fine-tuning
         dataset: Training dataset configuration
@@ -193,6 +194,7 @@ class TuningJobConfig:
         early_stopping_patience: Early stopping patience (epochs)
         tags: Metadata tags
     """
+    name: str
     job_name: str
     base_model: str
     tuning_type: TuningType
