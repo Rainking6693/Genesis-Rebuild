@@ -18,13 +18,13 @@ from pathlib import Path
 # Skip all tests if Anthropic SDK not available
 pytest.importorskip("anthropic", reason="Anthropic SDK required for product generation tests")
 
-from infrastructure.product_generator import (
+from infrastructure.products.product_generator import (
     ProductGenerator,
     ProductRequirements,
     BusinessType,
     GeneratedProduct
 )
-from infrastructure.product_validator import (
+from infrastructure.products.product_validator import (
     ProductValidator,
     ValidationResult,
     ValidationIssue,

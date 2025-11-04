@@ -48,6 +48,7 @@ Created: November 2, 2025
 import asyncio
 import hashlib
 import json
+import logging
 import time
 from typing import List, Dict, Any, Optional, Tuple, Set
 from dataclasses import dataclass, field
@@ -61,6 +62,7 @@ from infrastructure.observability import get_observability_manager, SpanType
 from infrastructure.memory.deepseek_compression import DeepSeekCompressor, CompressedMemory
 
 obs_manager = get_observability_manager()
+logger = logging.getLogger(__name__)
 
 
 class RetrievalMode(Enum):
@@ -329,13 +331,28 @@ class AgenticRAG:
             query_embedding = await self.embedding_service.embed_text(query)
             query_vector = np.array(query_embedding)
             
-            # Search MongoDB (simplified - in production, use vector index)
-            # For now, we'll do brute-force similarity
-            all_entries = await self.mongodb_backend.search(
-                namespace=namespace_filter or ("agent", "*"),
-                query="*",  # Get all
-                limit=1000
-            )
+            # Fetch candidate entries across namespaces (brute force for now)
+            namespaces_to_search: List[Tuple[str, str]]
+            if namespace_filter:
+                namespaces_to_search = [namespace_filter]
+            else:
+                namespaces_to_search = [
+                    ("agent", "*"),
+                    ("business", "*"),
+                    ("system", "*"),
+                ]
+
+            all_entries: List[MemoryEntry] = []
+            for ns in namespaces_to_search:
+                try:
+                    entries = await self.mongodb_backend.search(
+                        namespace=ns,
+                        query="*",
+                        limit=1000,
+                    )
+                    all_entries.extend(entries)
+                except Exception as exc:
+                    logger.warning("AgenticRAG vector search failed for namespace %s: %s", ns, exc)
             
             results: List[Tuple[MemoryEntry, float]] = []
             

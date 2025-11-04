@@ -94,9 +94,9 @@ class FakeMongoBackend:
         matches: List[MemoryEntry] = []
         for stored_ns, entries in self.storage.items():
             stored_type, stored_id = stored_ns
-            if stored_type != ns_type:
+            if ns_type != "*" and stored_type != ns_type:
                 continue
-            if ns_id != "*" and ns_id != stored_id:
+            if ns_id != "*" and stored_id != ns_id:
                 continue
             matches.extend(MemoryEntry.from_dict(entry.to_dict()) for entry in entries.values())
         return matches[:limit]
@@ -139,6 +139,29 @@ async def test_vector_search_ranks_by_similarity(rag: AgenticRAG):
     assert results
     assert results[0].entry.key == "auth_tests"
     assert results[0].score > 0.95
+
+
+@pytest.mark.asyncio
+async def test_vector_search_includes_business_namespace(rag: AgenticRAG):
+    await rag.store_memory(
+        ("business", "saas_001"),
+        "retention_playbook",
+        {"description": "Customer retention strategy and runbook"},
+    )
+    await rag.store_memory(
+        ("agent", "marketing"),
+        "campaign_notes",
+        {"description": "Lifecycle campaign notes"},
+    )
+
+    results = await rag.retrieve(
+        "retention strategy",
+        mode=RetrievalMode.VECTOR_ONLY,
+        top_k=2,
+    )
+
+    keys = {result.entry.key for result in results}
+    assert "retention_playbook" in keys
 
 
 @pytest.mark.asyncio

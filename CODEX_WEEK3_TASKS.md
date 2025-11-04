@@ -30,6 +30,9 @@
     (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./venv/bin/pytest -p pytest_asyncio.plugin tests/e2e/test_autonomous_business_creation.py`).
 - **Nov 5:** Audited Cursor's revenue dashboard, exposed `/api/revenue/metrics` + `/api/revenue/analytics` in FastAPI, and added backend tests
   (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./venv/bin/pytest tests/backend/test_revenue_api.py`). Dashboard now drops “Mock Data” badge when APIs respond.
+- **Nov 6:** Reconstructed missing Vertex AI integration.
+  - Added deployment utilities (`infrastructure/vertex_deployment.py`), routing layer (`infrastructure/vertex_router.py`), and regression tests (`tests/vertex/test_vertex_integration.py`).
+  - Verified orchestration and router behaviour (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ./venv/bin/pytest tests/vertex/test_vertex_integration.py`).
 
 ---
 

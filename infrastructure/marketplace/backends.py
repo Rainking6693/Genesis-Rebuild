@@ -293,8 +293,8 @@ class PostgresTransactionLedger(TransactionLedger):
         if self.db_connection is None:
             try:
                 self.db_connection = psycopg2.connect(db_url)
-                self._ensure_schema()
                 self._postgres_available = True
+                self._ensure_schema()
                 logger.info(f"✅ Connected to PostgreSQL")
             except Exception as e:
                 logger.warning(f"PostgreSQL connection failed: {e} - using in-memory storage")
@@ -529,4 +529,3 @@ class PostgresTransactionLedger(TransactionLedger):
         if self.db_connection:
             self.db_connection.close()
             logger.info("Closed PostgreSQL connection")
-

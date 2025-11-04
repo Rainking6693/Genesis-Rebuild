@@ -3,7 +3,7 @@
 **Author:** Nova (Vertex AI specialist)
 **Date:** November 3, 2025
 **Phase:** Phase 5 Production Infrastructure
-**Status:** Core modules complete (4/4), testing + integration in progress
+**Status:** Core modules complete (4/4), deployment + routing layer added (Nov 6)
 
 ## Executive Summary
 
@@ -15,6 +15,11 @@ Production-grade LLM deployment infrastructure for Genesis multi-agent system. P
 - **Integration with Genesis**: SE-Darwin evolution, HALO routing, HTDAG planning
 - **Cost optimization**: 88-92% reduction via distillation + routing
 - **Production-ready**: OTEL tracing, error handling, async operations
+
+**New (Nov 6):**
+- `infrastructure/vertex_deployment.py` – high-level deployment manager (uploads, endpoint creation, promotion/rollback).
+- `infrastructure/vertex_router.py` – weighted round‑robin router with Gemini fallback.
+- `tests/vertex/test_vertex_integration.py` – regression coverage for deployments and routing.
 
 ---
 
@@ -54,8 +59,52 @@ Production-grade LLM deployment infrastructure for Genesis multi-agent system. P
 │     ├─ Alert Rules & Notifications                          │
 │     └─ Grafana Dashboard Export                             │
 │                                                              │
+│  5. Deployment & Routing (NEW)                              │
+│     ├─ VertexDeploymentManager (`vertex_deployment.py`)     │
+│     ├─ Weighted Routing & Fallback (`vertex_router.py`)     │
+│     └─ Integration Tests (`tests/vertex/test_vertex_integration.py`) │
+│                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 5. Deployment & Routing Layer (NEW)
+
+### VertexDeploymentManager (`vertex_deployment.py`)
+- Uploads model artifacts to Vertex AI Model Registry.
+- Creates endpoints, deploys versions with traffic splits, supports promotion/rollback.
+- Operates in live mode (Vertex AI SDK) or mock mode (unit testing).
+
+```python
+from infrastructure.vertex_deployment import VertexDeploymentManager
+
+manager = VertexDeploymentManager(project_id="genesis-prod", location="us-central1")
+model = manager.upload_model(
+    display_name="Genesis QA v1",
+    artifact_uri="gs://genesis-models/qa/v1",
+    serving_container_image_uri="us-docker.pkg.dev/vertex-ai/prediction/pytorch-gpu:latest",
+)
+endpoint = manager.create_endpoint("qa-endpoint")
+manager.deploy_model(endpoint, model, traffic_percentage=100)
+```
+
+### VertexModelRouter (`vertex_router.py`)
+- Registers weighted endpoints per agent role.
+- Routes requests with round-robin balancing and Gemini base-model fallback.
+
+```python
+from infrastructure.vertex_router import VertexModelRouter
+
+router = VertexModelRouter(project_id="genesis-prod", location="us-central1")
+router.register_endpoint("qa", "projects/.../endpoints/123", weight=2)
+router.register_endpoint("qa", "projects/.../endpoints/456", weight=1)
+
+response = router.route(role="qa", prompt="Check customer SLA clause.")
+```
+
+### Tests
+`tests/vertex/test_vertex_integration.py` runs in mock mode to verify upload/deploy, promote/rollback, and routing behaviour.
 
 ---
 
