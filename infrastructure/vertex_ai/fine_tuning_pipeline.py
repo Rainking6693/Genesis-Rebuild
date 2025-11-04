@@ -241,6 +241,7 @@ class TuningJobResult:
     Result of a fine-tuning job.
 
     Attributes:
+        job_id: Job identifier (short ID)
         job_name: Job name
         status: Final status
         tuned_model_uri: GCS path to tuned model
@@ -248,9 +249,10 @@ class TuningJobResult:
         start_time: Training start time
         end_time: Training end time
         duration_seconds: Total training time
-        vertex_ai_job_id: Vertex AI job ID
+        vertex_ai_job_id: Vertex AI job ID (full resource name)
         error_message: Error message if failed
     """
+    job_id: str
     job_name: str
     status: TuningJobStatus
     tuned_model_uri: Optional[str] = None
@@ -611,7 +613,10 @@ class FineTuningPipeline:
         )
 
         # Create result object
+        # Generate job_id from job_name (extract last component or use as-is)
+        job_id = config.job_name.split('/')[-1] if '/' in config.job_name else config.job_name
         result = TuningJobResult(
+            job_id=job_id,
             job_name=config.job_name,
             status=TuningJobStatus.PENDING,
             start_time=datetime.utcnow()
