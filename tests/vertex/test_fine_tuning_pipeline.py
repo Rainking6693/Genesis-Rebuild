@@ -17,6 +17,7 @@ from infrastructure.vertex_ai.fine_tuning_pipeline import (
     TuningJobStatus,
     TuningJobConfig,
     TuningJobResult,
+    TrainingDataset,
 )
 
 
@@ -43,19 +44,26 @@ def fine_tuning_pipeline(mock_vertex_ai):
 @pytest.fixture
 def sample_tuning_config():
     """Sample tuning job configuration"""
+    from infrastructure.vertex_ai.fine_tuning_pipeline import HyperparameterConfig
+
     return TuningJobConfig(
         name="test-tuning-job",
-        model_id="gemini-pro",
+        job_name="test-tuning-job-full",
+        base_model="gemini-pro",
         tuning_type=TuningType.SUPERVISED,
-        training_data_uri="gs://test-bucket/training-data.jsonl",
-        validation_data_uri="gs://test-bucket/validation-data.jsonl",
-        output_model_uri="gs://test-bucket/output",
-        hyperparameters={
-            "learning_rate": 0.001,
-            "batch_size": 32,
-            "num_epochs": 3,
-        },
-        labels={"project": "test", "model": "gemini"},
+        dataset=TrainingDataset(
+            train_uri="gs://test-bucket/training-data.jsonl",
+            validation_uri="gs://test-bucket/validation-data.jsonl",
+            num_train_samples=100,
+            num_val_samples=20,
+        ),
+        hyperparameters=HyperparameterConfig(
+            learning_rate=0.001,
+            batch_size=32,
+            num_epochs=3,
+        ),
+        output_model_name="test-tuned-model",
+        tags=["project:test", "model:gemini"],
     )
 
 
@@ -181,18 +189,26 @@ async def test_submit_tuning_job_supervised(fine_tuning_pipeline, sample_tuning_
 @pytest.mark.asyncio
 async def test_submit_tuning_job_rlhf(fine_tuning_pipeline):
     """Test submission of RLHF fine-tuning job"""
+    from infrastructure.vertex_ai.fine_tuning_pipeline import HyperparameterConfig, RLHFConfig
+
     config = TuningJobConfig(
         name="rlhf-tuning",
-        model_id="gemini-pro",
+        job_name="rlhf-tuning-full",
+        base_model="gemini-pro",
         tuning_type=TuningType.RLHF,
-        training_data_uri="gs://test-bucket/rlhf-data.jsonl",
-        validation_data_uri="gs://test-bucket/rlhf-val.jsonl",
-        output_model_uri="gs://test-bucket/rlhf-output",
-        hyperparameters={
-            "learning_rate": 0.0001,
-            "num_epochs": 5,
-            "reward_model": "reward_model_v1",
-        },
+        dataset=TrainingDataset(
+            train_uri="gs://test-bucket/rlhf-data.jsonl",
+            validation_uri="gs://test-bucket/rlhf-val.jsonl",
+            num_train_samples=100,
+        ),
+        hyperparameters=HyperparameterConfig(
+            learning_rate=0.0001,
+            num_epochs=5,
+        ),
+        rlhf_config=RLHFConfig(
+            reward_model_uri="gs://test-bucket/reward_model_v1",
+        ),
+        output_model_name="rlhf-tuned-model",
     )
 
     job = await fine_tuning_pipeline.submit_tuning_job(
@@ -206,17 +222,25 @@ async def test_submit_tuning_job_rlhf(fine_tuning_pipeline):
 @pytest.mark.asyncio
 async def test_submit_tuning_job_distillation(fine_tuning_pipeline):
     """Test submission of distillation job"""
+    from infrastructure.vertex_ai.fine_tuning_pipeline import HyperparameterConfig, DistillationConfig
+
     config = TuningJobConfig(
         name="distillation-job",
-        model_id="gemini-pro",
+        job_name="distillation-job-full",
+        base_model="gemini-pro",
         tuning_type=TuningType.DISTILLATION,
-        training_data_uri="gs://test-bucket/distil-data.jsonl",
-        output_model_uri="gs://test-bucket/distil-output",
-        hyperparameters={
-            "teacher_model": "gemini-2.0-pro",
-            "temperature": 4.0,
-            "num_epochs": 2,
-        },
+        dataset=TrainingDataset(
+            train_uri="gs://test-bucket/distil-data.jsonl",
+            num_train_samples=100,
+        ),
+        hyperparameters=HyperparameterConfig(
+            num_epochs=2,
+        ),
+        distillation_config=DistillationConfig(
+            teacher_model_uri="gs://test-bucket/gemini-2.0-pro",
+            temperature=4.0,
+        ),
+        output_model_name="distillation-tuned-model",
     )
 
     job = await fine_tuning_pipeline.submit_tuning_job(
@@ -230,19 +254,23 @@ async def test_submit_tuning_job_distillation(fine_tuning_pipeline):
 @pytest.mark.asyncio
 async def test_submit_tuning_job_parameter_efficient(fine_tuning_pipeline):
     """Test submission of parameter-efficient fine-tuning (LoRA)"""
+    from infrastructure.vertex_ai.fine_tuning_pipeline import HyperparameterConfig
+
     config = TuningJobConfig(
         name="lora-tuning",
-        model_id="gemini-pro",
+        job_name="lora-tuning-full",
+        base_model="gemini-pro",
         tuning_type=TuningType.PARAMETER_EFFICIENT,
-        training_data_uri="gs://test-bucket/peft-data.jsonl",
-        output_model_uri="gs://test-bucket/peft-output",
-        hyperparameters={
-            "method": "lora",
-            "rank": 8,
-            "alpha": 16,
-            "target_modules": ["q_proj", "v_proj"],
-            "num_epochs": 3,
-        },
+        dataset=TrainingDataset(
+            train_uri="gs://test-bucket/peft-data.jsonl",
+            num_train_samples=100,
+        ),
+        hyperparameters=HyperparameterConfig(
+            num_epochs=3,
+            lora_r=8,
+            lora_alpha=16,
+        ),
+        output_model_name="lora-tuned-model",
     )
 
     job = await fine_tuning_pipeline.submit_tuning_job(
@@ -259,8 +287,9 @@ async def test_register_tuned_model_success(fine_tuning_pipeline, sample_tuning_
     # Create mock tuning result
     result = TuningJobResult(
         job_id="test-job-123",
+        job_name="test-job-123-full",
         status=TuningJobStatus.SUCCEEDED,
-        output_model_uri="gs://test-bucket/tuned-model",
+        tuned_model_uri="gs://test-bucket/tuned-model",
         metrics={"eval_loss": 0.25, "eval_accuracy": 0.92},
     )
 
@@ -278,8 +307,9 @@ async def test_register_tuned_model_with_metadata(fine_tuning_pipeline, sample_t
     """Test tuned model registration with rich metadata"""
     result = TuningJobResult(
         job_id="test-job-456",
+        job_name="test-job-456-full",
         status=TuningJobStatus.SUCCEEDED,
-        output_model_uri="gs://test-bucket/tuned-enhanced",
+        tuned_model_uri="gs://test-bucket/tuned-enhanced",
         metrics={
             "eval_loss": 0.20,
             "eval_accuracy": 0.94,
@@ -316,42 +346,51 @@ def test_tuning_job_status_enum():
 def test_tuning_job_config_initialization(sample_tuning_config):
     """Test TuningJobConfig initialization"""
     assert sample_tuning_config.name == "test-tuning-job"
-    assert sample_tuning_config.model_id == "gemini-pro"
+    assert sample_tuning_config.job_name == "test-tuning-job-full"
+    assert sample_tuning_config.base_model == "gemini-pro"
     assert sample_tuning_config.tuning_type == TuningType.SUPERVISED
-    assert sample_tuning_config.hyperparameters["learning_rate"] == 0.001
+    assert sample_tuning_config.hyperparameters.learning_rate == 0.001
 
 
 def test_tuning_job_result_initialization():
     """Test TuningJobResult initialization"""
     result = TuningJobResult(
         job_id="job-123",
+        job_name="job-123-full",
         status=TuningJobStatus.SUCCEEDED,
-        output_model_uri="gs://bucket/model",
+        tuned_model_uri="gs://bucket/model",
         metrics={"accuracy": 0.95},
     )
 
     assert result.job_id == "job-123"
+    assert result.job_name == "job-123-full"
     assert result.status == TuningJobStatus.SUCCEEDED
+    assert result.tuned_model_uri == "gs://bucket/model"
     assert result.metrics["accuracy"] == 0.95
 
 
 @pytest.mark.asyncio
 async def test_tuning_with_custom_hyperparameters(fine_tuning_pipeline):
     """Test fine-tuning with custom hyperparameters"""
+    from infrastructure.vertex_ai.fine_tuning_pipeline import HyperparameterConfig
+
     config = TuningJobConfig(
         name="custom-hyperparams",
-        model_id="gemini-pro",
+        job_name="custom-hyperparams-full",
+        base_model="gemini-pro",
         tuning_type=TuningType.SUPERVISED,
-        training_data_uri="gs://test-bucket/training.jsonl",
-        output_model_uri="gs://test-bucket/output",
-        hyperparameters={
-            "learning_rate": 0.0005,
-            "batch_size": 64,
-            "num_epochs": 5,
-            "warmup_steps": 100,
-            "weight_decay": 0.01,
-            "max_grad_norm": 1.0,
-        },
+        dataset=TrainingDataset(
+            train_uri="gs://test-bucket/training.jsonl",
+            num_train_samples=100,
+        ),
+        hyperparameters=HyperparameterConfig(
+            learning_rate=0.0005,
+            batch_size=64,
+            num_epochs=5,
+            warmup_steps=100,
+            weight_decay=0.01,
+        ),
+        output_model_name="custom-tuned-model",
     )
 
     job = await fine_tuning_pipeline.submit_tuning_job(

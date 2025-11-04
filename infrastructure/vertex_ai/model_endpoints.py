@@ -118,6 +118,7 @@ class EndpointConfig:
         machine_type: GCP machine type (e.g., "n1-standard-4", "g2-standard-4")
         accelerator_type: GPU/TPU type (e.g., "NVIDIA_TESLA_T4", "NVIDIA_L4")
         accelerator_count: Number of accelerators
+        network: VPC network for Private Service Access (format: projects/{project}/global/networks/{network})
         auto_scaling: Auto-scaling configuration
         traffic_split: Traffic split for A/B testing
         enable_request_logging: Enable request/response logging (for predictions)
@@ -133,6 +134,7 @@ class EndpointConfig:
     machine_type: str = "n1-standard-4"
     accelerator_type: Optional[str] = None
     accelerator_count: int = 0
+    network: str = ""
     auto_scaling: AutoScalingConfig = field(default_factory=AutoScalingConfig)
     traffic_split: Optional[TrafficSplit] = None
     enable_request_logging: bool = True
