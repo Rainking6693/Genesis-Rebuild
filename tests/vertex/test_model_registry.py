@@ -19,13 +19,39 @@ from infrastructure.observability import get_observability_manager, SpanType
 
 
 @pytest.fixture
-def mock_vertex_ai():
+def mock_vertex_model():
+    """Mock Vertex AI Model object"""
+    model = MagicMock()
+    model.resource_name = "projects/test-project/locations/us-central1/models/model-123"
+    model.display_name = "Test Model v1"
+    model.version_id = "1.0.0"
+    model.version_aliases = ["champion", "latest"]
+    model.labels = {"test": "true"}
+    model.create = MagicMock(return_value=model)
+    model.upload = MagicMock(return_value=model)
+    model.update = MagicMock(return_value=model)
+    model.delete = MagicMock()
+    return model
+
+
+@pytest.fixture
+def mock_vertex_ai(mock_vertex_model):
     """Mock Vertex AI client"""
     with patch('infrastructure.vertex_ai.model_registry.VERTEX_AI_AVAILABLE', True):
-        with patch('infrastructure.vertex_ai.model_registry.aiplatform') as mock_api:
-            mock_api.Model = Mock()
-            mock_api.Endpoint = Mock()
-            yield mock_api
+        with patch('infrastructure.vertex_ai.model_registry.Model') as mock_model_class:
+            with patch('infrastructure.vertex_ai.model_registry.Endpoint') as mock_endpoint_class:
+                with patch('infrastructure.vertex_ai.model_registry.aiplatform') as mock_api:
+                    # Configure Model class methods
+                    mock_model_class.upload = MagicMock(return_value=mock_vertex_model)
+                    mock_model_class.list = MagicMock(return_value=[mock_vertex_model])
+                    mock_model_class.return_value = mock_vertex_model
+
+                    # Configure aiplatform module
+                    mock_api.Model = mock_model_class
+                    mock_api.Endpoint = mock_endpoint_class
+                    mock_api.init = MagicMock()
+
+                    yield mock_api
 
 
 @pytest.fixture
@@ -62,17 +88,21 @@ async def test_upload_model_success(model_registry, sample_metadata):
     """Test successful model upload"""
     model_registry.models = {}  # Reset models
 
-    model, metadata = await model_registry.upload_model(
+    model = await model_registry.upload_model(
         sample_metadata,
         serving_container_ports=[8080],
         serving_container_predict_route="/predict",
         sync=False
     )
 
-    assert metadata is not None
-    assert metadata.name == "test-model"
-    assert metadata.version == "1.0.0"
-    assert metadata.deployment_stage == DeploymentStage.DEVELOPMENT
+    assert model is not None
+    assert model.resource_name is not None
+    # Verify metadata was cached
+    cached_metadata = model_registry.metadata_cache.get("test-model:1.0.0")
+    assert cached_metadata is not None
+    assert cached_metadata.name == "test-model"
+    assert cached_metadata.version == "1.0.0"
+    assert cached_metadata.deployment_stage == DeploymentStage.DEVELOPMENT
 
 
 @pytest.mark.asyncio
@@ -99,8 +129,11 @@ async def test_upload_model_with_parent_version(model_registry, sample_metadata)
         tags=["test", "v2"],
     )
 
-    model, metadata = await model_registry.upload_model(metadata2, sync=False)
-    assert metadata.version == "2.0.0"
+    model = await model_registry.upload_model(metadata2, sync=False)
+    assert model is not None
+    # Verify v2 metadata was cached
+    cached_metadata = model_registry.metadata_cache.get("test-model:2.0.0")
+    assert cached_metadata.version == "2.0.0"
 
 
 @pytest.mark.asyncio
@@ -126,7 +159,9 @@ async def test_get_model_not_found(model_registry):
 @pytest.mark.asyncio
 async def test_list_models_filtered(model_registry, sample_metadata):
     """Test listing models with filters"""
+    # Reset state
     model_registry.models = {}
+    model_registry.metadata_cache = {}
 
     # Upload models with different stages
     staging_meta = ModelMetadata(
