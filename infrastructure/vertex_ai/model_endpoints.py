@@ -112,7 +112,7 @@ class EndpointConfig:
     Complete endpoint configuration.
 
     Attributes:
-        endpoint_name: Human-readable endpoint name
+        name: Human-readable endpoint name
         display_name: Display name in Vertex AI console
         description: Endpoint purpose
         machine_type: GCP machine type (e.g., "n1-standard-4", "g2-standard-4")
@@ -120,13 +120,14 @@ class EndpointConfig:
         accelerator_count: Number of accelerators
         auto_scaling: Auto-scaling configuration
         traffic_split: Traffic split for A/B testing
-        enable_access_logging: Enable request/response logging
+        enable_request_logging: Enable request/response logging (for predictions)
+        enable_access_logging: Enable access logging (for network traffic)
         enable_container_logging: Enable container-level logging
         dedicated_endpoint: Use dedicated endpoint (isolated network)
         spot_instance: Use Spot VMs (cost optimization)
         labels: GCP resource labels
     """
-    endpoint_name: str
+    name: str
     display_name: str
     description: str = ""
     machine_type: str = "n1-standard-4"
@@ -134,6 +135,7 @@ class EndpointConfig:
     accelerator_count: int = 0
     auto_scaling: AutoScalingConfig = field(default_factory=AutoScalingConfig)
     traffic_split: Optional[TrafficSplit] = None
+    enable_request_logging: bool = True
     enable_access_logging: bool = True
     enable_container_logging: bool = True
     dedicated_endpoint: bool = False
@@ -142,8 +144,8 @@ class EndpointConfig:
 
     def validate(self):
         """Validate endpoint configuration."""
-        if not self.endpoint_name:
-            raise ValueError("endpoint_name required")
+        if not self.name:
+            raise ValueError("name required")
         self.auto_scaling.validate()
         if self.traffic_split:
             self.traffic_split.validate()
@@ -169,7 +171,7 @@ class ModelEndpoints:
         # Create endpoint
         endpoint = await endpoints.create_endpoint(
             config=EndpointConfig(
-                endpoint_name="gemini-flash-routing-endpoint",
+                name="gemini-flash-routing-endpoint",
                 display_name="Routing Agent Endpoint",
                 machine_type="g2-standard-4",
                 accelerator_type="NVIDIA_L4",
@@ -265,7 +267,7 @@ class ModelEndpoints:
         config.validate()
 
         logger.info(
-            f"Creating endpoint: {config.endpoint_name} "
+            f"Creating endpoint: {config.name} "
             f"(dedicated={config.dedicated_endpoint})"
         )
 
@@ -279,7 +281,7 @@ class ModelEndpoints:
         try:
             # Create endpoint
             endpoint = Endpoint.create(
-                display_name=config.display_name or config.endpoint_name,
+                display_name=config.display_name or config.name,
                 description=config.description,
                 labels=labels,
                 dedicated_endpoint_enabled=config.dedicated_endpoint,
@@ -350,7 +352,7 @@ class ModelEndpoints:
         # Use default config if not provided
         if not config:
             config = EndpointConfig(
-                endpoint_name=endpoint.display_name,
+                name=endpoint.display_name,
                 display_name=endpoint.display_name
             )
         else:
@@ -641,7 +643,7 @@ class ModelEndpoints:
 
         Returns:
             {
-                "endpoint_name": "...",
+                "name": "...",
                 "deployed_models": [
                     {
                         "id": "...",
@@ -680,7 +682,7 @@ class ModelEndpoints:
             })
 
         return {
-            "endpoint_name": endpoint.display_name,
+            "name": endpoint.display_name,
             "resource_name": endpoint.resource_name,
             "deployed_models": deployed_models,
             "total_traffic_percentage": total_traffic,
