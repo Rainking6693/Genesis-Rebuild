@@ -157,11 +157,11 @@ class OpenAIClient(LLMClient):
 
     def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o"):
         """
-        Initialize OpenAI client
+        Initialize OpenAI client (supports local LLM or OpenAI API)
 
         Args:
             api_key: OpenAI API key (defaults to OPENAI_API_KEY env var)
-            model: Model name (default: gpt-4o)
+            model: Model name (default: gpt-4o, or llama-3.1-8b for local)
         """
         try:
             import openai
@@ -171,19 +171,32 @@ class OpenAIClient(LLMClient):
                 "OpenAI package not installed. Run: pip install openai"
             )
 
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        if not self.api_key:
-            raise LLMClientError(
-                "OPENAI_API_KEY not set. Either pass api_key parameter or set environment variable."
-            )
+        # Check if we should use local LLM (COST-FREE)
+        self.use_local_llm = os.getenv("USE_LOCAL_LLMS", "false").lower() == "true"
+        self.local_llm_url = os.getenv("LOCAL_LLM_URL", "http://127.0.0.1:8003")
 
-        self.client = openai.AsyncOpenAI(api_key=self.api_key)
-        self.model = model
+        if self.use_local_llm:
+            # Local LLM mode (FREE)
+            self.api_key = "not-needed"  # Local LLM doesn't need API key
+            self.client = openai.AsyncOpenAI(
+                base_url=f"{self.local_llm_url}/v1",
+                api_key=self.api_key
+            )
+            self.model = "llama-3.1-8b"  # Local model
+            logger.info(f"OpenAI client initialized with LOCAL LLM: {self.local_llm_url} (COST-FREE)")
+        else:
+            # OpenAI API mode ($$$ costs)
+            self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+            if not self.api_key:
+                raise LLMClientError(
+                    "OPENAI_API_KEY not set. Either pass api_key parameter or set environment variable."
+                )
+            self.client = openai.AsyncOpenAI(api_key=self.api_key)
+            self.model = model
+            logger.info(f"OpenAI client initialized with model: {model}")
 
         # Initialize context profile manager
         self.profile_manager = get_profile_manager()
-
-        logger.info(f"OpenAI client initialized with model: {model}")
 
     async def generate_structured_output(
         self,
