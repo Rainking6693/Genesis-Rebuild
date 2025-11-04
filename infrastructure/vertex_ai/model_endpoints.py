@@ -316,8 +316,14 @@ class ModelEndpoints:
         model_name: str,
         model_version: str,
         deployed_model_display_name: Optional[str] = None,
+        display_name: Optional[str] = None,  # Backward compatibility
         traffic_percentage: int = 100,
         config: Optional[EndpointConfig] = None,
+        machine_type: Optional[str] = None,  # Backward compatibility
+        accelerator_type: Optional[str] = None,  # Backward compatibility
+        accelerator_count: int = 0,  # Backward compatibility
+        min_replica_count: int = 1,  # Backward compatibility
+        max_replica_count: int = 1,  # Backward compatibility
         sync: bool = True
     ) -> str:
         """
@@ -328,8 +334,14 @@ class ModelEndpoints:
             model_name: Model name from registry
             model_version: Model version
             deployed_model_display_name: Display name for deployment
+            display_name: Alias for deployed_model_display_name (backward compatibility)
             traffic_percentage: Percentage of traffic (0-100)
             config: Endpoint config (machine type, accelerator, auto-scaling)
+            machine_type: Machine type (if config not provided)
+            accelerator_type: Accelerator type (if config not provided)
+            accelerator_count: Accelerator count (if config not provided)
+            min_replica_count: Min replicas (if config not provided)
+            max_replica_count: Max replicas (if config not provided)
             sync: Wait for deployment to complete (15-25 minutes)
 
         Returns:
@@ -341,6 +353,10 @@ class ModelEndpoints:
         """
         start_time = time.time()
 
+        # Backward compatibility: use display_name if deployed_model_display_name not provided
+        if not deployed_model_display_name and display_name:
+            deployed_model_display_name = display_name
+
         # Get model from registry
         model, metadata = await self.model_registry.get_model(model_name, model_version)
 
@@ -351,11 +367,18 @@ class ModelEndpoints:
             endpoint = Endpoint(endpoint_id)
             self.endpoint_cache[endpoint_id] = endpoint
 
-        # Use default config if not provided
+        # Build config from individual parameters if not provided
         if not config:
             config = EndpointConfig(
-                name=endpoint.display_name,
-                display_name=endpoint.display_name
+                name=endpoint.display_name if hasattr(endpoint, 'display_name') else endpoint_id,
+                display_name=endpoint.display_name if hasattr(endpoint, 'display_name') else endpoint_id,
+                machine_type=machine_type or "n1-standard-4",
+                accelerator_type=accelerator_type,
+                accelerator_count=accelerator_count,
+                auto_scaling=AutoScalingConfig(
+                    min_replica_count=min_replica_count,
+                    max_replica_count=max_replica_count
+                )
             )
         else:
             config.validate()

@@ -18,22 +18,159 @@ from infrastructure.vertex_ai.model_endpoints import (
 
 @pytest.fixture
 def mock_vertex_ai():
-    """Mock Vertex AI client"""
+    """
+    Mock Vertex AI client with proper endpoint lifecycle simulation.
+
+    Context7 MCP Validation: /websites/cloud_google_vertex-ai_generative-ai
+    Simulates official Vertex AI API:
+    - Endpoint.create() returns endpoint with resource_name
+    - Endpoint has all required attributes (display_name, traffic_split, deployed_models)
+    - Model.deploy() works correctly
+    """
+    # Track state across all endpoint operations
+    created_endpoints = {}
+    endpoint_counter = [0]
+    deployed_model_counter = [0]
+
+    # Mock Endpoint class with full lifecycle
+    class MockEndpoint:
+        def __init__(self, endpoint_id=None):
+            if endpoint_id and endpoint_id in created_endpoints:
+                cached = created_endpoints[endpoint_id]
+                self.resource_name = cached.resource_name
+                self.name = cached.name
+                self.display_name = cached.display_name
+                self.network = cached.network
+                self.deployed_models = cached.deployed_models
+                self.traffic_split = cached.traffic_split
+                self._endpoint_id = cached._endpoint_id
+            else:
+                self.resource_name = None
+                self.name = None
+                self.display_name = None
+                self.network = ""
+                self.deployed_models = []
+                self.traffic_split = {}
+                self._endpoint_id = None
+
+        @staticmethod
+        def create(display_name, description="", labels=None,
+                  dedicated_endpoint_enabled=False, encryption_spec_key_name=None, sync=True):
+            endpoint_counter[0] += 1
+            endpoint_id = f"endpoint-{endpoint_counter[0]}"
+            endpoint = MockEndpoint()
+            endpoint._endpoint_id = endpoint_id
+            endpoint.resource_name = f"projects/test-project/locations/us-central1/endpoints/{endpoint_id}"
+            endpoint.name = endpoint_id
+            endpoint.display_name = display_name
+            endpoint.network = ""
+            endpoint.deployed_models = []
+            endpoint.traffic_split = {}
+            created_endpoints[endpoint_id] = endpoint
+            created_endpoints[endpoint.resource_name] = endpoint
+            return endpoint
+
+        def wait(self):
+            pass
+
+        def deploy(self, model, deployed_model_display_name, traffic_percentage=100,
+                  machine_type=None, accelerator_type=None, accelerator_count=0,
+                  min_replica_count=1, max_replica_count=1,
+                  autoscaling_target_accelerator_duty_cycle=60,
+                  enable_access_logging=True, enable_container_logging=True, sync=True):
+            deployed_model_counter[0] += 1
+            deployed_model_id = f"deployed-model-{deployed_model_counter[0]}"
+            deployed_model = Mock()
+            deployed_model.id = deployed_model_id
+            deployed_model.display_name = deployed_model_display_name
+            deployed_model.model = model
+            deployed_model.machine_type = machine_type
+            deployed_model.min_replica_count = min_replica_count
+            deployed_model.max_replica_count = max_replica_count
+            self.deployed_models.append(deployed_model)
+            self.traffic_split[deployed_model_id] = traffic_percentage
+            return deployed_model
+
+        def predict(self, instances, parameters=None, timeout=60.0):
+            response = Mock()
+            response.predictions = [{"output": "mock"} for _ in instances]
+            response.deployed_model_id = self.deployed_models[0].id if self.deployed_models else "no-model"
+            return response
+
+        def update(self, traffic_split=None):
+            if traffic_split:
+                self.traffic_split = traffic_split
+
+        def undeploy(self, deployed_model_id, sync=True):
+            self.deployed_models = [m for m in self.deployed_models if m.id != deployed_model_id]
+            if deployed_model_id in self.traffic_split:
+                del self.traffic_split[deployed_model_id]
+
+        def delete(self, force=False, sync=True):
+            if self.name in created_endpoints:
+                del created_endpoints[self.name]
+            if self.resource_name in created_endpoints:
+                del created_endpoints[self.resource_name]
+
+        def refresh(self):
+            pass
+
+        @staticmethod
+        def list(filter=None):
+            endpoints = []
+            seen = set()
+            for endpoint in created_endpoints.values():
+                if endpoint._endpoint_id not in seen:
+                    endpoints.append(endpoint)
+                    seen.add(endpoint._endpoint_id)
+            return endpoints
+
+    # Mock Model class
+    class MockModel:
+        def __init__(self, model_resource_name):
+            self.resource_name = model_resource_name
+            self.display_name = "Mock Model"
+
+        def deploy(self, endpoint, deployed_model_display_name, machine_type=None,
+                  accelerator_type=None, accelerator_count=0, min_replica_count=1,
+                  max_replica_count=1, autoscaling_target_accelerator_duty_cycle=60,
+                  traffic_percentage=100, enable_access_logging=True,
+                  enable_container_logging=True, sync=True):
+            return endpoint.deploy(
+                model=self, deployed_model_display_name=deployed_model_display_name,
+                machine_type=machine_type, accelerator_type=accelerator_type,
+                accelerator_count=accelerator_count, min_replica_count=min_replica_count,
+                max_replica_count=max_replica_count,
+                autoscaling_target_accelerator_duty_cycle=autoscaling_target_accelerator_duty_cycle,
+                traffic_percentage=traffic_percentage, enable_access_logging=enable_access_logging,
+                enable_container_logging=enable_container_logging, sync=sync)
+
     with patch('infrastructure.vertex_ai.model_endpoints.VERTEX_AI_AVAILABLE', True):
-        with patch('infrastructure.vertex_ai.model_endpoints.aiplatform') as mock_api:
-            mock_api.Endpoint = Mock()
-            mock_api.Model = Mock()
-            yield mock_api
+        with patch('infrastructure.vertex_ai.model_endpoints.Endpoint', MockEndpoint):
+            with patch('infrastructure.vertex_ai.model_endpoints.Model', MockModel):
+                with patch('infrastructure.vertex_ai.model_endpoints.aiplatform') as mock_api:
+                    mock_api.init = Mock()
+                    mock_api.Endpoint = MockEndpoint
+                    mock_api.Model = MockModel
+                    yield mock_api
 
 
 @pytest.fixture
 def model_endpoints(mock_vertex_ai):
     """Create ModelEndpoints instance for testing"""
-    endpoints = ModelEndpoints(
-        project_id="test-project",
-        location="us-central1"
-    )
-    return endpoints
+    with patch('infrastructure.vertex_ai.model_endpoints.ModelRegistry') as mock_registry_class:
+        mock_registry = Mock()
+        async def mock_get_model(model_name, model_version):
+            mock_model = mock_vertex_ai.Model(
+                f"projects/test-project/locations/us-central1/models/{model_name}-{model_version}")
+            mock_metadata = Mock()
+            mock_metadata.name = model_name
+            mock_metadata.version = model_version
+            return mock_model, mock_metadata
+        mock_registry.get_model = mock_get_model
+        mock_registry_class.return_value = mock_registry
+        endpoints = ModelEndpoints(project_id="test-project", location="us-central1")
+        yield endpoints
 
 
 @pytest.fixture
