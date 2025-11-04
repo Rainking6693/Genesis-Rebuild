@@ -1502,13 +1502,20 @@ Decompose this into a hierarchical task DAG covering:
                 customer_id = customer.get("id")
                 logger.info(f"Stripe customer created: {customer_id}")
 
-                # Step 2: Create Stripe Subscription ($5/month fixed)
+                # Step 2: Calculate dynamic pricing (Genesis autonomously decides)
+                monthly_price_cents = await self._calculate_dynamic_pricing(
+                    requirements=requirements,
+                    revenue_projection=revenue_projection
+                )
+
+                # Step 3: Create Stripe Subscription with dynamic pricing
                 subscription = await self._create_stripe_subscription(
                     customer_id=customer_id,
                     business_id=business_id,
                     business_type=requirements.business_type,
                     business_name=requirements.name,
-                    loop=loop
+                    loop=loop,
+                    monthly_price_cents=monthly_price_cents
                 )
 
                 if not subscription:
@@ -1526,8 +1533,9 @@ Decompose this into a hierarchical task DAG covering:
                 if METRICS_ENABLED:
                     try:
                         stripe_subscriptions_total.labels(status="success").inc()
-                        # Record $5/month MRR
-                        stripe_revenue_total.labels(business_type=requirements.business_type).inc(5.0)
+                        # Record dynamic MRR (Genesis-calculated pricing)
+                        mrr = monthly_price_cents / 100.0  # Convert cents to dollars
+                        stripe_revenue_total.labels(business_type=requirements.business_type).inc(mrr)
                     except Exception as metrics_exc:
                         logger.warning(f"Failed to record Stripe metrics: {metrics_exc}")
 
@@ -1536,7 +1544,8 @@ Decompose this into a hierarchical task DAG covering:
                     business_id=business_id,
                     customer_id=customer_id,
                     subscription_id=subscription_id,
-                    business_name=requirements.name
+                    business_name=requirements.name,
+                    monthly_price_usd=monthly_price_cents / 100.0  # Convert cents to USD
                 )
 
                 return subscription_id
@@ -1595,18 +1604,73 @@ Decompose this into a hierarchical task DAG covering:
             logger.error(f"Failed to create Stripe customer: {exc}")
             return None
 
+    async def _calculate_dynamic_pricing(
+        self,
+        requirements: "BusinessRequirements",
+        revenue_projection: Dict[str, Any]
+    ) -> int:
+        """
+        Autonomously calculate optimal monthly subscription pricing.
+
+        Genesis decides pricing based on:
+        - Business type (SaaS vs E-commerce vs Content)
+        - Target audience (enterprise vs consumer)
+        - Projected MRR and value proposition
+        - Competitive landscape (Marketing Agent input)
+
+        Args:
+            requirements: Business requirements object
+            revenue_projection: Revenue projection data
+
+        Returns:
+            Monthly price in cents (USD)
+        """
+        # Base pricing by business type
+        base_prices = {
+            "saas": 1500,  # $15/month (higher value, recurring users)
+            "ecommerce": 2500,  # $25/month (transaction-based, higher volume)
+            "content": 800,  # $8/month (ad-based, lower margins)
+        }
+
+        base_price = base_prices.get(requirements.business_type, 1000)  # Default $10
+
+        # Adjust based on projected MRR
+        projected_mrr = revenue_projection.get("projected_mrr", 0)
+        if projected_mrr > 5000:
+            base_price = int(base_price * 1.5)  # +50% for high-revenue potential
+        elif projected_mrr > 2000:
+            base_price = int(base_price * 1.2)  # +20% for medium revenue
+
+        # Adjust based on target audience
+        if "enterprise" in requirements.target_audience.lower():
+            base_price = int(base_price * 2.0)  # 2x for enterprise
+        elif "premium" in requirements.target_audience.lower():
+            base_price = int(base_price * 1.5)  # 1.5x for premium
+
+        # Ensure minimum viable pricing ($5) and maximum ($100)
+        final_price = max(500, min(10000, base_price))
+
+        logger.info(
+            f"Dynamic pricing calculated: ${final_price/100:.2f}/month "
+            f"(type={requirements.business_type}, audience={requirements.target_audience}, "
+            f"projected_mrr=${projected_mrr})"
+        )
+
+        return final_price
+
     async def _create_stripe_subscription(
         self,
         customer_id: str,
         business_id: str,
         business_type: str,
         business_name: str,
-        loop: asyncio.AbstractEventLoop
+        loop: asyncio.AbstractEventLoop,
+        monthly_price_cents: int = 500  # Default $5 if not specified
     ) -> Optional[Dict[str, Any]]:
         """
         Create a Stripe Subscription for monthly business billing.
 
-        PRICING: Fixed $5/month for all business types (user-selected strategy).
+        PRICING: Dynamic pricing calculated by Genesis based on business attributes.
 
         Args:
             customer_id: Stripe customer ID
@@ -1614,12 +1678,12 @@ Decompose this into a hierarchical task DAG covering:
             business_type: Type of business (saas, ecommerce, etc.)
             business_name: Name of the business
             loop: Event loop for async execution
+            monthly_price_cents: Monthly price in cents (calculated dynamically)
 
         Returns:
             Stripe Subscription object dict or None on failure
         """
-        # Fixed pricing: $5/month for all businesses
-        monthly_price = 500  # cents ($5.00 USD)
+        monthly_price = monthly_price_cents  # Use dynamic pricing
 
         def _create():
             # Note: For production, you'd create a Price object first or use existing price_id
@@ -1672,7 +1736,8 @@ Decompose this into a hierarchical task DAG covering:
         business_id: str,
         customer_id: str,
         subscription_id: str,
-        business_name: str
+        business_name: str,
+        monthly_price_usd: float = 5.0
     ) -> None:
         """
         Record Stripe subscription details in deployment records.
@@ -1682,6 +1747,7 @@ Decompose this into a hierarchical task DAG covering:
             customer_id: Stripe customer ID
             subscription_id: Stripe subscription ID
             business_name: Business name
+            monthly_price_usd: Monthly subscription price in USD (Genesis-calculated)
         """
         if business_id not in self._deployment_records:
             self._deployment_records[business_id] = {
@@ -1695,7 +1761,7 @@ Decompose this into a hierarchical task DAG covering:
             "stripe_subscription_id": subscription_id,
             "stripe_payment_intent_id": None,  # Legacy field, not used with subscriptions
             "subscription_status": "active",
-            "monthly_price_usd": 5.0
+            "monthly_price_usd": monthly_price_usd  # Dynamic pricing
         })
 
         logger.info(

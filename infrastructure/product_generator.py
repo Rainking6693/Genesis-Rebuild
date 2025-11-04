@@ -30,7 +30,12 @@ try:
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
-    logging.warning("Anthropic SDK not available. Install with: pip install anthropic")
+
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -91,21 +96,42 @@ class ProductGenerator:
             use_haiku_for_validation: Use Haiku 4.5 for validation (cheaper/faster)
             evolution_archive_path: Path to SE-Darwin evolution archive
         """
+        # Check if we should use local LLMs (cost-free)
+        self.use_local_llms = os.getenv("USE_LOCAL_LLMS", "false").lower() == "true"
+        self.local_llm_url = os.getenv("LOCAL_LLM_URL", "http://127.0.0.1:8003")
+
         self.api_key = anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")
         self.use_haiku_for_validation = use_haiku_for_validation
         self.evolution_archive_path = evolution_archive_path
 
-        if not self.api_key:
+        if self.use_local_llms:
+            logger.info(f"Using local LLM at {self.local_llm_url} (COST-FREE)")
+        elif not self.api_key:
             logger.warning("No Anthropic API key provided. Product generation will fail.")
 
-        # Initialize Anthropic client
+        # Initialize LLM client (local LLM or Anthropic)
         self.client = None
-        if ANTHROPIC_AVAILABLE and self.api_key:
+        self.local_client = None
+
+        if self.use_local_llms and OPENAI_AVAILABLE:
+            # Use local LLM (OpenAI-compatible API) - COST-FREE
+            self.local_client = OpenAI(
+                base_url=f"{self.local_llm_url}/v1",
+                api_key="not-needed"  # Local LLM doesn't require API key
+            )
+            logger.info("Local LLM client initialized (llama-3.1-8b)")
+        elif ANTHROPIC_AVAILABLE and self.api_key:
+            # Fallback to Anthropic API ($$$ costs)
             self.client = anthropic.Anthropic(api_key=self.api_key)
+            logger.info("Anthropic client initialized (Claude Sonnet 4)")
 
         # Model configuration
-        self.generation_model = "claude-sonnet-4-20250514"  # For code generation
-        self.validation_model = "claude-haiku-4-20250514" if use_haiku_for_validation else self.generation_model
+        if self.use_local_llms:
+            self.generation_model = "llama-3.1-8b"  # Local model
+            self.validation_model = "llama-3.1-8b"  # Same model for validation
+        else:
+            self.generation_model = "claude-sonnet-4-20250514"  # For code generation
+            self.validation_model = "claude-haiku-4-20250514" if use_haiku_for_validation else self.generation_model
 
         # Template cache for learned patterns
         self._template_cache: Dict[BusinessType, Dict[str, Any]] = {}
@@ -591,8 +617,8 @@ Make it production-ready with secure payment handling."""
         Raises:
             RuntimeError: If API call fails
         """
-        if not self.client:
-            raise RuntimeError("Anthropic client not initialized. Check API key.")
+        if not self.client and not self.local_client:
+            raise RuntimeError("No LLM client initialized. Check USE_LOCAL_LLMS or API key.")
 
         # Check cache first
         if use_cache and business_type in self._template_cache:
@@ -600,22 +626,42 @@ Make it production-ready with secure payment handling."""
             return self._template_cache[business_type].get("code", "")
 
         try:
-            logger.info(f"Calling Claude Sonnet 4 for {business_type.value} generation...")
+            if self.use_local_llms and self.local_client:
+                # Use local LLM (OpenAI-compatible API) - COST-FREE
+                logger.info(f"Calling local LLM (llama-3.1-8b) for {business_type.value} generation...")
 
-            # Call Claude API
-            response = await asyncio.to_thread(
-                self.client.messages.create,
-                model=self.generation_model,
-                max_tokens=16000,  # Allow for large codebases
-                temperature=0.3,  # Lower temperature for code generation
-                messages=[{
-                    "role": "user",
-                    "content": prompt
-                }]
-            )
+                response = await asyncio.to_thread(
+                    self.local_client.chat.completions.create,
+                    model=self.generation_model,
+                    max_tokens=16000,
+                    temperature=0.3,
+                    messages=[{
+                        "role": "user",
+                        "content": prompt
+                    }]
+                )
 
-            # Extract generated code
-            generated_code = response.content[0].text
+                # Extract generated code
+                generated_code = response.choices[0].message.content
+
+            else:
+                # Use Anthropic API ($$$ costs)
+                logger.info(f"Calling Claude Sonnet 4 for {business_type.value} generation...")
+
+                # Call Claude API
+                response = await asyncio.to_thread(
+                    self.client.messages.create,
+                    model=self.generation_model,
+                    max_tokens=16000,  # Allow for large codebases
+                    temperature=0.3,  # Lower temperature for code generation
+                    messages=[{
+                        "role": "user",
+                        "content": prompt
+                    }]
+                )
+
+                # Extract generated code
+                generated_code = response.content[0].text
 
             # Cache successful generation
             self._template_cache[business_type] = {
