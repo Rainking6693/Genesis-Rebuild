@@ -1,0 +1,23 @@
+outputs:
+- fields:
+  - title
+  - body
+  - seo_keywords
+  format: markdown
+  name: content_piece
+- fields:
+  - engagement
+  - seo_score
+  format: json
+  name: content_metrics
+tools:
+- name: Read
+  parameters:
+    file_path: string (required)
+- name: Write
+  parameters:
+    content: string (required)
+    file_path: string (required)
+- name: Bash
+  parameters:
+    command: string (required, git)

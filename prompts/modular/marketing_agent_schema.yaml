@@ -1,0 +1,23 @@
+outputs:
+- fields:
+  - campaigns
+  - channels
+  - budget
+  format: markdown
+  name: marketing_plan
+- fields:
+  - reach
+  - engagement
+  - roi
+  format: json
+  name: campaign_metrics
+tools:
+- name: Bash
+  parameters:
+    command: string (required, api)
+- name: genesis_vector_search
+  parameters:
+    query: string (required)
+- name: Read
+  parameters:
+    file_path: string (required)

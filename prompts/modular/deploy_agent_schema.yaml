@@ -1,0 +1,20 @@
+outputs:
+- fields:
+  - status
+  - rollout_progress
+  - health_checks
+  format: markdown
+  name: deployment_status
+- fields:
+  - uptime
+  - response_time
+  - error_rate
+  format: json
+  name: deployment_metrics
+tools:
+- name: Bash
+  parameters:
+    command: string (required, docker/kubectl)
+- name: Read
+  parameters:
+    file_path: string (required)

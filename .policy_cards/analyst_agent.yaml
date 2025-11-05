@@ -1,0 +1,45 @@
+agent_id: analyst_agent
+version: "1.0"
+jurisdiction: "US-CA"
+effective_date: "2025-11-05"
+description: "Data Analysis Agent for research and insights"
+
+capabilities:
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash(python:*analysis*)
+    - Bash(python:*data*)
+    - genesis_vector_search
+    - genesis_tei_embed
+  denied_tools:
+    - Write
+    - Edit
+    - Bash(rm:*)
+    - Bash(sudo:*)
+
+action_rules:
+  - rule_id: "allow_analysis_scripts"
+    condition: "tool == 'Bash' and ('python' in command and ('analysis' in command or 'data' in command))"
+    action: "allow"
+    rate_limit: 50  # per hour
+
+  - rule_id: "block_destructive"
+    condition: "'rm' in command or 'sudo' in command"
+    action: "deny"
+    reason: "Destructive operations not allowed"
+
+safety_constraints:
+  max_tokens_per_call: 8192
+  max_calls_per_session: 500
+  max_execution_time_seconds: 600
+  pii_detection: true
+  sensitive_data_redaction: true
+  memory_limit_mb: 4096
+
+compliance:
+  data_retention_days: 365
+  audit_log_required: true
+  human_review_threshold: "sensitive_analysis"
+  log_all_tool_calls: true

@@ -1,0 +1,24 @@
+outputs:
+- fields:
+  - overview
+  - requirements
+  - interfaces
+  format: markdown
+  name: specification
+- fields:
+  - version
+  - status
+  - last_updated
+  format: json
+  name: spec_metadata
+tools:
+- name: Read
+  parameters:
+    file_path: string (required)
+- name: Write
+  parameters:
+    content: string (required)
+    file_path: string (required)
+- name: genesis_vector_search
+  parameters:
+    query: string (required)

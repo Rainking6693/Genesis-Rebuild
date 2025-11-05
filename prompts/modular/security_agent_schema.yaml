@@ -1,0 +1,22 @@
+outputs:
+- fields:
+  - vulnerabilities
+  - severity_levels
+  - recommendations
+  format: markdown
+  name: security_audit
+- fields:
+  - vulnerabilities_found
+  - critical_issues
+  format: json
+  name: security_metrics
+tools:
+- name: Bash
+  parameters:
+    command: string (required, security)
+- name: Grep
+  parameters:
+    pattern: string (required)
+- name: Read
+  parameters:
+    file_path: string (required)

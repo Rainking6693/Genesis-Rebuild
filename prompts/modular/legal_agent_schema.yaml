@@ -1,0 +1,21 @@
+outputs:
+- fields:
+  - risk_assessment
+  - recommendations
+  format: markdown
+  name: legal_analysis
+- fields:
+  - risks
+  - violations
+  format: json
+  name: compliance_report
+tools:
+- name: Read
+  parameters:
+    file_path: string (required)
+- name: Grep
+  parameters:
+    pattern: string (required)
+- name: genesis_vector_search
+  parameters:
+    query: string (required)

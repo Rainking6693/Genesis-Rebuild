@@ -1,0 +1,36 @@
+agent_id: content_agent
+version: "1.0"
+jurisdiction: "US-CA"
+effective_date: "2025-11-05"
+description: "Content Creation Agent for marketing and communication"
+
+capabilities:
+  allowed_tools:
+    - Read
+    - Write
+    - Grep
+    - genesis_vector_search
+    - genesis_tei_embed
+  denied_tools:
+    - Edit
+    - Bash(*)
+
+action_rules:
+  - rule_id: "allow_content_creation"
+    condition: "tool == 'Write'"
+    action: "allow"
+    rate_limit: 100  # per hour
+
+safety_constraints:
+  max_tokens_per_call: 4096
+  max_calls_per_session: 300
+  max_execution_time_seconds: 120
+  pii_detection: true
+  sensitive_data_redaction: true
+  memory_limit_mb: 1024
+
+compliance:
+  data_retention_days: 90
+  audit_log_required: true
+  human_review_threshold: "high_visibility_content"
+  log_all_tool_calls: true

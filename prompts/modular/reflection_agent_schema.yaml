@@ -1,0 +1,22 @@
+outputs:
+- fields:
+  - analysis
+  - lessons_learned
+  - recommendations
+  format: markdown
+  name: reflection_report
+- fields:
+  - success_metrics
+  - improvement_areas
+  format: json
+  name: reflection_metrics
+tools:
+- name: Read
+  parameters:
+    file_path: string (required)
+- name: Grep
+  parameters:
+    pattern: string (required)
+- name: genesis_vector_search
+  parameters:
+    query: string (required)

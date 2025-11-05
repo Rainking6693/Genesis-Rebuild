@@ -1,0 +1,57 @@
+agent_id: qa_agent
+version: "1.0"
+jurisdiction: "US-CA"
+effective_date: "2025-11-05"
+description: "QA Agent for testing and quality assurance"
+
+capabilities:
+  allowed_tools:
+    - Read
+    - Grep
+    - Bash(pytest:*)
+    - Bash(python:*test*)
+    - Glob
+    - genesis_vector_search
+    - genesis_tei_embed
+  denied_tools:
+    - Write
+    - Edit
+    - Bash(rm:*)
+    - Bash(sudo:*)
+    - Bash(mkfs:*)
+    - Bash(dd:*)
+
+action_rules:
+  - rule_id: "rate_limit_tests"
+    condition: "tool == 'Bash' and 'pytest' in command"
+    action: "allow"
+    rate_limit: 100  # per hour
+
+  - rule_id: "rate_limit_grep"
+    condition: "tool == 'Grep'"
+    action: "allow"
+    rate_limit: 200  # per hour
+
+  - rule_id: "block_destructive"
+    condition: "'rm -rf' in command or 'sudo' in command"
+    action: "deny"
+    reason: "Destructive operations not allowed for QA agent"
+
+  - rule_id: "enforce_test_isolation"
+    condition: "tool == 'Bash' and 'pytest' in command"
+    action: "allow"
+    reason: "Run tests in isolated environment"
+
+safety_constraints:
+  max_tokens_per_call: 8192
+  max_calls_per_session: 1000
+  max_execution_time_seconds: 300
+  pii_detection: true
+  sensitive_data_redaction: true
+  memory_limit_mb: 2048
+
+compliance:
+  data_retention_days: 90
+  audit_log_required: true
+  human_review_threshold: "high_risk"
+  log_all_tool_calls: true

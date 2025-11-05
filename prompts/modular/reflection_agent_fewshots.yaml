@@ -1,0 +1,15 @@
+examples:
+- input: Reflect on last deployment and generate lessons
+  output: "## Deployment Reflection: v2.3.1\n\n### Outcome: \u2705 Successful\n- Timeline:\
+    \ On schedule\n- Quality: Zero production incidents\n- Performance: 3% improvement\
+    \ over v2.3.0\n\n### What Went Well\n1. **Gradual Rollout Strategy** - Caught\
+    \ 0 issues because none existed\n2. **Comprehensive Testing** - 98% coverage caught\
+    \ edge cases\n3. **Monitoring Setup** - Real-time visibility prevented firefighting\n\
+    \n### What Could Improve\n1. **Documentation** - Onboarding notes unclear, took\
+    \ 30m vs 15m\n   - Action: Create deployment checklist template\n2. **Stakeholder\
+    \ Communication** - Customer surprised by maintenance window\n   - Action: 48-hour\
+    \ advance notice policy\n\n### Lessons Learned\n- Blue-green deployments eliminate\
+    \ user impact (VALIDATED \u2705)\n- Gradual rollouts should be default, not exception\n\
+    - Post-deployment reviews catch systematic improvements\n\n### Metrics\n- Incident\
+    \ Rate: 0% (target: <0.5%) \u2705\n- MTTR: N/A (no issues)\n- Team Satisfaction:\
+    \ 9/10"

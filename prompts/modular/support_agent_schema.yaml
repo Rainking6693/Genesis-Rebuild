@@ -1,0 +1,22 @@
+outputs:
+- fields:
+  - ticket_summary
+  - resolution_steps
+  format: markdown
+  name: support_response
+- fields:
+  - resolution_rate
+  - satisfaction
+  format: json
+  name: support_metrics
+tools:
+- name: Read
+  parameters:
+    file_path: string (required)
+    limit: number (optional)
+- name: Grep
+  parameters:
+    pattern: string (required)
+- name: Bash
+  parameters:
+    command: string (required, email)

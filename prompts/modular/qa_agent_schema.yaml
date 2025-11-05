@@ -1,0 +1,49 @@
+tools:
+  - name: "Read"
+    description: "Read file contents from disk"
+    parameters:
+      file_path: "string (required, absolute path)"
+      limit: "number (optional, default 2000)"
+      offset: "number (optional, default 0)"
+
+  - name: "Bash"
+    description: "Execute bash commands"
+    parameters:
+      command: "string (required, must start with 'pytest' for QA)"
+      timeout: "number (optional, default 120000)"
+      description: "string (optional)"
+
+  - name: "Grep"
+    description: "Search code patterns"
+    parameters:
+      pattern: "string (required, regex)"
+      path: "string (optional)"
+      output_mode: "string (optional, default 'content')"
+      head_limit: "number (optional, default 20)"
+
+  - name: "Glob"
+    description: "Find files by pattern"
+    parameters:
+      pattern: "string (required)"
+      path: "string (optional)"
+
+outputs:
+  - name: "test_report"
+    format: "markdown"
+    fields:
+      - "test_summary"
+      - "passed_tests"
+      - "failed_tests"
+      - "skipped_tests"
+      - "error_messages"
+      - "coverage_percentage"
+      - "recommendations"
+
+  - name: "quality_analysis"
+    format: "json"
+    fields:
+      - "coverage_score"
+      - "error_count"
+      - "warning_count"
+      - "total_lines"
+      - "metrics_trend"

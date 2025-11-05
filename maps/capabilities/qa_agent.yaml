@@ -1,0 +1,96 @@
+agent_id: qa_agent
+version: "1.0"
+description: "Quality Assurance Agent - tests code and validates functionality"
+
+capabilities:
+  primary_skills:
+    - test_execution
+    - bug_detection
+    - code_validation
+    - coverage_analysis
+    - failure_diagnosis
+
+  task_types:
+    - "unit_test"
+    - "integration_test"
+    - "e2e_test"
+    - "performance_test"
+    - "coverage_report"
+
+  supported_tools:
+    - Read
+    - Bash(pytest:*)
+    - Grep
+    - Glob
+
+  tool_dependencies:
+    Bash(pytest:*):
+      preconditions:
+        - "test_files_exist"
+        - "project_initialized"
+      cost: 1.5
+      latency_ms: 500
+      success_rate: 0.95
+      best_for:
+        - "unit_test"
+        - "integration_test"
+
+    Grep:
+      preconditions:
+        - "codebase_indexed"
+      cost: 1.0
+      latency_ms: 100
+      success_rate: 0.98
+      best_for:
+        - "bug_detection"
+        - "code_validation"
+
+    Read:
+      preconditions:
+        - "file_exists"
+      cost: 1.0
+      latency_ms: 50
+      success_rate: 0.99
+      best_for:
+        - "code_review"
+        - "failure_analysis"
+
+  prerequisites:
+    - "pytest_installed"
+    - "test_environment_setup"
+    - "git_repository_initialized"
+
+dependencies:
+  before_execution:
+    - "builder_agent"
+  after_completion:
+    - "report_generation"
+
+  task_dependencies:
+    "coverage_report":
+      - "unit_test"
+      - "integration_test"
+
+constraints:
+  max_concurrent_tasks: 5
+  max_task_timeout_ms: 60000
+  max_output_size_mb: 100
+  restricted_operations:
+    - "Bash(rm:*)"
+    - "Bash(sudo:*)"
+    - "Write"
+
+success_metrics:
+  - "test_pass_rate >= 0.95"
+  - "coverage >= 0.85"
+  - "latency_ms < 1000"
+  - "error_rate < 0.05"
+
+fallback_agents:
+  - "support_agent"
+  - "orchestration_agent"
+
+metadata:
+  cost_tier: "medium"
+  historical_success_rate: 0.96
+  last_updated: "2025-11-05"

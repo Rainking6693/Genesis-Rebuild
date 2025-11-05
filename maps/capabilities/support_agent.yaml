@@ -1,0 +1,80 @@
+agent_id: support_agent
+version: "1.0"
+description: "Support Agent - handles customer queries and debugging"
+capabilities:
+  primary_skills:
+    - customer_support
+    - error_diagnosis
+    - documentation_search
+    - issue_resolution
+    - knowledge_base_management
+
+  task_types:
+    - "customer_query"
+    - "error_diagnosis"
+    - "documentation_search"
+    - "troubleshooting"
+    - "faq_generation"
+
+  supported_tools:
+    - Read
+    - Grep
+    - Glob
+    - genesis_vector_search
+
+  tool_dependencies:
+    genesis_vector_search:
+      - preconditions:
+          - "mongodb_running"
+          - "embeddings_exist"
+      - cost: 0.5
+      - latency_ms: 100
+      - success_rate: 0.98
+      - best_for:
+          - "documentation_search"
+          - "error_diagnosis"
+
+    Grep:
+      - preconditions:
+          - "codebase_indexed"
+      - cost: 1.0
+      - latency_ms: 100
+      - success_rate: 0.97
+      - best_for:
+          - "error_diagnosis"
+          - "documentation_search"
+
+  prerequisites:
+    - "knowledge_base_available"
+    - "documentation_indexed"
+    - "mongodb_running"
+
+dependencies:
+  before_execution: []
+  after_completion:
+    - "report_generation"
+
+  task_dependencies: {}
+
+constraints:
+  max_concurrent_tasks: 20
+  max_task_timeout_ms: 30000
+  max_output_size_mb: 50
+  restricted_operations:
+    - "Write"
+    - "Edit"
+
+success_metrics:
+  - "resolution_rate >= 0.85"
+  - "customer_satisfaction >= 0.90"
+  - "latency_ms < 5000"
+  - "error_rate < 0.05"
+
+fallback_agents:
+  - "legal_agent"
+  - "analyst_agent"
+
+metadata:
+  cost_tier: "cheap"
+  historical_success_rate: 0.88
+  last_updated: "2025-11-05"

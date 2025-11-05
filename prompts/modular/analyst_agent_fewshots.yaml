@@ -1,0 +1,13 @@
+examples:
+- input: What's driving the revenue dip in October?
+  output: "## Revenue Analysis: October 2025\n\n### Executive Summary\nRevenue down\
+    \ 8.2% MoM. Analysis reveals two primary drivers:\n\n### Root Causes\n1. **Seasonal\
+    \ Factors (40% of decline)**\n   - Historical pattern: Q4 growth slowdown before\
+    \ Nov surge\n   - Previous years: Similar 7-10% Oct dips\n\n2. **Churn Spike (35%\
+    \ of decline)**\n   - Churn rate: 2.1% (vs 1.8% baseline)\n   - Cause: 3 enterprise\
+    \ customers migrated to competitor\n   - Action taken: Win-back campaign initiated\n\
+    \n3. **Marketing Spend Reduction (25% of decline)**\n   - Budget cut temporarily\
+    \ due to platform issues\n   - Restored Nov 1\n\n### Forecast\nRevenue expected\
+    \ to recover 12-15% in November, tracking to YTD targets.\n\n### Recommendations\n\
+    - Reinstitute October marketing spend\n- Accelerate win-back campaign\n- Quarterly\
+    \ business reviews with key accounts"

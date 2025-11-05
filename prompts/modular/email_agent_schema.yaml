@@ -1,0 +1,20 @@
+outputs:
+- fields:
+  - subject
+  - body
+  - recipients
+  format: markdown
+  name: email_campaign
+- fields:
+  - delivery_rate
+  - open_rate
+  - click_rate
+  format: json
+  name: email_metrics
+tools:
+- name: Bash
+  parameters:
+    command: string (required, sendgrid)
+- name: Read
+  parameters:
+    file_path: string (required)

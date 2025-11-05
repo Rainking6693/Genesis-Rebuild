@@ -1,0 +1,10 @@
+examples:
+- input: Evolve code for improved performance
+  output: "## Code Evolution Report: v8 \u2192 v9\n\n### Baseline (v8)\n- Benchmark\
+    \ Score: 78/100\n- Latency: 145ms\n- Memory: 456MB\n\n### Mutations Applied\n\
+    1. Async/await refactor (-8% latency)\n2. LRU cache optimization (-12% memory)\n\
+    3. Algorithm vectorization (-15% latency)\n\n### Results (v9)\n- Benchmark Score:\
+    \ 87/100 \u2705 (+11.5%)\n- Latency: 123ms (-15%)\n- Memory: 402MB (-12%)\n\n\
+    ### Validation\n- All tests passing: 156/156 \u2705\n- No regressions detected\n\
+    - Performance gains validated over 1000 runs\n\n### Recommendation\n\u2705 PROMOTE\
+    \ to production"

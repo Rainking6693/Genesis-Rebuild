@@ -1,0 +1,70 @@
+agent_id: email_agent
+version: "1.0"
+description: "Email Agent - manages email communications and campaigns"
+capabilities:
+  primary_skills:
+    - email_composition
+    - template_generation
+    - campaign_management
+    - delivery_optimization
+    - open_rate_tracking
+
+  task_types:
+    - "email_composition"
+    - "campaign_setup"
+    - "template_generation"
+    - "delivery_optimization"
+    - "performance_tracking"
+
+  supported_tools:
+    - Read
+    - Write
+    - Bash(sendgrid:*)
+
+  tool_dependencies:
+    Bash(sendgrid:*):
+      - preconditions:
+          - "sendgrid_api_key_available"
+          - "email_lists_prepared"
+      - cost: 1.0
+      - latency_ms: 2000
+      - success_rate: 0.98
+      - best_for:
+          - "campaign_setup"
+          - "delivery_optimization"
+
+  prerequisites:
+    - "email_templates_available"
+    - "sendgrid_account_configured"
+    - "recipient_lists_validated"
+
+dependencies:
+  before_execution:
+    - "content_agent"
+    - "marketing_agent"
+  after_completion:
+    - "analytics_agent"
+
+  task_dependencies: {}
+
+constraints:
+  max_concurrent_tasks: 10
+  max_task_timeout_ms: 30000
+  max_output_size_mb: 50
+  restricted_operations:
+    - "Bash(rm:*)"
+
+success_metrics:
+  - "delivery_rate >= 0.98"
+  - "open_rate >= 0.25"
+  - "click_rate >= 0.05"
+  - "bounce_rate < 0.02"
+
+fallback_agents:
+  - "marketing_agent"
+  - "support_agent"
+
+metadata:
+  cost_tier: "cheap"
+  historical_success_rate: 0.96
+  last_updated: "2025-11-05"
