@@ -18,6 +18,10 @@ from infrastructure.local_llm_client import get_local_llm_client
 from infrastructure.task_dag import TaskDAG, Task
 from prompts.agent_code_prompts import get_component_prompt, get_generic_typescript_prompt
 from infrastructure.code_extractor import extract_and_validate
+from infrastructure.business_monitor import get_monitor
+
+# Modular Prompts Integration (arXiv:2510.26493 - Context Engineering 2.0)
+from infrastructure.prompts import ModularPromptAssembler
 
 logger = logging.getLogger("genesis_meta_agent")
 
@@ -43,11 +47,25 @@ class BusinessGenerationResult:
     metrics: Dict[str, Any] = field(default_factory=dict)
 
 class GenesisMetaAgent:
-    def __init__(self, use_local_llm: bool = True):
+    def __init__(self, use_local_llm: bool = True, enable_modular_prompts: bool = True):
         self.use_local_llm = use_local_llm
         self.router = HALORouter()
         self.llm_client = get_local_llm_client() if use_local_llm else None
         self.business_templates = self._load_business_templates()
+
+        # Modular Prompts Integration
+        self.enable_modular_prompts = enable_modular_prompts
+        if enable_modular_prompts:
+            try:
+                self.prompt_assembler = ModularPromptAssembler("prompts/modular")
+                logger.info("✅ Modular Prompts integration enabled")
+            except Exception as e:
+                logger.warning(f"Modular Prompts integration failed: {e}, using fallback prompts")
+                self.prompt_assembler = None
+                self.enable_modular_prompts = False
+        else:
+            self.prompt_assembler = None
+
         logger.info("Genesis Meta-Agent initialized")
 
     def _load_business_templates(self):
@@ -76,19 +94,38 @@ class GenesisMetaAgent:
     def _execute_task_with_llm(self, task, agent_name):
         """
         Execute task using best available LLM with professional prompts and code extraction.
-        
+
         Routes through HALO Router which automatically:
         1. Tries Vertex AI first (if enabled) - fine-tuned models
         2. Falls back to local LLM (Qwen 7B) - free
         3. Tracks costs and latency
-        
-        NEW: Uses professional prompts and extracts clean TypeScript code
+
+        NEW: Uses modular prompts (4-file system) if enabled, otherwise fallback to legacy prompts
         """
         # Extract component name from task description
         component_name = task.description.replace("Build ", "").strip()
-        
-        # Get professional prompt for this component
-        prompt = get_component_prompt(component_name, business_type=getattr(self, '_current_business_type', 'generic'))
+
+        # Try modular prompts first (if enabled)
+        if self.enable_modular_prompts and self.prompt_assembler:
+            try:
+                # Assemble modular prompt for this agent
+                prompt = self.prompt_assembler.assemble(
+                    agent_id=agent_name,
+                    task_context=f"Component: {component_name}\nBusiness Type: {getattr(self, '_current_business_type', 'generic')}",
+                    variables={
+                        "component_name": component_name,
+                        "business_type": getattr(self, '_current_business_type', 'generic'),
+                        "task_description": task.description
+                    }
+                )
+                logger.debug(f"Using modular prompt for {agent_name} (component: {component_name})")
+            except Exception as e:
+                logger.warning(f"Modular prompt assembly failed for {agent_name}: {e}, using fallback")
+                # Fallback to legacy prompts
+                prompt = get_component_prompt(component_name, business_type=getattr(self, '_current_business_type', 'generic'))
+        else:
+            # Use legacy prompts
+            prompt = get_component_prompt(component_name, business_type=getattr(self, '_current_business_type', 'generic'))
         
         logger.info(f"Generating {component_name} with {len(prompt)} char prompt")
         
@@ -326,7 +363,11 @@ vercel deploy --prod
         # Store business type for prompt generation
         self._current_business_type = spec.business_type
         
+        # Start monitoring
+        monitor = get_monitor()
         dag = self._decompose_business_to_tasks(spec)
+        component_list = [task.description.replace("Build ", "") for task in dag.get_all_tasks() if task.task_id != "root"]
+        business_id = monitor.start_business(spec.name, spec.business_type, component_list)
         tasks_completed = 0
         tasks_failed = 0
         components_generated = []
@@ -337,16 +378,35 @@ vercel deploy --prod
         for task in dag.get_all_tasks():
             if task.task_id == "root":
                 continue
+            
+            component_name = task.description.replace("Build ", "")
+            monitor.record_component_start(business_id, component_name, "builder_agent")
+            
             result = self._execute_task_with_llm(task, "builder_agent")
             task_results[task.task_id] = result
             
             if result.get("success"):
                 tasks_completed += 1
                 components_generated.append(task.task_id)
-                total_cost += result.get("cost", 0.0)
+                cost = result.get("cost", 0.0)
+                total_cost += cost
+                
+                # Estimate lines of code (will be accurate after file write)
+                code_length = len(result.get("result", ""))
+                estimated_lines = code_length // 50  # ~50 chars per line avg
+                
+                monitor.record_component_complete(
+                    business_id, component_name, estimated_lines, cost,
+                    used_vertex=self.router.use_vertex_ai
+                )
             else:
                 tasks_failed += 1
-                errors.append(f"Task {task.task_id} failed: {result.get('error', 'Unknown error')}")
+                error_msg = result.get('error', 'Unknown error')
+                errors.append(f"Task {task.task_id} failed: {error_msg}")
+                monitor.record_component_failed(business_id, component_name, error_msg)
+            
+            # Write dashboard snapshot after each component
+            monitor.write_dashboard_snapshot()
         
         # Write code files from LLM responses
         spec.output_dir.mkdir(parents=True, exist_ok=True)
@@ -365,6 +425,10 @@ vercel deploy --prod
         }
         with open(spec.output_dir / "business_manifest.json", "w") as f:
             json.dump(manifest, f, indent=2)
+        
+        # Complete monitoring
+        monitor.complete_business(business_id, success=(tasks_failed == 0))
+        monitor.write_dashboard_snapshot()
         
         return BusinessGenerationResult(
             business_name=spec.name, success=tasks_failed == 0,
