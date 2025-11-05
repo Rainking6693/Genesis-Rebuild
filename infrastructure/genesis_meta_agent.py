@@ -16,6 +16,8 @@ from dataclasses import dataclass, field
 from infrastructure.halo_router import HALORouter
 from infrastructure.local_llm_client import get_local_llm_client
 from infrastructure.task_dag import TaskDAG, Task
+from prompts.agent_code_prompts import get_component_prompt, get_generic_typescript_prompt
+from infrastructure.code_extractor import extract_and_validate
 
 logger = logging.getLogger("genesis_meta_agent")
 
@@ -73,43 +75,77 @@ class GenesisMetaAgent:
 
     def _execute_task_with_llm(self, task, agent_name):
         """
-        Execute task using best available LLM (Vertex AI or local)
+        Execute task using best available LLM with professional prompts and code extraction.
         
         Routes through HALO Router which automatically:
         1. Tries Vertex AI first (if enabled) - fine-tuned models
         2. Falls back to local LLM (Qwen 7B) - free
         3. Tracks costs and latency
-        """
-        prompt = f"You are {agent_name}. Task: {task.description}. Generate production code."
         
-        try:
-            # Use HALO Router's LLM execution (Vertex AI + local fallback)
-            response = self.router.execute_with_llm(
-                agent_name=agent_name,
-                prompt=prompt,
-                fallback_to_local=True,
-                max_tokens=2048,
-                temperature=0.7
-            )
-            
-            if response:
-                # Check if response is an error message (not real code)
-                if response.startswith("ERROR:") or response.startswith("# ") or len(response) < 50:
-                    logger.error(f"LLM returned invalid response for {agent_name}: {response[:100]}")
-                    return {"success": False, "error": f"Invalid LLM response: {response[:100]}", "agent": agent_name}
+        NEW: Uses professional prompts and extracts clean TypeScript code
+        """
+        # Extract component name from task description
+        component_name = task.description.replace("Build ", "").strip()
+        
+        # Get professional prompt for this component
+        prompt = get_component_prompt(component_name, business_type=getattr(self, '_current_business_type', 'generic'))
+        
+        logger.info(f"Generating {component_name} with {len(prompt)} char prompt")
+        
+        # Try up to 2 times with increasingly strict prompts
+        max_attempts = 2
+        for attempt in range(max_attempts):
+            try:
+                # Add extra strictness on retry
+                if attempt > 0:
+                    prompt = f"CRITICAL: Output ONLY TypeScript code. NO Python. NO explanations.\n\n{prompt}"
+                    logger.warning(f"Retry {attempt + 1}/{max_attempts} for {component_name}")
                 
-                # Get cost from Vertex AI if used
+                # Use HALO Router's LLM execution (Vertex AI + local fallback)
+                response = self.router.execute_with_llm(
+                    agent_name=agent_name,
+                    prompt=prompt,
+                    fallback_to_local=True,
+                    max_tokens=4096,  # Increased for full components
+                    temperature=0.3 if attempt == 0 else 0.1  # Lower temp on retry
+                )
+                
+                if not response or len(response) < 50:
+                    if attempt == max_attempts - 1:
+                        return {"success": False, "error": "No valid response from LLM", "agent": agent_name}
+                    continue
+                
+                # Extract and validate clean TypeScript code
+                try:
+                    clean_code = extract_and_validate(response, component_name)
+                except ValueError as e:
+                    logger.warning(f"Code extraction failed for {component_name}: {e}")
+                    if attempt == max_attempts - 1:
+                        return {"success": False, "error": f"Code extraction failed: {e}", "agent": agent_name}
+                    continue
+                
+                # Success! Get cost and return
                 cost = 0.0
                 if self.router.use_vertex_ai and self.router.vertex_router:
                     stats = self.router.vertex_router.get_usage_stats(agent_name)
                     cost = stats.get('total_cost', 0.0)
                 
-                return {"success": True, "result": response, "agent": agent_name, "cost": cost}
-            else:
-                return {"success": False, "error": "No response from LLM", "agent": agent_name}
+                logger.info(f"✅ Generated {len(clean_code)} chars of clean TypeScript for {component_name}")
+                return {
+                    "success": True,
+                    "result": clean_code,  # Clean TypeScript, not raw LLM output
+                    "agent": agent_name,
+                    "cost": cost,
+                    "component": component_name
+                }
                 
-        except Exception as e:
-            return {"success": False, "error": str(e), "agent": agent_name}
+            except Exception as e:
+                logger.error(f"Attempt {attempt + 1} failed for {component_name}: {e}")
+                if attempt == max_attempts - 1:
+                    return {"success": False, "error": str(e), "agent": agent_name}
+        
+        # Should never reach here
+        return {"success": False, "error": "All attempts exhausted", "agent": agent_name}
 
     def _write_code_to_files(self, spec: BusinessSpec, task_results: Dict[str, Dict[str, Any]]):
         """Write LLM responses to actual code files."""
@@ -190,11 +226,48 @@ class GenesisMetaAgent:
                         f.write(code)
                     files_written.append(str(file_path))
         
+        # Create root layout.tsx (required by Next.js 14 App Router)
+        layout_file = src_dir / "app" / "layout.tsx"
+        if not layout_file.exists():
+            layout_content = f"""import type {{ Metadata }} from 'next'
+import {{ Inter }} from 'next/font/google'
+import './globals.css'
+
+const inter = Inter({{ subsets: ['latin'] }})
+
+export const metadata: Metadata = {{
+  title: '{spec.name}',
+  description: '{spec.description}',
+}}
+
+export default function RootLayout({{
+  children,
+}}: {{
+  children: React.ReactNode
+}}) {{
+  return (
+    <html lang="en">
+      <body className={{inter.className}}>{{children}}</body>
+    </html>
+  )
+}}
+"""
+            with open(layout_file, "w") as f:
+                f.write(layout_content)
+            files_written.append(str(layout_file))
+        
+        # Create globals.css (for Tailwind)
+        globals_css = src_dir / "app" / "globals.css"
+        if not globals_css.exists():
+            with open(globals_css, "w") as f:
+                f.write("@tailwind base;\n@tailwind components;\n@tailwind utilities;\n")
+            files_written.append(str(globals_css))
+        
         # Create basic Next.js page if no page exists
         page_file = src_dir / "app" / "page.tsx"
         if not page_file.exists():
-            with open(page_file, "w") as f:
-                f.write(f'''import {{ Metadata }} from 'next'
+            # Fix: Use actual values, not template strings
+            page_content = f"""import {{ Metadata }} from 'next'
 
 export const metadata: Metadata = {{
   title: '{spec.name}',
@@ -204,12 +277,14 @@ export const metadata: Metadata = {{
 export default function Home() {{
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold">{{'{'}}{spec.name}{{'}'}}</h1>
-      <p className="mt-4 text-lg">{{'{'}}{spec.description}{{'}'}}</p>
+      <h1 className="text-4xl font-bold">{spec.name}</h1>
+      <p className="mt-4 text-lg">{spec.description}</p>
     </main>
   )
 }}
-''')
+"""
+            with open(page_file, "w") as f:
+                f.write(page_content)
             files_written.append(str(page_file))
         
         # Create README
@@ -247,6 +322,9 @@ vercel deploy --prod
     async def generate_business(self, spec: BusinessSpec):
         logger.info(f"Starting business generation: {spec.name}")
         start_time = time.time()
+        
+        # Store business type for prompt generation
+        self._current_business_type = spec.business_type
         
         dag = self._decompose_business_to_tasks(spec)
         tasks_completed = 0

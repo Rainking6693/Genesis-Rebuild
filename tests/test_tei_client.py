@@ -20,7 +20,8 @@ from unittest.mock import Mock, patch, AsyncMock
 
 from infrastructure.tei_client import (
     TEIClient,
-    TEIStats,
+    TEIConfig,
+    EmbeddingMetrics,
     get_tei_client,
     reset_tei_client
 )
@@ -29,11 +30,11 @@ from infrastructure.tei_client import (
 @pytest.fixture
 def tei_client():
     """Create TEI client for testing."""
-    client = TEIClient(
+    config = TEIConfig(
         endpoint="http://localhost:8081",
-        fallback_to_openai=False,
-        enable_otel=False
+        enable_metrics=True
     )
+    client = TEIClient(config=config)
     yield client
     asyncio.run(client.close())
 
@@ -41,37 +42,40 @@ def tei_client():
 @pytest.fixture
 def mock_tei_response():
     """Mock TEI API response."""
-    return [[0.1] * 768, [0.2] * 768, [0.3] * 768]
+    return [[0.1] * 384, [0.2] * 384, [0.3] * 384]
 
 
-class TestTEIStats:
-    """Test TEI statistics."""
-    
-    def test_stats_initialization(self):
-        """Test stats initialization."""
-        stats = TEIStats()
-        assert stats.total_requests == 0
-        assert stats.total_embeddings == 0
-        assert stats.errors == 0
-        assert stats.avg_latency_ms == 0.0
-    
-    def test_stats_avg_latency(self):
+class TestEmbeddingMetrics:
+    """Test embedding metrics."""
+
+    def test_metrics_initialization(self):
+        """Test metrics initialization."""
+        metrics = EmbeddingMetrics()
+        assert metrics.total_requests == 0
+        assert metrics.total_embeddings == 0
+        assert metrics.errors == 0
+        assert metrics.avg_latency_ms == 0.0
+
+    def test_metrics_avg_latency(self):
         """Test average latency calculation."""
-        stats = TEIStats(total_requests=10, total_latency_ms=500.0)
-        assert stats.avg_latency_ms == 50.0
-    
-    def test_stats_avg_embeddings_per_request(self):
-        """Test average embeddings per request."""
-        stats = TEIStats(total_requests=10, total_embeddings=100)
-        assert stats.avg_embeddings_per_request == 10.0
-    
-    def test_stats_to_dict(self):
-        """Test stats to dictionary conversion."""
-        stats = TEIStats(total_requests=5, total_embeddings=50)
-        result = stats.to_dict()
+        metrics = EmbeddingMetrics(total_requests=10, total_latency_ms=500.0)
+        assert metrics.avg_latency_ms == 50.0
+
+    def test_metrics_record_request(self):
+        """Test recording a request."""
+        metrics = EmbeddingMetrics()
+        metrics.record_request(num_embeddings=10, latency_ms=50.0, tokens=100)
+        assert metrics.total_requests == 1
+        assert metrics.total_embeddings == 10
+        assert metrics.total_tokens == 100
+
+    def test_metrics_to_dict(self):
+        """Test metrics to dictionary conversion."""
+        metrics = EmbeddingMetrics(total_requests=5, total_embeddings=50, total_tokens=500)
+        result = metrics.to_dict()
         assert result["total_requests"] == 5
         assert result["total_embeddings"] == 50
-        assert result["avg_embeddings_per_request"] == 10.0
+        assert result["total_tokens"] == 500
 
 
 class TestTEIClient:
@@ -108,35 +112,35 @@ class TestTEIClient:
     @pytest.mark.asyncio
     async def test_embed_single(self, tei_client, mock_tei_response):
         """Test single embedding generation."""
-        with patch.object(tei_client, '_call_tei_with_retry') as mock_call:
+        with patch.object(tei_client, '_embed_batch_internal') as mock_call:
             mock_call.return_value = mock_tei_response[:1]
-            
+
             embedding = await tei_client.embed_single("test text")
-            
+
             assert isinstance(embedding, np.ndarray)
-            assert embedding.shape == (768,)
-            assert tei_client.stats.total_requests == 1
-            assert tei_client.stats.total_embeddings == 1
-    
+            assert embedding.shape == (384,)
+            assert tei_client.metrics.total_requests == 1
+            assert tei_client.metrics.total_embeddings == 1
+
     @pytest.mark.asyncio
     async def test_embed_batch(self, tei_client, mock_tei_response):
         """Test batch embedding generation."""
-        with patch.object(tei_client, '_call_tei_with_retry') as mock_call:
+        with patch.object(tei_client, '_embed_batch_internal') as mock_call:
             mock_call.return_value = mock_tei_response
-            
+
             texts = ["text1", "text2", "text3"]
             embeddings = await tei_client.embed_batch(texts)
-            
-            assert isinstance(embeddings, np.ndarray)
-            assert embeddings.shape == (3, 768)
-            assert tei_client.stats.total_requests == 1
-            assert tei_client.stats.total_embeddings == 3
+
+            assert isinstance(embeddings, list)
+            assert len(embeddings) == 3
+            assert tei_client.metrics.total_requests == 1
+            assert tei_client.metrics.total_embeddings == 3
     
     @pytest.mark.asyncio
     async def test_embed_batch_empty(self, tei_client):
         """Test batch embedding with empty list."""
         embeddings = await tei_client.embed_batch([])
-        assert isinstance(embeddings, np.ndarray)
+        assert isinstance(embeddings, list)
         assert len(embeddings) == 0
     
     @pytest.mark.asyncio
