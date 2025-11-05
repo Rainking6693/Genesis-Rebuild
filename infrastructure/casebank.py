@@ -403,24 +403,46 @@ class CaseBank:
 
     async def _embed(self, text: str) -> np.ndarray:
         """
-        Generate semantic embedding for text.
+        Generate semantic embedding for text using TEI.
 
-        Current implementation: Simple TF-IDF + hash trick for speed
-        Future enhancement: sentence-transformers (all-MiniLM-L6-v2)
+        Production implementation: TEI (BAAI/bge-base-en-v1.5, 768-dim)
+        Fallback: Hash-based embedding for testing
 
         Args:
             text: Input text
 
         Returns:
-            Embedding vector (384-dim)
+            Embedding vector (384-dim or 768-dim depending on TEI availability)
         """
-        # SIMPLE IMPLEMENTATION FOR MVP
-        # TODO: Replace with sentence-transformers for production
-        # from sentence_transformers import SentenceTransformer
-        # model = SentenceTransformer('all-MiniLM-L6-v2')
-        # return model.encode(text)
+        # Try TEI first (production-ready, 64x cheaper than OpenAI)
+        try:
+            from infrastructure.tei_client import get_tei_client
+            tei = get_tei_client()
 
-        # For now: deterministic hash-based embedding
+            # Check if TEI is available
+            if await tei.health_check():
+                embedding = await tei.embed_single(text)
+
+                # If embedding_dim doesn't match, resize
+                if len(embedding) != self.embedding_dim:
+                    # Truncate or pad to match expected dimension
+                    if len(embedding) > self.embedding_dim:
+                        embedding = embedding[:self.embedding_dim]
+                    else:
+                        padded = np.zeros(self.embedding_dim)
+                        padded[:len(embedding)] = embedding
+                        embedding = padded
+
+                # Normalize
+                norm = np.linalg.norm(embedding)
+                if norm > 0:
+                    embedding = embedding / norm
+
+                return embedding
+        except Exception as e:
+            logger.warning(f"TEI embedding failed, using fallback: {e}")
+
+        # Fallback: deterministic hash-based embedding
         # This allows testing the case-based reasoning logic
         words = text.lower().split()
         embedding = np.zeros(self.embedding_dim)

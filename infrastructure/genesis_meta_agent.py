@@ -71,7 +71,7 @@ class GenesisMetaAgent:
         
         return dag
 
-    async def _execute_task_with_llm(self, task, agent_name):
+    def _execute_task_with_llm(self, task, agent_name):
         """
         Execute task using best available LLM (Vertex AI or local)
         
@@ -93,6 +93,11 @@ class GenesisMetaAgent:
             )
             
             if response:
+                # Check if response is an error message (not real code)
+                if response.startswith("ERROR:") or response.startswith("# ") or len(response) < 50:
+                    logger.error(f"LLM returned invalid response for {agent_name}: {response[:100]}")
+                    return {"success": False, "error": f"Invalid LLM response: {response[:100]}", "agent": agent_name}
+                
                 # Get cost from Vertex AI if used
                 cost = 0.0
                 if self.router.use_vertex_ai and self.router.vertex_router:
@@ -106,6 +111,139 @@ class GenesisMetaAgent:
         except Exception as e:
             return {"success": False, "error": str(e), "agent": agent_name}
 
+    def _write_code_to_files(self, spec: BusinessSpec, task_results: Dict[str, Dict[str, Any]]):
+        """Write LLM responses to actual code files."""
+        output_dir = spec.output_dir
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create Next.js project structure
+        src_dir = output_dir / "src"
+        src_dir.mkdir(exist_ok=True)
+        (src_dir / "app").mkdir(exist_ok=True)
+        (src_dir / "components").mkdir(exist_ok=True)
+        (src_dir / "lib").mkdir(exist_ok=True)
+        (output_dir / "public").mkdir(exist_ok=True)
+        
+        # Generate package.json
+        package_json = {
+            "name": spec.name.lower().replace(" ", "-"),
+            "version": "0.1.0",
+            "private": True,
+            "scripts": {
+                "dev": "next dev",
+                "build": "next build",
+                "start": "next start",
+                "lint": "next lint"
+            },
+            "dependencies": {
+                "next": "^14.0.0",
+                "react": "^18.2.0",
+                "react-dom": "^18.2.0",
+                "@stripe/stripe-js": "^2.0.0",
+                "@stripe/react-stripe-js": "^2.0.0"
+            },
+            "devDependencies": {
+                "@types/node": "^20.0.0",
+                "@types/react": "^18.2.0",
+                "@types/react-dom": "^18.2.0",
+                "typescript": "^5.0.0",
+                "tailwindcss": "^3.3.0",
+                "autoprefixer": "^10.4.0",
+                "postcss": "^8.4.0"
+            }
+        }
+        
+        with open(output_dir / "package.json", "w") as f:
+            json.dump(package_json, f, indent=2)
+        
+        # Write LLM responses to files
+        files_written = []
+        for task_id, result in task_results.items():
+            if result.get("success") and result.get("result"):
+                code = result["result"]
+                
+                # Extract component name from task_id
+                component_name = task_id.replace("component_", "").split("_", 1)[-1] if "_" in task_id else "component"
+                
+                # Write code to appropriate file
+                if "package.json" in code.lower() or "dependencies" in code.lower():
+                    # Package.json already written, skip
+                    continue
+                elif ".tsx" in code or "export default" in code or "function" in code[:100]:
+                    # React component
+                    file_path = src_dir / "components" / f"{component_name}.tsx"
+                    with open(file_path, "w") as f:
+                        f.write(code)
+                    files_written.append(str(file_path))
+                elif "api" in component_name.lower() or "route" in component_name.lower():
+                    # API route
+                    api_dir = src_dir / "app" / "api" / component_name
+                    api_dir.mkdir(parents=True, exist_ok=True)
+                    file_path = api_dir / "route.ts"
+                    with open(file_path, "w") as f:
+                        f.write(code)
+                    files_written.append(str(file_path))
+                else:
+                    # Generic code file
+                    file_path = src_dir / "lib" / f"{component_name}.ts"
+                    with open(file_path, "w") as f:
+                        f.write(code)
+                    files_written.append(str(file_path))
+        
+        # Create basic Next.js page if no page exists
+        page_file = src_dir / "app" / "page.tsx"
+        if not page_file.exists():
+            with open(page_file, "w") as f:
+                f.write(f'''import {{ Metadata }} from 'next'
+
+export const metadata: Metadata = {{
+  title: '{spec.name}',
+  description: '{spec.description}',
+}}
+
+export default function Home() {{
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+      <h1 className="text-4xl font-bold">{{'{'}}{spec.name}{{'}'}}</h1>
+      <p className="mt-4 text-lg">{{'{'}}{spec.description}{{'}'}}</p>
+    </main>
+  )
+}}
+''')
+            files_written.append(str(page_file))
+        
+        # Create README
+        readme_file = output_dir / "README.md"
+        with open(readme_file, "w") as f:
+            f.write(f'''# {spec.name}
+
+{spec.description}
+
+## Getting Started
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Run the development server:
+```bash
+npm run dev
+```
+
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Deployment
+
+Deploy to Vercel:
+```bash
+vercel deploy --prod
+```
+''')
+        
+        logger.info(f"Wrote {len(files_written)} files to {output_dir}")
+        return files_written
+
     async def generate_business(self, spec: BusinessSpec):
         logger.info(f"Starting business generation: {spec.name}")
         start_time = time.time()
@@ -115,20 +253,38 @@ class GenesisMetaAgent:
         tasks_failed = 0
         components_generated = []
         errors = []
+        task_results = {}
+        total_cost = 0.0
         
         for task in dag.get_all_tasks():
             if task.task_id == "root":
                 continue
-            result = await self._execute_task_with_llm(task, "builder_agent")
+            result = self._execute_task_with_llm(task, "builder_agent")
+            task_results[task.task_id] = result
+            
             if result.get("success"):
                 tasks_completed += 1
                 components_generated.append(task.task_id)
+                total_cost += result.get("cost", 0.0)
             else:
                 tasks_failed += 1
-                errors.append(f"Task {task.task_id} failed")
+                errors.append(f"Task {task.task_id} failed: {result.get('error', 'Unknown error')}")
         
+        # Write code files from LLM responses
         spec.output_dir.mkdir(parents=True, exist_ok=True)
-        manifest = {"name": spec.name, "type": spec.business_type, "generated_at": datetime.utcnow().isoformat()}
+        files_written = self._write_code_to_files(spec, task_results)
+        
+        # Create manifest
+        manifest = {
+            "name": spec.name,
+            "type": spec.business_type,
+            "description": spec.description,
+            "generated_at": datetime.utcnow().isoformat(),
+            "components": components_generated,
+            "files_written": files_written,
+            "tasks_completed": tasks_completed,
+            "tasks_failed": tasks_failed
+        }
         with open(spec.output_dir / "business_manifest.json", "w") as f:
             json.dump(manifest, f, indent=2)
         
@@ -136,5 +292,5 @@ class GenesisMetaAgent:
             business_name=spec.name, success=tasks_failed == 0,
             components_generated=components_generated, tasks_completed=tasks_completed,
             tasks_failed=tasks_failed, generation_time_seconds=time.time() - start_time,
-            output_directory=str(spec.output_dir), errors=errors, metrics={"cost_usd": 0.0}
+            output_directory=str(spec.output_dir), errors=errors, metrics={"cost_usd": total_cost}
         )
