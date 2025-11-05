@@ -1341,7 +1341,7 @@ class HALORouter:
                 from infrastructure.policy_cards.middleware import PolicyEnforcer
                 from infrastructure.policy_cards.halo_integration import PolicyAwareHALORouter
 
-                policy_enforcer = PolicyEnforcer(policy_cards_dir=policy_cards_dir)
+                policy_enforcer = PolicyEnforcer(cards_dir=policy_cards_dir)
                 policy_router = PolicyAwareHALORouter(
                     halo_router=base_router,
                     policy_enforcer=policy_enforcer

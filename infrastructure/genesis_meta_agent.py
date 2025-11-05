@@ -49,7 +49,7 @@ class BusinessGenerationResult:
 class GenesisMetaAgent:
     def __init__(self, use_local_llm: bool = True, enable_modular_prompts: bool = True):
         self.use_local_llm = use_local_llm
-        self.router = HALORouter()
+        self.router = HALORouter.create_with_integrations()  # ✅ Policy Cards + Capability Maps enabled
         self.llm_client = get_local_llm_client() if use_local_llm else None
         self.business_templates = self._load_business_templates()
 
