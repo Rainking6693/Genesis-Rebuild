@@ -22,7 +22,18 @@ from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, field
 from infrastructure.task_dag import TaskDAG, Task, TaskStatus
 from infrastructure.agent_auth_registry import AgentAuthRegistry, SecurityError
-from infrastructure.safety.waltzrl_wrapper import WaltzRLSafetyWrapper
+
+# WaltzRL Safety integration (optional)
+try:
+    from infrastructure.safety.waltzrl_wrapper import WaltzRLSafetyWrapper
+    HAS_WALTZRL = True
+except ImportError:
+    try:
+        from infrastructure.waltzrl_safety import WaltzRLSafety as WaltzRLSafetyWrapper
+        HAS_WALTZRL = True
+    except ImportError:
+        HAS_WALTZRL = False
+        WaltzRLSafetyWrapper = None
 
 # Policy Cards and Capability Maps Integration (imported lazily to avoid circular imports)
 # - Policy Cards: arXiv:2510.24383
@@ -255,11 +266,17 @@ class HALORouter:
                 self._capability_index[task_type].append((agent_name, agent_cap))
 
         # WaltzRL safety integration
-        self.enable_waltzrl = os.getenv("ENABLE_WALTZRL", "true").lower() == "true"
-        self._safety_wrapper: Optional[WaltzRLSafetyWrapper] = None
-        if self.enable_waltzrl:
-            self._safety_wrapper = WaltzRLSafetyWrapper(feedback_only_mode=False)
-            logger.info("WaltzRL safety wrapper enabled for HALO router")
+        self.enable_waltzrl = os.getenv("ENABLE_WALTZRL", "true").lower() == "true" and HAS_WALTZRL
+        self._safety_wrapper = None
+        if self.enable_waltzrl and HAS_WALTZRL:
+            try:
+                self._safety_wrapper = WaltzRLSafetyWrapper(feedback_only_mode=False)
+                logger.info("WaltzRL safety wrapper enabled for HALO router")
+            except Exception as e:
+                logger.warning(f"Failed to initialize WaltzRL safety wrapper: {e}")
+                self.enable_waltzrl = False
+        elif not HAS_WALTZRL:
+            logger.info("WaltzRL safety wrapper not available - running without safety checks")
 
         self.logger = logger
         self.logger.info(
