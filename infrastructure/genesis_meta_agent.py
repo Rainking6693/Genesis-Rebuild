@@ -16,12 +16,44 @@ from dataclasses import dataclass, field
 from infrastructure.halo_router import HALORouter
 from infrastructure.local_llm_client import get_local_llm_client
 from infrastructure.task_dag import TaskDAG, Task
-from prompts.agent_code_prompts import get_component_prompt, get_generic_typescript_prompt
+
+# Try to import prompts, provide fallbacks if not available
+try:
+    from prompts.agent_code_prompts import get_component_prompt, get_generic_typescript_prompt
+except ImportError:
+    # Fallback: simple prompt generators
+    def get_component_prompt(component_name: str, business_type: str = "generic") -> str:
+        return f"""Generate a {component_name} component for a {business_type} business.
+
+Requirements:
+- Clean, production-ready code
+- Proper error handling
+- TypeScript with type safety
+- Modern React patterns (hooks, functional components)
+- Responsive design
+
+Component: {component_name}
+Business Type: {business_type}
+
+Generate the complete component code:"""
+
+    def get_generic_typescript_prompt() -> str:
+        return """Generate clean, production-ready TypeScript/React code following best practices."""
+
 from infrastructure.code_extractor import extract_and_validate
 from infrastructure.business_monitor import get_monitor
 
 # Modular Prompts Integration (arXiv:2510.26493 - Context Engineering 2.0)
-from infrastructure.prompts import ModularPromptAssembler
+try:
+    from infrastructure.prompts import ModularPromptAssembler
+except ImportError:
+    # Fallback: simple prompt assembler
+    class ModularPromptAssembler:
+        def __init__(self, prompts_dir: str):
+            self.prompts_dir = prompts_dir
+
+        def assemble(self, *args, **kwargs) -> str:
+            return "Generate code according to requirements."
 
 logger = logging.getLogger("genesis_meta_agent")
 
