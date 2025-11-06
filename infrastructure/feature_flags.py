@@ -584,10 +584,11 @@ def get_feature_flag_manager() -> FeatureFlagManager:
     global _feature_flag_manager
 
     if _feature_flag_manager is None:
-        # Load configuration
+        # Load configuration (use relative path for cloud deployment)
+        default_config = str(Path(__file__).parent.parent / "config" / "feature_flags.json")
         config_file = os.getenv(
             "FEATURE_FLAGS_CONFIG",
-            "/home/genesis/genesis-rebuild/config/feature_flags.json"
+            default_config
         )
 
         _feature_flag_manager = FeatureFlagManager(
