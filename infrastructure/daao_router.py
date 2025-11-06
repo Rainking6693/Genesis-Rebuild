@@ -161,7 +161,8 @@ class DAAORouter:
 
         # Fine-tuned adapter registry
         self.adapters: Dict[str, Dict[str, Any]] = {}  # agent_name -> adapter_info
-        self.adapter_base_dir = Path("/home/genesis/genesis-rebuild/models/finetuned_agents")
+        # Use relative path for cloud deployment
+        self.adapter_base_dir = Path(__file__).parent.parent / "models" / "finetuned_agents"
         self._load_available_adapters()
 
     def _load_available_adapters(self):
