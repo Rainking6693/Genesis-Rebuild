@@ -11,9 +11,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
-# Create logs directory
-LOGS_DIR = Path("/home/genesis/genesis-rebuild/logs")
-LOGS_DIR.mkdir(exist_ok=True)
+# Create logs directory (relative path works anywhere)
+LOGS_DIR = Path(__file__).parent.parent / "logs"
+LOGS_DIR.mkdir(exist_ok=True, parents=True)
 
 class StructuredFormatter(logging.Formatter):
     """
