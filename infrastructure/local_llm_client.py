@@ -17,6 +17,9 @@ try:
 except ImportError:
     TRANSFORMERS_AVAILABLE = False
 
+# Setup logger first
+logger = logging.getLogger("local_llm_client")
+
 # Try to import Unsloth for optimization
 try:
     import torch
@@ -30,8 +33,6 @@ try:
         logger.info("Unsloth skipped (requires GPU, using CPU offload instead)")
 except (ImportError, NotImplementedError):
     UNSLOTH_AVAILABLE = False
-
-logger = logging.getLogger("local_llm_client")
 
 
 class LocalLLMClient:
