@@ -205,13 +205,28 @@ BUSINESS CONTEXT:
 
 CRITICAL REQUIREMENTS:
 1. Output ONLY valid TypeScript/TSX code
-2. NO Python code
+2. NO Python code (no 'def', no 'class:', no 'self.', no Python syntax)
 3. NO markdown formatting (no ```typescript``` blocks)
 4. NO explanations or comments outside the code
 5. Use Next.js 14 App Router conventions
 6. Include proper TypeScript types
 7. Use Tailwind CSS for styling
 8. Make it production-ready
+
+IMPORTANT: This is a TypeScript/React project, NOT Python. Use:
+- 'function' or '=>' for functions (NOT 'def')
+- 'const/let/var' for variables (NOT Python-style assignments)
+- TypeScript interfaces and types (NOT Python classes)
+- ES6 imports/exports (NOT Python imports)
+
+Example correct format:
+```
+import React from 'react';
+
+export default function Component() {{
+  return <div>Content</div>;
+}}
+```
 
 Begin with imports and end with the component export."""
 
