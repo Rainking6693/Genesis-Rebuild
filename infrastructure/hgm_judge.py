@@ -249,10 +249,22 @@ Respond in JSON format:
             CriterionScore(QualityCriterion.IDEA_MARKET_FIT, min(market_fit_score, 1.0), 0.5, "Heuristic scoring", []),
         ]
     
-    def _evaluate_code(self, generated_files: Dict[str, str]) -> List[CriterionScore]:
+    def _evaluate_code(self, generated_files) -> List[CriterionScore]:
         """Evaluate code quality"""
+        # Handle both list of file paths and dict of file contents
+        if isinstance(generated_files, list):
+            # List of file paths - read the files
+            file_contents = {}
+            for file_path in generated_files:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        file_contents[file_path] = f.read()
+                except Exception as e:
+                    logger.warning(f"Could not read {file_path}: {e}")
+            generated_files = file_contents
+
         # Simple heuristics for now (can be enhanced with AST analysis)
-        total_lines = sum(len(content.split('\n')) for content in generated_files.values())
+        total_lines = sum(len(content.split('\n')) for content in generated_files.values()) if generated_files else 0
         num_files = len(generated_files)
         
         # Quality heuristics
@@ -266,12 +278,18 @@ Respond in JSON format:
             CriterionScore(QualityCriterion.CODE_SECURITY, security_score, 0.5, "Assumed security", []),
         ]
     
-    def _evaluate_architecture(self, generated_files: Dict[str, str], team_composition: List[str]) -> List[CriterionScore]:
+    def _evaluate_architecture(self, generated_files, team_composition: List[str]) -> List[CriterionScore]:
         """Evaluate architecture quality"""
+        # Handle both list and dict formats
+        if isinstance(generated_files, list):
+            file_keys = generated_files
+        else:
+            file_keys = generated_files.keys()
+
         # Heuristics based on file structure and team composition
-        has_api = any('api' in f.lower() or 'rest' in f.lower() for f in generated_files.keys())
-        has_ui = any('ui' in f.lower() or 'frontend' in f.lower() for f in generated_files.keys())
-        has_docs = any('doc' in f.lower() or 'readme' in f.lower() for f in generated_files.keys())
+        has_api = any('api' in f.lower() or 'rest' in f.lower() for f in file_keys)
+        has_ui = any('ui' in f.lower() or 'frontend' in f.lower() for f in file_keys)
+        has_docs = any('doc' in f.lower() or 'readme' in f.lower() for f in file_keys)
         has_qa = 'qa_agent' in team_composition
         
         scalability_score = 0.7 + (0.2 if has_api else 0.0)
