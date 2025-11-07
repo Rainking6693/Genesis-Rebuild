@@ -36,14 +36,16 @@ except (ImportError, NotImplementedError):
 
 
 class LocalLLMClient:
-    """Client for local Qwen2.5-VL-7B-Instruct model."""
+    """Client for local LLM - DISABLED for Railway deployment."""
 
     def __init__(self, config_path: str = "config/local_llm_config.yml"):
-        self.config = self._load_config(config_path)
+        """Initialize with disabled state - no model loading for Railway"""
+        self.config = {}  # Don't load config
         self.model = None
         self.tokenizer = None
-        self.device = None
+        self.device = "cpu"
         self.loaded = False
+        logger.info("LocalLLMClient initialized in disabled mode (Railway deployment)")
 
     def _load_config(self, config_path: str) -> Dict[str, Any]:
         try:

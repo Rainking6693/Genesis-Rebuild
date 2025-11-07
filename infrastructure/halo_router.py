@@ -276,7 +276,7 @@ class HALORouter:
                 logger.warning(f"Failed to initialize WaltzRL safety wrapper: {e}")
                 self.enable_waltzrl = False
         elif not HAS_WALTZRL:
-            logger.info("WaltzRL safety wrapper not available - running without safety checks")
+            logger.debug("WaltzRL safety wrapper not available - running without safety checks (expected in Railway)")
 
         self.logger = logger
         self.logger.info(

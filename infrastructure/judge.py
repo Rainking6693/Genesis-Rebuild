@@ -162,7 +162,17 @@ class AgentJudge:
             judge_model: Which model to use as judge (gpt-4o or claude-sonnet-4)
             coherence_weight: Weight for coherence penalty in CMP (default 0.15)
         """
-        self.llm_client = llm_client or get_llm_client()
+        # Get LLM client (create if not provided)
+        if llm_client is None:
+            try:
+                from anthropic import Anthropic
+                import os
+                llm_client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+            except Exception as e:
+                logger.warning(f"Could not initialize LLM client: {e}")
+                llm_client = None
+
+        self.llm_client = llm_client
         self.casebank = casebank or get_casebank()
         self.judge_model = judge_model
         self.coherence_weight = coherence_weight

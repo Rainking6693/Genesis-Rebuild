@@ -174,8 +174,26 @@ class OracleHGM:
             max_depth: Maximum tree depth
             cmp_threshold: Minimum CMP score to archive
         """
-        self.llm_client = llm_client or get_llm_client()
-        self.judge = judge or get_agent_judge()
+        # Get LLM client (create if not provided)
+        if llm_client is None:
+            try:
+                from anthropic import Anthropic
+                import os
+                llm_client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+            except Exception as e:
+                logger.warning(f"Could not initialize LLM client: {e}")
+                llm_client = None
+
+        self.llm_client = llm_client
+        # Get judge (create if not provided)
+        if judge is None:
+            try:
+                from infrastructure.judge import AgentJudge
+                judge = AgentJudge()
+            except Exception as e:
+                logger.warning(f"Could not initialize AgentJudge: {e}")
+                judge = None
+        self.judge = judge
         # Trajectory pool - initialized on-demand if not provided
         if trajectory_pool is None:
             from infrastructure.trajectory_pool import TrajectoryPool
