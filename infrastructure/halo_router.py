@@ -1259,36 +1259,20 @@ class HALORouter:
         Returns:
             Generated response string or None if failed
         """
-        # RAILWAY: Skip local LLM (disabled for cloud deployment)
+        # RAILWAY: FORCE DISABLE local LLM completely (no CPU inference on Railway)
+        # CRITICAL: Local LLM (Qwen 7B) requires GPU and fails on Railway CPU-only instances
+        # All routing goes directly to cloud APIs (Vertex AI → Claude/GPT)
         if prefer_local:
-            logger.debug(f"Local LLM disabled for Railway deployment - skipping to cloud APIs")
-            prefer_local = False  # Force disable
-        if prefer_local:
-            try:
-                logger.info(f"🟢 Routing {agent_name} to Local LLM (Qwen 7B, cost: $0)")
-                from infrastructure.local_llm_client import get_local_llm_client, TRANSFORMERS_AVAILABLE
+            logger.debug(f"Local LLM disabled for Railway deployment - forcing cloud APIs for {agent_name}")
 
-                if TRANSFORMERS_AVAILABLE:
-                    local_client = get_local_llm_client()
-                    if local_client.loaded or local_client.load_model():
-                        response = local_client.generate(
-                            prompt,
-                            max_new_tokens=kwargs.get('max_tokens', 2048),
-                            temperature=kwargs.get('temperature', 0.7)
-                        )
-
-                        # Check if response is valid (not an error)
-                        if response and not response.startswith("ERROR"):
-                            logger.info(f"✅ Local LLM success for {agent_name} (cost: $0)")
-                            return response
-                        else:
-                            logger.warning(f"Local LLM returned error: {response}")
-                else:
-                    logger.debug(f"Local LLM not available (transformers not installed)")
-
-            except Exception as e:
-                logger.warning(f"Local LLM failed for {agent_name}: {e}")
-                # Continue to cloud fallback
+        # Skip local LLM entirely - Railway doesn't have GPU support for Qwen
+        # The code below is commented out to prevent ANY attempts to load local models
+        # if prefer_local:
+        #     try:
+        #         logger.info(f"🟢 Routing {agent_name} to Local LLM (Qwen 7B, cost: $0)")
+        #         ...local LLM code removed for Railway...
+        #     except Exception as e:
+        #         logger.warning(f"Local LLM failed for {agent_name}: {e}")
 
         # Fallback 1: Try Vertex AI (fine-tuned models or base Gemini)
         if fallback_to_cloud and self.use_vertex_ai and self.vertex_router:
