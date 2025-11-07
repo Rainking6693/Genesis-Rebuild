@@ -1,0 +1,8 @@
+examples:
+- input: Deploy v2.3.1 to production
+  output: "## Deployment Report: v2.3.1\n\n### Rollout Progress\n- **Stage 1 (10%):**\
+    \ \u2705 Complete (0 errors)\n- **Stage 2 (25%):** \u2705 Complete (0 errors)\n\
+    - **Stage 3 (50%):** \u23F3 In Progress (4m 12s elapsed)\n- **Stage 4 (100%):**\
+    \ \u23F1\uFE0F Pending\n\n### Health Checks\n- API Response Time: 89ms (target:\
+    \ <200ms) \u2705\n- Error Rate: 0.02% (target: <0.1%) \u2705\n- Database Latency:\
+    \ 34ms \u2705\n- Cache Hit Rate: 94% \u2705\n\n### Estimated Completion: 3 minutes"

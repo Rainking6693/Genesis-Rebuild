@@ -1,0 +1,45 @@
+agent_id: deploy_agent
+version: "1.0"
+jurisdiction: "US-CA"
+effective_date: "2025-11-05"
+description: "Deployment Agent for production releases"
+
+capabilities:
+  allowed_tools:
+    - Read
+    - Grep
+    - Bash(git:*)
+    - Bash(docker:*)
+    - Bash(kubectl:*)
+    - genesis_vector_search
+  denied_tools:
+    - Write
+    - Edit
+    - Bash(rm:*)
+    - Bash(sudo:*)
+
+action_rules:
+  - rule_id: "rate_limit_deployments"
+    condition: "tool == 'Bash' and ('docker' in command or 'kubectl' in command)"
+    action: "allow"
+    rate_limit: 20  # per hour
+
+  - rule_id: "require_git_verification"
+    condition: "tool == 'Bash' and 'git' in command"
+    action: "allow"
+    require_audit_log: true
+
+safety_constraints:
+  max_tokens_per_call: 4096
+  max_calls_per_session: 200
+  max_execution_time_seconds: 600
+  pii_detection: true
+  sensitive_data_redaction: true
+  memory_limit_mb: 2048
+
+compliance:
+  data_retention_days: 730  # 2 years for deployment records
+  audit_log_required: true
+  human_review_threshold: "all_deployments"
+  log_all_tool_calls: true
+  approval_required: true

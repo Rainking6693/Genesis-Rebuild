@@ -24,6 +24,10 @@ from infrastructure.task_dag import TaskDAG, Task, TaskStatus
 from infrastructure.agent_auth_registry import AgentAuthRegistry, SecurityError
 from infrastructure.safety.waltzrl_wrapper import WaltzRLSafetyWrapper
 
+# Policy Cards and Capability Maps Integration (imported lazily to avoid circular imports)
+# - Policy Cards: arXiv:2510.24383
+# - Capability Maps: Pre-tool middleware validation
+
 # CaseBank integration for learning from past routing decisions
 try:
     from infrastructure.casebank import CaseBank, get_casebank
@@ -1286,6 +1290,86 @@ class HALORouter:
         
         logger.error(f"All inference options exhausted for {agent_name}")
         return None
+
+    @classmethod
+    def create_with_integrations(
+        cls,
+        enable_policy_cards: bool = True,
+        enable_capability_maps: bool = True,
+        policy_cards_dir: str = ".policy_cards",
+        capability_maps_dir: str = "maps/capabilities",
+        **kwargs
+    ) -> Union['HALORouter', 'PolicyAwareHALORouter', 'HALOCapabilityBridge']:
+        """
+        Factory method to create HALO Router with integrated systems.
+
+        This integrates three research-backed systems:
+        1. Policy Cards (arXiv:2510.24383): Runtime governance
+        2. Capability Maps: Pre-tool middleware validation
+        3. Base HALO Router (arXiv:2505.13516): Logic-based routing
+
+        Args:
+            enable_policy_cards: Enable Policy Card enforcement
+            enable_capability_maps: Enable Capability Map validation
+            policy_cards_dir: Directory containing policy card YAML files
+            capability_maps_dir: Directory containing capability map YAML files
+            **kwargs: Additional arguments for HALORouter initialization
+
+        Returns:
+            HALORouter with requested integrations (wrapped)
+
+        Example:
+            # All integrations enabled (recommended)
+            router = HALORouter.create_with_integrations()
+
+            # Only policy cards
+            router = HALORouter.create_with_integrations(enable_capability_maps=False)
+
+            # Base HALO only
+            router = HALORouter.create_with_integrations(
+                enable_policy_cards=False,
+                enable_capability_maps=False
+            )
+        """
+        # Create base HALO router
+        base_router = cls(**kwargs)
+
+        # Layer 1: Wrap with Policy Cards (if enabled)
+        # Lazy import to avoid circular import issues
+        if enable_policy_cards:
+            try:
+                from infrastructure.policy_cards.middleware import PolicyEnforcer
+                from infrastructure.policy_cards.halo_integration import PolicyAwareHALORouter
+
+                policy_enforcer = PolicyEnforcer(cards_dir=policy_cards_dir)
+                policy_router = PolicyAwareHALORouter(
+                    halo_router=base_router,
+                    policy_enforcer=policy_enforcer
+                )
+                logger.info(f"✅ Policy Cards integration enabled (dir: {policy_cards_dir})")
+            except Exception as e:
+                logger.warning(f"Policy Cards integration failed: {e}, using base router")
+                policy_router = base_router
+        else:
+            policy_router = base_router
+
+        # Layer 2: Wrap with Capability Maps (if enabled)
+        # Lazy import to avoid circular import issues
+        if enable_capability_maps:
+            try:
+                from infrastructure.middleware.halo_capability_integration import HALOCapabilityBridge
+
+                capability_bridge = HALOCapabilityBridge(
+                    halo_router=policy_router,
+                    capabilities_dir=capability_maps_dir
+                )
+                logger.info(f"✅ Capability Maps integration enabled (dir: {capability_maps_dir})")
+                return capability_bridge
+            except Exception as e:
+                logger.warning(f"Capability Maps integration failed: {e}, returning policy router")
+                return policy_router
+
+        return policy_router
 
     def get_vertex_usage_stats(self, agent_name: Optional[str] = None) -> Dict[str, Any]:
         """

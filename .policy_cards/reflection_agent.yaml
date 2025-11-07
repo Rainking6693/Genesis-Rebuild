@@ -1,0 +1,36 @@
+agent_id: reflection_agent
+version: "1.0"
+jurisdiction: "US-CA"
+effective_date: "2025-11-05"
+description: "Reflection Agent for quality assessment and improvements"
+
+capabilities:
+  allowed_tools:
+    - Read
+    - Grep
+    - genesis_vector_search
+    - genesis_tei_embed
+  denied_tools:
+    - Write
+    - Edit
+    - Bash(*)
+
+action_rules:
+  - rule_id: "rate_limit_analysis"
+    condition: "tool == 'Read' or tool == 'Grep'"
+    action: "allow"
+    rate_limit: 200  # per hour
+
+safety_constraints:
+  max_tokens_per_call: 4096
+  max_calls_per_session: 400
+  max_execution_time_seconds: 120
+  pii_detection: true
+  sensitive_data_redaction: true
+  memory_limit_mb: 1024
+
+compliance:
+  data_retention_days: 180
+  audit_log_required: true
+  human_review_threshold: "critical_reflections"
+  log_all_tool_calls: true

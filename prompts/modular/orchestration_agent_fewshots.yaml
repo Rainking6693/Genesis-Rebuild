@@ -1,0 +1,9 @@
+examples:
+- input: Orchestrate business generation workflow
+  output: "## Workflow: ecommerce_business_creation\n\n### Task Status\n- [\u2705\
+    ] Validate requirements\n- [\u2705] Decompose into components\n- [\u23F3] Generate\
+    \ database schema\n- [\u23F3] Build API endpoints\n- [\u23F1\uFE0F] Generate UI\
+    \ components\n- [\u23F1\uFE0F] Deploy to staging\n\n### Current: Generate database\
+    \ schema\n- Duration: 45s elapsed / 120s expected\n- Progress: 37%\n- Status:\
+    \ Healthy\n\n### Parallelization\n- Building: 3 tasks in parallel\n- Queue: 2\
+    \ waiting\n\n### Estimated Completion: 8 minutes"

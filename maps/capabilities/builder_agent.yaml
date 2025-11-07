@@ -1,0 +1,99 @@
+agent_id: builder_agent
+version: "1.0"
+description: "Builder Agent - compiles and builds software projects"
+capabilities:
+  primary_skills:
+    - code_compilation
+    - dependency_resolution
+    - build_optimization
+    - artifact_generation
+    - environment_setup
+
+  task_types:
+    - "build_project"
+    - "install_dependencies"
+    - "compile_code"
+    - "generate_artifacts"
+    - "setup_environment"
+
+  supported_tools:
+    - Bash(npm:*)
+    - Bash(pip:*)
+    - Bash(make:*)
+    - Bash(docker:*)
+    - Read
+    - Grep
+
+  tool_dependencies:
+    Bash(npm:*):
+      - preconditions:
+          - "package_json_exists"
+          - "nodejs_installed"
+      - cost: 2.0
+      - latency_ms: 3000
+      - success_rate: 0.92
+      - best_for:
+          - "install_dependencies"
+          - "build_project"
+
+    Bash(pip:*):
+      - preconditions:
+          - "requirements_txt_exists"
+          - "python_installed"
+      - cost: 1.5
+      - latency_ms: 2000
+      - success_rate: 0.90
+      - best_for:
+          - "install_dependencies"
+
+    Bash(docker:*):
+      - preconditions:
+          - "dockerfile_exists"
+          - "docker_installed"
+      - cost: 3.0
+      - latency_ms: 5000
+      - success_rate: 0.85
+      - best_for:
+          - "build_project"
+
+  prerequisites:
+    - "source_code_available"
+    - "build_tools_installed"
+    - "build_configuration_valid"
+
+dependencies:
+  before_execution:
+    - "spec_agent"  # Specification must exist before building
+  after_completion:
+    - "qa_agent"    # Tests run after build
+
+  task_dependencies:
+    "build_project":
+      - "install_dependencies"
+    "compile_code":
+      - "install_dependencies"
+
+constraints:
+  max_concurrent_tasks: 3
+  max_task_timeout_ms: 120000
+  max_output_size_mb: 500
+  max_disk_space_mb: 5000
+  restricted_operations:
+    - "Bash(rm:*)"
+    - "Bash(sudo:*)"
+    - "Write"
+
+success_metrics:
+  - "build_success_rate >= 0.90"
+  - "artifact_generation_complete"
+  - "latency_ms < 30000"
+  - "error_rate < 0.10"
+
+fallback_agents:
+  - "deploy_agent"
+  - "orchestration_agent"
+
+metadata:
+  cost_tier: "expensive"
+  historical_success_rate: 0.91
+  last_updated: "2025-11-05"

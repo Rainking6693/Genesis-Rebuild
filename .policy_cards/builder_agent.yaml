@@ -1,0 +1,52 @@
+agent_id: builder_agent
+version: "1.0"
+jurisdiction: "US-CA"
+effective_date: "2025-11-05"
+description: "Software Builder Agent for creating and modifying code"
+
+capabilities:
+  allowed_tools:
+    - Read
+    - Write
+    - Edit
+    - Grep
+    - Glob
+    - Bash(python:*)
+    - Bash(npm:*)
+    - Bash(git:*)
+    - genesis_vector_search
+    - genesis_tei_embed
+  denied_tools:
+    - Bash(rm:*)
+    - Bash(sudo:*)
+    - Bash(mkfs:*)
+
+action_rules:
+  - rule_id: "allow_code_development"
+    condition: "tool == 'Write' or tool == 'Edit'"
+    action: "allow"
+    rate_limit: 200  # per hour
+
+  - rule_id: "rate_limit_build"
+    condition: "tool == 'Bash' and ('npm' in command or 'python' in command)"
+    action: "allow"
+    rate_limit: 50  # per hour
+
+  - rule_id: "block_destructive"
+    condition: "'rm -rf' in command or 'sudo' in command"
+    action: "deny"
+    reason: "Destructive operations not allowed"
+
+safety_constraints:
+  max_tokens_per_call: 16384
+  max_calls_per_session: 1000
+  max_execution_time_seconds: 1200
+  pii_detection: true
+  sensitive_data_redaction: true
+  memory_limit_mb: 4096
+
+compliance:
+  data_retention_days: 365
+  audit_log_required: true
+  human_review_threshold: "critical_code_changes"
+  log_all_tool_calls: true

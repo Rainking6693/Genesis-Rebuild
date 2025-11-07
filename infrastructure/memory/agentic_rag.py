@@ -56,6 +56,8 @@ from enum import Enum
 
 import numpy as np
 from infrastructure.memory.embedding_service import EmbeddingService, get_embedding_service
+from infrastructure.memory.vector_memory import VectorMemory, get_vector_memory
+from infrastructure.tei_client import get_tei_client
 from infrastructure.mongodb_backend import MongoDBBackend, MemoryEntry
 from infrastructure.memory_store import MemoryMetadata
 from infrastructure.observability import get_observability_manager, SpanType

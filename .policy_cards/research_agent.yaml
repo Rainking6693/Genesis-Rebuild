@@ -1,0 +1,37 @@
+agent_id: research_agent
+version: "1.0"
+jurisdiction: "US-CA"
+effective_date: "2025-11-05"
+description: "Research Agent for document analysis and synthesis"
+
+capabilities:
+  allowed_tools:
+    - Read
+    - Grep
+    - Glob
+    - genesis_vector_search
+    - genesis_tei_embed
+  denied_tools:
+    - Write
+    - Edit
+    - Bash(*)
+
+action_rules:
+  - rule_id: "rate_limit_retrieval"
+    condition: "tool == 'Read' or tool == 'Grep' or tool == 'genesis_vector_search'"
+    action: "allow"
+    rate_limit: 200  # per hour
+
+safety_constraints:
+  max_tokens_per_call: 8192
+  max_calls_per_session: 600
+  max_execution_time_seconds: 240
+  pii_detection: true
+  sensitive_data_redaction: true
+  memory_limit_mb: 2048
+
+compliance:
+  data_retention_days: 365
+  audit_log_required: true
+  human_review_threshold: "sensitive_research"
+  log_all_tool_calls: true

@@ -1,0 +1,83 @@
+agent_id: analyst_agent
+version: "1.0"
+description: "Analyst Agent - analyzes data, generates insights, produces reports"
+capabilities:
+  primary_skills:
+    - data_analysis
+    - insight_generation
+    - report_writing
+    - metric_calculation
+    - trend_analysis
+
+  task_types:
+    - "data_analysis"
+    - "report_generation"
+    - "metric_calculation"
+    - "trend_analysis"
+    - "business_intelligence"
+
+  supported_tools:
+    - Read
+    - Grep
+    - Bash(python:*)
+    - genesis_vector_search
+
+  tool_dependencies:
+    Bash(python:*):
+      - preconditions:
+          - "python_installed"
+          - "pandas_available"
+      - cost: 1.0
+      - latency_ms: 500
+      - success_rate: 0.96
+      - best_for:
+          - "data_analysis"
+          - "metric_calculation"
+
+    genesis_vector_search:
+      - preconditions:
+          - "mongodb_running"
+          - "data_indexed"
+      - cost: 0.5
+      - latency_ms: 150
+      - success_rate: 0.98
+      - best_for:
+          - "data_analysis"
+          - "trend_analysis"
+
+  prerequisites:
+    - "data_sources_available"
+    - "analysis_tools_configured"
+    - "databases_running"
+
+dependencies:
+  before_execution: []
+  after_completion:
+    - "report_generation"
+
+  task_dependencies:
+    "report_generation":
+      - "data_analysis"
+      - "metric_calculation"
+
+constraints:
+  max_concurrent_tasks: 5
+  max_task_timeout_ms: 90000
+  max_output_size_mb: 200
+  restricted_operations:
+    - "Bash(rm:*)"
+
+success_metrics:
+  - "accuracy >= 0.95"
+  - "report_completeness >= 0.90"
+  - "latency_ms < 15000"
+  - "error_rate < 0.05"
+
+fallback_agents:
+  - "support_agent"
+  - "orchestration_agent"
+
+metadata:
+  cost_tier: "medium"
+  historical_success_rate: 0.94
+  last_updated: "2025-11-05"

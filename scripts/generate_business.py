@@ -80,7 +80,9 @@ async def generate_single_business(business_type: str, output_dir: str = "busine
     print(f"Tasks Failed: {result.tasks_failed}")
     print(f"Time: {result.generation_time_seconds:.1f}s ({result.generation_time_seconds/60:.1f} minutes)")
     print(f"Output Directory: {result.output_directory}")
-    print(f"Cost: ${result.metrics['cost_usd']:.2f} (local LLM)")
+    cost = result.metrics.get('cost_usd', 0.0)
+    cost_source = "Vertex AI" if cost > 0.0 else "local LLM"
+    print(f"Cost: ${cost:.4f} ({cost_source})")
     
     if result.errors:
         print(f"\nErrors:")
@@ -120,10 +122,12 @@ async def generate_all_businesses(output_dir: str = "businesses", parallel: bool
     
     total_time = sum(r.generation_time_seconds for r in results if r)
     successful = sum(1 for r in results if r and r.success)
+    total_cost = sum(r.metrics.get('cost_usd', 0.0) for r in results if r)
+    cost_source = "Vertex AI" if total_cost > 0.0 else "local LLM"
     
     print(f"Total Time: {total_time:.1f}s ({total_time/60:.1f} minutes)")
     print(f"Successful: {successful}/3")
-    print(f"Total Cost: $0.00 (local LLM)")
+    print(f"Total Cost: ${total_cost:.4f} ({cost_source})")
     print(f"Output: {output_dir}/")
     print(f"{'='*70}\n")
     

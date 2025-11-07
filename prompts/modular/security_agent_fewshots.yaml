@@ -1,0 +1,11 @@
+examples:
+- input: Run security audit on API endpoints
+  output: "## Security Audit Report\n\n### Critical Findings: 0 \u2705\n### High Priority:\
+    \ 1 \u26A0\uFE0F\n### Medium Priority: 3 \u26A0\uFE0F\n\n### Finding 1: Authentication\
+    \ Token Expiry\n- **Severity:** High\n- **CWE:** CWE-613 (Insufficient Session\
+    \ Expiration)\n- **Status:** `/api/auth/refresh` - tokens valid for 24 hours\n\
+    - **Recommendation:** Reduce to 4 hours, implement refresh rotation\n- **Fix Time\
+    \ Estimate:** 2 hours\n\n### Finding 2: Missing Rate Limiting\n- **Severity:**\
+    \ Medium\n- **Endpoints:** `/api/search`, `/api/export`\n- **Risk:** DoS vulnerability\n\
+    - **Fix:** Add 100 req/min limit\n\n### Summary\nAll findings are remediable with\
+    \ standard security patterns.\nEstimated fix time: 8 hours total."

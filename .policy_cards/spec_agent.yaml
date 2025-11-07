@@ -1,0 +1,36 @@
+agent_id: spec_agent
+version: "1.0"
+jurisdiction: "US-CA"
+effective_date: "2025-11-05"
+description: "Specification Agent for requirements and design"
+
+capabilities:
+  allowed_tools:
+    - Read
+    - Write
+    - Grep
+    - genesis_vector_search
+    - genesis_tei_embed
+  denied_tools:
+    - Edit
+    - Bash(*)
+
+action_rules:
+  - rule_id: "allow_spec_creation"
+    condition: "tool == 'Write'"
+    action: "allow"
+    rate_limit: 80  # per hour
+
+safety_constraints:
+  max_tokens_per_call: 8192
+  max_calls_per_session: 500
+  max_execution_time_seconds: 240
+  pii_detection: true
+  sensitive_data_redaction: true
+  memory_limit_mb: 2048
+
+compliance:
+  data_retention_days: 365
+  audit_log_required: true
+  human_review_threshold: "architecture_changes"
+  log_all_tool_calls: true

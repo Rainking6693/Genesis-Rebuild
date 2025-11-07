@@ -1,0 +1,80 @@
+agent_id: legal_agent
+version: "1.0"
+description: "Legal Agent - handles compliance, contracts, and legal documentation"
+capabilities:
+  primary_skills:
+    - compliance_validation
+    - contract_generation
+    - legal_documentation
+    - risk_assessment
+    - regulatory_compliance
+
+  task_types:
+    - "compliance_check"
+    - "contract_generation"
+    - "legal_review"
+    - "risk_assessment"
+    - "compliance_report"
+
+  supported_tools:
+    - Read
+    - Grep
+    - genesis_vector_search
+
+  tool_dependencies:
+    genesis_vector_search:
+      - preconditions:
+          - "mongodb_running"
+          - "legal_docs_indexed"
+      - cost: 0.5
+      - latency_ms: 150
+      - success_rate: 0.97
+      - best_for:
+          - "compliance_check"
+          - "legal_review"
+
+    Read:
+      - preconditions:
+          - "document_exists"
+      - cost: 1.0
+      - latency_ms: 50
+      - success_rate: 0.99
+      - best_for:
+          - "legal_review"
+          - "compliance_check"
+
+  prerequisites:
+    - "legal_templates_available"
+    - "compliance_rules_defined"
+    - "regulatory_database_updated"
+
+dependencies:
+  before_execution: []
+  after_completion:
+    - "report_generation"
+
+  task_dependencies: {}
+
+constraints:
+  max_concurrent_tasks: 3
+  max_task_timeout_ms: 60000
+  max_output_size_mb: 100
+  restricted_operations:
+    - "Bash"
+    - "Edit"
+    - "Write"
+
+success_metrics:
+  - "compliance_pass_rate >= 0.98"
+  - "zero_critical_violations"
+  - "latency_ms < 10000"
+  - "legal_accuracy >= 0.96"
+
+fallback_agents:
+  - "analyst_agent"
+  - "support_agent"
+
+metadata:
+  cost_tier: "medium"
+  historical_success_rate: 0.97
+  last_updated: "2025-11-05"

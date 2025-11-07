@@ -1,0 +1,20 @@
+outputs:
+- fields:
+  - current_stage
+  - progress
+  - estimated_time
+  format: markdown
+  name: workflow_status
+- fields:
+  - completion_rate
+  - error_rate
+  - throughput
+  format: json
+  name: workflow_metrics
+tools:
+- name: Read
+  parameters:
+    file_path: string (required)
+- name: Bash
+  parameters:
+    command: string (required, orchestration)

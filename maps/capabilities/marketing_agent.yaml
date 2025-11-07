@@ -1,0 +1,72 @@
+agent_id: marketing_agent
+version: "1.0"
+description: "Marketing Agent - handles marketing campaigns and growth strategies"
+capabilities:
+  primary_skills:
+    - campaign_planning
+    - audience_targeting
+    - growth_strategy
+    - market_analysis
+    - lead_generation
+
+  task_types:
+    - "campaign_design"
+    - "audience_analysis"
+    - "growth_strategy"
+    - "market_research"
+    - "lead_scoring"
+
+  supported_tools:
+    - Read
+    - Grep
+    - genesis_vector_search
+    - Bash(python:*)
+
+  tool_dependencies:
+    genesis_vector_search:
+      - preconditions:
+          - "mongodb_running"
+          - "market_data_indexed"
+      - cost: 0.5
+      - latency_ms: 150
+      - success_rate: 0.96
+      - best_for:
+          - "market_research"
+          - "audience_analysis"
+
+  prerequisites:
+    - "market_data_available"
+    - "analytics_tools_configured"
+    - "campaign_templates_ready"
+
+dependencies:
+  before_execution: []
+  after_completion:
+    - "content_agent"
+
+  task_dependencies:
+    "campaign_design":
+      - "market_research"
+      - "audience_analysis"
+
+constraints:
+  max_concurrent_tasks: 5
+  max_task_timeout_ms: 120000
+  max_output_size_mb: 100
+  restricted_operations:
+    - "Bash(rm:*)"
+
+success_metrics:
+  - "campaign_roi >= 2.0"
+  - "lead_quality >= 0.85"
+  - "conversion_rate >= 0.05"
+  - "latency_ms < 20000"
+
+fallback_agents:
+  - "analyst_agent"
+  - "content_agent"
+
+metadata:
+  cost_tier: "medium"
+  historical_success_rate: 0.89
+  last_updated: "2025-11-05"

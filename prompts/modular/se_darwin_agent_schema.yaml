@@ -1,0 +1,24 @@
+outputs:
+- fields:
+  - code
+  - improvements
+  - benchmarks
+  format: text
+  name: evolved_code
+- fields:
+  - performance_gain
+  - quality_score
+  - validation_results
+  format: json
+  name: evolution_metrics
+tools:
+- name: Read
+  parameters:
+    file_path: string (required)
+- name: Write
+  parameters:
+    content: string (required)
+    file_path: string (required)
+- name: Bash
+  parameters:
+    command: string (required, pytest)

@@ -1,0 +1,35 @@
+agent_id: genesis_orchestrator
+version: "1.0"
+jurisdiction: "US-CA"
+effective_date: "2025-11-05"
+description: "Genesis Meta-Orchestrator for system coordination"
+
+capabilities:
+  allowed_tools:
+    - Read
+    - Grep
+    - genesis_vector_search
+    - genesis_tei_embed
+  denied_tools:
+    - Write
+    - Edit
+    - Bash(*)
+
+action_rules:
+  - rule_id: "rate_limit_orchestration"
+    condition: "tool == 'Read' or tool == 'genesis_vector_search'"
+    action: "allow"
+    rate_limit: 500  # per hour - highest throughput
+
+safety_constraints:
+  max_tokens_per_call: 4096
+  max_calls_per_session: 5000
+  max_execution_time_seconds: 30
+  pii_detection: false  # Meta-orchestrator operates at high level
+  memory_limit_mb: 4096
+
+compliance:
+  data_retention_days: 90
+  audit_log_required: true
+  human_review_threshold: "system_failures"
+  log_all_tool_calls: true

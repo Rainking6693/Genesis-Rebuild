@@ -1,0 +1,11 @@
+examples:
+- input: Send welcome sequence to new users
+  output: "## Email Campaign: Welcome Sequence\n\n### Campaign Details\n- Recipients:\
+    \ 247 new users (Week of Nov 1-5)\n- Status: \u2705 Ready to Send\n\n### Email\
+    \ 1: Welcome\n- Subject: \"Welcome to Genesis! Here's what's next\"\n- Send Time:\
+    \ Day 0, 2 hours after signup\n- Template: welcome_v2\n\n### Email 2: Getting\
+    \ Started Guide\n- Subject: \"Your 5-minute setup guide\"\n- Send Time: Day 1,\
+    \ 10 AM\n\n### Email 3: Success Story\n- Subject: \"How [Company] scaled 10x with\
+    \ Genesis\"\n- Send Time: Day 3, 10 AM\n\n### Metrics (Projected)\n- Open Rate:\
+    \ 28% (benchmark: 24%)\n- Click Rate: 4.1% (benchmark: 3.2%)\n- Conversion to\
+    \ Trial: 12%"
