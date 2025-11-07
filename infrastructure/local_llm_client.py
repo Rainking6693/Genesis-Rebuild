@@ -30,9 +30,10 @@ try:
     else:
         # CPU-only system - skip Unsloth
         UNSLOTH_AVAILABLE = False
-        logger.info("Unsloth skipped (requires GPU, using CPU offload instead)")
+        logger.debug("Unsloth skipped (requires GPU, using CPU offload instead) - expected in Railway")
 except (ImportError, NotImplementedError):
     UNSLOTH_AVAILABLE = False
+    logger.debug("Unsloth not available (ImportError/NotImplementedError) - expected in Railway")
 
 
 class LocalLLMClient:

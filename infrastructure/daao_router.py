@@ -27,7 +27,7 @@ try:
 except (ImportError, NotImplementedError, RuntimeError) as e:
     FastLanguageModel = None
     HAS_UNSLOTH = False
-    logger.warning(f"Unsloth not available - fine-tuned adapter loading disabled ({type(e).__name__}: {e})")
+    logger.debug(f"Unsloth not available - fine-tuned adapter loading disabled (expected in Railway: {type(e).__name__})")
 
 # Import Context Linter for validation
 try:
