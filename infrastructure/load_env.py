@@ -12,6 +12,7 @@ Usage:
 
 import os
 from pathlib import Path
+from typing import Iterable, Set
 
 _ENV_LOADED = False
 
@@ -32,59 +33,75 @@ def load_genesis_env(env_file: str = ".env", override: bool = False):
     if _ENV_LOADED and not override:
         return 0  # Already loaded, skip
     
-    # Find project root (where .env is located)
-    current_dir = Path(__file__).parent.parent  # infrastructure/ -> genesis-rebuild/
-    env_path = current_dir / env_file
-    
+    project_root = Path(__file__).parent.parent  # infrastructure/ -> genesis-rebuild/
+
+    if env_file != ".env":
+        candidates: Iterable[Path] = [project_root / env_file]
+    else:
+        candidates = [
+            project_root / ".env",
+            project_root / ".env.local",
+            project_root / ".env.genesis.secrets",
+        ]
+
+    visited: Set[Path] = set()
+    total_loaded = 0
+    for candidate in candidates:
+        total_loaded += _load_env_file(candidate, override=override, visited=visited)
+
+    _ENV_LOADED = True
+    return total_loaded
+
+
+def _load_env_file(env_path: Path, override: bool, visited: Set[Path]) -> int:
+    if env_path in visited:
+        return 0
+    visited.add(env_path)
+
     if not env_path.exists():
-        # Try python-dotenv if available
         try:
             from dotenv import load_dotenv
-            success = load_dotenv(env_path, override=override)
-            if success:
-                _ENV_LOADED = True
-            return 0
+
+            load_dotenv(env_path, override=override)
         except ImportError:
-            return 0  # No .env file and no dotenv library
-    
-    # Manual .env parsing (simple implementation)
+            pass
+        return 0
+
     loaded_count = 0
     try:
-        with open(env_path, 'r') as f:
-            for line in f:
-                line = line.strip()
-                
-                # Skip comments and empty lines
-                if not line or line.startswith('#'):
+        with open(env_path, "r") as handle:
+            for raw_line in handle:
+                line = raw_line.strip()
+
+                if not line or line.startswith("#"):
                     continue
-                
-                # Parse KEY=VALUE
-                if '=' in line:
-                    key, value = line.split('=', 1)
+
+                if line.startswith("source ") or line.startswith(". "):
+                    _, include_path = line.split(None, 1)
+                    include_file = (env_path.parent / include_path).resolve()
+                    loaded_count += _load_env_file(include_file, override=override, visited=visited)
+                    continue
+
+                if "=" in line:
+                    key, value = line.split("=", 1)
                     key = key.strip()
                     value = value.strip()
-                    
-                    # Remove quotes if present
+
                     if value.startswith('"') and value.endswith('"'):
                         value = value[1:-1]
                     elif value.startswith("'") and value.endswith("'"):
                         value = value[1:-1]
-                    
-                    # Remove inline comments
-                    if '#' in value:
-                        value = value.split('#')[0].strip()
-                    
-                    # Set environment variable (if not already set or override=True)
+
+                    if "#" in value:
+                        value = value.split("#", 1)[0].strip()
+
                     if override or key not in os.environ:
                         os.environ[key] = value
                         loaded_count += 1
-        
-        _ENV_LOADED = True
-        
-    except Exception as e:
-        print(f"Warning: Could not load .env file: {e}")
-        return 0
-    
+
+    except Exception as exc:
+        print(f"Warning: Could not load env file {env_path}: {exc}")
+
     return loaded_count
 
 
