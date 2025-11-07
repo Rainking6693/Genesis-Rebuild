@@ -1238,28 +1238,31 @@ class HALORouter:
         agent_name: str,
         prompt: str,
         fallback_to_cloud: bool = True,
-        prefer_local: bool = True,
+        prefer_local: bool = False,  # Changed to False for Railway deployment
         **kwargs
     ) -> Optional[str]:
         """
         Execute task using best available LLM with cost optimization
 
-        PHASE 6 OPTIMIZED ROUTING STRATEGY (88-92% cost reduction):
-        1. Try Local LLM first (FREE! - Qwen 7B)
-        2. Fall back to Vertex AI if local fails (fine-tuned models)
-        3. Fall back to Claude/GPT if both fail (most expensive)
+        RAILWAY DEPLOYMENT ROUTING STRATEGY:
+        1. Try Vertex AI first (fine-tuned models with service account)
+        2. Fall back to Claude/GPT if Vertex fails
+        3. Local LLM disabled for Railway (no GPU/large models)
 
         Args:
             agent_name: Agent to execute task (qa_agent, support_agent, etc.)
             prompt: Task prompt/description
             fallback_to_cloud: Allow fallback to cloud LLMs if local fails
-            prefer_local: Prefer local LLM for cost savings (default: True)
+            prefer_local: Prefer local LLM for cost savings (default: False for Railway)
             **kwargs: Additional arguments for model inference
 
         Returns:
             Generated response string or None if failed
         """
-        # PHASE 6 OPTIMIZATION: Try Local LLM first (FREE!)
+        # RAILWAY: Skip local LLM (disabled for cloud deployment)
+        if prefer_local:
+            logger.debug(f"Local LLM disabled for Railway deployment - skipping to cloud APIs")
+            prefer_local = False  # Force disable
         if prefer_local:
             try:
                 logger.info(f"🟢 Routing {agent_name} to Local LLM (Qwen 7B, cost: $0)")
