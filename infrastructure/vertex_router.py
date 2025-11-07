@@ -217,7 +217,12 @@ class VertexModelRouter:
                 response_text = getattr(response, "text", "") or ""
                 request_successful = bool(response_text)
             except Exception as exc:  # pragma: no cover
-                logger.error("Base Gemini fallback failed: %s", exc)
+                # Check if it's a service account error (common in Railway deployment)
+                error_msg = str(exc)
+                if "service-account.json" in error_msg or "GOOGLE_APPLICATION_CREDENTIALS" in error_msg:
+                    logger.warning("Gemini fallback skipped: Service account not configured (expected in Railway). Use GEMINI_API_KEY instead.")
+                else:
+                    logger.error("Base Gemini fallback failed: %s", exc)
                 response_text = ""
         
         # Track metrics

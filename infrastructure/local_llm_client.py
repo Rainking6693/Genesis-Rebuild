@@ -53,50 +53,16 @@ class LocalLLMClient:
             return {"llm_backend": {"model_name": "Qwen/Qwen2.5-VL-7B-Instruct"}}
 
     def load_model(self) -> bool:
-        if not TRANSFORMERS_AVAILABLE:
-            return False
-        if self.loaded:
-            return True
-
-        try:
-            model_name = self.config["llm_backend"]["model_name"]
-            self.device = "cuda" if torch.cuda.is_available() else "cpu"
-            
-            # Use Unsloth for optimized loading if available
-            if UNSLOTH_AVAILABLE:
-                logger.info("🚀 Loading model with Unsloth optimization...")
-                self.model, self.tokenizer = FastLanguageModel.from_pretrained(
-                    model_name=model_name,
-                    max_seq_length=4096,
-                    dtype=None,  # Auto-detect best dtype
-                    load_in_4bit=True,  # Use 4-bit quantization for RAM savings
-                )
-                # Enable CPU offloading for layers
-                FastLanguageModel.for_inference(self.model)
-                logger.info(f"✅ Model loaded with Unsloth (4-bit, CPU offload) on {self.device}")
-            else:
-                # Fallback to standard transformers loading
-                logger.info("Loading model with standard transformers...")
-                self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-                
-                # Use CPU offloading even without Unsloth
-                self.model = AutoModelForCausalLM.from_pretrained(
-                    model_name,
-                    trust_remote_code=True,
-                    device_map="auto",  # Automatically distribute across GPU/CPU
-                    load_in_8bit=True if torch.cuda.is_available() else False,  # 8-bit if CUDA available
-                    low_cpu_mem_usage=True,  # Enable low CPU memory mode
-                    offload_folder="offload",  # Offload to disk if needed
-                )
-                logger.info(f"✅ Model loaded with CPU offload on {self.device}")
-            
-            self.loaded = True
-            return True
-        except Exception as e:
-            logger.error(f"Failed to load: {e}")
-            return False
+        """Disabled for Railway deployment - use cloud APIs instead"""
+        logger.info("Local LLM loading disabled - using cloud APIs (Vertex AI/OpenAI)")
+        return False
 
     def generate(self, prompt: str, max_new_tokens: int = 2048, **kwargs) -> str:
+        """Disabled for Railway deployment"""
+        logger.warning("Local LLM generate called but disabled - returning empty string")
+        return ""
+
+    def generate_disabled(self, prompt: str, max_new_tokens: int = 2048, **kwargs) -> str:
         if not self.loaded and not self.load_model():
             return "ERROR: Model not loaded"
 
