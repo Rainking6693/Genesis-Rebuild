@@ -197,10 +197,22 @@ Respond in JSON format:
                 temperature=0.3,  # Low temperature for consistent judging
                 messages=[{"role": "user", "content": prompt}]
             )
-            
-            # Parse JSON response
+
+            # Parse JSON response with safety checks
             import json
-            result = json.loads(response.content[0].text)
+            response_text = response.content[0].text if response.content else ""
+
+            # Check for empty response
+            if not response_text or not response_text.strip():
+                logger.warning("Empty response from Claude, falling back to heuristics")
+                return self._heuristic_idea_scoring(business_idea)
+
+            # Try to parse JSON
+            try:
+                result = json.loads(response_text)
+            except json.JSONDecodeError as je:
+                logger.warning(f"Invalid JSON from Claude: {je}. Response: {response_text[:100]}")
+                return self._heuristic_idea_scoring(business_idea)
             
             scores.append(CriterionScore(
                 criterion=QualityCriterion.IDEA_NOVELTY,
