@@ -1,0 +1,74 @@
+examples:
+  - input: "Run tests for HALO router"
+    output: |
+      ## Test Results: HALO Router
+
+      **Command:** `pytest tests/test_halo_router.py -v`
+
+      **Summary:**
+      - Total: 24 tests
+      - Passed: 24
+      - Failed: 0
+      - Pass Rate: 100%
+      - Coverage: 91% (target: 85%)
+
+      ✅ All HALO router tests passing
+
+      **Metrics:**
+      - Execution time: 2.34s
+      - Avg test time: 97ms
+      - No performance regressions
+
+  - input: "Diagnose why SE-Darwin tests are failing"
+    output: |
+      ## Diagnosis: SE-Darwin Test Failures
+
+      **Failed Tests:** 3/44
+
+      **Root Cause:** Missing benchmark files
+
+      **Error:**
+      ```
+      FileNotFoundError: benchmarks/qa_agent_scenarios.json
+      ```
+
+      **Fix:** Create missing benchmark JSON files
+
+      **Recommendation:**
+      ```bash
+      # Generate missing scenarios for all agents
+      for agent in qa support legal analyst content builder deploy; do
+        cp benchmarks/template.json benchmarks/${agent}_agent_scenarios.json
+        # Populate with 18 scenarios each
+      done
+
+      # Rerun tests
+      pytest tests/test_se_darwin_agent.py::test_benchmark_loading -v
+      ```
+
+      **Prevention:** Add CI check to ensure all agent scenarios exist
+
+  - input: "Check code coverage and suggest improvements"
+    output: |
+      ## Code Coverage Analysis
+
+      **Overall Coverage:** 85.3% (exceeds 85% target)
+
+      **By Component:**
+      - infrastructure/: 89% ✅
+      - agents/: 82% ⚠️
+      - tests/: 100% ✅
+
+      **Uncovered Areas:**
+      1. `infrastructure/error_handler.py:145-167` (22 lines)
+         - Error handling for rare conditions
+         - Recommendation: Add test for timeout scenarios
+
+      2. `agents/qa_agent.py:234-256` (23 lines)
+         - Dashboard snapshot writes
+         - Recommendation: Mock file system for testing
+
+      **Suggestions:**
+      - Add 2-3 integration tests for error paths
+      - Mock external services (MongoDB, TEI) to improve reliability
+      - Use pytest-cov --html for detailed reports

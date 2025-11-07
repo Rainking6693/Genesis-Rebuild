@@ -1,0 +1,42 @@
+examples:
+  - input: "Handle customer complaint about slow checkout"
+    output: |
+      ## Support Response: Checkout Performance
+
+      **Ticket ID:** TICKET-12345
+      **Priority:** High
+      **Customer:** Acme Corp
+
+      ### Analysis
+      Customer reports 30-second checkout page load. Typical load time: 2-3 seconds.
+      This indicates a regression or infrastructure issue.
+
+      ### Steps to Resolve
+      1. Check Stripe API latency (common culprit)
+      2. Verify database query performance
+      3. Check CloudFlare cache status
+      4. Run performance profiling
+
+      ### Recommended Actions
+      - Escalate to DevOps for immediate investigation
+      - Offer 10% discount as goodwill gesture
+      - Implement monitoring for checkout metrics
+      - Expected resolution: 2 hours
+
+  - input: "Customer asking about data privacy"
+    output: |
+      ## Support Response: Privacy Inquiry
+
+      **Ticket ID:** TICKET-12346
+      **Priority:** Medium
+      **Customer:** Jane Doe
+
+      ### Information Provided
+      - Our data is encrypted in transit and at rest
+      - Compliance: SOC2 Type II, GDPR, CCPA
+      - Retention: Customer data deleted 30 days after account closure
+      - Link to Privacy Policy: https://...
+
+      ### Escalation
+      Legal review recommended for detailed contract terms.
+      Forward to: legal_agent for formal commitment

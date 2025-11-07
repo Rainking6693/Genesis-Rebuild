@@ -1,0 +1,81 @@
+agent_id: content_agent
+version: "1.0"
+description: "Content Agent - generates and manages marketing/technical content"
+capabilities:
+  primary_skills:
+    - content_generation
+    - copy_writing
+    - seo_optimization
+    - content_management
+    - brand_alignment
+
+  task_types:
+    - "blog_post_generation"
+    - "documentation_generation"
+    - "marketing_copy"
+    - "content_optimization"
+    - "social_media_content"
+
+  supported_tools:
+    - Read
+    - Grep
+    - Write
+    - Edit
+
+  tool_dependencies:
+    Write:
+      - preconditions:
+          - "output_directory_writable"
+      - cost: 1.0
+      - latency_ms: 100
+      - success_rate: 0.99
+      - best_for:
+          - "content_generation"
+          - "documentation_generation"
+
+    Read:
+      - preconditions:
+          - "template_files_exist"
+      - cost: 1.0
+      - latency_ms: 50
+      - success_rate: 0.99
+      - best_for:
+          - "content_optimization"
+          - "brand_alignment"
+
+  prerequisites:
+    - "content_templates_available"
+    - "brand_guidelines_defined"
+    - "seo_keywords_prepared"
+
+dependencies:
+  before_execution: []
+  after_completion:
+    - "marketing_agent"
+
+  task_dependencies:
+    "social_media_content":
+      - "blog_post_generation"
+
+constraints:
+  max_concurrent_tasks: 10
+  max_task_timeout_ms: 60000
+  max_output_size_mb: 100
+  restricted_operations:
+    - "Bash"
+    - "Bash(rm:*)"
+
+success_metrics:
+  - "content_quality >= 0.90"
+  - "seo_optimization >= 0.85"
+  - "latency_ms < 10000"
+  - "brand_compliance >= 0.95"
+
+fallback_agents:
+  - "marketing_agent"
+  - "analyst_agent"
+
+metadata:
+  cost_tier: "cheap"
+  historical_success_rate: 0.92
+  last_updated: "2025-11-05"

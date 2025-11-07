@@ -1,0 +1,36 @@
+examples:
+- input: Write blog post on API best practices
+  output: '# API Design Best Practices for 2025
+
+
+    ## Introduction
+
+    APIs are the backbone of modern applications. Here are 10 proven patterns...
+
+
+    ## 1. Versioning Strategy
+
+    - Use URL versioning (/v1/, /v2/) not header versioning
+
+    - Support last 2 major versions minimum
+
+    - Deprecation notice: 12 months before removal
+
+
+    [Content continues...]
+
+
+    ---
+
+    ### SEO Metadata
+
+    - **Target Keywords:** API design, REST API, best practices (12 keywords)
+
+    - **Estimated Ranking:** Position 3-5 for target keywords
+
+    - **Meta Description:** "Master API design with 10 proven practices used by Fortune
+    500 companies. Includes code examples and real-world case studies."
+
+    - **Internal Links:** 4 (to auth, scaling, monitoring, testing posts)
+
+    - **Content Length:** 2400 words (optimal for this topic)'

@@ -1,0 +1,22 @@
+outputs:
+- fields:
+  - metrics
+  - insights
+  - trends
+  format: markdown
+  name: analysis_report
+- fields:
+  - kpi_values
+  - trend_analysis
+  format: json
+  name: analytics_data
+tools:
+- name: Read
+  parameters:
+    file_path: string (required)
+- name: Bash
+  parameters:
+    command: string (required, python)
+- name: genesis_vector_search
+  parameters:
+    query: string (required)

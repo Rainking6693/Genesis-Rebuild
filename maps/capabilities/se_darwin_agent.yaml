@@ -1,0 +1,85 @@
+agent_id: se_darwin_agent
+version: "1.0"
+description: "SE-Darwin Agent - self-improving code generation and evolution"
+capabilities:
+  primary_skills:
+    - code_generation
+    - code_improvement
+    - trajectory_evolution
+    - quality_validation
+    - self_refinement
+
+  task_types:
+    - "code_generation"
+    - "code_improvement"
+    - "trajectory_exploration"
+    - "quality_validation"
+    - "self_refinement"
+
+  supported_tools:
+    - Read
+    - Write
+    - Edit
+    - Bash(pytest:*)
+    - Grep
+
+  tool_dependencies:
+    Write:
+      - preconditions:
+          - "output_directory_writable"
+      - cost: 1.0
+      - latency_ms: 100
+      - success_rate: 0.99
+      - best_for:
+          - "code_generation"
+          - "trajectory_exploration"
+
+    Bash(pytest:*):
+      - preconditions:
+          - "test_files_exist"
+          - "test_environment_setup"
+      - cost: 2.0
+      - latency_ms: 1000
+      - success_rate: 0.95
+      - best_for:
+          - "quality_validation"
+          - "self_refinement"
+
+  prerequisites:
+    - "benchmark_scenarios_available"
+    - "test_suite_ready"
+    - "code_validator_configured"
+
+dependencies:
+  before_execution:
+    - "builder_agent"
+    - "qa_agent"
+  after_completion:
+    - "qa_agent"
+
+  task_dependencies:
+    "self_refinement":
+      - "code_generation"
+      - "quality_validation"
+
+constraints:
+  max_concurrent_tasks: 3
+  max_task_timeout_ms: 300000
+  max_output_size_mb: 500
+  restricted_operations:
+    - "Bash(rm:*)"
+
+success_metrics:
+  - "code_quality_improvement >= 20%"
+  - "test_pass_rate >= 0.95"
+  - "convergence_achieved"
+  - "latency_ms < 120000"
+
+fallback_agents:
+  - "builder_agent"
+  - "qa_agent"
+
+metadata:
+  cost_tier: "expensive"
+  historical_success_rate: 0.92
+  last_updated: "2025-11-05"

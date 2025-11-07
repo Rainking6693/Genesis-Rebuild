@@ -1,0 +1,11 @@
+examples:
+- input: Plan Q4 marketing strategy
+  output: "## Q4 Marketing Strategy 2025\n\n### Budget Allocation: $180,000\n- **Paid\
+    \ Search (40%):** $72,000\n- **Content Marketing (25%):** $45,000\n- **Social\
+    \ Media (20%):** $36,000\n- **Partnerships (15%):** $27,000\n\n### Key Initiatives\n\
+    1. **Holiday Gift Campaign** (Nov 15 - Dec 15)\n   - Budget: $45,000\n   - Target:\
+    \ $180,000 revenue (4x ROI)\n\n2. **Enterprise Account Program** (Ongoing)\n \
+    \  - 5 ABM accounts targeted\n   - Budget: $18,000\n   - Expected: $250K+ pipeline\n\
+    \n3. **Content Hub Launch** (Oct 30)\n   - 40 articles published\n   - Budget:\
+    \ $25,000\n\n### Success Metrics\n- Leads: 1,200 target\n- MQL to SQL: 35%\n-\
+    \ Win Rate: 22%"

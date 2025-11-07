@@ -1,0 +1,36 @@
+agent_id: marketing_agent
+version: "1.0"
+jurisdiction: "US-CA"
+effective_date: "2025-11-05"
+description: "Marketing Agent for campaigns and outreach"
+
+capabilities:
+  allowed_tools:
+    - Read
+    - Write
+    - Grep
+    - genesis_vector_search
+    - genesis_tei_embed
+  denied_tools:
+    - Edit
+    - Bash(*)
+
+action_rules:
+  - rule_id: "allow_campaign_creation"
+    condition: "tool == 'Write'"
+    action: "allow"
+    rate_limit: 100  # per hour
+
+safety_constraints:
+  max_tokens_per_call: 4096
+  max_calls_per_session: 400
+  max_execution_time_seconds: 120
+  pii_detection: true
+  sensitive_data_redaction: true
+  memory_limit_mb: 1024
+
+compliance:
+  data_retention_days: 180
+  audit_log_required: true
+  human_review_threshold: "high_spend_campaigns"
+  log_all_tool_calls: true

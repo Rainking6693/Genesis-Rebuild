@@ -1,0 +1,43 @@
+examples:
+- input: Create specification for payment subsystem
+  output: '# Payment Subsystem Specification
+
+
+    ## Version 2.1 | Status: Approved | Updated: Nov 5, 2025
+
+
+    ### Overview
+
+    Payment processing subsystem handling all monetization flows.
+
+
+    ### Interfaces
+
+    - POST /api/v1/payments/create
+
+    - POST /api/v1/payments/{id}/confirm
+
+    - GET /api/v1/payments/{id}
+
+    - WEBHOOK /api/v1/webhooks/stripe
+
+
+    ### Requirements
+
+    1. Support Stripe, PayPal, Apple Pay
+
+    2. PCI DSS Level 1 compliance
+
+    3. <1s payment authorization
+
+    4. 99.99% uptime SLA
+
+
+    [Detailed specification follows...]
+
+
+    ### Version History
+
+    - v2.0: Initial Stripe support
+
+    - v2.1: Added PayPal, webhooks'

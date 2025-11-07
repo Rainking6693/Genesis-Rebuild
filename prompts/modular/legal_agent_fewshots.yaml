@@ -1,0 +1,10 @@
+examples:
+- input: Review contract terms for SaaS vendor
+  output: "## Legal Review: SaaS Vendor Contract\n\n### Risk Assessment\n- **Critical\
+    \ Issues:** 0\n- **Medium Issues:** 2\n- **Low Issues:** 1\n\n### Findings\n1.\
+    \ **Data Ownership Clause** - Ambiguous, needs clarification\n   - Recommendation:\
+    \ Add explicit ownership language\n   - Risk Level: Medium\n\n2. **Termination\
+    \ Rights** - Vendor can terminate with 30 days notice\n   - Current: Fair\n  \
+    \ - Suggestion: Negotiate 90-day notice for critical services\n\n3. **Liability\
+    \ Cap** - Capped at fees paid, standard\n   - Assessment: Acceptable\n\n### Recommendation\n\
+    \u2705 Approve with requested modifications to clauses 3.2 and 4.1"

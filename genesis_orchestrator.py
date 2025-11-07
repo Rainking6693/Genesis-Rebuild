@@ -60,7 +60,7 @@ class GenesisOrchestrator:
 
             # Initialize orchestration components
             self.htdag = HTDAGPlanner()
-            self.halo = HALORouter()
+            self.halo = HALORouter.create_with_integrations()  # ✅ Policy Cards + Capability Maps enabled
             self.aop = AOPValidator()
 
             # Initialize A2A connector (if feature enabled)

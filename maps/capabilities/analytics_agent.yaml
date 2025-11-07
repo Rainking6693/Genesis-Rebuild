@@ -1,0 +1,53 @@
+agent_id: analytics
+version: "1.0"
+description: "analytics Agent - description"
+capabilities:
+  primary_skills:
+    - skill_1
+    - skill_2
+    - skill_3
+
+  task_types:
+    - "task_type_1"
+    - "task_type_2"
+
+  supported_tools:
+    - Read
+    - Grep
+
+  tool_dependencies:
+    Read:
+      - preconditions:
+          - "file_exists"
+      - cost: 1.0
+      - latency_ms: 50
+      - success_rate: 0.99
+      - best_for:
+          - "read_operation"
+
+  prerequisites:
+    - "prerequisite_1"
+
+dependencies:
+  before_execution: []
+  after_completion: []
+  task_dependencies: {}
+
+constraints:
+  max_concurrent_tasks: 5
+  max_task_timeout_ms: 60000
+  max_output_size_mb: 100
+  restricted_operations: []
+
+success_metrics:
+  - "success_rate >= 0.90"
+  - "latency_ms < 10000"
+  - "error_rate < 0.05"
+
+fallback_agents:
+  - "orchestration_agent"
+
+metadata:
+  cost_tier: "medium"
+  historical_success_rate: 0.90
+  last_updated: "2025-11-05"

@@ -1,0 +1,45 @@
+agent_id: support_agent
+version: "1.0"
+jurisdiction: "US-CA"
+effective_date: "2025-11-05"
+description: "Customer Support Agent for handling client issues"
+
+capabilities:
+  allowed_tools:
+    - Read
+    - Grep
+    - genesis_vector_search
+    - genesis_tei_embed
+    - Bash(grep:*)
+  denied_tools:
+    - Write
+    - Edit
+    - Bash(rm:*)
+    - Bash(sudo:*)
+    - Bash(python:*)
+    - Bash(npm:*)
+
+action_rules:
+  - rule_id: "rate_limit_searches"
+    condition: "tool == 'Grep' or tool == 'genesis_vector_search'"
+    action: "allow"
+    rate_limit: 150  # per hour
+
+  - rule_id: "block_code_modification"
+    condition: "tool == 'Write' or tool == 'Edit'"
+    action: "deny"
+    reason: "Support agents cannot modify code"
+
+safety_constraints:
+  max_tokens_per_call: 4096
+  max_calls_per_session: 500
+  max_execution_time_seconds: 120
+  pii_detection: true
+  sensitive_data_redaction: true
+  memory_limit_mb: 1024
+
+compliance:
+  data_retention_days: 180
+  audit_log_required: true
+  human_review_threshold: "sensitive_customer_data"
+  log_all_tool_calls: true

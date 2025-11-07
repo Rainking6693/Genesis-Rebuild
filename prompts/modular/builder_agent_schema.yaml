@@ -1,0 +1,29 @@
+outputs:
+- fields:
+  - code_file
+  - language
+  - error_handling
+  format: text
+  name: generated_code
+- fields:
+  - status
+  - errors
+  - warnings
+  format: json
+  name: build_report
+tools:
+- name: Read
+  parameters:
+    file_path: string (required)
+- name: Write
+  parameters:
+    content: string (required)
+    file_path: string (required)
+- name: Edit
+  parameters:
+    file_path: string (required)
+    new_string: string (required)
+    old_string: string (required)
+- name: Bash
+  parameters:
+    command: string (required)

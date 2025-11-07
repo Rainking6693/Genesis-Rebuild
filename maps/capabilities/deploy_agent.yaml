@@ -1,0 +1,82 @@
+agent_id: deploy_agent
+version: "1.0"
+description: "Deploy Agent - handles application deployment and infrastructure"
+capabilities:
+  primary_skills:
+    - application_deployment
+    - infrastructure_management
+    - service_orchestration
+    - health_monitoring
+    - rollback_management
+
+  task_types:
+    - "deploy_to_cloud"
+    - "deploy_to_kubernetes"
+    - "infrastructure_setup"
+    - "service_health_check"
+    - "rollback_operation"
+
+  supported_tools:
+    - Bash(docker:*)
+    - Bash(kubectl:*)
+    - Bash(terraform:*)
+    - Read
+    - Grep
+
+  tool_dependencies:
+    Bash(docker:*):
+      - preconditions:
+          - "docker_installed"
+          - "docker_daemon_running"
+      - cost: 2.0
+      - latency_ms: 3000
+      - success_rate: 0.93
+      - best_for:
+          - "deploy_to_cloud"
+
+    Bash(kubectl:*):
+      - preconditions:
+          - "kubernetes_cluster_accessible"
+          - "kubectl_installed"
+      - cost: 1.5
+      - latency_ms: 2000
+      - success_rate: 0.91
+      - best_for:
+          - "deploy_to_kubernetes"
+
+  prerequisites:
+    - "infrastructure_credentials_available"
+    - "deployment_configuration_valid"
+    - "artifacts_ready"
+
+dependencies:
+  before_execution:
+    - "builder_agent"
+    - "qa_agent"
+  after_completion:
+    - "monitoring_agent"
+
+  task_dependencies:
+    "deploy_to_kubernetes":
+      - "infrastructure_setup"
+
+constraints:
+  max_concurrent_tasks: 2
+  max_task_timeout_ms: 180000
+  max_output_size_mb: 100
+  restricted_operations:
+    - "Bash(rm:*)"
+
+success_metrics:
+  - "deployment_success_rate >= 0.95"
+  - "zero_critical_errors"
+  - "latency_ms < 60000"
+  - "service_uptime >= 0.99"
+
+fallback_agents:
+  - "orchestration_agent"
+
+metadata:
+  cost_tier: "expensive"
+  historical_success_rate: 0.94
+  last_updated: "2025-11-05"
