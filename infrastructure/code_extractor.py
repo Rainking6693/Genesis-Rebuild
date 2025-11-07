@@ -61,18 +61,26 @@ def extract_clean_code(llm_response: str, expected_language: str = "typescript")
     
     # Validate it's the right language
     if expected_language == "typescript":
+        # Check for Python syntax first (hard blocker)
         if has_python_syntax(code):
             raise ValueError("Generated Python code instead of TypeScript")
-        
+
+        # Check for TypeScript syntax (more lenient now)
         if not has_typescript_syntax(code):
-            raise ValueError("Generated code doesn't look like TypeScript")
-    
-    # Validate minimum quality
-    if len(code) < 50:
+            # Log the code snippet for debugging
+            logger.warning(f"Code validation concern - first 200 chars: {code[:200]}")
+            # Only raise if it's REALLY not TypeScript (has no JS/TS patterns at all)
+            if not any(pattern in code for pattern in ['import', 'export', 'function', 'const', '=>', 'interface']):
+                raise ValueError("Generated code doesn't look like TypeScript")
+            else:
+                logger.info("Code looks like JavaScript/TypeScript - allowing despite low indicator count")
+
+    # Validate minimum quality (reduced from 50 to 30 for simple components)
+    if len(code) < 30:
         raise ValueError(f"Generated code too short ({len(code)} chars)")
-    
+
     if not _has_imports_or_exports(code):
-        logger.warning("Code has no imports or exports - may be incomplete")
+        logger.info("Code has no imports or exports - may be a simple snippet (allowed)")
     
     return code
 
@@ -217,26 +225,32 @@ def has_python_syntax(code: str) -> bool:
 def has_typescript_syntax(code: str) -> bool:
     """
     Check if code has TypeScript-specific patterns.
-    
+
     Returns True if TypeScript patterns detected.
     """
     typescript_indicators = [
         r':\s*(string|number|boolean|any|void|unknown)',  # Type annotations
         r'interface\s+\w+',   # interface definitions
         r'type\s+\w+\s*=',    # type aliases
-        r'<\w+>',             # Generics
+        r'<\w+>',             # Generics (also matches JSX)
         r'=>',                # Arrow functions
         r'import.*from\s+["\']',  # ES6 imports
         r'export\s+(default|const|function|interface|type)',  # ES6 exports
+        r'function\s+\w+',    # Function declarations
+        r'const\s+\w+',       # Const declarations
+        r'<div|<button|<input|<form',  # JSX/TSX elements
+        r'className=',        # React className (TSX indicator)
+        r'useState|useEffect|useCallback',  # React hooks
     ]
-    
+
     indicator_count = 0
     for pattern in typescript_indicators:
-        if re.search(pattern, code, re.MULTILINE):
+        if re.search(pattern, code, re.MULTILINE | re.IGNORECASE):
             indicator_count += 1
-    
-    # Need at least 2 TypeScript indicators to be confident
-    return indicator_count >= 2
+
+    # Relaxed: Need at least 1 indicator (was 2, too strict)
+    # Most TS/React code will have imports, exports, or arrow functions
+    return indicator_count >= 1
 
 
 def _has_imports_or_exports(code: str) -> bool:
@@ -247,24 +261,24 @@ def _has_imports_or_exports(code: str) -> bool:
 def validate_typescript_file(code: str, filename: str = "unknown") -> Tuple[bool, Optional[str]]:
     """
     Validate TypeScript code for common issues.
-    
+
     Args:
         code: TypeScript code to validate
         filename: Optional filename for better error messages
-    
+
     Returns:
         Tuple of (is_valid, error_message)
     """
     # Check for Python syntax
     if has_python_syntax(code):
         return False, f"{filename}: Contains Python syntax (def, self, class:)"
-    
+
     # Check for TypeScript syntax
     if not has_typescript_syntax(code):
         return False, f"{filename}: Doesn't appear to be TypeScript"
-    
-    # Check minimum length
-    if len(code) < 100:
+
+    # Check minimum length (reduced from 100 to 40 for simple components)
+    if len(code) < 40:
         return False, f"{filename}: Code too short ({len(code)} chars)"
     
     # Check for obvious errors
