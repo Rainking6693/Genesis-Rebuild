@@ -98,8 +98,15 @@ class SupportAgent:
 
         # Initialize OpenEnv for customer issue reproduction
         self.browser_env = EnvRegistry.make("playwright")
-        from infrastructure.llm_client import get_llm_client
-        llm_client = await get_llm_client()
+        # Create LLM client directly (Railway: no local LLM, use cloud APIs)
+        try:
+            from anthropic import Anthropic
+            import os
+            llm_client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+        except Exception as e:
+            logger.warning(f"Could not initialize LLM client for OpenEnv: {e}")
+            llm_client = None
+
         self.env_agent = EnvironmentLearningAgent(
             env=self.browser_env,
             llm_client=llm_client,
