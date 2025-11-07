@@ -285,52 +285,57 @@ class BusinessIdeaGenerator:
             BusinessIdea with high revenue potential
         """
         logger.info(f"Generating business idea (type={business_type or 'any'}, min_score={min_revenue_score})")
-        
+
+        # Initialize to track last attempt
+        last_idea = None
+
         for attempt in range(max_attempts):
             # Step 1: Get market trends
             trends = await self.trend_analyzer.get_trending_categories()
-            
+
             # Step 2: Pick a type (random if not specified)
             if business_type is None:
                 business_type = random.choice(["ecommerce", "saas", "content"])
-            
+
             # Step 3: Generate creative idea using LLM
             idea_data = await self._generate_creative_idea(business_type, trends)
-            
+
             # Step 4: Analyze market competition
             market_data = await self.trend_analyzer.analyze_competition(idea_data["description"])
-            
+
             # Step 5: Score revenue potential
             revenue_score = self.revenue_scorer.score_idea(idea_data, market_data)
-            
+
             # Step 6: Score market trends
             trend_score = self._score_trend_alignment(idea_data, trends)
-            
+
             # Step 7: Score differentiation
             diff_score = self._score_differentiation(idea_data, market_data)
-            
+
             # Step 8: Calculate overall score
             overall_score = (revenue_score * 0.5) + (trend_score * 0.3) + (diff_score * 0.2)
-            
+
             logger.info(f"Attempt {attempt + 1}: '{idea_data['name']}' scored {overall_score:.1f}/100")
-            
+
+            # Create idea object (store as last_idea for fallback)
+            idea = BusinessIdea(
+                **idea_data,
+                revenue_score=revenue_score,
+                market_trend_score=trend_score,
+                differentiation_score=diff_score,
+                overall_score=overall_score,
+                generated_at=datetime.utcnow().isoformat()
+            )
+            last_idea = idea
+
             if overall_score >= min_revenue_score:
                 # Found a good idea!
-                idea = BusinessIdea(
-                    **idea_data,
-                    revenue_score=revenue_score,
-                    market_trend_score=trend_score,
-                    differentiation_score=diff_score,
-                    overall_score=overall_score,
-                    generated_at=datetime.utcnow().isoformat()
-                )
-                
                 logger.info(f"✅ Generated high-quality idea: '{idea.name}' (score={overall_score:.1f})")
                 return idea
-        
-        # All attempts exhausted - return best attempt
+
+        # All attempts exhausted - return last attempt
         logger.warning(f"No ideas scored above {min_revenue_score} in {max_attempts} attempts, returning last")
-        return idea  # Return last idea even if below threshold
+        return last_idea  # Return last idea even if below threshold
     
     async def generate_batch(
         self,
