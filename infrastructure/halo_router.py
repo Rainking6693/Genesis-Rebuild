@@ -278,6 +278,11 @@ class HALORouter:
         elif not HAS_WALTZRL:
             logger.debug("WaltzRL safety wrapper not available - running without safety checks (expected in Railway)")
 
+        # Gemini fallback client cache
+        self._gemini_client = None
+        self._gemini_generate_config_cls = None
+        self._gemini_model = os.getenv("GENESIS_HALO_GEMINI_MODEL", "gemini-2.0-flash")
+
         self.logger = logger
         self.logger.info(
             f"Initialized HALORouter with {len(self.agent_registry)} agents "
@@ -1321,6 +1326,7 @@ class HALORouter:
                             return response
                     except Exception as e:
                         logger.warning(f"Vertex AI base model failed for {agent_name}: {e}")
+<<<<<<< HEAD
 
                 logger.debug(f"No Vertex AI model for {agent_name}, trying Claude/GPT fallback")
 
@@ -1368,6 +1374,57 @@ class HALORouter:
                 logger.error(f"Cloud LLM fallback failed for {agent_name}: {e}")
 
         logger.error(f"All inference options exhausted for {agent_name}")
+=======
+                
+                logger.debug(f"No Vertex AI model for {agent_name}, using local LLM")
+        
+        # Fall back to Gemini (cloud)
+        gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if gemini_api_key:
+            try:
+                if self._gemini_client is None:
+                    from google import genai  # type: ignore
+                    from google.genai import types as genai_types  # type: ignore
+
+                    self._gemini_client = genai.Client(api_key=gemini_api_key)
+                    self._gemini_generate_config_cls = genai_types.GenerateContentConfig
+                    logger.info(
+                        "✅ Gemini fallback enabled (model=%s)",
+                        self._gemini_model,
+                    )
+
+                config = None
+                if self._gemini_generate_config_cls is not None:
+                    try:
+                        config = self._gemini_generate_config_cls(
+                            temperature=kwargs.get('temperature', 0.7),
+                            max_output_tokens=kwargs.get('max_tokens', 2048),
+                        )
+                    except Exception:
+                        config = None
+
+                logger.info(f"🔷 Routing {agent_name} to Gemini (model={self._gemini_model})")
+                gemini_response = self._gemini_client.models.generate_content(
+                    model=self._gemini_model,
+                    contents=prompt,
+                    config=config,
+                )
+
+                text = getattr(gemini_response, "text", None)
+                if not text and getattr(gemini_response, "candidates", None):
+                    try:
+                        text = gemini_response.candidates[0].content.parts[0].text  # type: ignore[attr-defined]
+                    except Exception:
+                        text = None
+
+                if text:
+                    return text
+                raise ValueError("Gemini returned empty response")
+            except Exception as e:
+                logger.warning(f"Gemini fallback failed for {agent_name}: {e}")
+
+        logger.error(f"All inference options exhausted for {agent_name}. No response generated.")
+>>>>>>> d45b9d3f (Route HALO and HGM judge through Gemini-first cloud fallback)
         return None
 
     @classmethod
