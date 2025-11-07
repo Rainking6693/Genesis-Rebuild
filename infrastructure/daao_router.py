@@ -168,7 +168,7 @@ class DAAORouter:
     def _load_available_adapters(self):
         """Scan for available fine-tuned adapters"""
         if not self.adapter_base_dir.exists():
-            logger.info("No adapter directory found, skipping adapter loading")
+            logger.debug("No adapter directory found, skipping adapter loading (expected in Railway)")
             return
 
         for agent_dir in self.adapter_base_dir.iterdir():
