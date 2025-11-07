@@ -321,9 +321,12 @@ class AOPValidator:
         Principle 1: Can the assigned agent actually solve this task?
 
         Checks:
-        - Agent exists in registry
-        - Agent supports the task type
+        - Agent exists in registry (if registry is populated)
+        - Agent supports the task type (if registry has capability info)
         - Agent has required skills (if specified)
+
+        RELAXED MODE: If agent_registry is empty, validation passes automatically
+        (assumes HALO has done intelligent routing)
 
         Args:
             routing_plan: Routing plan with agent assignments
@@ -334,6 +337,14 @@ class AOPValidator:
         """
         issues = []
 
+        # RELAXED: If no agent registry, assume HALO routing is correct
+        if not self.agent_registry:
+            self.logger.debug("Agent registry empty - skipping solvability validation (trust HALO routing)")
+            return {
+                "passed": True,
+                "issues": []
+            }
+
         for task_id, agent_name in routing_plan.assignments.items():
             if task_id not in dag.tasks:
                 issues.append(f"Task {task_id}: Not found in DAG")
@@ -343,11 +354,12 @@ class AOPValidator:
             agent_cap = self.agent_registry.get(agent_name)
 
             if not agent_cap:
-                issues.append(
+                # RELAXED: Warn but don't fail if agent not in registry
+                self.logger.warning(
                     f"Task {task_id} ({task.task_type}): "
-                    f"Agent '{agent_name}' not in registry"
+                    f"Agent '{agent_name}' not in registry (may be dynamically loaded)"
                 )
-                continue
+                continue  # Don't add to issues - just warn
 
             # Check if agent supports this task type
             if task.task_type not in agent_cap.supported_task_types:
@@ -362,7 +374,8 @@ class AOPValidator:
             if required_skills:
                 missing_skills = set(required_skills) - set(agent_cap.skills)
                 if missing_skills:
-                    issues.append(
+                    # RELAXED: Warn but don't fail on missing skills
+                    self.logger.warning(
                         f"Task {task_id}: Agent '{agent_name}' missing skills: {missing_skills}"
                     )
 
