@@ -1,214 +1,269 @@
 """
-Health Check Endpoint for Fine-Tuned Models
+Genesis Health Check Service
+============================
 
-Provides health check endpoint to verify all 5 fine-tuned models are accessible.
+Provides a cloud-native health endpoint for the autonomous Genesis stack.
+
+Checks performed:
+- Environment credentials (Gemini, Claude, Vertex, OpenAI)
+- Recent autonomous activity from business generation logs
+- Prometheus /metrics readiness (if configured)
+- Pending pipeline backlog (businesses started but unfinished)
 """
 
+from __future__ import annotations
+
+import json
 import logging
-import time
-from typing import Dict, List, Optional
+import os
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+from urllib import request, error as urlerror
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 
-logger = logging.getLogger(__name__)
-
-# Try to import ModelRegistry
 try:
-    from infrastructure.model_registry import ModelRegistry
-    MODEL_REGISTRY_AVAILABLE = True
-except ImportError:
-    MODEL_REGISTRY_AVAILABLE = False
-    logger.warning("ModelRegistry not available for health checks")
+    from infrastructure.load_env import load_genesis_env  # type: ignore
+except Exception:  # pragma: no cover - defensive import guard
+    load_genesis_env = None  # type: ignore
+
+logger = logging.getLogger(__name__)
 
 
 class HealthCheckService:
-    """Service for checking health of fine-tuned models"""
-    
-    def __init__(self, model_registry: Optional[ModelRegistry] = None):
-        """
-        Initialize health check service
-        
-        Args:
-            model_registry: Optional ModelRegistry instance (defaults to creating new one)
-        """
-        if not MODEL_REGISTRY_AVAILABLE:
-            raise ImportError("ModelRegistry not available. Install dependencies.")
-        
-        self.model_registry = model_registry
-        if not self.model_registry:
+    """Service for checking overall Genesis system health."""
+
+    REQUIRED_ENV_VARS: Tuple[str, ...] = (
+        "GEMINI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "GOOGLE_APPLICATION_CREDENTIALS_JSON",
+    )
+
+    def __init__(
+        self,
+        events_path: Optional[Path] = None,
+        prometheus_endpoint: Optional[str] = None,
+        recent_activity_window_minutes: int = 10,
+    ) -> None:
+        self.events_path = events_path or Path(
+            "/home/genesis/genesis-rebuild/logs/business_generation/events.jsonl"
+        )
+        self.prometheus_endpoint = (
+            prometheus_endpoint
+            or os.getenv("PROMETHEUS_ENDPOINT")
+            or os.getenv("PROMETHEUS_BASE_URL")
+        )
+        if self.prometheus_endpoint and not self.prometheus_endpoint.endswith("/" ):
+            self.prometheus_endpoint = f"{self.prometheus_endpoint.rstrip('/')}/"
+        self.recent_activity_window = timedelta(minutes=recent_activity_window_minutes)
+
+        if load_genesis_env is not None:
             try:
-                self.model_registry = ModelRegistry()
-            except Exception as e:
-                logger.error(f"Failed to initialize ModelRegistry: {e}")
-                self.model_registry = None
-        
-        self.agents = ["qa_agent", "support_agent", "legal_agent", "analyst_agent", "content_agent"]
-    
-    def check_agent_health(self, agent_name: str, timeout_seconds: float = 5.0) -> Dict[str, any]:
-        """
-        Check health of a specific agent's fine-tuned model
-        
-        Args:
-            agent_name: Name of the agent
-            timeout_seconds: Maximum time to wait for response
-        
-        Returns:
-            Dictionary with health status
-        """
-        if not self.model_registry:
-            return {
-                "agent": agent_name,
-                "status": "ERROR",
-                "message": "ModelRegistry not initialized",
-                "latency_ms": 0.0
-            }
-        
-        start_time = time.time()
-        try:
-            # Send test message
-            test_messages = [
-                {"role": "user", "content": "health check"}
-            ]
-            
-            response = self.model_registry.chat(
-                agent_name=agent_name,
-                messages=test_messages,
-                use_finetuned=True,
-                use_fallback=False  # Don't fallback for health check
-            )
-            
-            latency_ms = (time.time() - start_time) * 1000
-            
-            if latency_ms > timeout_seconds * 1000:
-                return {
-                    "agent": agent_name,
-                    "status": "SLOW",
-                    "message": f"Response time exceeded {timeout_seconds}s",
-                    "latency_ms": latency_ms,
-                    "response_length": len(response) if response else 0
-                }
-            
-            return {
-                "agent": agent_name,
-                "status": "OK",
-                "message": "Model accessible and responding",
-                "latency_ms": latency_ms,
-                "response_length": len(response) if response else 0
-            }
-        
-        except Exception as e:
-            latency_ms = (time.time() - start_time) * 1000
-            return {
-                "agent": agent_name,
-                "status": "ERROR",
-                "message": str(e),
-                "latency_ms": latency_ms
-            }
-    
-    def check_all_agents(self, timeout_seconds: float = 5.0) -> Dict[str, any]:
-        """
-        Check health of all agents
-        
-        Args:
-            timeout_seconds: Maximum time to wait for each response
-        
-        Returns:
-            Dictionary with overall status and per-agent results
-        """
-        results = {}
-        all_ok = True
-        
-        for agent_name in self.agents:
-            result = self.check_agent_health(agent_name, timeout_seconds)
-            results[agent_name] = result
-            
-            if result["status"] != "OK":
-                all_ok = False
-        
-        return {
-            "status": "healthy" if all_ok else "degraded",
-            "agents": results,
-            "timestamp": time.time()
+                load_genesis_env()
+            except Exception as exc:  # pragma: no cover - log and continue
+                logger.warning("Failed to eagerly load Genesis environment: %s", exc)
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+    def check_all(self) -> Dict[str, object]:
+        """Run all checks and return structured payload."""
+        env_status = self._check_environment()
+        activity_status = self._check_recent_activity()
+        prometheus_status = self._check_prometheus()
+        backlog_status = self._check_backlog()
+
+        checks = {
+            "environment": env_status,
+            "recent_activity": activity_status,
+            "prometheus": prometheus_status,
+            "backlog": backlog_status,
         }
 
+        status_priority = {"ok": 0, "warn": 1, "error": 2}
+        worst_status = max(checks.values(), key=lambda c: status_priority[c["status"]])
+        overall = worst_status["status"]
 
-# FastAPI app for health check endpoint
-app = FastAPI(title="Genesis Model Health Check")
+        return {
+            "status": overall,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "checks": checks,
+        }
 
-# Global health check service (will be initialized on startup)
+    # ------------------------------------------------------------------
+    # Individual checks
+    # ------------------------------------------------------------------
+    def _check_environment(self) -> Dict[str, object]:
+        missing: List[str] = []
+        for key in self.REQUIRED_ENV_VARS:
+            value = os.getenv(key)
+            if not value:
+                missing.append(key)
+        status = "ok" if not missing else "warn"
+        return {
+            "status": status,
+            "missing": missing,
+        }
+
+    def _check_recent_activity(self) -> Dict[str, object]:
+        events = self._load_events()
+        if not events:
+            return {
+                "status": "warn",
+                "message": "No events recorded yet",
+                "latest_event": None,
+                "businesses_completed_24h": 0,
+                "components_completed_24h": 0,
+            }
+
+        latest_event_time = max(event["timestamp"] for event in events)
+        now = datetime.utcnow()
+        time_since_last = now - latest_event_time
+        status = "ok" if time_since_last <= self.recent_activity_window else "warn"
+
+        completed_businesses = sum(
+            1
+            for event in events
+            if event["event_type"] == "business_completed" and event.get("data", {}).get("success")
+        )
+        component_completions = sum(
+            1 for event in events if event["event_type"] == "component_completed"
+        )
+
+        return {
+            "status": status,
+            "latest_event": latest_event_time.isoformat() + "Z",
+            "minutes_since_last_event": round(time_since_last.total_seconds() / 60, 2),
+            "businesses_completed_24h": completed_businesses,
+            "components_completed_24h": component_completions,
+        }
+
+    def _check_prometheus(self) -> Dict[str, object]:
+        if not self.prometheus_endpoint:
+            return {
+                "status": "warn",
+                "message": "PROMETHEUS_ENDPOINT not configured",
+            }
+
+        url = f"{self.prometheus_endpoint}-/ready"
+        try:
+            with request.urlopen(url, timeout=3) as resp:
+                healthy = resp.status == 200
+        except urlerror.URLError as exc:  # pragma: no cover - network failures
+            logger.warning("Prometheus readiness probe failed: %s", exc)
+            return {
+                "status": "warn",
+                "message": f"Prometheus probe failed: {exc}"[:200],
+            }
+
+        return {
+            "status": "ok" if healthy else "warn",
+            "message": "Prometheus ready" if healthy else "Prometheus not ready",
+        }
+
+    def _check_backlog(self) -> Dict[str, object]:
+        events = self._load_events()
+        active: Dict[str, datetime] = {}
+        completed: set[str] = set()
+
+        for event in events:
+            data = event.get("data", {})
+            business_id = data.get("business_id")
+            if not business_id:
+                continue
+
+            if event["event_type"] == "business_started":
+                active[business_id] = event["timestamp"]
+            elif event["event_type"] == "business_completed":
+                completed.add(business_id)
+                active.pop(business_id, None)
+
+        oldest_active_minutes: Optional[float] = None
+        if active:
+            oldest_start = min(active.values())
+            oldest_active_minutes = round(
+                (datetime.utcnow() - oldest_start).total_seconds() / 60, 2
+            )
+
+        status = "ok" if not active else "warn"
+        return {
+            "status": status,
+            "active_businesses": len(active),
+            "oldest_active_minutes": oldest_active_minutes,
+            "completed_24h": len(completed),
+        }
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+    def _load_events(self) -> List[Dict[str, object]]:
+        if not self.events_path.exists():
+            return []
+
+        events: List[Dict[str, object]] = []
+        cutoff = datetime.utcnow() - timedelta(hours=24)
+
+        try:
+            with self.events_path.open("r") as handle:
+                for line in handle:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        payload = json.loads(line)
+                        timestamp_str = payload.get("timestamp")
+                        if not timestamp_str:
+                            continue
+                        timestamp = datetime.fromisoformat(timestamp_str)
+                        if timestamp < cutoff:
+                            continue
+                        payload["timestamp"] = timestamp
+                        events.append(payload)
+                    except json.JSONDecodeError:
+                        logger.debug("Skipping malformed event line: %s", line[:128])
+        except OSError as exc:  # pragma: no cover - file read errors
+            logger.warning("Unable to read events log: %s", exc)
+
+        return events
+
+
+# FastAPI application ---------------------------------------------------
+app = FastAPI(title="Genesis Health Check")
 health_service: Optional[HealthCheckService] = None
 
 
 @app.on_event("startup")
-async def startup_event():
-    """Initialize health check service on startup"""
+async def startup_event() -> None:
     global health_service
-    try:
-        health_service = HealthCheckService()
-        logger.info("Health check service initialized")
-    except Exception as e:
-        logger.error(f"Failed to initialize health check service: {e}")
-        health_service = None
+    health_service = HealthCheckService()
+    logger.info("Genesis health check service initialized")
 
 
 @app.get("/health")
-async def health_check():
-    """
-    Health check endpoint for all fine-tuned models
-    
-    Returns:
-        JSON response with health status of all agents
-    """
+async def health_check() -> JSONResponse:
     if not health_service:
-        raise HTTPException(
-            status_code=503,
-            detail="Health check service not available"
-        )
-    
-    result = health_service.check_all_agents()
-    
-    status_code = 200 if result["status"] == "healthy" else 503
-    
-    return JSONResponse(
-        content=result,
-        status_code=status_code
-    )
+        raise HTTPException(status_code=503, detail="Health service unavailable")
+
+    result = health_service.check_all()
+    status_code = 200 if result["status"] == "ok" else 503
+    return JSONResponse(content=result, status_code=status_code)
 
 
-@app.get("/health/{agent_name}")
-async def health_check_agent(agent_name: str):
-    """
-    Health check endpoint for a specific agent
-    
-    Args:
-        agent_name: Name of the agent to check
-    
-    Returns:
-        JSON response with health status of the agent
-    """
+@app.get("/ready")
+async def readiness_check() -> JSONResponse:
     if not health_service:
-        raise HTTPException(
-            status_code=503,
-            detail="Health check service not available"
-        )
-    
-    if agent_name not in health_service.agents:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Unknown agent: {agent_name}"
-        )
-    
-    result = health_service.check_agent_health(agent_name)
-    
-    status_code = 200 if result["status"] == "OK" else 503
-    
-    return JSONResponse(
-        content=result,
-        status_code=status_code
-    )
+        raise HTTPException(status_code=503, detail="Health service unavailable")
+
+    result = health_service.check_all()
+    status_code = 200 if result["status"] == "ok" else 503
+    return JSONResponse(content=result, status_code=status_code)
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("HEALTH_PORT", "8080")))
 

@@ -1,193 +1,291 @@
 """
-Real-time data source for Genesis Dashboard
-Reads from actual Genesis logs and files instead of Prometheus
+Real-time data source for the Genesis dashboard.
+
+Rather than returning seeded demo values, this module reads directly from the
+business generation event log and infrastructure logs to derive accurate
+statistics for the dashboard.
 """
+from __future__ import annotations
+
 import json
 import os
+from collections import defaultdict
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
-from datetime import datetime
-import subprocess
+from typing import Dict, Iterable, List, Optional
 
-# Paths
 WORKSPACE_ROOT = Path("/home/genesis/genesis-rebuild")
-LOG_FILE = Path("/tmp/genesis_final.log")
-GENERATED_BUSINESSES_DIR = WORKSPACE_ROOT / "generated_businesses"
+EVENTS_LOG = WORKSPACE_ROOT / "logs/business_generation/events.jsonl"
+INFRA_LOG = WORKSPACE_ROOT / "logs/infrastructure.log"
 
-def query_prom(query, default=0):
-    """
-    Replace Prometheus queries with real Genesis data
-    Maps Prometheus query patterns to actual Genesis metrics
-    """
-    
-    # Check if Genesis is running
+# Default values used when a metric cannot be computed yet
+DEFAULT_REVENUE_PER_BUSINESS = 0.0
+DEFAULT_COST_PER_COMPONENT = 0.0
+
+
+@dataclass
+class ComponentRecord:
+    business_id: str
+    component: str
+    agent: Optional[str]
+    started_at: datetime
+
+
+def _load_events(hours: float) -> List[Dict[str, object]]:
+    """Return events within the provided time window (hours)."""
+    if not EVENTS_LOG.exists():
+        return []
+
+    cutoff = datetime.utcnow() - timedelta(hours=hours)
+    events: List[Dict[str, object]] = []
+
+    with EVENTS_LOG.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                payload = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            timestamp_str = payload.get("timestamp")
+            if not timestamp_str:
+                continue
+            try:
+                timestamp = datetime.fromisoformat(timestamp_str)
+            except ValueError:
+                continue
+
+            if timestamp < cutoff:
+                continue
+
+            payload["timestamp"] = timestamp
+            events.append(payload)
+
+    return events
+
+
+def _load_recent_infra_logs(lines: int = 200) -> List[str]:
+    if not INFRA_LOG.exists():
+        return []
+
     try:
-        result = subprocess.run(
-            ["pgrep", "-f", "autonomous_fully_integrated"],
-            capture_output=True,
-            text=True
-        )
-        is_running = result.returncode == 0
-    except:
-        is_running = False
-    
-    # Parse log file for metrics
-    metrics = parse_log_metrics()
-    businesses = get_generated_businesses()
-    
-    # Map queries to real data
+        log_lines = INFRA_LOG.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return []
+
+    if lines <= 0 or len(log_lines) <= lines:
+        return log_lines
+    return log_lines[-lines:]
+
+
+def _bucket_events(events: Iterable[Dict[str, object]], bucket_minutes: int = 60) -> Dict[str, int]:
+    buckets: Dict[str, int] = defaultdict(int)
+    for event in events:
+        if event.get("event_type") != "component_completed":
+            continue
+        timestamp = event.get("timestamp")
+        if not isinstance(timestamp, datetime):
+            continue
+        rounded = timestamp.replace(minute=0, second=0, microsecond=0)
+        if bucket_minutes != 60:
+            minute = (timestamp.minute // bucket_minutes) * bucket_minutes
+            rounded = timestamp.replace(minute=minute, second=0, microsecond=0)
+        buckets[rounded.isoformat() + "Z"] += 1
+    return dict(sorted(buckets.items()))
+
+
+def _agent_success(events: Iterable[Dict[str, object]]) -> Dict[str, Dict[str, float]]:
+    active: Dict[tuple, ComponentRecord] = {}
+    stats: Dict[str, Dict[str, float]] = defaultdict(
+        lambda: {"completed": 0.0, "failed": 0.0, "total_duration": 0.0}
+    )
+
+    for event in events:
+        event_type = event.get("event_type")
+        data = event.get("data", {})
+        business_id = data.get("business_id")
+        component = data.get("component")
+        agent = data.get("agent")
+
+        if not business_id or not component:
+            continue
+
+        key = (business_id, component)
+
+        if event_type == "component_started":
+            started_at = event["timestamp"] if isinstance(event.get("timestamp"), datetime) else datetime.utcnow()
+            active[key] = ComponentRecord(
+                business_id=business_id,
+                component=component,
+                agent=agent,
+                started_at=started_at,
+            )
+        elif event_type == "component_completed":
+            record = active.pop(key, None)
+            agent_id = agent or (record.agent if record else None)
+            if agent_id:
+                stats[agent_id]["completed"] += 1
+                if record and isinstance(event.get("timestamp"), datetime):
+                    duration = (event["timestamp"] - record.started_at).total_seconds()
+                    stats[agent_id]["total_duration"] += max(duration, 0.0)
+        elif event_type == "component_failed":  # optional future event type
+            record = active.pop(key, None)
+            agent_id = agent or (record.agent if record else None)
+            if agent_id:
+                stats[agent_id]["failed"] += 1
+
+    return stats
+
+
+def parse_log_metrics(time_window: str = "24h") -> Dict[str, object]:
+    """Compute metrics for the requested Prometheus-style query window."""
+    hours = _time_range_to_hours(time_window)
+    events = _load_events(hours)
+
+    businesses_started: Dict[str, datetime] = {}
+    businesses_completed: Dict[str, Dict[str, object]] = {}
+    components_completed = 0
+
+    for event in events:
+        event_type = event.get("event_type")
+        data = event.get("data", {})
+        business_id = data.get("business_id")
+        if event_type == "business_started" and business_id:
+            businesses_started[business_id] = event["timestamp"]
+        elif event_type == "business_completed" and business_id:
+            businesses_completed[business_id] = {
+                "success": data.get("success", False),
+                "duration": data.get("duration"),
+            }
+        elif event_type == "component_completed":
+            components_completed += 1
+
+    total_businesses = len(businesses_started)
+    successful_businesses = sum(1 for entry in businesses_completed.values() if entry.get("success"))
+    success_rate = (
+        successful_businesses / total_businesses if total_businesses > 0 else 0.0
+    )
+
+    agent_stats = _agent_success(events)
+
+    return {
+        "events": events,
+        "businesses_started": businesses_started,
+        "businesses_completed": businesses_completed,
+        "components_completed": components_completed,
+        "success_rate": success_rate,
+        "agent_stats": agent_stats,
+        "tasks_time_series": _bucket_events(events),
+        "infra_logs": _load_recent_infra_logs(),
+        "errors": [line for line in _load_recent_infra_logs() if "ERROR" in line],
+    }
+
+
+def get_generated_businesses(limit: Optional[int] = None) -> List[Dict[str, object]]:
+    businesses: List[Dict[str, object]] = []
+    businesses_dir = WORKSPACE_ROOT / "businesses"
+    if not businesses_dir.exists():
+        return businesses
+
+    for path in sorted(businesses_dir.glob("*"), key=lambda p: p.stat().st_mtime, reverse=True):
+        if not path.is_dir():
+            continue
+        entry = {
+            "name": path.name,
+            "path": str(path),
+            "created": datetime.fromtimestamp(path.stat().st_mtime),
+        }
+        businesses.append(entry)
+        if limit and len(businesses) >= limit:
+            break
+    return businesses
+
+
+def query_prom(query: str, default: float = 0.0, time_window: str = "24h") -> float:
+    metrics = parse_log_metrics(time_window)
+    businesses_completed = metrics["businesses_completed"]
+    components_completed = metrics["components_completed"]
+
     if "genesis_revenue_total" in query:
-        # Estimate revenue from completed businesses
-        return len(businesses) * 150  # $150 per business average
-    
-    elif "genesis_operating_cost_total" in query:
-        # Estimate costs from API usage
-        return metrics.get("total_api_calls", 0) * 0.01  # ~$0.01 per API call
-    
-    elif "genesis_active_businesses" in query:
-        return len(businesses)
-    
-    elif "genesis_tasks_total" in query and "completed" in query:
-        return metrics.get("tasks_completed", 0)
-    
-    elif "genesis_task_success_rate" in query:
-        total = metrics.get("total_tasks", 1)
-        success = metrics.get("tasks_completed", 0)
-        return success / total if total > 0 else 0.94
-    
-    elif "genesis_human_interventions_total" in query:
-        return metrics.get("errors", 0)
-    
-    elif "genesis_agent_success_rate" in query:
-        return 0.92 + (hash(query) % 10) / 100
-    
-    elif "genesis_htdag_decomposition_duration_seconds" in query:
-        return 0.127
-    
-    elif "genesis_halo_routing_duration_seconds" in query:
-        return 0.110
-    
-    elif "genesis_aop_quality_score" in query:
-        return 8.6
-    
-    elif "process_start_time_seconds" in query:
-        # System uptime
-        import time
-        return time.time() - (7.5 * 86400)  # 7.5 days ago
-    
-    # Default fallback
+        return len(businesses_completed) * DEFAULT_REVENUE_PER_BUSINESS
+    if "genesis_operating_cost_total" in query:
+        return components_completed * DEFAULT_COST_PER_COMPONENT
+    if "genesis_active_businesses" in query:
+        return len(metrics["businesses_started"]) - len(businesses_completed)
+    if "genesis_tasks_total" in query and "completed" in query:
+        return float(components_completed)
+    if "genesis_task_success_rate" in query:
+        return metrics["success_rate"]
+    if "genesis_human_interventions_total" in query:
+        return float(len(metrics["errors"]))
+    if "genesis_agent_success_rate" in query:
+        agent_name = _extract_label_value(query, "agent_name")
+        agent_stats = metrics["agent_stats"].get(
+            agent_name or "", {"completed": 0.0, "failed": 0.0, "total_duration": 0.0}
+        )
+        total = agent_stats["completed"] + agent_stats["failed"]
+        if total == 0:
+            return default or 0.0
+        return agent_stats["completed"] / total
+    if "process_start_time_seconds" in query:
+        # Approximate uptime as current time minus earliest business start
+        if metrics["businesses_started"]:
+            earliest = min(metrics["businesses_started"].values())
+            return earliest.timestamp()
+        return datetime.utcnow().timestamp()
+
     return default
 
 
-def parse_log_metrics():
-    """Parse Genesis log file for real metrics"""
-    if not LOG_FILE.exists():
-        return {}
-    
-    metrics = {
-        "total_api_calls": 0,
-        "tasks_completed": 0,
-        "total_tasks": 0,
-        "errors": 0,
-        "current_business": None,
-        "current_idea": None,
-        "recent_activities": [],
-        "agent_metrics": {},
-        "htdag_decompositions": 0,
-        "halo_routings": 0,
-        "quality_scores": []
+def get_real_metrics(time_window: str = "24h") -> Dict[str, object]:
+    metrics = parse_log_metrics(time_window)
+    businesses = get_generated_businesses()
+
+    last_event = None
+    if metrics["events"]:
+        last_event = max(metrics["events"], key=lambda e: e["timestamp"])
+
+    return {
+        "time_window": time_window,
+        "business_count": len(metrics["businesses_completed"]),
+        "active_businesses": len(metrics["businesses_started"]) - len(metrics["businesses_completed"]),
+        "components_completed": metrics["components_completed"],
+        "success_rate": metrics["success_rate"],
+        "agent_stats": metrics["agent_stats"],
+        "tasks_time_series": metrics["tasks_time_series"],
+        "businesses": businesses,
+        "last_event": last_event,
+        "infra_errors": metrics["errors"],
     }
-    
+
+
+def _time_range_to_hours(time_window: str) -> float:
+    time_window = time_window.lower().strip()
+    if time_window.endswith("m"):
+        return float(time_window[:-1]) / 60.0
+    if time_window.endswith("h"):
+        return float(time_window[:-1])
+    if time_window.endswith("d"):
+        return float(time_window[:-1]) * 24
+    if time_window.endswith("w"):
+        return float(time_window[:-1]) * 24 * 7
+    # default 24 hours
+    return 24.0
+
+
+def _extract_label_value(query: str, label: str) -> Optional[str]:
+    if label not in query or "{" not in query:
+        return None
     try:
-        with open(LOG_FILE, 'r') as f:
-            lines = f.readlines()
-        
-        # Get last 200 lines for performance
-        recent_lines = lines[-200:] if len(lines) > 200 else lines
-        
-        for line in recent_lines:
-            # Track activities for live feed
-            if any(word in line for word in ["INFO:", "Building", "Generating", "Selected", "Routing", "SUCCESS", "ERROR"]):
-                metrics["recent_activities"].append({
-                    "time": line[:23] if len(line) > 23 else "",
-                    "message": line[24:].strip() if len(line) > 24 else line.strip()
-                })
-            
-            # API calls
-            if "HTTP Request: POST" in line:
-                metrics["total_api_calls"] += 1
-            
-            # Task completion
-            if "SUCCESS" in line.upper() or "completed" in line.lower():
-                metrics["tasks_completed"] += 1
-            
-            # Current business
-            if "BUSINESS #" in line:
-                parts = line.split("BUSINESS #")
-                if len(parts) > 1:
-                    metrics["current_business"] = parts[1].split("/")[0].strip()
-            
-            # Current idea
-            if "Generated high-quality idea:" in line:
-                parts = line.split("'")
-                if len(parts) > 1:
-                    metrics["current_idea"] = parts[1]
-            
-            # Errors
-            if "ERROR" in line or "FAILED" in line:
-                metrics["errors"] += 1
-            
-            # Tasks
-            if "Tasks:" in line or "subtasks" in line:
-                metrics["total_tasks"] += 5
-            
-            # HTDAG decompositions
-            if "Decomposing task:" in line or "HTDAG" in line:
-                metrics["htdag_decompositions"] += 1
-            
-            # HALO routing
-            if "Routing" in line and "agent" in line:
-                metrics["halo_routings"] += 1
-                # Extract agent name
-                for agent in ["builder_agent", "qa_agent", "deploy_agent", "architect_agent"]:
-                    if agent in line:
-                        if agent not in metrics["agent_metrics"]:
-                            metrics["agent_metrics"][agent] = {"routed": 0, "success": 0}
-                        metrics["agent_metrics"][agent]["routed"] += 1
-            
-            # Quality scores
-            if "Quality score:" in line or "quality" in line.lower():
-                try:
-                    import re
-                    scores = re.findall(r'(\d+\.?\d*)', line)
-                    if scores:
-                        score = float(scores[0])
-                        if 0 <= score <= 10:
-                            metrics["quality_scores"].append(score)
-                except:
-                    pass
-        
-        # Keep only last 50 activities
-        metrics["recent_activities"] = metrics["recent_activities"][-50:]
-    
-    except Exception as e:
-        print(f"Error parsing log: {e}")
-    
-    return metrics
-
-
-def get_generated_businesses():
-    """Get list of generated businesses"""
-    if not GENERATED_BUSINESSES_DIR.exists():
-        return []
-    
-    businesses = []
-    for business_dir in sorted(GENERATED_BUSINESSES_DIR.glob("*"), reverse=True):
-        if business_dir.is_dir():
-            businesses.append({
-                "name": business_dir.name,
-                "path": str(business_dir),
-                "created": datetime.fromtimestamp(business_dir.stat().st_mtime)
-            })
-    
-    return businesses
+        label_section = query.split("{", 1)[1].split("}", 1)[0]
+        for part in label_section.split(","):
+            key, _, value = part.partition("=")
+            if key.strip() == label:
+                return value.strip('"')
+    except Exception:
+        return None
+    return None
 
