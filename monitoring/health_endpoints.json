@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Genesis Health",
+    "url": "https://your-domain.example.com/health",
+    "interval": 300
+  },
+  {
+    "name": "Genesis Readiness",
+    "url": "https://your-domain.example.com/ready",
+    "interval": 300
+  },
+  {
+    "name": "A2A Connector",
+    "url": "https://your-domain.example.com/a2a/health",
+    "interval": 300
+  }
+]

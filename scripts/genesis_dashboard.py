@@ -4,7 +4,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
-from prometheus_api_client import PrometheusConnect
 import time
 
 # ==================== PAGE CONFIG ====================
@@ -73,9 +72,9 @@ sys.path.insert(0, '/home/genesis/genesis-rebuild/scripts')
 from genesis_data_source import query_prom as get_real_data
 from genesis_dashboard_enhanced import render_live_activity_feed, get_real_metrics
 
-def query_prom(query, default=0):
-    """Query real Genesis data instead of Prometheus"""
-    return get_real_data(query, default)
+def query_prom(query, default=0, time_window="24h"):
+    """Query Genesis metrics computed from logs for compatibility."""
+    return get_real_data(query, default, time_window=time_window)
 
 def format_time(seconds):
     """Format seconds to human readable"""
@@ -155,7 +154,13 @@ with st.sidebar:
         st.error("❌ Cannot check status")
     
     # Quick stats
-    uptime_days = query_prom('(time() - process_start_time_seconds{job="genesis-metrics"})/86400', default=7.5)
+    metrics_snapshot = get_real_metrics(time_window=time_range)
+
+    uptime_days = query_prom(
+        '(time() - process_start_time_seconds{job="genesis-metrics"})/86400',
+        default=0,
+        time_window=time_range,
+    )
     st.metric("System Uptime", f"{uptime_days:.1f} days")
     
     last_update = datetime.now().strftime("%I:%M:%S %p")
@@ -170,72 +175,55 @@ if "Executive Overview" in page:
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        revenue_24h = query_prom('increase(genesis_revenue_total[24h])', default=1247)
-        revenue_change = query_prom('(increase(genesis_revenue_total[24h]) - increase(genesis_revenue_total[24h] offset 24h)) / increase(genesis_revenue_total[24h] offset 24h) * 100', default=23)
-        st.metric(
-            "💰 Revenue (24h)",
-            f"${revenue_24h:,.0f}",
-            f"{revenue_change:+.0f}%",
-            delta_color="normal"
+        revenue_24h = query_prom(
+            f'increase(genesis_revenue_total[{time_range}])',
+            default=0,
+            time_window=time_range,
         )
-    
+        st.metric("💰 Revenue", f"${revenue_24h:,.0f}")
+
     with col2:
-        operating_cost_24h = query_prom('increase(genesis_operating_cost_total[24h])', default=42)
-        cost_reduction = -88  # vs $500 baseline
-        st.metric(
-            "💵 Operating Cost",
-            f"${operating_cost_24h:.0f}",
-            f"{cost_reduction}%",
-            delta_color="inverse"
+        operating_cost_24h = query_prom(
+            f'increase(genesis_operating_cost_total[{time_range}])',
+            default=0,
+            time_window=time_range,
         )
-    
+        st.metric("💵 Operating Cost", f"${operating_cost_24h:.0f}")
+
     with col3:
         net_profit_24h = revenue_24h - operating_cost_24h
-        profit_change = 45
-        st.metric(
-            "📊 Net Profit",
-            f"${net_profit_24h:,.0f}",
-            f"+{profit_change}%",
-            delta_color="normal"
-        )
-    
+        st.metric("📊 Net Profit", f"${net_profit_24h:,.0f}")
+
     with col4:
-        active_businesses = query_prom('genesis_active_businesses', default=12)
+        active_businesses = metrics_snapshot["active_businesses"]
         st.metric(
             "🤖 Active Businesses",
-            f"{int(active_businesses)} / 15",
-            f"{int(active_businesses/15*100)}%"
+            f"{int(active_businesses)}",
+            None,
         )
     
     # ========== SECOND METRICS ROW ==========
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        tasks_completed = query_prom('increase(genesis_tasks_total{status="completed"}[24h])', default=347)
-        tasks_change = 12
+        tasks_completed = metrics_snapshot["components_completed"]
         st.metric(
-            "✅ Tasks Completed (24h)",
+            "✅ Components Completed",
             f"{int(tasks_completed):,}",
-            f"+{tasks_change}%"
         )
     
     with col2:
-        success_rate = query_prom('genesis_task_success_rate', default=0.942)
-        success_change = 1.3
+        success_rate = metrics_snapshot["success_rate"]
         st.metric(
             "⚡ Success Rate",
             f"{success_rate*100:.1f}%",
-            f"+{success_change}%"
         )
     
     with col3:
-        human_interventions = query_prom('increase(genesis_human_interventions_total[24h])', default=3)
-        intervention_change = -67
+        human_interventions = len(metrics_snapshot["infra_errors"])
         st.metric(
-            "👥 Human Interventions",
-            f"{int(human_interventions)}",
-            f"{intervention_change}%",
-            delta_color="inverse"
+            "👥 Infra Errors (24h)",
+            f"{human_interventions}",
         )
     
     st.markdown("---")
@@ -246,14 +234,18 @@ if "Executive Overview" in page:
     with col1:
         st.markdown("### 📈 Tasks Completed Over Time")
         
-        # Generate hourly data for last 24 hours
-        hours = list(range(24))
-        tasks_per_hour = [12, 15, 18, 14, 16, 20, 22, 19, 17, 21, 23, 25, 24, 26, 28, 30, 27, 29, 31, 28, 26, 24, 20, 18]
-        
+        series = metrics_snapshot["tasks_time_series"]
+        if series:
+            x = list(series.keys())
+            y = list(series.values())
+        else:
+            x = []
+            y = []
+
         fig = px.area(
-            x=hours,
-            y=tasks_per_hour,
-            labels={'x': 'Hour', 'y': 'Tasks Completed'},
+            x=x,
+            y=y,
+            labels={'x': 'Time', 'y': 'Components Completed'},
         )
         fig.update_traces(line_color='#667eea', fillcolor='rgba(102, 126, 234, 0.3)')
         fig.update_layout(
@@ -266,9 +258,16 @@ if "Executive Overview" in page:
     with col2:
         st.markdown("### 🎯 Success Rate by Agent Type")
         
-        agent_types = ['Legal', 'Marketing', 'Support', 'Builder', 'QA']
-        success_rates = [98.5, 91.2, 96.8, 93.7, 89.3]
-        
+        agent_stats = metrics_snapshot["agent_stats"]
+        agent_types = []
+        success_rates = []
+        for agent, stats in agent_stats.items():
+            total = stats["completed"] + stats["failed"]
+            if total == 0:
+                continue
+            agent_types.append(agent)
+            success_rates.append(stats["completed"] / total * 100)
+
         fig = px.bar(
             x=agent_types,
             y=success_rates,
@@ -349,29 +348,27 @@ elif "Agent Performance" in page:
     
     st.markdown("### 📊 All Agents Overview")
     
-    # Define all 15 agents
-    agents = [
-        'Legal', 'Marketing', 'Support', 'QA', 'Builder', 
-        'Deploy', 'Analyst', 'Security', 'Finance', 'Design',
-        'Content', 'Research', 'Operations', 'Sales', 'HR'
-    ]
-    
+    agent_totals = {
+        agent: stats["completed"] + stats["failed"]
+        for agent, stats in metrics_snapshot["agent_stats"].items()
+    }
+    peak_load = max(agent_totals.values(), default=1)
+
     agent_data = []
-    for agent in agents:
-        # Query metrics (with realistic defaults)
-        success_rate = query_prom(f'genesis_agent_success_rate{{agent_name="{agent}"}}', default=0.92 + (hash(agent) % 10) / 100)
-        avg_time_sec = query_prom(f'avg(genesis_agent_execution_duration_seconds{{agent_name="{agent}"}}) by (agent_name)', default=2.5 + (hash(agent) % 300) / 100)
-        cost = query_prom(f'avg(genesis_agent_execution_cost_dollars{{agent_name="{agent}"}}) by (agent_name)', default=0.3 + (hash(agent) % 150) / 100)
-        quality = query_prom(f'avg(genesis_agent_quality_score{{agent_name="{agent}"}}) by (agent_name)', default=8.5 + (hash(agent) % 15) / 10)
-        load = query_prom(f'genesis_agent_current_load{{agent_name="{agent}"}}', default=(hash(agent) % 80))
-        
+    for agent, stats in metrics_snapshot["agent_stats"].items():
+        total = stats["completed"] + stats["failed"]
+        success_rate = stats["completed"] / total if total else 0.0
+        avg_duration = (
+            stats["total_duration"] / stats["completed"] if stats["completed"] else 0.0
+        )
+        load_percentage = (total / peak_load) * 100 if peak_load else 0
         agent_data.append({
             "Agent": agent,
             "Success": f"{success_rate*100:.1f}%",
-            "Avg Time": format_time(avg_time_sec * 60),  # Convert to minutes
-            "Cost": f"${cost:.2f}",
-            "Quality": f"{quality:.1f}/10",
-            "Load": create_load_bar(load)
+            "Avg Time": format_time(avg_duration),
+            "Cost": "$0.00",
+            "Quality": "N/A",
+            "Load": create_load_bar(load_percentage),
         })
     
     df = pd.DataFrame(agent_data)
@@ -395,18 +392,20 @@ elif "Agent Performance" in page:
     # ========== AGENT DETAIL VIEW ==========
     st.markdown("### 🔍 Agent Deep Dive")
     
+    agents = [entry["Agent"] for entry in agent_data] or ["builder_agent"]
     selected_agent = st.selectbox("Select Agent", agents, index=0)
     
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("Success Rate", "98.5%", "+1.2%")
+        st.metric("✅ Success Rate", f"{agent_success_rate*100:.1f}%")
     with col2:
-        st.metric("Avg Latency", "2.3m", "-0.4m")
+        st.metric("⏱️ Avg Execution Time", format_time(agent_avg_time))
     with col3:
-        st.metric("Avg Cost", "$0.45", "-$0.05")
+        st.metric("💰 Avg Cost", f"${agent_cost:.2f}")
     with col4:
-        st.metric("Quality Score", "9.1/10", "+0.3")
+        quality_display = f"{agent_quality:.1f}/10" if agent_quality else "N/A"
+        st.metric("Quality Score", quality_display, None)
     
     # Performance over time
     st.markdown(f"#### {selected_agent} Agent - Performance Timeline")
