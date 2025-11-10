@@ -22,7 +22,7 @@ import argparse
 import logging
 import os
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 import json
 
@@ -178,7 +178,7 @@ class FullyIntegratedLoop:
         
         Uses all orchestration, evolution, memory, and advanced systems.
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         
         # STEP 1: Generate Idea (with market analysis)
         logger.info("🧠 STEP 1: Generating business idea...")
@@ -207,11 +207,22 @@ class FullyIntegratedLoop:
         
         # STEP 6: Execute with Memory (CaseBank + Memento)
         logger.info("🔨 STEP 6: Building business (with memory)...")
+        components = []
+        if task_dag:
+            seen = set()
+            for task_id, task in task_dag.tasks.items():
+                if task_id == "root":
+                    continue
+                name = task.description.replace("Build ", "").strip()
+                if name and name not in seen:
+                    components.append(name)
+                    seen.add(name)
+
         spec = BusinessSpec(
             name=idea.name,
             business_type=idea.business_type,
             description=idea.description,
-            components=[],
+            components=components,
             output_dir=Path(f"businesses/fully_integrated/{idea.business_type}/{self._sanitize_name(idea.name)}")
         )
         
@@ -237,7 +248,7 @@ class FullyIntegratedLoop:
             if hgm_score.recommendations:
                 logger.info(f"   Recommendations: {hgm_score.recommendations[0]}")
 
-        duration = (datetime.utcnow() - start_time).total_seconds()
+        duration = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         return {
             "idea": idea.to_dict(),
@@ -339,7 +350,7 @@ Monetization: {idea.monetization_model}
         """Learn from result using TrajectoryPool."""
         # Create trajectory
         trajectory = Trajectory(
-            trajectory_id=f"{idea.name}_{datetime.utcnow().timestamp()}",
+            trajectory_id=f"{idea.name}_{datetime.now(timezone.utc).timestamp()}",
             generation=self.trajectory_pool.size() + 1,
             agent_name="builder_agent",
             code_changes=f"Generated {result.tasks_completed} components",
@@ -440,4 +451,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

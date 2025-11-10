@@ -7,15 +7,18 @@ load_genesis_env()
 import asyncio
 import logging
 import json
+import os
+import re
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field
 
 from infrastructure.halo_router import HALORouter
 from infrastructure.local_llm_client import get_local_llm_client
 from infrastructure.task_dag import TaskDAG, Task
+from infrastructure.component_library import COMPONENT_LIBRARY
 
 # Try to import prompts, provide fallbacks if not available
 try:
@@ -42,6 +45,13 @@ Generate the complete component code:"""
 
 from infrastructure.code_extractor import extract_and_validate
 from infrastructure.business_monitor import get_monitor
+
+try:
+    from agents.reflection_agent import get_reflection_agent  # type: ignore
+    HAS_REFLECTION_AGENT = True
+except ImportError:  # pragma: no cover
+    HAS_REFLECTION_AGENT = False
+    get_reflection_agent = None
 
 # Modular Prompts Integration (arXiv:2510.26493 - Context Engineering 2.0)
 try:
@@ -79,6 +89,86 @@ class BusinessGenerationResult:
     errors: List[str] = field(default_factory=list)
     metrics: Dict[str, Any] = field(default_factory=dict)
 
+COMPONENT_CATEGORY_AGENT_MAP = {
+    "marketing": "marketing_agent",
+    "content": "content_agent",
+    "payment": "billing_agent",
+    "support": "support_agent",
+    "analytics": "analyst_agent",
+    "security": "security_agent",
+    "documentation": "content_agent",
+    "devops": "deploy_agent",
+    "agent_infrastructure": "monitoring_agent",
+    "advanced": "qa_agent",
+    "saas": "backend_agent",
+    "commerce": "frontend_agent",
+}
+
+COMPONENT_KEYWORD_AGENT_MAP = {
+    "newsletter": "marketing_agent",
+    "seo": "marketing_agent",
+    "email": "marketing_agent",
+    "social": "marketing_agent",
+    "campaign": "marketing_agent",
+    "stripe": "billing_agent",
+    "billing": "billing_agent",
+    "invoice": "billing_agent",
+    "payment": "billing_agent",
+    "support": "support_agent",
+    "ticket": "support_agent",
+    "analytics": "analyst_agent",
+    "report": "analyst_agent",
+    "insight": "analyst_agent",
+    "security": "security_agent",
+    "auth": "security_agent",
+    "sso": "security_agent",
+    "encrypt": "security_agent",
+    "docs": "content_agent",
+    "documentation": "content_agent",
+    "knowledge": "content_agent",
+    "legal": "legal_agent",
+    "policy": "legal_agent",
+    "compliance": "legal_agent",
+    "deploy": "deploy_agent",
+    "infrastructure": "deploy_agent",
+    "monitor": "monitoring_agent",
+    "alert": "monitoring_agent",
+    "finance": "finance_agent",
+    "pricing": "finance_agent",
+    "budget": "finance_agent",
+    "sales": "sales_agent",
+    "crm": "sales_agent",
+    "lead": "sales_agent",
+    "research": "research_agent",
+    "competitive": "research_agent",
+    "experiment": "qa_agent",
+    "test": "qa_agent",
+    "ui": "frontend_agent",
+    "frontend": "frontend_agent",
+    "api": "backend_agent",
+    "service": "backend_agent",
+}
+
+AGENT_COMPONENT_REQUIREMENTS = {
+    "frontend_agent": "dashboard_ui",
+    "backend_agent": "rest_api",
+    "security_agent": "role_permissions",
+    "qa_agent": "a/b_testing",
+    "analytics_agent": "usage_analytics",
+    "marketing_agent": "email_marketing",
+    "content_agent": "blog_system",
+    "billing_agent": "stripe_billing",
+    "support_agent": "customer_support_bot",
+    "deploy_agent": "backup_system",
+    "monitoring_agent": "error_tracking",
+    "finance_agent": "subscription_management",
+    "sales_agent": "referral_system",
+    "research_agent": "reporting_engine",
+    "spec_agent": "docs",
+    "architect_agent": "feature_flags",
+    "legal_agent": "audit_logs",
+}
+
 class GenesisMetaAgent:
     def __init__(self, use_local_llm: bool = True, enable_modular_prompts: bool = True):
         self.use_local_llm = use_local_llm
@@ -107,6 +197,19 @@ class GenesisMetaAgent:
         self.component_selector = None  # Lazy load
         self.team_assembler = None  # Lazy load
         self.idea_generator = None  # Lazy load
+
+        self.reflection_agent = None
+        if HAS_REFLECTION_AGENT:
+            try:
+                self.reflection_agent = get_reflection_agent()
+                logger.info("✅ Reflection agent middleware enabled")
+            except Exception as exc:
+                logger.warning(f"Reflection agent unavailable: {exc}")
+                self.reflection_agent = None
+
+        self._darwin_enabled = os.getenv("ENABLE_DARWIN_WRAP", "true").lower() != "false"
+        self._current_team_agents: List[str] = []
+        self._current_spec: Optional[BusinessSpec] = None
         
         logger.info("Genesis Meta-Agent initialized")
 
@@ -126,7 +229,7 @@ class GenesisMetaAgent:
         dag.add_task(root_task)
         
         template = self.business_templates.get(spec.business_type, {})
-        components = template.get("components", spec.components)
+        components = spec.components or template.get("components", [])
         
         for idx, component in enumerate(components):
             task_id = f"component_{idx}_{component}"
@@ -136,98 +239,317 @@ class GenesisMetaAgent:
         
         return dag
 
-    def _execute_task_with_llm(self, task, agent_name):
-        """
-        Execute task using best available LLM with professional prompts and code extraction.
-
-        Routes through HALO Router which automatically:
-        1. Tries Vertex AI first (if enabled) - fine-tuned models
-        2. Falls back to local LLM (Qwen 7B) - free
-        3. Tracks costs and latency
-
-        NEW: Uses modular prompts (4-file system) if enabled, otherwise fallback to legacy prompts
-        """
-        # Extract component name from task description
-        component_name = task.description.replace("Build ", "").strip()
-
-        # Try modular prompts first (if enabled)
+    def _build_component_prompt(self, agent_name: str, component_name: str, business_type: str, task_description: str) -> str:
+        """Assemble prompts using modular system when available."""
         if self.enable_modular_prompts and self.prompt_assembler:
             try:
-                # Assemble modular prompt for this agent
                 prompt = self.prompt_assembler.assemble(
                     agent_id=agent_name,
-                    task_context=f"Component: {component_name}\nBusiness Type: {getattr(self, '_current_business_type', 'generic')}",
+                    task_context=f"Component: {component_name}\nBusiness Type: {business_type}",
                     variables={
                         "component_name": component_name,
-                        "business_type": getattr(self, '_current_business_type', 'generic'),
-                        "task_description": task.description
-                    }
+                        "business_type": business_type,
+                        "task_description": task_description,
+                    },
                 )
-                logger.debug(f"Using modular prompt for {agent_name} (component: {component_name})")
-            except Exception as e:
-                logger.warning(f"Modular prompt assembly failed for {agent_name}: {e}, using fallback")
-                # Fallback to legacy prompts
-                prompt = get_component_prompt(component_name, business_type=getattr(self, '_current_business_type', 'generic'))
-        else:
-            # Use legacy prompts
-            prompt = get_component_prompt(component_name, business_type=getattr(self, '_current_business_type', 'generic'))
-        
-        logger.info(f"Generating {component_name} with {len(prompt)} char prompt")
-        
-        # Try up to 2 times with increasingly strict prompts
-        max_attempts = 2
-        for attempt in range(max_attempts):
-            try:
-                # Add extra strictness on retry
-                if attempt > 0:
-                    prompt = f"CRITICAL: Output ONLY TypeScript code. NO Python. NO explanations.\n\n{prompt}"
-                    logger.warning(f"Retry {attempt + 1}/{max_attempts} for {component_name}")
-                
-                # Use HALO Router's LLM execution (Vertex AI + local fallback)
-                response = self.router.execute_with_llm(
-                    agent_name=agent_name,
-                    prompt=prompt,
-                    fallback_to_local=True,
-                    max_tokens=4096,  # Increased for full components
-                    temperature=0.3 if attempt == 0 else 0.1  # Lower temp on retry
-                )
-                
-                if not response or len(response) < 50:
-                    if attempt == max_attempts - 1:
-                        return {"success": False, "error": "No valid response from LLM", "agent": agent_name}
-                    continue
-                
-                # Extract and validate clean TypeScript code
-                try:
-                    clean_code = extract_and_validate(response, component_name)
-                except ValueError as e:
-                    logger.warning(f"Code extraction failed for {component_name}: {e}")
-                    if attempt == max_attempts - 1:
-                        return {"success": False, "error": f"Code extraction failed: {e}", "agent": agent_name}
-                    continue
-                
-                # Success! Get cost and return
-                cost = 0.0
-                if self.router.use_vertex_ai and self.router.vertex_router:
-                    stats = self.router.vertex_router.get_usage_stats(agent_name)
-                    cost = stats.get('total_cost', 0.0)
-                
-                logger.info(f"✅ Generated {len(clean_code)} chars of clean TypeScript for {component_name}")
-                return {
-                    "success": True,
-                    "result": clean_code,  # Clean TypeScript, not raw LLM output
+                return prompt
+            except Exception as exc:
+                logger.warning(f"Modular prompt assembly failed for {agent_name}: {exc}")
+        return get_component_prompt(component_name, business_type=business_type)
+
+    async def _call_router(self, agent_name: str, prompt: str, temperature: float) -> Optional[str]:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(
+            None,
+            lambda: self.router.execute_with_llm(
+                agent_name=agent_name,
+                prompt=prompt,
+                fallback_to_local=True,
+                max_tokens=4096,
+                temperature=temperature,
+            ),
+        )
+
+    async def _extract_code_async(self, response: str, component_name: str) -> str:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, lambda: extract_and_validate(response, component_name))
+
+    async def _maybe_refine_with_darwin(self, component_name: str, code: str, business_type: str) -> str:
+        if not self._darwin_enabled:
+            return code
+        prompt = (
+            "You are the SE-Darwin self-improvement agent. Improve the following "
+            f"{component_name} component for a {business_type} business. Focus on resiliency, "
+            "edge cases, accessibility, and maintainability. Respond with TypeScript code only.\n\n"
+            f"{code}"
+        )
+        try:
+            refined = await self._call_router("darwin_agent", prompt, temperature=0.15)
+            if refined:
+                return await self._extract_code_async(refined, f"{component_name}_darwin")
+        except Exception as exc:
+            logger.debug(f"Darwin refinement skipped for {component_name}: {exc}")
+        return code
+
+    async def _maybe_reflect_component(
+        self,
+        component_name: str,
+        agent_name: str,
+        code: str,
+        business_type: str,
+    ):
+        if not hasattr(self, "reflection_agent") or not self.reflection_agent:
+            return None
+        try:
+            return await self.reflection_agent.reflect(
+                content=code,
+                content_type="code",
+                context={
+                    "component": component_name,
                     "agent": agent_name,
-                    "cost": cost,
-                    "component": component_name
-                }
-                
-            except Exception as e:
-                logger.error(f"Attempt {attempt + 1} failed for {component_name}: {e}")
-                if attempt == max_attempts - 1:
-                    return {"success": False, "error": str(e), "agent": agent_name}
-        
-        # Should never reach here
-        return {"success": False, "error": "All attempts exhausted", "agent": agent_name}
+                    "business_type": business_type,
+                },
+            )
+        except Exception as exc:
+            logger.warning(f"Reflection failed for {component_name}: {exc}")
+            return None
+
+    async def _refine_with_genesis(
+        self,
+        component_name: str,
+        initial_code: str,
+        agent_used: str,
+        business_type: str,
+    ) -> Tuple[str, Optional[Dict[str, Any]]]:
+        """
+        Ask the Genesis agent to review and refine specialist output using full business context.
+        """
+        if not self._current_spec:
+            return initial_code, None
+
+        spec = self._current_spec
+        prompt = (
+            "You are Genesis, the master orchestrator overseeing all 53 systems.\n\n"
+            f"Business Context:\n"
+            f"- Name: {spec.name}\n"
+            f"- Type: {spec.business_type}\n"
+            f"- Description: {spec.description}\n\n"
+            f"Component: {component_name}\n"
+            f"Generated by: {agent_used}\n\n"
+            "Original Code:\n"
+            "```typescript\n"
+            f"{initial_code}\n"
+            "```\n\n"
+            "Review this code and apply SE-Darwin refinement:\n"
+            "1. Check correctness, completeness, and quality\n"
+            "2. Ensure consistency with business context\n"
+            "3. Apply security best practices\n"
+            "4. Optimize performance\n"
+            "5. Improve maintainability\n\n"
+            "Output ONLY the refined TypeScript code."
+        )
+
+        try:
+            response = await self._call_router("genesis_agent", prompt, temperature=0.1)
+        except Exception as exc:
+            logger.warning(f"Genesis refinement failed for {component_name}: {exc}")
+            return initial_code, None
+
+        if not response or len(response) < 40:
+            return initial_code, None
+
+        try:
+            refined = await self._extract_code_async(response, f"{component_name}_genesis")
+        except ValueError as exc:
+            logger.warning(f"Genesis produced invalid code for {component_name}: {exc}")
+            return initial_code, None
+
+        refined = await self._maybe_refine_with_darwin(component_name, refined, spec.business_type)
+        reflection = await self._maybe_reflect_component(
+            component_name=component_name,
+            agent_name="genesis_agent",
+            code=refined,
+            business_type=spec.business_type,
+        )
+        return refined, self._serialize_reflection(reflection)
+
+    def _augment_prompt_with_feedback(self, base_prompt: str, feedback: str, suggestions: List[str]) -> str:
+        suggestion_block = "\n".join(f"- {s}" for s in suggestions[:5]) if suggestions else ""
+        feedback_block = feedback or "Reflection detected issues. Address them carefully."
+        return (
+            f"{base_prompt}\n\n"
+            "## Reflection Feedback\n"
+            f"{feedback_block}\n"
+            f"{suggestion_block}\n\n"
+            "Regenerate the component and ensure all issues are resolved. Output ONLY TypeScript code."
+        )
+
+    def _serialize_reflection(self, reflection_result) -> Optional[Dict[str, Any]]:
+        if not reflection_result:
+            return None
+        return {
+            "overall_score": reflection_result.overall_score,
+            "passes_threshold": reflection_result.passes_threshold,
+            "summary": reflection_result.summary_feedback,
+            "suggestions": reflection_result.suggestions,
+            "timestamp": reflection_result.timestamp,
+        }
+
+    def _select_agent_for_component(self, component_name: str) -> str:
+        info = COMPONENT_LIBRARY.get(component_name, {})
+        category = info.get("category")
+
+        # Direct mapping from practice components to agents
+        for agent, required_component in AGENT_COMPONENT_REQUIREMENTS.items():
+            if component_name == required_component:
+                mapped_agent = agent
+                if mapped_agent == "analytics_agent":
+                    registry = getattr(self.router, "agent_registry", None)
+                    if registry is None and hasattr(self.router, "halo_router"):
+                        registry = getattr(self.router.halo_router, "agent_registry", None)
+                    if registry is not None and "analytics_agent" not in registry and "analyst_agent" in registry:
+                        mapped_agent = "analyst_agent"
+                return mapped_agent
+
+        agent = COMPONENT_CATEGORY_AGENT_MAP.get(category)
+
+        lower_name = component_name.lower()
+        if not agent:
+            for keyword, mapped_agent in COMPONENT_KEYWORD_AGENT_MAP.items():
+                if keyword in lower_name:
+                    agent = mapped_agent
+                    break
+
+        agent = agent or "builder_agent"
+        if self._current_team_agents is not None and agent not in self._current_team_agents:
+            self._current_team_agents.append(agent)
+        return agent
+
+    def _ensure_agent_coverage(
+        self,
+        components: List[str],
+        max_components: Optional[int] = None,
+    ) -> List[str]:
+        """Ensure every core specialist agent has at least one component to work on, without exceeding caps."""
+        ensured = list(components)
+        present = set(ensured)
+        additions: List[str] = []
+        skipped: List[str] = []
+        for required_component in AGENT_COMPONENT_REQUIREMENTS.values():
+            if required_component not in present:
+                if max_components is not None and len(ensured) >= max_components:
+                    skipped.append(required_component)
+                    continue
+                ensured.append(required_component)
+                present.add(required_component)
+                additions.append(required_component)
+        if additions:
+            logger.info(
+                "Added practice components for specialist coverage: %s",
+                ", ".join(additions),
+            )
+        if skipped:
+            logger.debug(
+                "Skipped adding practice components due to max component cap: %s",
+                ", ".join(skipped),
+            )
+        return ensured
+
+    async def _execute_task_with_llm(self, task, agent_name, allow_builder_fallback: bool = True):
+        """Execute a task with HALO routing, SE-Darwin refinement, and reflection QA."""
+        component_name = task.description.replace("Build ", "").strip()
+        business_type = getattr(self, "_current_business_type", "generic")
+
+        prompt = self._build_component_prompt(
+            agent_name=agent_name,
+            component_name=component_name,
+            business_type=business_type,
+            task_description=task.description,
+        )
+        base_prompt = prompt
+        temperatures = [0.3, 0.15]
+        last_error = None
+
+        for attempt, temperature in enumerate(temperatures, start=1):
+            current_prompt = prompt
+            if attempt > 1 and current_prompt == base_prompt:
+                current_prompt = (
+                    "CRITICAL: Output ONLY valid TypeScript component code. "
+                    "Do NOT include markdown fences, explanations, or JSON.\n\n"
+                    f"{base_prompt}"
+                )
+            try:
+                response = await self._call_router(
+                    agent_name=agent_name,
+                    prompt=current_prompt,
+                    temperature=temperature,
+                )
+            except Exception as exc:
+                logger.warning(f"{agent_name} routing error (attempt {attempt}): {exc}")
+                last_error = str(exc)
+                continue
+
+            if not response or len(response) < 40:
+                last_error = "Empty response"
+                continue
+
+            try:
+                code = await self._extract_code_async(response, component_name)
+            except ValueError as exc:
+                last_error = str(exc)
+                continue
+
+            code, reflection_payload = await self._refine_with_genesis(
+                component_name=component_name,
+                initial_code=code,
+                agent_used=agent_name,
+                business_type=business_type,
+            )
+
+            if reflection_payload is None:
+                code = await self._maybe_refine_with_darwin(component_name, code, business_type)
+                reflection_result = await self._maybe_reflect_component(
+                    component_name=component_name,
+                    agent_name=agent_name,
+                    code=code,
+                    business_type=business_type,
+                )
+
+                if reflection_result and not reflection_result.passes_threshold:
+                    logger.warning(
+                        f"Reflection failed for {component_name} (score={reflection_result.overall_score:.2f})"
+                    )
+                    prompt = self._augment_prompt_with_feedback(
+                        base_prompt,
+                        reflection_result.summary_feedback,
+                        reflection_result.suggestions,
+                    )
+                    last_error = "Reflection feedback applied"
+                    continue
+                reflection_payload = self._serialize_reflection(reflection_result)
+
+            return {
+                "success": True,
+                "result": code,
+                "raw_response": response,
+                "component": component_name,
+                "agent": agent_name,
+                "reflection": reflection_payload,
+                "cost": 0.0,
+            }
+
+        failure_payload = {
+            "success": False,
+            "error": last_error or "Generation failed",
+            "agent": agent_name,
+            "component": component_name,
+        }
+
+        if allow_builder_fallback and agent_name != "builder_agent":
+            logger.info(f"Falling back to builder_agent for {component_name}")
+            return await self._execute_task_with_llm(task, "builder_agent", allow_builder_fallback=False)
+
+        return failure_payload
 
     def _write_code_to_files(self, spec: BusinessSpec, task_results: Dict[str, Dict[str, Any]]):
         """Write LLM responses to actual code files."""
@@ -282,6 +604,9 @@ class GenesisMetaAgent:
                 
                 # Extract component name from task_id
                 component_name = task_id.replace("component_", "").split("_", 1)[-1] if "_" in task_id else "component"
+                safe_component_name = re.sub(r"[^a-zA-Z0-9_]+", "_", component_name).strip("_")
+                if not safe_component_name:
+                    safe_component_name = "component"
                 
                 # Write code to appropriate file
                 if "package.json" in code.lower() or "dependencies" in code.lower():
@@ -289,13 +614,13 @@ class GenesisMetaAgent:
                     continue
                 elif ".tsx" in code or "export default" in code or "function" in code[:100]:
                     # React component
-                    file_path = src_dir / "components" / f"{component_name}.tsx"
+                    file_path = src_dir / "components" / f"{safe_component_name}.tsx"
                     with open(file_path, "w") as f:
                         f.write(code)
                     files_written.append(str(file_path))
                 elif "api" in component_name.lower() or "route" in component_name.lower():
                     # API route
-                    api_dir = src_dir / "app" / "api" / component_name
+                    api_dir = src_dir / "app" / "api" / safe_component_name
                     api_dir.mkdir(parents=True, exist_ok=True)
                     file_path = api_dir / "route.ts"
                     with open(file_path, "w") as f:
@@ -303,7 +628,7 @@ class GenesisMetaAgent:
                     files_written.append(str(file_path))
                 else:
                     # Generic code file
-                    file_path = src_dir / "lib" / f"{component_name}.ts"
+                    file_path = src_dir / "lib" / f"{safe_component_name}.ts"
                     with open(file_path, "w") as f:
                         f.write(code)
                     files_written.append(str(file_path))
@@ -405,8 +730,15 @@ vercel deploy --prod
         logger.info(f"Starting business generation: {spec.name}")
         start_time = time.time()
         
-        # Store business type for prompt generation
+        # Store business context for downstream agents
+        coverage_target = max(len(spec.components) + len(AGENT_COMPONENT_REQUIREMENTS), len(AGENT_COMPONENT_REQUIREMENTS))
+        spec.components = self._ensure_agent_coverage(
+            spec.components,
+            max_components=coverage_target,
+        )
+        self._current_spec = spec
         self._current_business_type = spec.business_type
+        self._current_team_agents = list(spec.metadata.get("team", []))
         
         # Start monitoring
         monitor = get_monitor()
@@ -425,9 +757,10 @@ vercel deploy --prod
                 continue
             
             component_name = task.description.replace("Build ", "")
-            monitor.record_component_start(business_id, component_name, "builder_agent")
+            component_agent = self._select_agent_for_component(component_name)
+            monitor.record_component_start(business_id, component_name, component_agent)
             
-            result = self._execute_task_with_llm(task, "builder_agent")
+            result = await self._execute_task_with_llm(task, component_agent)
             task_results[task.task_id] = result
             
             if result.get("success"):
@@ -462,7 +795,7 @@ vercel deploy --prod
             "name": spec.name,
             "type": spec.business_type,
             "description": spec.description,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "components": components_generated,
             "files_written": files_written,
             "tasks_completed": tasks_completed,
@@ -475,20 +808,24 @@ vercel deploy --prod
         monitor.complete_business(business_id, success=(tasks_failed == 0))
         monitor.write_dashboard_snapshot()
         
-        return BusinessGenerationResult(
+        self._current_team_agents = []
+
+        result_obj = BusinessGenerationResult(
             business_name=spec.name, success=tasks_failed == 0,
             components_generated=components_generated, tasks_completed=tasks_completed,
             tasks_failed=tasks_failed, generation_time_seconds=time.time() - start_time,
             output_directory=str(spec.output_dir), generated_files=files_written,
             errors=errors, metrics={"cost_usd": total_cost}
         )
+        self._current_spec = None
+        return result_obj
     
     async def autonomous_generate_business(
         self,
         business_idea: Optional[Any] = None,
         min_score: float = 70.0,
-        max_components: int = 12,
-        min_components: int = 6
+        max_components: int = len(AGENT_COMPONENT_REQUIREMENTS) * 2,
+        min_components: int = 10
     ) -> BusinessGenerationResult:
         """
         🤖 FULLY AUTONOMOUS business generation using all Genesis systems.
@@ -543,10 +880,16 @@ vercel deploy --prod
             min_components=min_components
         )
         
-        components = selection.components
+        components = self._ensure_agent_coverage(
+            selection.components,
+            max_components=max_components,
+        )
+        coverage_additions = [c for c in components if c not in selection.components]
         logger.info(f"✅ Selected {len(components)} components (build time: {selection.total_build_time_minutes}min)")
         logger.info(f"   Components: {components}")
         logger.info(f"   Reasoning: {selection.reasoning}")
+        if coverage_additions:
+            logger.info(f"   Added for agent coverage: {coverage_additions}")
         
         # Step 3: Assemble optimal team
         logger.info(f"👥 Step 3: Assembling optimal team...")
@@ -574,7 +917,8 @@ vercel deploy --prod
                     "total_components": len(components),
                     "required": selection.required_count,
                     "recommended": selection.recommended_count,
-                    "build_time_minutes": selection.total_build_time_minutes
+                    "build_time_minutes": selection.total_build_time_minutes,
+                    "coverage_additions": coverage_additions,
                 },
                 "team": team_agent_ids
             }
