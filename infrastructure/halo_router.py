@@ -22,6 +22,30 @@ from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, field
 from infrastructure.task_dag import TaskDAG, Task, TaskStatus
 from infrastructure.agent_auth_registry import AgentAuthRegistry, SecurityError
+from datetime import timezone, datetime
+
+try:
+    from google import genai as google_genai  # type: ignore
+    from google.genai import types as google_genai_types  # type: ignore
+    HAS_GEMINI_API = True
+except ImportError:  # pragma: no cover
+    google_genai = None  # type: ignore
+    google_genai_types = None  # type: ignore
+    HAS_GEMINI_API = False
+
+try:
+    from mistralai import Mistral  # type: ignore
+    HAS_MISTRAL_API = True
+except ImportError:  # pragma: no cover
+    Mistral = None  # type: ignore
+    HAS_MISTRAL_API = False
+
+try:
+    import anthropic  # type: ignore
+    HAS_ANTHROPIC_API = True
+except ImportError:  # pragma: no cover
+    anthropic = None  # type: ignore
+    HAS_ANTHROPIC_API = False
 
 # WaltzRL Safety integration (optional)
 try:
@@ -193,6 +217,7 @@ class HALORouter:
         # Vertex AI routing integration (NEW: Production fine-tuned models)
         self.use_vertex_ai = os.getenv('ENABLE_VERTEX_AI', 'false').lower() == 'true'
         self.vertex_router = None
+        self.prefer_gemini = os.getenv("HALO_PREFER_GEMINI", "false").lower() == "true"
         if self.use_vertex_ai:
             try:
                 from infrastructure.vertex_router import VertexModelRouter
@@ -208,6 +233,7 @@ class HALORouter:
                     "qa_agent": os.getenv('GENESIS_QA_MODEL'),
                     "support_agent": os.getenv('GENESIS_SUPPORT_MODEL'),
                     "analyst_agent": os.getenv('GENESIS_ANALYST_MODEL'),
+                    "analytics_agent": os.getenv('GENESIS_ANALYTICS_MODEL', os.getenv('GENESIS_ANALYST_MODEL')),
                     "legal_agent": os.getenv('GENESIS_LEGAL_MODEL'),
                     "content_agent": os.getenv('GENESIS_CONTENT_MODEL'),
                     "security_agent": os.getenv('GENESIS_SECURITY_MODEL'),
@@ -279,9 +305,13 @@ class HALORouter:
             logger.debug("WaltzRL safety wrapper not available - running without safety checks (expected in Railway)")
 
         # Gemini fallback client cache
-        self._gemini_client = None
-        self._gemini_generate_config_cls = None
         self._gemini_model = os.getenv("GENESIS_HALO_GEMINI_MODEL", "gemini-2.0-flash")
+        self._gemini_clients = self._init_gemini_clients()
+        self._fall_back_max_tokens = int(os.getenv("FALLBACK_MAX_TOKENS", "2048"))
+        self._mistral_client = self._init_mistral_client()
+        self._mistral_model = os.getenv("MISTRAL_FALLBACK_MODEL", "open-mistral-7b")
+        self._anthropic_client = self._init_anthropic_client()
+        self._anthropic_model = os.getenv("ANTHROPIC_FALLBACK_MODEL", "claude-3-haiku-20240307")
 
         self.logger = logger
         self.logger.info(
@@ -361,7 +391,7 @@ class HALORouter:
         - Analytics agents: Monitoring
         - Security agents: Vulnerability scanning
         """
-        return {
+        agents = {
             # Design & Planning (cheap, fast)
             "spec_agent": AgentCapability(
                 agent_name="spec_agent",
@@ -459,8 +489,8 @@ class HALORouter:
             ),
 
             # Analytics & Optimization (medium cost, data analysis)
-            "analytics_agent": AgentCapability(
-                agent_name="analytics_agent",
+            "analyst_agent": AgentCapability(
+                agent_name="analyst_agent",
                 supported_task_types=["analytics", "reporting", "data_analysis"],
                 skills=["data_analysis", "reporting", "visualization"],
                 cost_tier="medium",
@@ -494,7 +524,26 @@ class HALORouter:
                 success_rate=0.0,  # Will learn over time
                 max_concurrent_tasks=3  # Evolution is resource-intensive
             ),
+            "genesis_agent": AgentCapability(
+                agent_name="genesis_agent",
+                supported_task_types=["review", "refine", "coordination", "evolution", "quality"],
+                skills=["system_thinking", "cross_component_reasoning", "security", "performance", "maintainability"],
+                cost_tier="expensive",
+                success_rate=0.92
+            ),
         }
+
+        # Backward compatibility alias for legacy analytics agent name
+        if "analyst_agent" in agents:
+            agents["analytics_agent"] = AgentCapability(
+                agent_name="analytics_agent",
+                supported_task_types=agents["analyst_agent"].supported_task_types,
+                skills=agents["analyst_agent"].skills,
+                cost_tier=agents["analyst_agent"].cost_tier,
+                success_rate=agents["analyst_agent"].success_rate,
+            )
+
+        return agents
 
     def _initialize_routing_rules(self) -> List[RoutingRule]:
         """
@@ -1280,7 +1329,7 @@ class HALORouter:
         #         logger.warning(f"Local LLM failed for {agent_name}: {e}")
 
         # Fallback 1: Try Vertex AI (fine-tuned models or base Gemini)
-        if fallback_to_cloud and self.use_vertex_ai and self.vertex_router:
+        if fallback_to_cloud and self.use_vertex_ai and self.vertex_router and not self.prefer_gemini:
             # Check if this agent has a Vertex AI endpoint
             endpoints = self.vertex_router.list_endpoints()
             if agent_name in endpoints and len(endpoints[agent_name]) > 0:
@@ -1312,119 +1361,61 @@ class HALORouter:
                 # No fine-tuned model, but try Vertex AI base model (Gemini Flash)
                 if self.use_vertex_ai and self.vertex_router and self.vertex_router._use_vertex:
                     try:
-                        logger.info(f"🔷 Routing {agent_name} to Vertex AI Base Model (Gemini 2.0 Flash)")
-                        # Use base model for agents without fine-tuned models
+                        logger.info(
+                            f"🔷 Routing {agent_name} to Vertex AI Base Model (Gemini 2.0 Flash)"
+                        )
                         response = self.vertex_router.route(
                             role=agent_name,
                             prompt=prompt,
-                            temperature=kwargs.get('temperature', 0.7),
-                            endpoint_override=None  # Will use base Gemini fallback
+                            temperature=kwargs.get("temperature", 0.7),
+                            endpoint_override=None,
                         )
-                        
+
                         if response:
-                            logger.info(f"Vertex AI base model response received for {agent_name}")
+                            logger.info(
+                                f"Vertex AI base model response received for {agent_name}"
+                            )
                             return response
                     except Exception as e:
-                        logger.warning(f"Vertex AI base model failed for {agent_name}: {e}")
-<<<<<<< HEAD
-
-                logger.debug(f"No Vertex AI model for {agent_name}, trying Claude/GPT fallback")
-
-        # Fallback 2: Try Claude/GPT (most expensive, highest quality)
-        if fallback_to_cloud:
-            try:
-                logger.info(f"🔴 Routing {agent_name} to Claude/GPT (expensive fallback)")
-                from anthropic import Anthropic
-                import os
-
-                # Try Claude first
-                if os.getenv('ANTHROPIC_API_KEY'):
-                    try:
-                        client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
-                        response = client.messages.create(
-                            model="claude-sonnet-4-20250514",
-                            max_tokens=kwargs.get('max_tokens', 2048),
-                            temperature=kwargs.get('temperature', 0.7),
-                            messages=[{"role": "user", "content": prompt}]
+                        logger.warning(
+                            f"Vertex AI base model failed for {agent_name}: {e}"
                         )
-                        if response and response.content:
-                            logger.info(f"✅ Claude fallback success for {agent_name}")
-                            return response.content[0].text
-                    except Exception as e:
-                        logger.warning(f"Claude fallback failed: {e}")
 
-                # Try GPT as last resort
-                if os.getenv('OPENAI_API_KEY'):
-                    try:
-                        from openai import OpenAI
-                        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-                        response = client.chat.completions.create(
-                            model="gpt-4o",
-                            max_tokens=kwargs.get('max_tokens', 2048),
-                            temperature=kwargs.get('temperature', 0.7),
-                            messages=[{"role": "user", "content": prompt}]
-                        )
-                        if response and response.choices:
-                            logger.info(f"✅ GPT fallback success for {agent_name}")
-                            return response.choices[0].message.content
-                    except Exception as e:
-                        logger.warning(f"GPT fallback failed: {e}")
-
-            except Exception as e:
-                logger.error(f"Cloud LLM fallback failed for {agent_name}: {e}")
-
-        logger.error(f"All inference options exhausted for {agent_name}")
-=======
-                
-                logger.debug(f"No Vertex AI model for {agent_name}, using local LLM")
-        
-        # Fall back to Gemini (cloud)
-        gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-        if gemini_api_key:
-            try:
-                if self._gemini_client is None:
-                    from google import genai  # type: ignore
-                    from google.genai import types as genai_types  # type: ignore
-
-                    self._gemini_client = genai.Client(api_key=gemini_api_key)
-                    self._gemini_generate_config_cls = genai_types.GenerateContentConfig
-                    logger.info(
-                        "✅ Gemini fallback enabled (model=%s)",
-                        self._gemini_model,
-                    )
-
-                config = None
-                if self._gemini_generate_config_cls is not None:
-                    try:
-                        config = self._gemini_generate_config_cls(
-                            temperature=kwargs.get('temperature', 0.7),
-                            max_output_tokens=kwargs.get('max_tokens', 2048),
-                        )
-                    except Exception:
-                        config = None
-
-                logger.info(f"🔷 Routing {agent_name} to Gemini (model={self._gemini_model})")
-                gemini_response = self._gemini_client.models.generate_content(
-                    model=self._gemini_model,
-                    contents=prompt,
-                    config=config,
+                logger.debug(
+                    f"No Vertex AI model for {agent_name}, trying cloud fallbacks"
                 )
 
-                text = getattr(gemini_response, "text", None)
-                if not text and getattr(gemini_response, "candidates", None):
-                    try:
-                        text = gemini_response.candidates[0].content.parts[0].text  # type: ignore[attr-defined]
-                    except Exception:
-                        text = None
+        # Cost-optimized fallback chain: Gemini → Mistral → Anthropic
+        gemini_response = self._generate_with_gemini(
+            agent_name=agent_name,
+            prompt=prompt,
+            temperature=kwargs.get("temperature", 0.7),
+            max_tokens=kwargs.get("max_tokens", self._fall_back_max_tokens),
+        )
+        if gemini_response:
+            return gemini_response
 
-                if text:
-                    return text
-                raise ValueError("Gemini returned empty response")
-            except Exception as e:
-                logger.warning(f"Gemini fallback failed for {agent_name}: {e}")
+        mistral_response = self._generate_with_mistral(
+            agent_name=agent_name,
+            prompt=prompt,
+            temperature=kwargs.get("temperature", 0.7),
+            max_tokens=kwargs.get("max_tokens", self._fall_back_max_tokens),
+        )
+        if mistral_response:
+            return mistral_response
 
-        logger.error(f"All inference options exhausted for {agent_name}. No response generated.")
->>>>>>> d45b9d3f (Route HALO and HGM judge through Gemini-first cloud fallback)
+        anthropic_response = self._generate_with_anthropic(
+            agent_name=agent_name,
+            prompt=prompt,
+            temperature=kwargs.get("temperature", 0.7),
+            max_tokens=kwargs.get("max_tokens", self._fall_back_max_tokens),
+        )
+        if anthropic_response:
+            return anthropic_response
+
+        logger.error(
+            f"All inference options exhausted for {agent_name}. No response generated."
+        )
         return None
 
     @classmethod
@@ -1506,6 +1497,174 @@ class HALORouter:
                 return policy_router
 
         return policy_router
+
+    # ------------------------------------------------------------------
+    # LLM fallback helpers
+    # ------------------------------------------------------------------
+
+    def _init_gemini_clients(self) -> List[Any]:
+        """Initialize Gemini API clients for primary generation."""
+        if not HAS_GEMINI_API:
+            return []
+
+        clients: List[Any] = []
+        seen_keys = set()
+        for key_name in ("GEMINI_API_KEY", "GEMINI_API_KEY2", "GOOGLE_API_KEY"):
+            api_key = os.getenv(key_name)
+            if not api_key or api_key in seen_keys:
+                continue
+            try:
+                client = google_genai.Client(api_key=api_key)
+                clients.append(client)
+                seen_keys.add(api_key)
+                logger.info(f"✅ Gemini client initialized using {key_name}")
+            except Exception as exc:  # pragma: no cover
+                logger.warning(f"Failed to initialize Gemini client ({key_name}): {exc}")
+        return clients
+
+    def _init_mistral_client(self) -> Optional[Any]:
+        if not HAS_MISTRAL_API:
+            return None
+        api_key = os.getenv("MISTRAL_API_KEY")
+        if not api_key:
+            return None
+        try:
+            logger.info("✅ Mistral fallback client initialized")
+            return Mistral(api_key=api_key)
+        except Exception as exc:  # pragma: no cover
+            logger.warning(f"Failed to initialize Mistral client: {exc}")
+            return None
+
+    def _init_anthropic_client(self) -> Optional[Any]:
+        if not HAS_ANTHROPIC_API:
+            return None
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            return None
+        try:
+            logger.info("✅ Anthropic fallback client initialized")
+            return anthropic.Anthropic(api_key=api_key)
+        except Exception as exc:  # pragma: no cover
+            logger.warning(f"Failed to initialize Anthropic client: {exc}")
+            return None
+
+    def _generate_with_gemini(
+        self,
+        agent_name: str,
+        prompt: str,
+        temperature: float,
+        max_tokens: int,
+    ) -> Optional[str]:
+        if not self._gemini_clients:
+            return None
+
+        for idx, client in enumerate(self._gemini_clients, start=1):
+            try:
+                logger.info(
+                    f"🔷 Routing {agent_name} to Gemini (client #{idx}, model={self._gemini_model})"
+                )
+                config_obj = None
+                if google_genai_types:
+                    try:
+                        config_obj = google_genai_types.GenerateContentConfig(
+                            temperature=temperature,
+                            max_output_tokens=max_tokens,
+                        )
+                    except Exception as exc:  # pragma: no cover
+                        logger.debug(f"Failed to build Gemini config object: {exc}")
+                        config_obj = None
+
+                request_kwargs = {
+                    "model": self._gemini_model,
+                    "contents": prompt,
+                }
+                if config_obj is not None:
+                    request_kwargs["config"] = config_obj
+
+                response = client.models.generate_content(**request_kwargs)
+                text = self._extract_gemini_text(response)
+                if text:
+                    return text
+            except Exception as exc:
+                logger.warning(
+                    f"Gemini client #{idx} failed for {agent_name}: {exc}"
+                )
+        return None
+
+    def _extract_gemini_text(self, response: Any) -> Optional[str]:
+        if hasattr(response, "text") and response.text:
+            return response.text
+        if hasattr(response, "output_text") and response.output_text:
+            return response.output_text
+        candidates = getattr(response, "candidates", None)
+        if candidates:
+            for candidate in candidates:
+                parts = getattr(candidate, "content", getattr(candidate, "parts", None))
+                if not parts:
+                    continue
+                # google-genai returns content.parts list
+                try:
+                    part = parts[0]
+                    text = getattr(part, "text", None)
+                    if text:
+                        return text
+                except Exception:
+                    continue
+        return None
+
+    def _generate_with_mistral(
+        self,
+        agent_name: str,
+        prompt: str,
+        temperature: float,
+        max_tokens: int,
+    ) -> Optional[str]:
+        if not self._mistral_client:
+            return None
+
+        try:
+            response = self._mistral_client.chat.complete(
+                model=self._mistral_model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+            if response and response.choices:
+                text = response.choices[0].message.content
+                if text:
+                    logger.info(f"🟦 Mistral fallback success for {agent_name}")
+                    return text
+        except Exception as exc:  # pragma: no cover
+            logger.warning(f"Mistral fallback failed for {agent_name}: {exc}")
+        return None
+
+    def _generate_with_anthropic(
+        self,
+        agent_name: str,
+        prompt: str,
+        temperature: float,
+        max_tokens: int,
+    ) -> Optional[str]:
+        if not self._anthropic_client:
+            return None
+
+        try:
+            response = self._anthropic_client.messages.create(
+                model=self._anthropic_model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            content = getattr(response, "content", None)
+            if content:
+                first = content[0]
+                text = getattr(first, "text", None)
+                if text:
+                    logger.info(f"🔴 Anthropic fallback success for {agent_name}")
+                    return text
+        except Exception as exc:  # pragma: no cover
+            logger.warning(f"Anthropic fallback failed for {agent_name}: {exc}")
+        return None
 
     def get_vertex_usage_stats(self, agent_name: Optional[str] = None) -> Dict[str, Any]:
         """
