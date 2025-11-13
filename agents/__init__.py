@@ -21,6 +21,8 @@ Agent List:
 16. Business Generation Agent - Autonomous business creation (Tier 1 - Critical)
 17. Data Juicer Agent - Trajectory data curation (Tier 2 - High Value)
 18. ReAct Training Agent - Reinforcement learning for reasoning agents (Tier 2 - High Value)
+19. AgentScope Runtime Agent - Runtime performance & configuration management (Tier 2 - High Value)
+20. LLM Judge RL Agent - Reinforcement learning with LLM-as-Judge evaluation (Tier 2 - High Value)
 """
 
 from .marketing_agent import MarketingAgent, get_marketing_agent
@@ -41,6 +43,8 @@ from .spec_agent import SpecAgent, get_spec_agent
 from .business_generation_agent import BusinessGenerationAgent, get_business_generation_agent
 from .data_juicer_agent import DataJuicerAgent, create_data_juicer_agent
 from .react_training_agent import ReActTrainingAgent, create_react_training_agent
+from .agentscope_runtime_agent import AgentScopeRuntimeAgent, create_runtime_agent
+from .llm_judge_rl_agent import LLMJudgeRLAgent, create_judge_rl_agent
 
 __all__ = [
     # Agent Classes
@@ -62,6 +66,8 @@ __all__ = [
     "BusinessGenerationAgent",
     "DataJuicerAgent",
     "ReActTrainingAgent",
+    "AgentScopeRuntimeAgent",
+    "LLMJudgeRLAgent",
     # Factory Functions
     "get_marketing_agent",
     "get_builder_agent",
@@ -81,4 +87,6 @@ __all__ = [
     "get_business_generation_agent",
     "create_data_juicer_agent",
     "create_react_training_agent",
+    "create_runtime_agent",
+    "create_judge_rl_agent",
 ]
