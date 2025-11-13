@@ -223,15 +223,31 @@ class ReasoningBank:
         """Clean up connections"""
         if self.mongo_available and self.mongo_client:
             self.mongo_client.close()
-            logger.info("MongoDB connection closed")
+            self._safe_log("MongoDB connection closed")
         if self.redis_available and self.redis_client:
             self.redis_client.close()
-            logger.info("Redis connection closed")
+            self._safe_log("Redis connection closed")
 
     def __del__(self):
         """Ensure cleanup on garbage collection"""
         try:
             self.close()
+        except Exception:
+            pass
+
+    @staticmethod
+    def _safe_log(message: str) -> None:
+        """Log shutdown events without crashing when globals are None."""
+        import logging as _logging
+
+        if getattr(_logging, "_shutdown", False):
+            return
+
+        if not logger.handlers:
+            return
+
+        try:
+            logger.info(message)
         except Exception:
             pass
 

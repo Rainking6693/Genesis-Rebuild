@@ -1515,7 +1515,7 @@ Output JSON format:
 # - Schema validation with Pydantic
 # - Cycle detection and dependency validation
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Literal
 from dataclasses import dataclass, field
 import yaml
@@ -1536,7 +1536,7 @@ class WorkflowStepSpec(BaseModel):
     depends_on: List[str] = Field(default_factory=list, description="List of step IDs this step depends on")
     config: Dict[str, Any] = Field(default_factory=dict, description="Step-specific configuration")
 
-    @validator("id")
+    @field_validator("id")
     def validate_id(cls, v):
         """Validate step ID format"""
         if not v or not v.strip():
@@ -1545,7 +1545,7 @@ class WorkflowStepSpec(BaseModel):
             raise ValueError("Step ID must be alphanumeric (with _ or -)")
         return v
 
-    @validator("type")
+    @field_validator("type")
     def validate_type(cls, v):
         """Validate step type"""
         valid_types = {"task", "conditional", "parallel", "agent"}
@@ -1591,7 +1591,7 @@ class WorkflowSpec(BaseModel):
     description: str = Field(..., description="Workflow purpose and context")
     steps: List[WorkflowStepSpec] = Field(..., description="List of workflow steps")
 
-    @validator("id")
+    @field_validator("id")
     def validate_id(cls, v):
         """Validate workflow ID format"""
         if not v or not v.strip():
@@ -1600,7 +1600,7 @@ class WorkflowSpec(BaseModel):
             raise ValueError("Workflow ID must be alphanumeric (with _ or -)")
         return v
 
-    @validator("steps")
+    @field_validator("steps")
     def validate_steps(cls, v):
         """Validate steps list"""
         if not v:
