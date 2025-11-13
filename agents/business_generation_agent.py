@@ -351,6 +351,30 @@ class BusinessGenerationAgent:
             f"multimodal={self.enable_multimodal}"
         )
 
+    @classmethod
+    async def create(
+        cls,
+        business_id: str = "default",
+        enable_memory: bool = True,
+        enable_multimodal: bool = True
+    ):
+        """
+        Async factory method to create BusinessGenerationAgent.
+
+        Args:
+            business_id: Business identifier for context
+            enable_memory: Enable MemoryTool integration
+            enable_multimodal: Enable MultimodalMemoryPipeline for images
+
+        Returns:
+            Initialized BusinessGenerationAgent instance
+        """
+        return cls(
+            business_id=business_id,
+            enable_memory=enable_memory,
+            enable_multimodal=enable_multimodal
+        )
+
     async def store_business_template(
         self,
         business_type: str,

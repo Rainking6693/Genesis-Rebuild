@@ -60,8 +60,9 @@ logger = logging.getLogger(__name__)
 class SupportAgent:
     """Customer support and ticket management agent"""
 
-    def __init__(self, business_id: str = "default"):
+    def __init__(self, business_id: str = "default", enable_memory: bool = True):
         self.business_id = business_id
+        self.enable_memory = enable_memory
         self.agent = None
 
         # Initialize DAAO router for cost optimization
@@ -90,15 +91,18 @@ class SupportAgent:
         # Initialize MemoryOS MongoDB adapter for persistent memory (NEW: 49% F1 improvement)
         # Enables ticket resolution memory, common issue patterns, user history tracking
         self.memory: Optional[GenesisMemoryOSMongoDB] = None
-        self._init_memory()
+        if self.enable_memory:
+            self._init_memory()
 
         # Initialize MultimodalMemoryPipeline for customer screenshot processing (Tier 1 - Critical)
         self.multimodal_pipeline: Optional[MultimodalMemoryPipeline] = None
-        self._init_multimodal_pipeline()
+        if self.enable_memory:
+            self._init_multimodal_pipeline()
 
         # Initialize MemoryTool wrapper for structured memory operations
         self.memory_tool: Optional['MemoryTool'] = None
-        self._init_memory_tool()
+        if self.enable_memory:
+            self._init_memory_tool()
 
         logger.info(f"Support Agent v4.0 initialized with DAAO + TUMIX + DeepSeek-OCR + OpenEnv + MemoryOS + MultimodalPipeline for business: {business_id}")
 
