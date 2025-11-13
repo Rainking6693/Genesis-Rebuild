@@ -8,14 +8,17 @@ Features:
 - Multi-agent task orchestration
 - Production observability
 - Feature flag system for safe deployment with rollback
+- Memory integration for workflow learning (NEW)
 
-Version: 2.0 (with v1.0 fallback capability)
+Version: 2.1 (with memory integration + v1.0 fallback)
 """
 
 import asyncio
 import logging
 import os
-from typing import Dict, List, Optional
+import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from agent_framework import ChatAgent
 from agent_framework.azure import AzureAIAgentClient
@@ -29,6 +32,10 @@ from infrastructure.htdag_planner import HTDAGPlanner
 from infrastructure.halo_router import HALORouter
 from infrastructure.aop_validator import AOPValidator
 from infrastructure.observability import CorrelationContext
+
+# Memory integration imports
+from infrastructure.memory.orchestrator_memory_tool import MemoryTool, get_memory_tool
+from infrastructure.memory.compaction_service import CompactionService, get_compaction_service
 
 # Setup logging
 logging.basicConfig(
@@ -47,15 +54,20 @@ class GenesisOrchestrator:
     """
 
     def __init__(self):
-        """Initialize Genesis orchestrator with feature flags and DAAO router"""
+        """Initialize Genesis orchestrator with feature flags, DAAO router, and memory integration"""
         # Load feature flags
         self.flag_manager = get_feature_flag_manager()
 
         # Check if v2.0 orchestration is enabled
         self.use_v2 = is_feature_enabled('orchestration_enabled')
 
+        # Initialize memory integration (Tier 1 - Critical)
+        self.memory = get_memory_tool(namespace="orchestrator")
+        self.compaction = get_compaction_service()
+        logger.info("Memory integration ENABLED (MemoryTool + CompactionService)")
+
         if self.use_v2:
-            logger.info("Genesis Orchestrator v2.0 initialized (HTDAG+HALO+AOP+DAAO)")
+            logger.info("Genesis Orchestrator v2.1 initialized (HTDAG+HALO+AOP+DAAO+Memory)")
             self.router = get_daao_router()
 
             # Initialize orchestration components
@@ -206,20 +218,25 @@ class GenesisOrchestrator:
 
     async def execute_orchestrated_request(
         self,
-        user_request: str
+        user_request: str,
+        session_id: Optional[str] = None
     ) -> Dict:
         """
-        Full end-to-end orchestration + execution
+        Full end-to-end orchestration + execution with memory integration
 
         Pipeline:
-        1. HTDAG: Decompose request into hierarchical DAG
-        2. HALO: Route tasks to agents
-        3. AOP: Validate plan (solvability, completeness, non-redundancy)
-        4. DAAO: Optimize costs (if enabled)
-        5. A2A: Execute via connector (if enabled)
+        1. Memory Recall: Query successful workflow patterns
+        2. HTDAG: Decompose request into hierarchical DAG
+        3. HALO: Route tasks to agents
+        4. AOP: Validate plan (solvability, completeness, non-redundancy)
+        5. DAAO: Optimize costs (if enabled)
+        6. A2A: Execute via connector (if enabled)
+        7. Memory Store: Save workflow results and patterns
+        8. Compaction: Trigger session compaction on completion
 
         Args:
             user_request: Natural language user request
+            session_id: Optional session ID for tracking (auto-generated if None)
 
         Returns:
             Dictionary with orchestration results and execution status
@@ -233,21 +250,54 @@ class GenesisOrchestrator:
                 "message": "Full orchestration requires v2.0 (set orchestration_enabled=true)"
             }
 
+        # Generate session ID if not provided
+        if session_id is None:
+            session_id = f"session_{uuid.uuid4().hex[:12]}"
+
         # Create correlation context for tracing
         ctx = CorrelationContext(user_request=user_request)
 
-        logger.info(f"Starting orchestrated request (correlation_id={ctx.correlation_id})")
+        logger.info(
+            f"Starting orchestrated request (correlation_id={ctx.correlation_id}, "
+            f"session_id={session_id})"
+        )
+
+        # Track workflow start time
+        workflow_start = datetime.now(timezone.utc)
+        workflow_success = False
+        workflow_steps = []
 
         try:
+            # Step 0: Memory Recall - Query successful workflow patterns
+            logger.info("Step 0: Memory recall - querying successful workflow patterns")
+            task_type = self._infer_task_type(user_request)
+            past_workflows = await self.memory.retrieve_workflow_patterns(
+                task_type=task_type,
+                min_success_rate=0.7,
+                scope="app"
+            )
+
+            if past_workflows:
+                logger.info(
+                    f"Found {len(past_workflows)} successful workflow patterns for {task_type}. "
+                    f"Best success rate: {past_workflows[0].success_rate:.1%}"
+                )
+            else:
+                logger.info(f"No prior workflow patterns found for {task_type} - exploring new approach")
+
+            workflow_steps.append("memory_recall")
+
             # Step 1: HTDAG - Decompose request into DAG
             logger.info("Step 1: HTDAG decomposition")
             dag = await self.htdag.decompose_task(user_request)
             logger.info(f"HTDAG complete: {len(dag)} tasks generated")
+            workflow_steps.append("htdag_decomposition")
 
             # Step 2: HALO - Route tasks to agents
             logger.info("Step 2: HALO routing")
             routing_plan = await self.halo.route_tasks(dag)
             logger.info(f"HALO complete: {len(routing_plan.assignments)} tasks routed")
+            workflow_steps.append("halo_routing")
 
             if not routing_plan.is_complete():
                 logger.warning(f"Routing incomplete: {len(routing_plan.unassigned_tasks)} tasks unassigned")
@@ -255,12 +305,25 @@ class GenesisOrchestrator:
             # Step 3: AOP - Validate plan
             logger.info("Step 3: AOP validation")
             validation_result = self.aop.validate_plan(routing_plan, dag)
+            workflow_steps.append("aop_validation")
 
             if not validation_result.is_valid:
                 logger.error(f"AOP validation failed: {validation_result.issues}")
+
+                # Store failed workflow in memory
+                await self._store_workflow_result(
+                    task_type=task_type,
+                    workflow_steps=workflow_steps,
+                    success=False,
+                    duration=(datetime.now(timezone.utc) - workflow_start).total_seconds(),
+                    session_id=session_id,
+                    metadata={"validation_issues": validation_result.issues}
+                )
+
                 return {
                     "status": "validation_failed",
                     "correlation_id": ctx.correlation_id,
+                    "session_id": session_id,
                     "dag_size": len(dag),
                     "validation_issues": validation_result.issues,
                     "message": "Plan validation failed"
@@ -270,6 +333,7 @@ class GenesisOrchestrator:
 
             # Step 4: DAAO cost optimization (handled by HALO if enabled)
             # This is already integrated in HALO router
+            workflow_steps.append("daao_optimization")
 
             # Step 5: A2A - Execute via connector (if enabled)
             if self.a2a_connector:
@@ -279,28 +343,67 @@ class GenesisOrchestrator:
                     dag,
                     correlation_context=ctx
                 )
+                workflow_steps.append("a2a_execution")
 
                 logger.info(
                     f"A2A execution complete: {execution_result['successful']}/{execution_result['total_tasks']} "
                     f"tasks successful"
                 )
 
+                # Determine workflow success
+                workflow_success = execution_result.get("status") == "success"
+
+                # Step 6: Memory Store - Save workflow result
+                await self._store_workflow_result(
+                    task_type=task_type,
+                    workflow_steps=workflow_steps,
+                    success=workflow_success,
+                    duration=(datetime.now(timezone.utc) - workflow_start).total_seconds(),
+                    session_id=session_id,
+                    metadata={
+                        "validation_score": validation_result.quality_score,
+                        "tasks_successful": execution_result["successful"],
+                        "tasks_total": execution_result["total_tasks"]
+                    }
+                )
+
+                # Step 7: Compaction - Trigger session compaction
+                logger.info("Step 7: Triggering session compaction")
+                await self.memory.compact_session(session_id)
+
                 return {
                     "status": execution_result["status"],
                     "correlation_id": ctx.correlation_id,
+                    "session_id": session_id,
                     "dag_size": len(dag),
                     "tasks_routed": len(routing_plan.assignments),
                     "validation_score": validation_result.quality_score,
                     "execution": execution_result,
-                    "message": "Full orchestration + execution complete"
+                    "workflow_learned": workflow_success,
+                    "message": "Full orchestration + execution complete (with memory learning)"
                 }
             else:
                 # Planning-only mode (no A2A execution)
                 logger.info("A2A execution DISABLED - returning plan only")
 
+                # Store planning workflow
+                workflow_success = True  # Planning succeeded
+                await self._store_workflow_result(
+                    task_type=task_type,
+                    workflow_steps=workflow_steps,
+                    success=workflow_success,
+                    duration=(datetime.now(timezone.utc) - workflow_start).total_seconds(),
+                    session_id=session_id,
+                    metadata={
+                        "validation_score": validation_result.quality_score,
+                        "mode": "planning_only"
+                    }
+                )
+
                 return {
                     "status": "planned",
                     "correlation_id": ctx.correlation_id,
+                    "session_id": session_id,
                     "dag_size": len(dag),
                     "tasks_routed": len(routing_plan.assignments),
                     "validation_score": validation_result.quality_score,
@@ -309,15 +412,27 @@ class GenesisOrchestrator:
                         "explanations": routing_plan.explanations,
                         "unassigned_tasks": routing_plan.unassigned_tasks
                     },
-                    "message": "Orchestration plan created (A2A execution disabled)"
+                    "workflow_learned": workflow_success,
+                    "message": "Orchestration plan created (A2A execution disabled, with memory learning)"
                 }
 
         except Exception as e:
             logger.error(f"Orchestration failed: {str(e)}", exc_info=True)
 
+            # Store failed workflow
+            await self._store_workflow_result(
+                task_type=task_type if 'task_type' in locals() else "unknown",
+                workflow_steps=workflow_steps,
+                success=False,
+                duration=(datetime.now(timezone.utc) - workflow_start).total_seconds(),
+                session_id=session_id,
+                metadata={"error": str(e)}
+            )
+
             return {
                 "status": "failed",
                 "correlation_id": ctx.correlation_id,
+                "session_id": session_id,
                 "error": str(e),
                 "message": "Orchestration failed"
             }
@@ -528,6 +643,129 @@ class GenesisOrchestrator:
             'total_estimated_cost': total_cost,
             'model_distribution': model_counts,
             'difficulty_distribution': difficulty_counts
+        }
+
+    # Memory integration helper methods
+
+    def _infer_task_type(self, user_request: str) -> str:
+        """
+        Infer task type from user request.
+
+        Uses simple keyword matching to classify requests into categories.
+        This can be enhanced with ML-based classification in the future.
+
+        Args:
+            user_request: Natural language user request
+
+        Returns:
+            Inferred task type (e.g., "code_generation", "data_analysis")
+        """
+        request_lower = user_request.lower()
+
+        # Keyword-based classification
+        if any(kw in request_lower for kw in ["code", "implement", "function", "class", "program"]):
+            return "code_generation"
+        elif any(kw in request_lower for kw in ["analyze", "data", "statistics", "metrics", "report"]):
+            return "data_analysis"
+        elif any(kw in request_lower for kw in ["test", "unittest", "pytest", "coverage"]):
+            return "testing"
+        elif any(kw in request_lower for kw in ["deploy", "deployment", "release", "publish"]):
+            return "deployment"
+        elif any(kw in request_lower for kw in ["debug", "fix", "error", "bug", "issue"]):
+            return "debugging"
+        elif any(kw in request_lower for kw in ["design", "architecture", "system", "plan"]):
+            return "system_design"
+        elif any(kw in request_lower for kw in ["document", "readme", "docs", "documentation"]):
+            return "documentation"
+        elif any(kw in request_lower for kw in ["optimize", "performance", "speed", "efficiency"]):
+            return "optimization"
+        else:
+            return "general"
+
+    async def _store_workflow_result(
+        self,
+        task_type: str,
+        workflow_steps: List[str],
+        success: bool,
+        duration: float,
+        session_id: str,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Store workflow execution result in memory.
+
+        Args:
+            task_type: Type of task executed
+            workflow_steps: Steps executed in the workflow
+            success: Whether workflow completed successfully
+            duration: Duration in seconds
+            session_id: Session identifier
+            metadata: Optional additional metadata
+        """
+        try:
+            await self.memory.store_workflow(
+                task_type=task_type,
+                workflow_steps=workflow_steps,
+                success=success,
+                duration=duration,
+                session_id=session_id,
+                metadata=metadata
+            )
+            logger.debug(
+                f"Stored workflow result: {task_type} (success={success}, "
+                f"duration={duration:.2f}s)"
+            )
+        except Exception as e:
+            logger.error(f"Failed to store workflow result: {e}", exc_info=True)
+
+    async def get_workflow_learning_metrics(self) -> Dict[str, Any]:
+        """
+        Get metrics on workflow learning from memory.
+
+        Returns:
+            Dictionary with learning statistics across task types
+        """
+        # Get metrics for common task types
+        task_types = [
+            "code_generation",
+            "data_analysis",
+            "testing",
+            "deployment",
+            "debugging",
+            "system_design",
+            "documentation",
+            "optimization",
+            "general"
+        ]
+
+        metrics_by_type = {}
+
+        for task_type in task_types:
+            try:
+                metrics = await self.memory.get_task_success_metrics(task_type)
+
+                if metrics.total_executions > 0:
+                    metrics_by_type[task_type] = {
+                        "total_executions": metrics.total_executions,
+                        "successful_executions": metrics.successful_executions,
+                        "success_rate": metrics.success_rate,
+                        "avg_duration": metrics.avg_duration,
+                        "avg_cost": metrics.avg_cost
+                    }
+            except Exception as e:
+                logger.warning(f"Failed to get metrics for {task_type}: {e}")
+
+        # Calculate overall statistics
+        total_executions = sum(m["total_executions"] for m in metrics_by_type.values())
+        total_successful = sum(m["successful_executions"] for m in metrics_by_type.values())
+        overall_success_rate = total_successful / total_executions if total_executions > 0 else 0.0
+
+        return {
+            "overall_success_rate": overall_success_rate,
+            "total_workflows_executed": total_executions,
+            "total_workflows_successful": total_successful,
+            "metrics_by_task_type": metrics_by_type,
+            "learned_task_types": len(metrics_by_type)
         }
 
 

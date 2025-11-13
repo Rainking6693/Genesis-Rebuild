@@ -48,6 +48,38 @@ Integration Points:
 - AgentJudge (CMP-based code evaluation)
 - OracleHGM (hypothesis-guided tree search)
 - SafetyLayer (code release gating)
+- MemoryTool (evolution pattern learning & knowledge graph)
+- MutationSuccessTracker (tracks agent->mutation->fitness relationships)
+
+Memory Integration (NEW: Tier 1 - Critical):
+1. MemoryTool System:
+   - Store evolution history in Memori (scope: app)
+   - Query successful mutations before evolving agents
+   - Build knowledge graph: agent -> mutation -> fitness improvement
+   - Track mutation success rates for intelligent operator selection
+
+2. Learning from Past Attempts:
+   - Retrieve similar evolution patterns before generating trajectories
+   - Prioritize operators with proven success rates
+   - Apply mutation strategies that worked in the past
+   - Share learning across all agents (app scope)
+
+3. Knowledge Graph:
+   - agent_id -> mutation_type -> success_rate
+   - agent_id -> operator_type -> avg_fitness_improvement
+   - mutation_type -> fitness_improvement_history
+   - Enables data-driven operator selection
+
+4. Memory Scopes:
+   - app: Cross-agent evolution learning (shared knowledge)
+   - agent: Agent-specific mutation patterns
+   - session: Current evolution run statistics
+
+Implementation:
+- MemoryTool: Wrapper around GenesisMemoryOSMongoDB for structured storage
+- MutationSuccessTracker: Knowledge graph tracker for mutation->fitness relationships
+- Integrated in _generate_trajectories() for learning before evolution
+- Integrated in _archive_trajectories() for tracking after mutation attempts
 """
 
 import asyncio
@@ -56,6 +88,7 @@ import hashlib
 import json
 import logging
 import os
+import threading
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -190,6 +223,441 @@ except ImportError:
 
 
 logger = get_logger("se_darwin_agent")
+
+
+# =====================================================================
+# MemoryTool Integration for Evolution Learning
+# =====================================================================
+
+
+class MemoryTool:
+    """
+    MemoryTool wrapper for SE-Darwin evolution pattern tracking.
+
+    Provides structured memory storage/retrieval for:
+    - Evolution history (all attempts)
+    - Successful mutations (agent -> mutation -> fitness)
+    - Operator effectiveness (which operators work for which scenarios)
+    - Knowledge graph: agent_id -> mutation_type -> fitness_improvement
+
+    Scopes:
+    - app: Cross-agent learning (all evolution attempts)
+    - agent: Agent-specific patterns (per agent_name)
+    - session: Current evolution run (temporary)
+    """
+
+    def __init__(self, backend, agent_id: str):
+        """
+        Initialize MemoryTool.
+
+        Args:
+            backend: GenesisMemoryOSMongoDB instance
+            agent_id: Agent identifier (e.g., "se_darwin")
+        """
+        self.backend = backend
+        self.agent_id = agent_id
+        logger.debug(f"[MemoryTool] Initialized for agent_id={agent_id}")
+
+    def store_memory(
+        self,
+        content: Dict[str, Any],
+        scope: str = "app",
+        provenance: Optional[Dict[str, Any]] = None,
+        memory_type: str = "conversation"
+    ) -> bool:
+        """
+        Store memory in Memori with scope isolation.
+
+        Args:
+            content: Memory content (evolution attempt data)
+            scope: Memory scope ("app", "agent", or "session")
+            provenance: Origin metadata (e.g., {"agent_id": "se_darwin"})
+            memory_type: Memory type for backend ("conversation", "consensus", etc.)
+
+        Returns:
+            True if stored successfully
+        """
+        try:
+            # Build user_id for scope isolation
+            user_id = self._build_user_id(scope, content.get("agent_id"))
+
+            # Extract key fields for storage
+            user_input = self._build_user_input(content)
+            agent_response = self._build_agent_response(content)
+
+            # Store via MemoryOS backend
+            self.backend.store(
+                agent_id=self.agent_id,
+                user_id=user_id,
+                user_input=user_input,
+                agent_response=agent_response,
+                memory_type=memory_type
+            )
+
+            logger.debug(f"[MemoryTool] Stored memory: scope={scope}, type={memory_type}")
+            return True
+
+        except Exception as e:
+            logger.error(f"[MemoryTool] Failed to store memory: {e}")
+            return False
+
+    def retrieve_memory(
+        self,
+        query: str,
+        scope: str = "app",
+        filters: Optional[Dict[str, Any]] = None,
+        top_k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve memories matching query.
+
+        Args:
+            query: Search query (e.g., "evolution of builder agent")
+            scope: Memory scope to search
+            filters: Optional filters (e.g., {"fitness_improvement": ">0"})
+            top_k: Number of results to return
+
+        Returns:
+            List of memory entries matching query
+        """
+        try:
+            # Build user_id for scope
+            agent_id_filter = filters.get("agent_id") if filters else None
+            user_id = self._build_user_id(scope, agent_id_filter)
+
+            # Retrieve via MemoryOS backend
+            memories = self.backend.retrieve(
+                agent_id=self.agent_id,
+                user_id=user_id,
+                query=query,
+                memory_type=None,  # Search all types
+                top_k=top_k
+            )
+
+            # Apply custom filters if provided
+            if filters:
+                memories = self._apply_filters(memories, filters)
+
+            logger.debug(f"[MemoryTool] Retrieved {len(memories)} memories: query='{query}', scope={scope}")
+            return memories
+
+        except Exception as e:
+            logger.error(f"[MemoryTool] Failed to retrieve memory: {e}")
+            return []
+
+    def _build_user_id(self, scope: str, agent_id: Optional[str] = None) -> str:
+        """Build user_id for scope isolation."""
+        if scope == "app":
+            return "darwin_global"
+        elif scope == "agent" and agent_id:
+            return f"darwin_{agent_id}"
+        elif scope == "session":
+            return f"darwin_session_{uuid.uuid4().hex[:8]}"
+        else:
+            return "darwin_default"
+
+    def _build_user_input(self, content: Dict[str, Any]) -> str:
+        """Build user_input from content."""
+        agent_id = content.get("agent_id", "unknown")
+        mutation = content.get("mutation", "unknown")
+        return f"Evolve {agent_id}: {mutation}"
+
+    def _build_agent_response(self, content: Dict[str, Any]) -> str:
+        """Build agent_response from content."""
+        fitness_before = content.get("fitness_before", 0.0)
+        fitness_after = content.get("fitness_after", 0.0)
+        fitness_improvement = content.get("fitness_improvement", 0.0)
+        mutation = content.get("mutation", "unknown")
+
+        return (
+            f"Evolution attempt: {mutation}\n"
+            f"Fitness: {fitness_before:.3f} -> {fitness_after:.3f} "
+            f"(improvement: {fitness_improvement:+.3f})"
+        )
+
+    def _apply_filters(
+        self,
+        memories: List[Dict[str, Any]],
+        filters: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Apply custom filters to retrieved memories."""
+        filtered = []
+        for memory in memories:
+            content = memory.get("content", {})
+
+            # Parse fitness_improvement filter
+            if "fitness_improvement" in filters:
+                filter_val = filters["fitness_improvement"]
+                memory_val = self._extract_fitness_improvement(content)
+
+                if isinstance(filter_val, str) and filter_val.startswith(">"):
+                    threshold = float(filter_val[1:])
+                    if memory_val <= threshold:
+                        continue
+                elif isinstance(filter_val, str) and filter_val.startswith("<"):
+                    threshold = float(filter_val[1:])
+                    if memory_val >= threshold:
+                        continue
+
+            # Agent ID filter
+            if "agent_id" in filters:
+                if content.get("agent_id") != filters["agent_id"]:
+                    continue
+
+            filtered.append(memory)
+
+        return filtered
+
+    def _extract_fitness_improvement(self, content: Dict[str, Any]) -> float:
+        """Extract fitness improvement from memory content."""
+        # Try to parse from agent_response
+        agent_response = content.get("agent_response", "")
+        if "improvement:" in agent_response:
+            try:
+                # Extract value like "improvement: +0.123"
+                improvement_str = agent_response.split("improvement:")[1].split(")")[0].strip()
+                return float(improvement_str)
+            except (ValueError, IndexError):
+                pass
+
+        return 0.0
+
+
+class MutationSuccessTracker:
+    """
+    Knowledge graph tracker for mutation success rates.
+
+    Tracks relationships:
+    - agent_id -> mutation_type -> success_rate
+    - agent_id -> operator_type -> avg_fitness_improvement
+    - mutation_type -> fitness_improvement_history
+
+    Enables intelligent operator selection based on past performance.
+
+    FIXED: Added thread safety with threading.Lock
+    FIXED: Added cache size limit with LRU eviction
+    FIXED: Added error handling in track_mutation
+    """
+
+    def __init__(self, memory_tool: MemoryTool, max_cache_size: int = 1000):
+        """
+        Initialize mutation success tracker.
+
+        Args:
+            memory_tool: MemoryTool instance for storage
+            max_cache_size: Maximum cache entries before LRU eviction (default: 1000)
+        """
+        self.memory_tool = memory_tool
+        self._success_cache: Dict[str, Dict[str, float]] = {}
+        self._cache_lock = threading.Lock()  # FIX: Add thread safety
+        self._cache_access_times: Dict[str, float] = {}  # For LRU eviction
+        self.max_cache_size = max_cache_size  # FIX: Cache size limit
+        logger.debug("[MutationSuccessTracker] Initialized with thread-safe cache")
+
+    def track_mutation(
+        self,
+        agent_id: str,
+        mutation_type: str,
+        operator_type: str,
+        fitness_before: float,
+        fitness_after: float,
+        success: bool
+    ) -> None:
+        """
+        Track a mutation attempt for knowledge graph.
+
+        FIXED: Added try-except error handling
+        FIXED: Thread-safe cache operations
+
+        Args:
+            agent_id: Target agent
+            mutation_type: Type of mutation applied
+            operator_type: Operator used (revision, recombination, refinement)
+            fitness_before: Fitness before mutation
+            fitness_after: Fitness after mutation
+            success: Whether mutation was successful
+        """
+        # FIX: Wrap in try-except for error handling
+        try:
+            fitness_improvement = fitness_after - fitness_before
+
+            # Store in memory
+            content = {
+                "agent_id": agent_id,
+                "mutation": mutation_type,
+                "operator": operator_type,
+                "fitness_before": fitness_before,
+                "fitness_after": fitness_after,
+                "fitness_improvement": fitness_improvement,
+                "success": success,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+
+            self.memory_tool.store_memory(
+                content=content,
+                scope="app",
+                provenance={"agent_id": "se_darwin", "tracker": "mutation_success"}
+            )
+
+            # FIX: Thread-safe cache update
+            with self._cache_lock:
+                # FIX: Check cache size and evict if needed
+                if len(self._success_cache) >= self.max_cache_size:
+                    self._evict_lru_entry()
+
+                cache_key = f"{agent_id}::{mutation_type}"
+                if cache_key not in self._success_cache:
+                    self._success_cache[cache_key] = {
+                        "total": 0,
+                        "successful": 0,
+                        "avg_improvement": 0.0
+                    }
+
+                stats = self._success_cache[cache_key]
+                stats["total"] += 1
+                if success:
+                    stats["successful"] += 1
+
+                # Update running average of improvement
+                stats["avg_improvement"] = (
+                    (stats["avg_improvement"] * (stats["total"] - 1) + fitness_improvement) /
+                    stats["total"]
+                )
+
+                # Update access time for LRU
+                self._cache_access_times[cache_key] = time.time()
+
+            logger.debug(
+                f"[MutationSuccessTracker] Tracked: {agent_id} -> {mutation_type} "
+                f"(success={success}, improvement={fitness_improvement:+.3f})"
+            )
+
+        except Exception as e:
+            # FIX: Error handling - log but don't re-raise
+            logger.error(f"[MutationSuccessTracker] Failed to track mutation: {e}")
+            # Don't re-raise to avoid breaking evolution loop
+
+    def _evict_lru_entry(self) -> None:
+        """
+        FIX: Evict least recently used cache entry.
+
+        Called when cache reaches max_cache_size.
+        Must be called within _cache_lock context.
+        """
+        if not self._cache_access_times:
+            return
+
+        # Find LRU entry
+        lru_key = min(self._cache_access_times, key=self._cache_access_times.get)
+
+        # Remove from cache and access times
+        self._success_cache.pop(lru_key, None)
+        self._cache_access_times.pop(lru_key, None)
+
+        logger.debug(f"[MutationSuccessTracker] Evicted LRU cache entry: {lru_key}")
+
+    def get_successful_mutations(
+        self,
+        agent_id: str,
+        min_improvement: float = 0.1,
+        top_k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Get successful mutation patterns for an agent.
+
+        Args:
+            agent_id: Target agent
+            min_improvement: Minimum fitness improvement threshold
+            top_k: Number of top mutations to return
+
+        Returns:
+            List of successful mutation patterns
+        """
+        # Query from memory
+        past_evolutions = self.memory_tool.retrieve_memory(
+            query=f"evolution of {agent_id}",
+            scope="app",
+            filters={"agent_id": agent_id, "fitness_improvement": f">{min_improvement}"},
+            top_k=top_k * 2  # Over-fetch for filtering
+        )
+
+        # Extract mutation patterns
+        successful_mutations = []
+        for memory in past_evolutions:
+            content = memory.get("content", {})
+            improvement = self._extract_fitness_improvement_from_memory(content)
+
+            if improvement >= min_improvement:
+                successful_mutations.append({
+                    "mutation": content.get("agent_response", "").split("Evolution attempt:")[1].split("\n")[0].strip() if "Evolution attempt:" in content.get("agent_response", "") else "unknown",
+                    "operator": self._extract_operator(content),
+                    "improvement": improvement,
+                    "timestamp": content.get("created_at", "")
+                })
+
+        # Sort by improvement (descending)
+        successful_mutations.sort(key=lambda x: x["improvement"], reverse=True)
+
+        return successful_mutations[:top_k]
+
+    def get_operator_success_rate(self, agent_id: str, operator_type: str) -> float:
+        """
+        Get success rate for a specific operator on an agent.
+
+        Args:
+            agent_id: Target agent
+            operator_type: Operator type (revision, recombination, refinement)
+
+        Returns:
+            Success rate (0.0-1.0)
+        """
+        # Query from cache first
+        cache_keys = [k for k in self._success_cache.keys() if k.startswith(f"{agent_id}::")]
+        if cache_keys:
+            total_attempts = sum(self._success_cache[k]["total"] for k in cache_keys)
+            successful_attempts = sum(self._success_cache[k]["successful"] for k in cache_keys)
+            if total_attempts > 0:
+                return successful_attempts / total_attempts
+
+        # Query from memory if cache miss
+        memories = self.memory_tool.retrieve_memory(
+            query=f"{operator_type} operator on {agent_id}",
+            scope="app",
+            filters={"agent_id": agent_id},
+            top_k=50
+        )
+
+        if not memories:
+            return 0.5  # Default neutral success rate
+
+        successful = sum(
+            1 for m in memories
+            if self._extract_fitness_improvement_from_memory(m.get("content", {})) > 0
+        )
+
+        return successful / len(memories) if memories else 0.5
+
+    def _extract_fitness_improvement_from_memory(self, content: Dict[str, Any]) -> float:
+        """Extract fitness improvement from memory content."""
+        agent_response = content.get("agent_response", "")
+        if "improvement:" in agent_response:
+            try:
+                improvement_str = agent_response.split("improvement:")[1].split(")")[0].strip()
+                return float(improvement_str)
+            except (ValueError, IndexError):
+                pass
+        return 0.0
+
+    def _extract_operator(self, content: Dict[str, Any]) -> str:
+        """Extract operator type from memory content."""
+        user_input = content.get("user_input", "")
+        if "revision" in user_input.lower():
+            return "revision"
+        elif "recombination" in user_input.lower():
+            return "recombination"
+        elif "refinement" in user_input.lower():
+            return "refinement"
+        return "baseline"
 
 
 class BenchmarkScenarioLoader:
@@ -655,6 +1123,8 @@ class SEDarwinAgent:
         # Initialize MemoryOS MongoDB adapter for evolution pattern memory (NEW: 49% F1 improvement)
         # Enables: successful mutation memory, similar evolution trace retrieval, pattern learning
         self.memory: Optional[GenesisMemoryOSMongoDB] = None
+        self.memory_tool: Optional[MemoryTool] = None
+        self.mutation_success_tracker: Optional[MutationSuccessTracker] = None
         self._init_memory()
 
         # Initialize OpenHands integration (NEW: +8-12% SWE-bench improvement)
@@ -715,9 +1185,24 @@ class SEDarwinAgent:
         )
 
     def _init_memory(self):
-        """Initialize MemoryOS MongoDB backend for SE-Darwin evolution pattern memory."""
+        """
+        Initialize MemoryTool system for SE-Darwin evolution pattern memory.
+
+        Memory Strategy:
+        1. Store evolution history in Memori (scope: app)
+        2. Query successful mutations before evolving agents
+        3. Build knowledge graph: agent -> mutation -> fitness improvement
+        4. Track mutation success rates for intelligent operator selection
+
+        Memory Scopes:
+        - app: Evolution history across all agents (shared learning)
+        - agent: Agent-specific mutation patterns
+        - session: Current evolution run statistics
+        """
         try:
             import os
+
+            # Initialize MemoryOS MongoDB backend
             self.memory = create_genesis_memory_mongodb(
                 mongodb_uri=os.getenv("MONGODB_URI", "mongodb://localhost:27017/"),
                 database_name=f"genesis_memory_se_darwin",
@@ -725,10 +1210,20 @@ class SEDarwinAgent:
                 mid_term_capacity=1500,  # Historical evolution patterns (SE-Darwin-specific)
                 long_term_knowledge_capacity=500  # Successful mutation patterns, operator strategies
             )
-            logger.info("[SEDarwinAgent] MemoryOS MongoDB initialized for evolution pattern tracking")
+
+            # Initialize MemoryTool wrapper for structured evolution tracking
+            self.memory_tool = MemoryTool(backend=self.memory, agent_id="se_darwin")
+
+            # Mutation success rate tracker (knowledge graph)
+            self.mutation_success_tracker = MutationSuccessTracker(memory_tool=self.memory_tool)
+
+            logger.info("[SEDarwinAgent] MemoryTool initialized for evolution pattern tracking")
+            logger.info("[SEDarwinAgent] Mutation success tracker enabled for knowledge graph")
         except Exception as e:
-            logger.warning(f"[SEDarwinAgent] Failed to initialize MemoryOS: {e}. Memory features disabled.")
+            logger.warning(f"[SEDarwinAgent] Failed to initialize MemoryTool: {e}. Memory features disabled.")
             self.memory = None
+            self.memory_tool = None
+            self.mutation_success_tracker = None
 
     def _init_openhands(self):
         """
@@ -1144,6 +1639,11 @@ class SEDarwinAgent:
           - Successful pairs → Recombination (crossover)
           - Promising → Refinement (optimization)
 
+        MEMORY INTEGRATION: Learn from past evolution attempts
+        - Query successful mutations before generating trajectories
+        - Prioritize operators with high success rates for this agent
+        - Apply similar mutation patterns that worked before
+
         Args:
             problem_description: Problem to solve
             context: Additional context
@@ -1153,6 +1653,41 @@ class SEDarwinAgent:
             List of trajectories to execute
         """
         trajectories = []
+
+        # MEMORY: Learn from past successful mutations (if available)
+        successful_mutations = []
+        operator_priorities = {}
+        if self.memory_tool and self.mutation_success_tracker:
+            try:
+                # Get successful mutation patterns for this agent
+                successful_mutations = self.mutation_success_tracker.get_successful_mutations(
+                    agent_id=self.agent_name,
+                    min_improvement=0.1,
+                    top_k=5
+                )
+
+                if successful_mutations:
+                    logger.info(
+                        f"[Memory] Found {len(successful_mutations)} successful mutations for {self.agent_name}"
+                    )
+                    # Add to context for operator decision-making
+                    context['successful_mutations'] = successful_mutations
+
+                # Get operator success rates for intelligent prioritization
+                for op_type in ["revision", "recombination", "refinement"]:
+                    success_rate = self.mutation_success_tracker.get_operator_success_rate(
+                        agent_id=self.agent_name,
+                        operator_type=op_type
+                    )
+                    operator_priorities[op_type] = success_rate
+                    logger.debug(
+                        f"[Memory] Operator '{op_type}' success rate for {self.agent_name}: {success_rate:.2%}"
+                    )
+
+                context['operator_priorities'] = operator_priorities
+
+            except Exception as e:
+                logger.warning(f"[Memory] Failed to retrieve past mutations: {e}")
 
         if generation == 0:
             # Initial generation with optional SPICE self-play bootstrapping
@@ -1719,6 +2254,11 @@ class SEDarwinAgent:
 
         With DataJuicer enabled, curates trajectories before archiving for improved quality.
 
+        MEMORY INTEGRATION:
+        - Store each evolution attempt in Memori (app scope)
+        - Track mutation success rates in knowledge graph
+        - Build agent -> mutation -> fitness improvement relationships
+
         Args:
             execution_results: Results to archive
         """
@@ -1726,6 +2266,33 @@ class SEDarwinAgent:
         trajectories_to_archive = []
 
         for result in execution_results:
+            # MEMORY: Track mutation attempt in knowledge graph
+            if self.memory_tool and self.mutation_success_tracker:
+                try:
+                    trajectory = result.trajectory
+                    fitness_before = 0.0  # Would be from parent trajectory
+                    fitness_after = trajectory.success_score
+                    success = result.success
+
+                    # Track mutation in knowledge graph
+                    self.mutation_success_tracker.track_mutation(
+                        agent_id=self.agent_name,
+                        mutation_type=trajectory.operator_applied,
+                        operator_type=trajectory.operator_applied,
+                        fitness_before=fitness_before,
+                        fitness_after=fitness_after,
+                        success=success
+                    )
+
+                    logger.debug(
+                        f"[Memory] Tracked mutation: {trajectory.trajectory_id} "
+                        f"(operator={trajectory.operator_applied}, success={success})"
+                    )
+
+                except Exception as e:
+                    logger.warning(f"[Memory] Failed to track mutation: {e}")
+
+            # Safety validation
             if await self._validate_trajectory_safety(result.trajectory):
                 trajectories_to_archive.append(result.trajectory)
             else:
