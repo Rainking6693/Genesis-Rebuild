@@ -260,12 +260,14 @@ class BusinessIdeaGenerator:
         """Initialize idea generator."""
         self.trend_analyzer = MarketTrendAnalyzer()
         self.revenue_scorer = RevenuePotentialScorer()
-        
-        # LLM for creative idea generation
-        self.use_openai = os.getenv('OPENAI_API_KEY', '') != ''
-        self.use_anthropic = os.getenv('ANTHROPIC_API_KEY', '') != ''
-        
-        logger.info(f"BusinessIdeaGenerator initialized (OpenAI={self.use_openai}, Anthropic={self.use_anthropic})")
+
+        # LLM for creative idea generation (cost-optimized fallback chain)
+        self.use_gemini = os.getenv('GOOGLE_API_KEY', '') != '' or os.getenv('GEMINI_API_KEY', '') != ''
+        self.use_gemini2 = os.getenv('GEMINI2_API_KEY', '') != ''
+        self.use_deepseek = os.getenv('DEEPSEEK_API_KEY', '') != ''
+        self.use_mistral = os.getenv('MISTRAL_API_KEY', '') != ''
+
+        logger.info(f"BusinessIdeaGenerator initialized (Gemini={self.use_gemini}, Gemini2={self.use_gemini2}, DeepSeek={self.use_deepseek}, Mistral={self.use_mistral})")
     
     async def generate_idea(
         self,
@@ -438,15 +440,18 @@ OUTPUT FORMAT (JSON):
 Generate a creative, profitable business idea now:"""
         
         try:
-            if self.use_anthropic:
-                # Use Claude for creative idea generation
-                response = await self._call_anthropic(prompt)
-            elif self.use_openai:
-                # Use GPT-4o for creative idea generation
-                response = await self._call_openai(prompt)
+            # Cost-optimized fallback chain: Gemini → Gemini2 → DeepSeek → Mistral
+            if self.use_gemini:
+                response = await self._call_gemini(prompt)
+            elif self.use_gemini2:
+                response = await self._call_gemini2(prompt)
+            elif self.use_deepseek:
+                response = await self._call_deepseek(prompt)
+            elif self.use_mistral:
+                response = await self._call_mistral(prompt)
             else:
-                # Fallback to local LLM (less creative but free)
-                response = await self._call_local_llm(prompt)
+                # Fallback to template (no expensive APIs)
+                response = json.dumps(self._generate_template_idea(business_type, trends))
             
             # Parse JSON response
             idea_data = json.loads(response)
@@ -467,37 +472,71 @@ Generate a creative, profitable business idea now:"""
             # Fallback to template-based idea
             return self._generate_template_idea(business_type, trends)
     
-    async def _call_anthropic(self, prompt: str) -> str:
-        """Call Claude for idea generation."""
-        import anthropic
-        
-        client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
-        
-        message = client.messages.create(
-            model="claude-sonnet-4-20250514",  # Claude Sonnet 4 (May 2025 - latest)
-            max_tokens=2048,
-            temperature=0.9,  # High creativity
-            messages=[{"role": "user", "content": prompt}]
+    async def _call_gemini(self, prompt: str) -> str:
+        """Call Gemini 2.5 Flash for idea generation ($0.03/1M tokens - 100x cheaper)."""
+        import google.generativeai as genai
+
+        api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')
+        genai.configure(api_key=api_key)
+
+        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.GenerationConfig(
+                temperature=0.9,  # High creativity
+                max_output_tokens=2048,
+            )
         )
-        
-        response = message.content[0].text
-        
+
+        content = response.text
+
         # Extract JSON if wrapped in markdown
-        if "```json" in response:
-            response = response.split("```json")[1].split("```")[0].strip()
-        elif "```" in response:
-            response = response.split("```")[1].split("```")[0].strip()
-        
-        return response
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].split("```")[0].strip()
+
+        return content
     
-    async def _call_openai(self, prompt: str) -> str:
-        """Call GPT-4o for idea generation."""
+    async def _call_gemini2(self, prompt: str) -> str:
+        """Call Gemini 2 (alternative key) for idea generation."""
+        import google.generativeai as genai
+
+        api_key = os.getenv('GEMINI2_API_KEY')
+        genai.configure(api_key=api_key)
+
+        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.GenerationConfig(
+                temperature=0.9,
+                max_output_tokens=2048,
+            )
+        )
+
+        content = response.text
+
+        # Extract JSON if wrapped
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].split("```")[0].strip()
+
+        return content
+    
+    async def _call_deepseek(self, prompt: str) -> str:
+        """Call DeepSeek v3 for idea generation (cheap/free, high quality)."""
         from openai import AsyncOpenAI
-        
-        client = AsyncOpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-        
+
+        client = AsyncOpenAI(
+            api_key=os.getenv('DEEPSEEK_API_KEY'),
+            base_url="https://api.deepseek.com"
+        )
+
         response = await client.chat.completions.create(
-            model="gpt-4o",
+            model="deepseek-chat",
             messages=[
                 {"role": "system", "content": "You are a creative business strategist. Always respond with valid JSON."},
                 {"role": "user", "content": prompt}
@@ -505,26 +544,45 @@ Generate a creative, profitable business idea now:"""
             temperature=0.9,
             max_tokens=2048
         )
-        
+
         content = response.choices[0].message.content
-        
+
         # Extract JSON if wrapped
         if "```json" in content:
             content = content.split("```json")[1].split("```")[0].strip()
         elif "```" in content:
             content = content.split("```")[1].split("```")[0].strip()
-        
+
         return content
-    
-    async def _call_local_llm(self, prompt: str) -> str:
-        """Fallback to local LLM (less creative)."""
-        from infrastructure.local_llm_client import get_local_llm_client
-        
-        client = get_local_llm_client()
-        # Local LLM may not be as creative, but it's free
-        
-        # Return a template for now (local LLM JSON generation is unreliable)
-        return json.dumps(self._generate_template_idea("ecommerce", []))
+
+    async def _call_mistral(self, prompt: str) -> str:
+        """Call Mistral for idea generation (open source, cost-effective)."""
+        from openai import AsyncOpenAI
+
+        client = AsyncOpenAI(
+            api_key=os.getenv('MISTRAL_API_KEY'),
+            base_url="https://api.mistral.ai/v1"
+        )
+
+        response = await client.chat.completions.create(
+            model="mistral-large-latest",
+            messages=[
+                {"role": "system", "content": "You are a creative business strategist. Always respond with valid JSON."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.9,
+            max_tokens=2048
+        )
+
+        content = response.choices[0].message.content
+
+        # Extract JSON if wrapped
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].split("```")[0].strip()
+
+        return content
     
     def _generate_template_idea(self, business_type: str, trends: List[str]) -> Dict[str, Any]:
         """Fallback template-based idea generation."""
