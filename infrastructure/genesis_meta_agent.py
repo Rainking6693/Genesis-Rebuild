@@ -171,7 +171,7 @@ AGENT_COMPONENT_REQUIREMENTS = {
 }
 
 class GenesisMetaAgent:
-    def __init__(self, use_local_llm: bool = True, enable_modular_prompts: bool = True):
+    def __init__(self, use_local_llm: bool = True, enable_modular_prompts: bool = True, enable_memory: bool = True):
         self.use_local_llm = use_local_llm
         self.router = HALORouter.create_with_integrations()  # ✅ Policy Cards + Capability Maps enabled
         self.llm_client = get_local_llm_client() if use_local_llm else None
@@ -190,11 +190,30 @@ class GenesisMetaAgent:
         else:
             self.prompt_assembler = None
 
+        # NEW: Memory Integration (Tier 1 - Critical)
+        self.enable_memory = enable_memory
+        self.memory_integration = None
+        if enable_memory:
+            try:
+                from infrastructure.genesis_memory_integration import GenesisMemoryIntegration
+                self.memory_integration = GenesisMemoryIntegration(
+                    mongodb_uri=os.getenv("MONGODB_URI"),
+                    gemini_api_key=os.getenv("GEMINI_API_KEY"),
+                    session_ttl_hours=24
+                )
+                logger.info("✅ Memory integration enabled (MongoDB + Gemini multimodal)")
+            except Exception as e:
+                logger.warning(f"Memory integration failed: {e}, running without persistent memory")
+                self.memory_integration = None
+                self.enable_memory = False
+        else:
+            logger.info("Memory integration disabled")
+
         # NEW: Intelligent component selection and team assembly
         from infrastructure.component_selector import get_component_selector
         from infrastructure.team_assembler import get_team_assembler
         from infrastructure.business_idea_generator import get_idea_generator
-        
+
         self.component_selector = None  # Lazy load
         self.team_assembler = None  # Lazy load
         self.idea_generator = None  # Lazy load
@@ -211,7 +230,7 @@ class GenesisMetaAgent:
         self._darwin_enabled = os.getenv("ENABLE_DARWIN_WRAP", "true").lower() != "false"
         self._current_team_agents: List[str] = []
         self._current_spec: Optional[BusinessSpec] = None
-        
+
         logger.info("Genesis Meta-Agent initialized")
 
     def _load_business_templates(self):
@@ -1009,5 +1028,144 @@ vercel deploy --prod
             logger.info("="*80)
         else:
             logger.error(f"❌ Generation failed: {result.errors}")
-        
+
         return result
+
+    async def handle_user_conversation(
+        self,
+        message: str,
+        session_id: str,
+        user_id: str,
+        attachments: Optional[List[str]] = None,
+        agent_name: str = "genesis_agent"
+    ) -> Dict[str, Any]:
+        """
+        Handle user conversation with memory integration (Tier 1 - Critical).
+
+        This method provides full memory persistence for user conversations:
+        - Stores user messages in Memori (scope: user)
+        - Queries user conversation history for context
+        - Processes multimodal attachments (images/audio) via Gemini
+        - Enforces per-user ACL
+        - Persists sessions across restarts
+
+        Args:
+            message: User message text
+            session_id: Session ID for conversation continuity
+            user_id: User ID for ACL and memory isolation
+            attachments: Optional list of attachment URIs (images/audio)
+            agent_name: Agent to route conversation to (default: genesis_agent)
+
+        Returns:
+            Dict with:
+                - response: Agent response text
+                - history: Conversation history (last 10 messages)
+                - multimodal_results: Processed attachments
+                - session_context: Session metadata
+                - processing_time_ms: Total processing time
+
+        Example:
+            result = await agent.handle_user_conversation(
+                message="Tell me about my recent projects",
+                session_id="session_123",
+                user_id="user_456",
+                attachments=["screenshot.png"]
+            )
+
+            print(result["response"])  # Agent response
+            print(result["history"])    # Last 10 messages
+        """
+        if not self.enable_memory or not self.memory_integration:
+            # Fallback: Handle without memory
+            logger.warning("Memory integration disabled, running without persistent memory")
+
+            # Direct LLM call without memory
+            prompt = f"User request: {message}\n\nProvide a helpful response."
+            response = await self._call_router(agent_name, prompt, temperature=0.7)
+
+            return {
+                "response": response,
+                "history": [],
+                "multimodal_results": [],
+                "session_context": None,
+                "processing_time_ms": 0.0,
+                "memory_enabled": False
+            }
+
+        # Process message with full memory integration
+        start_time = time.time()
+
+        # 1. Handle message with memory integration
+        memory_result = await self.memory_integration.handle_user_message(
+            message=message,
+            session_id=session_id,
+            user_id=user_id,
+            attachments=attachments,
+            retrieve_history=True,
+            history_window=10
+        )
+
+        processed_message = memory_result["processed_message"]
+        history = memory_result["history"]
+
+        # 2. Build context-aware prompt
+        context_parts = []
+
+        # Add conversation history
+        if history:
+            context_parts.append("## Conversation History:")
+            for msg in history[-5:]:  # Last 5 messages for context
+                role_label = "User" if msg["role"] == "user" else "Assistant"
+                context_parts.append(f"{role_label}: {msg['content'][:200]}")  # Truncate long messages
+
+        # Add multimodal content
+        if memory_result["multimodal_results"]:
+            context_parts.append("\n## Attachments:")
+            for result in memory_result["multimodal_results"]:
+                if result["content"]:
+                    context_parts.append(f"- {result['type']}: {result['content'][:200]}")
+
+        # Build full prompt
+        context_str = "\n".join(context_parts) if context_parts else ""
+
+        full_prompt = f"""You are Genesis, an AI assistant helping the user with their request.
+
+{context_str}
+
+## Current Request:
+{processed_message}
+
+Provide a helpful, contextual response based on the conversation history and any attachments."""
+
+        # 3. Generate response via HALO router
+        response = await self._call_router(
+            agent_name=agent_name,
+            prompt=full_prompt,
+            temperature=0.7
+        )
+
+        if not response:
+            response = "I apologize, but I'm unable to generate a response right now. Please try again."
+
+        # 4. Store assistant response
+        await self.memory_integration.store_assistant_response(
+            response=response,
+            session_id=session_id,
+            user_id=user_id,
+            metadata={
+                "agent_name": agent_name,
+                "has_attachments": bool(attachments),
+                "history_count": len(history)
+            }
+        )
+
+        processing_time_ms = (time.time() - start_time) * 1000
+
+        return {
+            "response": response,
+            "history": history,
+            "multimodal_results": memory_result["multimodal_results"],
+            "session_context": memory_result["session_context"],
+            "processing_time_ms": processing_time_ms,
+            "memory_enabled": True
+        }

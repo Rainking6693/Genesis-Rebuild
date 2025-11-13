@@ -1,17 +1,35 @@
 """
 QA AGENT - Microsoft Agent Framework Version
-Version: 4.0 (Enhanced with DAAO + TUMIX)
+Version: 4.1 (Enhanced with DAAO + TUMIX + MemoryTool Integration)
 
 Handles quality assurance, testing, and validation.
 Enhanced with:
 - DAAO routing (30-40% cost reduction on varied complexity tasks)
 - TUMIX early termination (40-50% cost reduction on iterative testing)
+- MemoryTool integration (Tier 1 - Critical):
+  * Bug solution memory (cross-agent learning from past resolutions)
+  * Test result tracking (regression analysis and flaky test detection)
+  * Semantic search for similar bugs and test patterns
+  * App scope: Shared bug knowledge across all QA agents
+  * User scope: User-specific test preferences and configurations
+  * 49% F1 improvement through pattern learning (MemoryOS benchmark)
+
+Memory Integration Points:
+1. store_bug_solution() - Store successful bug resolutions for future reference
+2. recall_similar_bugs() - Retrieve similar past bugs with solutions
+3. run_test_suite() - Track test results and identify patterns
+4. report_bug() - Check for similar bugs before reporting new ones
+
+Memory Scopes:
+- app: Cross-agent bug knowledge (all QA agents share learnings)
+- user: User-specific test preferences and configurations
 """
 
 import json
 import logging
+import time
 from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Optional, Any
 from agent_framework import ChatAgent
 from agent_framework.azure import AzureAIAgentClient
 from agent_framework.observability import setup_observability
@@ -45,6 +63,214 @@ setup_observability(enable_sensitive_data=True)
 logger = logging.getLogger(__name__)
 
 
+class MemoryTool:
+    """
+    MemoryTool wrapper for QA Agent bug tracking and test result memory.
+
+    Provides structured memory storage/retrieval for:
+    - Bug solutions and resolutions (cross-agent learning)
+    - Test result patterns and flaky tests
+    - Regression patterns and historical test data
+    - User-specific test preferences and configurations
+
+    Scopes:
+    - app: Cross-agent bug knowledge (all QA agents share learnings)
+    - user: User-specific test preferences and configurations
+    """
+
+    def __init__(self, backend, agent_id: str = "qa_agent"):
+        """
+        Initialize MemoryTool for QA Agent.
+
+        Args:
+            backend: GenesisMemoryOSMongoDB instance
+            agent_id: Agent identifier (default: "qa_agent")
+        """
+        self.backend = backend
+        self.agent_id = agent_id
+        logger.debug(f"[QA MemoryTool] Initialized for agent_id={agent_id}")
+
+    def store_memory(
+        self,
+        content: Dict[str, Any],
+        scope: str = "app",
+        provenance: Optional[Dict[str, Any]] = None,
+        memory_type: str = "conversation"
+    ) -> bool:
+        """
+        Store memory in MemoryOS with scope isolation.
+
+        Args:
+            content: Memory content (bug solution, test result, etc.)
+            scope: Memory scope ("app" for cross-agent, "user" for user-specific)
+            provenance: Origin metadata (e.g., {"agent_id": "qa_agent", "user_id": "user_123"})
+            memory_type: Memory type for backend ("conversation", "consensus", etc.)
+
+        Returns:
+            True if stored successfully
+        """
+        try:
+            # Build user_id for scope isolation
+            user_id = self._build_user_id(scope, content.get("user_id"))
+
+            # Extract key fields for storage
+            user_input = self._build_user_input(content)
+            agent_response = self._build_agent_response(content)
+
+            # CRITICAL FIX: Preserve original content fields for filtering
+            # Store both formatted text AND raw content for filter support
+            stored_content = {
+                "user_input": user_input,
+                "agent_response": agent_response,
+                "raw_content": content  # Preserve original for filtering
+            }
+
+            # Store via MemoryOS backend
+            # Note: We need to pass the full content structure
+            # But MemoryOS backend expects user_input/agent_response strings
+            # So we serialize the full content as JSON in agent_response
+            import json
+            self.backend.store(
+                agent_id=self.agent_id,
+                user_id=user_id,
+                user_input=user_input,
+                agent_response=json.dumps(stored_content),  # Store full content as JSON
+                memory_type=memory_type
+            )
+
+            logger.debug(f"[QA MemoryTool] Stored memory: scope={scope}, type={memory_type}")
+            return True
+
+        except Exception as e:
+            logger.error(f"[QA MemoryTool] Failed to store memory: {e}")
+            return False
+
+    def retrieve_memory(
+        self,
+        query: str,
+        scope: str = "app",
+        filters: Optional[Dict[str, Any]] = None,
+        top_k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve memories matching query.
+
+        Args:
+            query: Search query (e.g., "authentication bugs", "test failures")
+            scope: Memory scope to search
+            filters: Optional filters (e.g., {"success": True})
+            top_k: Number of results to return
+
+        Returns:
+            List of memory entries matching query
+        """
+        try:
+            # Build user_id for scope
+            user_id_filter = filters.get("user_id") if filters else None
+            user_id = self._build_user_id(scope, user_id_filter)
+
+            # Retrieve via MemoryOS backend
+            memories = self.backend.retrieve(
+                agent_id=self.agent_id,
+                user_id=user_id,
+                query=query,
+                memory_type=None,  # Search all types
+                top_k=top_k * 2  # Fetch more to account for filtering
+            )
+
+            # CRITICAL FIX: Parse stored JSON content to restore raw_content
+            import json
+            parsed_memories = []
+            for memory in memories:
+                content = memory.get('content', {})
+                # Try to parse agent_response as JSON to get raw_content
+                if isinstance(content, dict):
+                    agent_response = content.get('agent_response', '')
+                    if isinstance(agent_response, str) and agent_response.startswith('{'):
+                        try:
+                            parsed_content = json.loads(agent_response)
+                            # Replace content with parsed version that includes raw_content
+                            memory['content'] = parsed_content
+                        except json.JSONDecodeError:
+                            # Keep original content if not JSON
+                            pass
+                parsed_memories.append(memory)
+
+            # Apply custom filters if provided
+            if filters:
+                parsed_memories = self._apply_filters(parsed_memories, filters)
+
+            # Limit to top_k after filtering
+            parsed_memories = parsed_memories[:top_k]
+
+            logger.debug(f"[QA MemoryTool] Retrieved {len(parsed_memories)} memories: query='{query}', scope={scope}")
+            return parsed_memories
+
+        except Exception as e:
+            logger.error(f"[QA MemoryTool] Failed to retrieve memory: {e}")
+            return []
+
+    def _build_user_id(self, scope: str, user_id: Optional[str] = None) -> str:
+        """Build user_id for scope isolation."""
+        if scope == "app":
+            return "qa_global"
+        elif scope == "user" and user_id:
+            return f"qa_{user_id}"
+        else:
+            return "qa_default"
+
+    def _build_user_input(self, content: Dict[str, Any]) -> str:
+        """Build user_input from content."""
+        if "bug_description" in content:
+            return f"Bug: {content['bug_description']}"
+        elif "test_suite_name" in content:
+            return f"Run test suite: {content['test_suite_name']}"
+        else:
+            return f"QA Task: {content.get('description', 'unknown')}"
+
+    def _build_agent_response(self, content: Dict[str, Any]) -> str:
+        """Build agent_response from content."""
+        if "solution" in content:
+            success = content.get('success', False)
+            return f"Solution: {content['solution']}\nStatus: {'SUCCESS' if success else 'FAILED'}"
+        elif "test_results" in content:
+            results = content['test_results']
+            return f"Tests: {results.get('passed', 0)}/{results.get('total_tests', 0)} passed, Coverage: {results.get('code_coverage', 0)}%"
+        else:
+            return json.dumps(content, indent=2)
+
+    def _apply_filters(
+        self,
+        memories: List[Dict[str, Any]],
+        filters: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Apply custom filters to memory results."""
+        filtered = []
+        for memory in memories:
+            content = memory.get('content', {})
+
+            # CRITICAL FIX: Check raw_content if available (from our JSON storage)
+            # This allows filtering on original fields like 'success', 'bug_description', etc.
+            raw_content = content.get('raw_content', content)
+
+            matches = True
+            for key, value in filters.items():
+                if key == "user_id":
+                    continue  # Already filtered by user_id
+
+                # Check in raw_content first, then fall back to content
+                if isinstance(raw_content, dict) and raw_content.get(key) != value:
+                    matches = False
+                    break
+                elif not isinstance(raw_content, dict) and content.get(key) != value:
+                    matches = False
+                    break
+
+            if matches:
+                filtered.append(memory)
+        return filtered
+
+
 class QAAgent:
     """
     Quality assurance and testing agent
@@ -54,9 +280,10 @@ class QAAgent:
     - TUMIX: Stops iterative testing when quality plateaus (saves 40-50% on refinement)
     """
 
-    def __init__(self, business_id: str = "default"):
+    def __init__(self, business_id: str = "default", enable_memory: bool = True):
         self.business_id = business_id
         self.agent = None
+        self.enable_memory = enable_memory
 
         # Initialize DAAO router for cost optimization
         self.router = get_daao_router()
@@ -82,9 +309,11 @@ class QAAgent:
         # Initialize MemoryOS MongoDB adapter for persistent memory (NEW: 49% F1 improvement)
         # Enables test result memory, regression pattern learning, flaky test tracking
         self.memory: Optional[GenesisMemoryOSMongoDB] = None
-        self._init_memory()
+        self.memory_tool: Optional[MemoryTool] = None
+        if enable_memory:
+            self._init_memory()
 
-        logger.info(f"QA Agent v4.0 initialized with DAAO + TUMIX + DeepSeek-OCR + OpenEnv + MemoryOS for business: {business_id}")
+        logger.info(f"QA Agent v4.0 initialized with DAAO + TUMIX + DeepSeek-OCR + OpenEnv + MemoryOS (memory={'enabled' if enable_memory else 'disabled'}) for business: {business_id}")
 
     async def initialize(self):
         cred = AzureCliCredential()
@@ -119,7 +348,7 @@ class QAAgent:
         print(f"   - MemoryOS MongoDB backend enabled (49% F1 improvement)\n")
 
     def _init_memory(self):
-        """Initialize MemoryOS MongoDB backend for QA test memory."""
+        """Initialize MemoryOS MongoDB backend and MemoryTool for QA test memory."""
         try:
             import os
             self.memory = create_genesis_memory_mongodb(
@@ -129,10 +358,15 @@ class QAAgent:
                 mid_term_capacity=500,   # Historical test patterns (QA-specific)
                 long_term_knowledge_capacity=100  # Known flaky tests, regression patterns
             )
-            logger.info("[QAAgent] MemoryOS MongoDB initialized for test result tracking")
+
+            # Initialize MemoryTool wrapper for structured memory operations
+            self.memory_tool = MemoryTool(backend=self.memory, agent_id="qa_agent")
+
+            logger.info("[QAAgent] MemoryOS MongoDB initialized for test result tracking with MemoryTool integration")
         except Exception as e:
             logger.warning(f"[QAAgent] Failed to initialize MemoryOS: {e}. Memory features disabled.")
             self.memory = None
+            self.memory_tool = None
 
     def create_test_plan(self, feature_name: str, test_types: List[str], coverage_target: float) -> str:
         """Create a comprehensive test plan for a feature"""
@@ -155,30 +389,33 @@ class QAAgent:
         """
         Execute a test suite and return results.
 
-        NEW: MemoryOS integration - Retrieves historical test patterns and stores results
-        for regression analysis and flaky test detection (49% F1 improvement).
+        NEW: Enhanced MemoryTool integration - Retrieves historical test patterns,
+        identifies flaky tests, and stores results for regression analysis.
+        Enables 49% F1 improvement through pattern learning.
         """
         user_id = f"qa_{self.business_id}"
 
-        # Retrieve historical test patterns from memory
+        # Retrieve historical test patterns from memory using MemoryTool
         historical_context = ""
-        if self.memory:
+        similar_runs = []
+        if self.memory_tool:
             try:
-                memories = self.memory.retrieve(
-                    agent_id="qa",
-                    user_id=user_id,
+                # Query for similar test suite runs using semantic search
+                memories = self.memory_tool.retrieve_memory(
                     query=f"test results for {test_suite_name} in {environment}",
-                    memory_type=None,
+                    scope="app",  # Cross-agent test knowledge
                     top_k=3
                 )
+
                 if memories:
+                    similar_runs = memories
                     historical_context = "\n".join([
-                        f"- Previous run: {m['content'].get('agent_response', '')}"
+                        f"- Previous run: {m.get('content', {}).get('agent_response', '')}"
                         for m in memories
                     ])
-                    logger.info(f"[QAAgent] Retrieved {len(memories)} historical test patterns from memory")
+                    logger.info(f"[QAAgent] Retrieved {len(memories)} historical test patterns from MemoryTool")
             except Exception as e:
-                logger.warning(f"[QAAgent] Memory retrieval failed: {e}")
+                logger.warning(f"[QAAgent] MemoryTool retrieval failed: {e}")
 
         result = {
             "test_run_id": f"RUN-{datetime.now().strftime('%Y%m%d%H%M%S')}",
@@ -192,27 +429,77 @@ class QAAgent:
             "duration_seconds": 245,
             "failed_tests": ["test_auth_timeout", "test_payment_retry", "test_email_delivery"],
             "executed_at": datetime.now().isoformat(),
-            "historical_context": historical_context if historical_context else "No previous test runs found"
+            "historical_context": historical_context if historical_context else "No previous test runs found",
+            "similar_runs_count": len(similar_runs)
         }
 
-        # Store test results in memory for future reference
-        if self.memory:
+        # Store test results in memory for future reference using MemoryTool
+        if self.memory_tool:
             try:
-                self.memory.store(
-                    agent_id="qa",
-                    user_id=user_id,
-                    user_input=f"Run test suite '{test_suite_name}' in {environment}",
-                    agent_response=f"Passed: {result['passed']}/{result['total_tests']}, Failed: {result['failed']}, Coverage: {result['code_coverage']}%",
+                self.memory_tool.store_memory(
+                    content={
+                        "test_suite_name": test_suite_name,
+                        "environment": environment,
+                        "test_results": {
+                            "total_tests": result["total_tests"],
+                            "passed": result["passed"],
+                            "failed": result["failed"],
+                            "skipped": result["skipped"],
+                            "code_coverage": result["code_coverage"]
+                        },
+                        "failed_tests": result["failed_tests"],
+                        "duration_seconds": result["duration_seconds"],
+                        "timestamp": time.time(),
+                        "user_id": user_id
+                    },
+                    scope="app",  # Share test results across agents
+                    provenance={"agent_id": "qa_agent", "business_id": self.business_id},
                     memory_type="conversation"
                 )
-                logger.info(f"[QAAgent] Stored test results in memory: {result['test_run_id']}")
+                logger.info(f"[QAAgent] Stored test results in MemoryTool: {result['test_run_id']}")
             except Exception as e:
-                logger.warning(f"[QAAgent] Memory storage failed: {e}")
+                logger.warning(f"[QAAgent] MemoryTool storage failed: {e}")
 
         return json.dumps(result, indent=2)
 
     def report_bug(self, bug_description: str, severity: str, steps_to_reproduce: List[str]) -> str:
-        """Report a bug with detailed information"""
+        """
+        Report a bug with detailed information.
+
+        NEW: MemoryTool integration - Recalls similar past bugs to identify patterns
+        and suggest potential solutions based on historical data.
+        """
+        # Check for similar bugs in memory before reporting
+        similar_bugs = []
+        suggested_solutions = []
+
+        if self.memory_tool:
+            try:
+                # Recall similar bugs from memory
+                similar_bugs = self.memory_tool.retrieve_memory(
+                    query=f"bug: {bug_description}",
+                    scope="app",  # Cross-agent bug knowledge
+                    filters={"success": True},  # Only successful resolutions
+                    top_k=3
+                )
+
+                if similar_bugs:
+                    # Extract solutions from similar bugs
+                    for bug in similar_bugs:
+                        content = bug.get('content', {})
+                        if 'solution' in content:
+                            suggested_solutions.append({
+                                "description": content.get('bug_description', 'Unknown'),
+                                "solution": content.get('solution', 'No solution recorded'),
+                                "success": content.get('success', False)
+                            })
+
+                    logger.info(
+                        f"[QAAgent] Found {len(similar_bugs)} similar bugs for: '{bug_description[:50]}...'"
+                    )
+            except Exception as e:
+                logger.warning(f"[QAAgent] Failed to recall similar bugs: {e}")
+
         result = {
             "bug_id": f"BUG-{datetime.now().strftime('%Y%m%d%H%M%S')}",
             "description": bug_description,
@@ -222,8 +509,31 @@ class QAAgent:
             "status": "open",
             "assigned_to": None,
             "reported_by": "qa-agent",
-            "reported_at": datetime.now().isoformat()
+            "reported_at": datetime.now().isoformat(),
+            "similar_bugs_found": len(similar_bugs),
+            "suggested_solutions": suggested_solutions
         }
+
+        # Store bug report in memory for future pattern matching
+        if self.memory_tool:
+            try:
+                self.memory_tool.store_memory(
+                    content={
+                        "bug_description": bug_description,
+                        "severity": severity,
+                        "steps_to_reproduce": steps_to_reproduce,
+                        "bug_id": result["bug_id"],
+                        "timestamp": time.time(),
+                        "status": "reported"
+                    },
+                    scope="app",  # Share bug reports across agents
+                    provenance={"agent_id": "qa_agent"},
+                    memory_type="conversation"
+                )
+                logger.info(f"[QAAgent] Stored bug report in memory: {result['bug_id']}")
+            except Exception as e:
+                logger.warning(f"[QAAgent] Failed to store bug report: {e}")
+
         return json.dumps(result, indent=2)
 
     def measure_code_quality(self, repository: str, branch: str) -> str:
@@ -446,6 +756,121 @@ class QAAgent:
             'tumix_total_saved': tumix_savings['savings'],
             'daao_info': 'DAAO routing automatically applied to all tasks'
         }
+
+    async def store_bug_solution(
+        self,
+        bug_description: str,
+        solution: str,
+        test_results: Dict[str, Any],
+        success: bool,
+        user_id: Optional[str] = None
+    ) -> bool:
+        """
+        Store bug solution for future reference and cross-agent learning.
+
+        This method enables the QA agent to learn from past bug resolutions and
+        share successful solutions across all agents in the app scope.
+
+        Args:
+            bug_description: Description of the bug encountered
+            solution: Solution or fix applied to resolve the bug
+            test_results: Test results after applying the solution
+            success: Whether the solution successfully resolved the bug
+            user_id: Optional user ID for user-specific bug patterns
+
+        Returns:
+            True if stored successfully, False otherwise
+
+        Example:
+            await qa_agent.store_bug_solution(
+                bug_description="Authentication timeout on slow networks",
+                solution="Increased timeout from 5s to 15s and added retry logic",
+                test_results={"passed": 45, "failed": 0, "total_tests": 45},
+                success=True
+            )
+        """
+        if not self.memory_tool:
+            logger.warning("[QAAgent] Memory not initialized, cannot store bug solution")
+            return False
+
+        try:
+            content = {
+                "bug_description": bug_description,
+                "solution": solution,
+                "test_results": test_results,
+                "success": success,
+                "timestamp": time.time(),
+                "user_id": user_id
+            }
+
+            # Store in app scope for cross-agent learning
+            stored = self.memory_tool.store_memory(
+                content=content,
+                scope="app",  # Share across all agents
+                provenance={"agent_id": "qa_agent", "user_id": user_id},
+                memory_type="conversation"
+            )
+
+            if stored:
+                logger.info(
+                    f"[QAAgent] Stored bug solution: '{bug_description[:50]}...' "
+                    f"(success={success})"
+                )
+            return stored
+
+        except Exception as e:
+            logger.error(f"[QAAgent] Failed to store bug solution: {e}")
+            return False
+
+    async def recall_similar_bugs(
+        self,
+        bug_description: str,
+        top_k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Recall similar bugs and their solutions from memory.
+
+        Uses semantic search to find bugs with similar descriptions and returns
+        successful solutions that can inform the current debugging strategy.
+
+        Args:
+            bug_description: Description of the current bug
+            top_k: Number of similar bugs to retrieve (default: 5)
+
+        Returns:
+            List of similar bug solutions, sorted by relevance
+
+        Example:
+            similar_bugs = await qa_agent.recall_similar_bugs(
+                bug_description="Login fails with timeout error",
+                top_k=3
+            )
+            for bug in similar_bugs:
+                print(f"Solution: {bug['content']['solution']}")
+        """
+        if not self.memory_tool:
+            logger.warning("[QAAgent] Memory not initialized, cannot recall bugs")
+            return []
+
+        try:
+            # Retrieve similar bugs from app scope (cross-agent knowledge)
+            memories = self.memory_tool.retrieve_memory(
+                query=f"bugs similar to: {bug_description}",
+                scope="app",
+                filters={"success": True},  # Only successful solutions
+                top_k=top_k
+            )
+
+            logger.info(
+                f"[QAAgent] Recalled {len(memories)} similar bugs for: "
+                f"'{bug_description[:50]}...'"
+            )
+
+            return memories
+
+        except Exception as e:
+            logger.error(f"[QAAgent] Failed to recall similar bugs: {e}")
+            return []
 
 
 async def get_qa_agent(business_id: str = "default") -> QAAgent:

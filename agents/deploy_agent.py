@@ -1,26 +1,43 @@
 """
 DEPLOYMENT AGENT - Microsoft Agent Framework Version (Enhanced)
-Version: 4.0 (Day 2 Migration - Complete)
-Last Updated: October 15, 2025
+Version: 4.1 (Tier 1 - Critical Memory Integration)
+Last Updated: November 13, 2025
 
 Autonomous deployment agent with Gemini Computer Use integration,
-self-improving capabilities via ReasoningBank + Replay Buffer,
+self-improving capabilities via ReasoningBank + Replay Buffer + MemoryTool,
 and automatic quality verification via Reflection Harness.
 
 MODEL: Gemini 2.5 Flash (372 tokens/sec, $0.03/1M tokens)
+
 CAPABILITIES:
 - Browser automation via Gemini Computer Use
 - Autonomous Vercel/Netlify deployments
 - Learning from successful/failed deployments
 - Anti-pattern detection and avoidance
 - Self-verification before finalization
+- Persistent deployment pattern memory (NEW: 49% F1 improvement)
 
 ARCHITECTURE:
 - Microsoft Agent Framework for orchestration
 - Gemini Computer Use API for browser automation
-- ReasoningBank for deployment pattern storage
-- Replay Buffer for trajectory recording
+- ReasoningBank for deployment pattern storage (legacy)
+- Replay Buffer for trajectory recording (legacy)
 - Reflection Harness for quality gates
+- MemoryTool Integration (NEW - Tier 1):
+  * App scope: Cross-agent deployment pattern knowledge
+  * User scope: User-specific deployment configurations
+  * Semantic search for similar deployment scenarios
+  * 49% F1 improvement through persistent memory (MemoryOS benchmark)
+
+MEMORY INTEGRATION (Tier 1 - Critical):
+1. store_deployment_result() - Store deployment outcomes for pattern learning
+2. recall_successful_deployments() - Retrieve successful deployment patterns
+3. store_user_deployment_config() - Store user-specific deployment preferences
+4. recall_deployment_failures() - Learn from past deployment failures
+
+Memory Scopes:
+- app: Cross-agent deployment knowledge (all Deploy agents share learnings)
+- user: User-specific deployment configurations and preferences
 """
 
 import asyncio
@@ -78,6 +95,12 @@ try:
 except ImportError:
     REFLECTION_HARNESS_AVAILABLE = False
     logging.warning("ReflectionHarness not available - quality verification disabled")
+
+# MemoryOS MongoDB adapter for persistent deployment memory (NEW: 49% F1 improvement)
+from infrastructure.memory_os_mongodb_adapter import (
+    GenesisMemoryOSMongoDB,
+    create_genesis_memory_mongodb
+)
 
 from infrastructure.gemini_computer_use import GeminiComputerUseClient
 
@@ -195,6 +218,219 @@ def sanitize_error_message(error_msg: str, sensitive_patterns: List[str] = None)
 # ==================== END SECURITY UTILITIES ====================
 
 
+# ==================== MEMORY TOOL INTEGRATION ====================
+
+class MemoryTool:
+    """
+    MemoryTool wrapper for Deployment Agent pattern learning and configuration memory.
+
+    Provides structured memory storage/retrieval for:
+    - Deployment patterns and successful configurations (cross-agent learning)
+    - Deployment failures and error resolutions
+    - User-specific deployment preferences and configurations
+    - Platform-specific optimization patterns
+
+    Scopes:
+    - app: Cross-agent deployment knowledge (all Deploy agents share learnings)
+    - user: User-specific deployment configurations and preferences
+
+    Integration Points:
+    1. Before deployment: Query successful patterns and user preferences
+    2. After deployment: Store result with metadata for future learning
+    3. On failure: Store failure pattern and resolution for anti-pattern detection
+    """
+
+    def __init__(self, backend: GenesisMemoryOSMongoDB, agent_id: str = "deploy_agent"):
+        """
+        Initialize MemoryTool for Deployment Agent.
+
+        Args:
+            backend: GenesisMemoryOSMongoDB instance
+            agent_id: Agent identifier (default: "deploy_agent")
+        """
+        self.backend = backend
+        self.agent_id = agent_id
+        logger.debug(f"[Deploy MemoryTool] Initialized for agent_id={agent_id}")
+
+    def store_memory(
+        self,
+        content: Dict[str, Any],
+        scope: str = "app",
+        provenance: Optional[Dict[str, Any]] = None,
+        memory_type: str = "conversation"
+    ) -> bool:
+        """
+        Store memory in MemoryOS with scope isolation.
+
+        Args:
+            content: Memory content (deployment result, config, etc.)
+            scope: Memory scope ("app" for cross-agent, "user" for user-specific)
+            provenance: Origin metadata (e.g., {"agent_id": "deploy_agent", "user_id": "user_123"})
+            memory_type: Memory type for backend ("conversation", "consensus", etc.)
+
+        Returns:
+            True if stored successfully
+        """
+        try:
+            # Build user_id for scope isolation
+            user_id = self._build_user_id(scope, content.get("user_id"))
+
+            # Extract key fields for storage
+            user_input = self._build_user_input(content)
+            agent_response = self._build_agent_response(content)
+
+            # Preserve original content fields for filtering
+            stored_content = {
+                "user_input": user_input,
+                "agent_response": agent_response,
+                "raw_content": content  # Preserve original for filtering
+            }
+
+            # Store via MemoryOS backend
+            self.backend.store(
+                agent_id=self.agent_id,
+                user_id=user_id,
+                user_input=user_input,
+                agent_response=json.dumps(stored_content),
+                memory_type=memory_type
+            )
+
+            logger.debug(f"[Deploy MemoryTool] Stored memory: scope={scope}, type={memory_type}")
+            return True
+
+        except Exception as e:
+            logger.error(f"[Deploy MemoryTool] Failed to store memory: {e}")
+            return False
+
+    def retrieve_memory(
+        self,
+        query: str,
+        scope: str = "app",
+        filters: Optional[Dict[str, Any]] = None,
+        top_k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve memories matching query.
+
+        Args:
+            query: Search query (e.g., "vercel deployment", "netlify configuration")
+            scope: Memory scope to search
+            filters: Optional filters (e.g., {"success": True, "platform": "vercel"})
+            top_k: Number of results to return
+
+        Returns:
+            List of memory entries matching query
+        """
+        try:
+            # Build user_id for scope
+            user_id_filter = filters.get("user_id") if filters else None
+            user_id = self._build_user_id(scope, user_id_filter)
+
+            # Retrieve via MemoryOS backend
+            memories = self.backend.retrieve(
+                agent_id=self.agent_id,
+                user_id=user_id,
+                query=query,
+                memory_type=None,  # Search all types
+                top_k=top_k * 2  # Fetch more to account for filtering
+            )
+
+            # Parse stored JSON content to restore raw_content
+            parsed_memories = []
+            for memory in memories:
+                content = memory.get('content', {})
+                # Try to parse agent_response as JSON to get raw_content
+                if isinstance(content, dict):
+                    agent_response = content.get('agent_response', '')
+                    if isinstance(agent_response, str) and agent_response.startswith('{'):
+                        try:
+                            parsed_content = json.loads(agent_response)
+                            memory['content'] = parsed_content
+                        except json.JSONDecodeError:
+                            pass
+                parsed_memories.append(memory)
+
+            # Apply custom filters if provided
+            if filters:
+                parsed_memories = self._apply_filters(parsed_memories, filters)
+
+            # Limit to top_k after filtering
+            parsed_memories = parsed_memories[:top_k]
+
+            logger.debug(f"[Deploy MemoryTool] Retrieved {len(parsed_memories)} memories: query='{query}', scope={scope}")
+            return parsed_memories
+
+        except Exception as e:
+            logger.error(f"[Deploy MemoryTool] Failed to retrieve memory: {e}")
+            return []
+
+    def _build_user_id(self, scope: str, user_id: Optional[str] = None) -> str:
+        """Build user_id for scope isolation."""
+        if scope == "app":
+            return "deployment_global"
+        elif scope == "user" and user_id:
+            return f"deploy_{user_id}"
+        else:
+            return "deploy_default"
+
+    def _build_user_input(self, content: Dict[str, Any]) -> str:
+        """Build user_input from content."""
+        deployment_type = content.get('deployment_type', 'unknown')
+        platform = content.get('platform', 'unknown')
+        environment = content.get('environment', 'production')
+
+        if "repo_name" in content:
+            return f"Deploy {content['repo_name']} to {platform} ({environment})"
+        elif "config" in content:
+            return f"Store deployment config for {deployment_type} on {platform}"
+        else:
+            return f"Deployment task: {deployment_type}"
+
+    def _build_agent_response(self, content: Dict[str, Any]) -> str:
+        """Build agent_response from content."""
+        if "result" in content:
+            result = content['result']
+            success = content.get('success', False)
+            duration = content.get('duration_seconds', 0)
+            return f"Deployment {'SUCCEEDED' if success else 'FAILED'}: {result}\nDuration: {duration:.1f}s"
+        elif "config" in content:
+            config = content['config']
+            return f"Deployment Configuration:\n{json.dumps(config, indent=2)}"
+        else:
+            return json.dumps(content, indent=2)
+
+    def _apply_filters(
+        self,
+        memories: List[Dict[str, Any]],
+        filters: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Apply custom filters to memory results."""
+        filtered = []
+        for memory in memories:
+            content = memory.get('content', {})
+            raw_content = content.get('raw_content', content)
+
+            matches = True
+            for key, value in filters.items():
+                if key == "user_id":
+                    continue  # Already filtered by user_id
+
+                # Check in raw_content first, then fall back to content
+                if isinstance(raw_content, dict) and raw_content.get(key) != value:
+                    matches = False
+                    break
+                elif not isinstance(raw_content, dict) and content.get(key) != value:
+                    matches = False
+                    break
+
+            if matches:
+                filtered.append(memory)
+        return filtered
+
+
+# ==================== END MEMORY TOOL INTEGRATION ====================
+
+
 @dataclass
 class DeploymentConfig:
     """Configuration for deployment operations"""
@@ -254,7 +490,8 @@ class DeployAgent:
         self,
         business_id: str = "default",
         use_learning: bool = True,
-        use_reflection: bool = True
+        use_reflection: bool = True,
+        enable_memory: bool = True
     ):
         self.business_id = business_id
         self.agent_id = f"deploy_agent_{business_id}"
@@ -264,13 +501,20 @@ class DeployAgent:
             require_human_confirmation=False,
         )
 
-        # Learning infrastructure
+        # Learning infrastructure (legacy)
         self.use_learning = use_learning and (REASONING_BANK_AVAILABLE and REPLAY_BUFFER_AVAILABLE)
         self.use_reflection = use_reflection and REFLECTION_HARNESS_AVAILABLE
 
         self.reasoning_bank = None
         self.replay_buffer = None
         self.reflection_harness = None
+
+        # MemoryTool integration (NEW: Tier 1 - Critical)
+        self.enable_memory = enable_memory
+        self.memory: Optional[GenesisMemoryOSMongoDB] = None
+        self.memory_tool: Optional[MemoryTool] = None
+        if enable_memory:
+            self._init_memory()
 
         # Environment variables
         # SECURITY WARNING (Fix #2): Tokens stored in memory - ensure proper access controls
@@ -332,7 +576,30 @@ class DeployAgent:
         logger.info("   Model: Gemini 2.5 Flash (372 tokens/sec)")
         logger.info(f"   Learning: {'Enabled' if self.use_learning else 'Disabled'}")
         logger.info(f"   Reflection: {'Enabled' if self.use_reflection else 'Disabled'}")
+        logger.info(f"   Memory: {'Enabled' if self.enable_memory else 'Disabled'}")
         logger.info("")
+
+    def _init_memory(self):
+        """Initialize MemoryOS MongoDB backend and MemoryTool for deployment memory."""
+        try:
+            mongodb_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
+            self.memory = create_genesis_memory_mongodb(
+                mongodb_uri=mongodb_uri,
+                database_name="genesis_memory_deployment",
+                short_term_capacity=10,  # Recent deployments
+                mid_term_capacity=300,   # Historical deployment patterns
+                long_term_knowledge_capacity=50  # Proven deployment strategies
+            )
+
+            # Initialize MemoryTool wrapper for structured memory operations
+            self.memory_tool = MemoryTool(backend=self.memory, agent_id="deploy_agent")
+
+            logger.info("[DeployAgent] MemoryOS MongoDB initialized for deployment pattern tracking with MemoryTool integration")
+        except Exception as e:
+            logger.warning(f"[DeployAgent] Failed to initialize MemoryOS: {e}. Memory features disabled.")
+            self.memory = None
+            self.memory_tool = None
+            self.enable_memory = False
 
     def _get_system_instruction(self) -> str:
         """System instruction for deployment agent"""
@@ -454,7 +721,7 @@ Always verify deployments are live and accessible before marking success."""
         steps: List[str],
         metadata: Dict[str, Any]
     ):
-        """Store successful deployment strategy in ReasoningBank"""
+        """Store successful deployment strategy in ReasoningBank (legacy)"""
         if not self.use_learning or not self.reasoning_bank:
             return
 
@@ -472,6 +739,306 @@ Always verify deployments are live and accessible before marking success."""
             logger.info(f"✅ Stored successful strategy: {strategy_id}")
         except Exception as e:
             logger.warning(f"Failed to store strategy: {e}")
+
+    # ==================== MEMORY TOOL METHODS ====================
+
+    async def store_deployment_result(
+        self,
+        deployment_type: str,
+        config: Dict[str, Any],
+        result: Dict[str, Any],
+        success: bool,
+        duration_seconds: float,
+        user_id: Optional[str] = None
+    ) -> bool:
+        """
+        Store deployment result for pattern learning (MemoryTool integration).
+
+        This is the primary method for storing deployment outcomes with MemoryTool.
+        Stores in app scope for cross-agent learning.
+
+        Args:
+            deployment_type: Type of deployment (e.g., "vercel", "netlify")
+            config: Deployment configuration used
+            result: Deployment result details
+            success: Whether deployment succeeded
+            duration_seconds: Deployment duration
+            user_id: Optional user ID for user-specific tracking
+
+        Returns:
+            True if stored successfully
+
+        Example:
+            await agent.store_deployment_result(
+                deployment_type="vercel",
+                config={"platform": "vercel", "framework": "nextjs"},
+                result={"url": "https://app.vercel.app"},
+                success=True,
+                duration_seconds=45.3,
+                user_id="user_123"
+            )
+        """
+        if not self.memory_tool:
+            logger.debug("[DeployAgent] MemoryTool not available, skipping storage")
+            return False
+
+        try:
+            content = {
+                "deployment_type": deployment_type,
+                "platform": config.get("platform", "unknown"),
+                "environment": config.get("environment", "production"),
+                "repo_name": config.get("repo_name", "unknown"),
+                "config": config,
+                "result": result,
+                "success": success,
+                "duration_seconds": duration_seconds,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "user_id": user_id
+            }
+
+            stored = self.memory_tool.store_memory(
+                content=content,
+                scope="app",  # Cross-agent deployment knowledge
+                memory_type="conversation"
+            )
+
+            if stored:
+                logger.info(f"[DeployAgent] Stored deployment result: {deployment_type} ({'SUCCESS' if success else 'FAILED'})")
+
+            return stored
+
+        except Exception as e:
+            logger.error(f"[DeployAgent] Failed to store deployment result: {e}")
+            return False
+
+    async def recall_successful_deployments(
+        self,
+        deployment_type: str,
+        environment: str = "production",
+        top_k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Recall successful deployment patterns from memory (MemoryTool integration).
+
+        Queries MemoryTool for similar successful deployments to learn from.
+        Uses semantic search for best pattern matching.
+
+        Args:
+            deployment_type: Type of deployment to search for
+            environment: Target environment
+            top_k: Number of results to return
+
+        Returns:
+            List of successful deployment patterns
+
+        Example:
+            patterns = await agent.recall_successful_deployments(
+                deployment_type="vercel",
+                environment="production",
+                top_k=3
+            )
+        """
+        if not self.memory_tool:
+            logger.debug("[DeployAgent] MemoryTool not available, returning empty")
+            return []
+
+        try:
+            query = f"successful {deployment_type} deployment to {environment}"
+
+            memories = self.memory_tool.retrieve_memory(
+                query=query,
+                scope="app",  # Cross-agent knowledge
+                filters={"success": True},
+                top_k=top_k
+            )
+
+            patterns = []
+            for memory in memories:
+                content = memory.get('content', {})
+                raw_content = content.get('raw_content', content)
+
+                if isinstance(raw_content, dict) and raw_content.get('success'):
+                    patterns.append({
+                        "deployment_type": raw_content.get('deployment_type'),
+                        "platform": raw_content.get('platform'),
+                        "config": raw_content.get('config', {}),
+                        "result": raw_content.get('result', {}),
+                        "duration_seconds": raw_content.get('duration_seconds', 0)
+                    })
+
+            logger.info(f"[DeployAgent] Recalled {len(patterns)} successful deployment patterns")
+            return patterns
+
+        except Exception as e:
+            logger.error(f"[DeployAgent] Failed to recall successful deployments: {e}")
+            return []
+
+    async def recall_deployment_failures(
+        self,
+        deployment_type: str,
+        environment: str = "production",
+        top_k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Recall deployment failures to avoid repeating mistakes (MemoryTool integration).
+
+        Queries MemoryTool for similar failed deployments to learn anti-patterns.
+
+        Args:
+            deployment_type: Type of deployment to search for
+            environment: Target environment
+            top_k: Number of results to return
+
+        Returns:
+            List of deployment failure patterns
+
+        Example:
+            failures = await agent.recall_deployment_failures(
+                deployment_type="vercel",
+                environment="production",
+                top_k=3
+            )
+        """
+        if not self.memory_tool:
+            logger.debug("[DeployAgent] MemoryTool not available, returning empty")
+            return []
+
+        try:
+            query = f"failed {deployment_type} deployment errors {environment}"
+
+            memories = self.memory_tool.retrieve_memory(
+                query=query,
+                scope="app",  # Cross-agent knowledge
+                filters={"success": False},
+                top_k=top_k
+            )
+
+            failures = []
+            for memory in memories:
+                content = memory.get('content', {})
+                raw_content = content.get('raw_content', content)
+
+                if isinstance(raw_content, dict) and not raw_content.get('success'):
+                    failures.append({
+                        "deployment_type": raw_content.get('deployment_type'),
+                        "platform": raw_content.get('platform'),
+                        "config": raw_content.get('config', {}),
+                        "result": raw_content.get('result', {}),
+                        "error": raw_content.get('result', {}).get('error', 'unknown')
+                    })
+
+            logger.info(f"[DeployAgent] Recalled {len(failures)} deployment failure patterns")
+            return failures
+
+        except Exception as e:
+            logger.error(f"[DeployAgent] Failed to recall deployment failures: {e}")
+            return []
+
+    async def store_user_deployment_config(
+        self,
+        user_id: str,
+        config: Dict[str, Any],
+        deployment_type: str = "default"
+    ) -> bool:
+        """
+        Store user-specific deployment configuration preferences (MemoryTool integration).
+
+        Stores in user scope for personalized deployment configurations.
+
+        Args:
+            user_id: User ID
+            config: Deployment configuration to store
+            deployment_type: Type of deployment configuration
+
+        Returns:
+            True if stored successfully
+
+        Example:
+            await agent.store_user_deployment_config(
+                user_id="user_123",
+                config={"platform": "vercel", "auto_deploy": True},
+                deployment_type="vercel"
+            )
+        """
+        if not self.memory_tool:
+            logger.debug("[DeployAgent] MemoryTool not available, skipping storage")
+            return False
+
+        try:
+            content = {
+                "deployment_type": deployment_type,
+                "config": config,
+                "user_id": user_id,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+
+            stored = self.memory_tool.store_memory(
+                content=content,
+                scope="user",  # User-specific configuration
+                memory_type="conversation"
+            )
+
+            if stored:
+                logger.info(f"[DeployAgent] Stored user deployment config: {user_id} ({deployment_type})")
+
+            return stored
+
+        except Exception as e:
+            logger.error(f"[DeployAgent] Failed to store user config: {e}")
+            return False
+
+    async def recall_user_deployment_config(
+        self,
+        user_id: str,
+        deployment_type: str = "default"
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Recall user-specific deployment configuration (MemoryTool integration).
+
+        Retrieves user preferences from user scope memory.
+
+        Args:
+            user_id: User ID
+            deployment_type: Type of deployment configuration
+
+        Returns:
+            User's deployment configuration or None
+
+        Example:
+            config = await agent.recall_user_deployment_config(
+                user_id="user_123",
+                deployment_type="vercel"
+            )
+        """
+        if not self.memory_tool:
+            logger.debug("[DeployAgent] MemoryTool not available, returning None")
+            return None
+
+        try:
+            query = f"deployment configuration for {deployment_type}"
+
+            memories = self.memory_tool.retrieve_memory(
+                query=query,
+                scope="user",
+                filters={"user_id": user_id},
+                top_k=1
+            )
+
+            if memories:
+                content = memories[0].get('content', {})
+                raw_content = content.get('raw_content', content)
+
+                if isinstance(raw_content, dict):
+                    logger.info(f"[DeployAgent] Recalled user deployment config: {user_id}")
+                    return raw_content.get('config')
+
+            return None
+
+        except Exception as e:
+            logger.error(f"[DeployAgent] Failed to recall user config: {e}")
+            return None
+
+    # ==================== END MEMORY TOOL METHODS ====================
 
     # Tool implementations
 
@@ -890,23 +1457,29 @@ Always verify deployments are live and accessible before marking success."""
     async def full_deployment_workflow(
         self,
         config: DeploymentConfig,
-        business_data: Dict[str, Any]
+        business_data: Dict[str, Any],
+        user_id: Optional[str] = None
     ) -> DeploymentResult:
         """
         Execute complete deployment workflow with learning and reflection
 
         Workflow:
-        1. Load learned strategies and anti-patterns
-        2. Prepare deployment files
-        3. Push to GitHub
-        4. Deploy to platform
-        5. Verify deployment
-        6. Record trajectory and store patterns
-        7. (Optional) Reflect on deployment quality
+        1. Recall user deployment preferences (MemoryTool)
+        2. Recall successful deployment patterns (MemoryTool)
+        3. Recall deployment failures to avoid (MemoryTool)
+        4. Load learned strategies and anti-patterns (legacy)
+        5. Prepare deployment files
+        6. Push to GitHub
+        7. Deploy to platform
+        8. Verify deployment
+        9. Store deployment result (MemoryTool)
+        10. Record trajectory and store patterns (legacy)
+        11. (Optional) Reflect on deployment quality
 
         Args:
             config: Deployment configuration
             business_data: Business data including code files
+            user_id: Optional user ID for personalized deployments
 
         Returns:
             DeploymentResult with complete deployment info
@@ -920,7 +1493,50 @@ Always verify deployments are live and accessible before marking success."""
             logger.info(f"   Business: {config.repo_name}")
             logger.info(f"   Platform: {config.platform}")
             logger.info(f"   Environment: {config.environment}")
+            logger.info(f"   User ID: {user_id if user_id else 'None'}")
             logger.info(f"{'='*60}\n")
+
+            # Step 0: Recall memory-based patterns (NEW: MemoryTool integration)
+            if self.enable_memory:
+                logger.info("📚 Step 0: Recalling deployment patterns from memory...")
+
+                # Recall user preferences
+                if user_id:
+                    user_config = await self.recall_user_deployment_config(
+                        user_id=user_id,
+                        deployment_type=config.platform
+                    )
+                    if user_config:
+                        logger.info(f"   ✓ Recalled user deployment preferences")
+                        # Merge user preferences with config
+                        for key, value in user_config.items():
+                            if key not in ['repo_name', 'github_url']:  # Don't override core fields
+                                setattr(config, key, value)
+
+                # Recall successful patterns
+                success_patterns = await self.recall_successful_deployments(
+                    deployment_type=config.platform,
+                    environment=config.environment,
+                    top_k=3
+                )
+                if success_patterns:
+                    logger.info(f"   ✓ Recalled {len(success_patterns)} successful deployment patterns")
+
+                # Recall failures to avoid
+                failure_patterns = await self.recall_deployment_failures(
+                    deployment_type=config.platform,
+                    environment=config.environment,
+                    top_k=3
+                )
+                if failure_patterns:
+                    logger.info(f"   ⚠️  Recalled {len(failure_patterns)} deployment failure patterns")
+                    # Log common errors to avoid
+                    for i, failure in enumerate(failure_patterns[:3], 1):
+                        error = failure.get('error', 'unknown')
+                        logger.info(f"      {i}. Avoid: {error}")
+            else:
+                success_patterns = []
+                failure_patterns = []
 
             # Step 1: Prepare files
             logger.info("📦 Step 1/5: Preparing deployment files...")
@@ -1001,6 +1617,29 @@ Always verify deployments are live and accessible before marking success."""
                 }
             )
 
+            # Store successful deployment result in memory (NEW: MemoryTool integration)
+            if self.enable_memory:
+                logger.info("💾 Storing successful deployment result in memory...")
+                await self.store_deployment_result(
+                    deployment_type=config.platform,
+                    config={
+                        "platform": config.platform,
+                        "framework": config.framework,
+                        "environment": config.environment,
+                        "repo_name": config.repo_name,
+                        "github_url": config.github_url
+                    },
+                    result={
+                        "url": deployment_url,
+                        "duration": duration,
+                        "steps": 5,
+                        "cost": result.cost_estimate
+                    },
+                    success=True,
+                    duration_seconds=duration,
+                    user_id=user_id
+                )
+
             logger.info(f"\n{'='*60}")
             logger.info(f"✅ DEPLOYMENT SUCCESSFUL!")
             logger.info(f"   URL: {deployment_url}")
@@ -1013,6 +1652,23 @@ Always verify deployments are live and accessible before marking success."""
         except Exception as e:
             duration = time.time() - start_time
             error_msg = str(e)
+
+            # Store failed deployment result in memory (NEW: MemoryTool integration)
+            if self.enable_memory:
+                logger.info("💾 Storing failed deployment result in memory...")
+                await self.store_deployment_result(
+                    deployment_type=config.platform,
+                    config={
+                        "platform": config.platform,
+                        "framework": config.framework,
+                        "environment": config.environment,
+                        "repo_name": config.repo_name
+                    },
+                    result={"error": error_msg},
+                    success=False,
+                    duration_seconds=duration,
+                    user_id=user_id
+                )
 
             logger.error(f"\n{'='*60}")
             logger.error(f"❌ DEPLOYMENT FAILED")
@@ -1088,23 +1744,32 @@ Always verify deployments are live and accessible before marking success."""
 async def get_deploy_agent(
     business_id: str = "default",
     use_learning: bool = True,
-    use_reflection: bool = True
+    use_reflection: bool = True,
+    enable_memory: bool = True
 ) -> DeployAgent:
     """
     Factory function to create and initialize Deploy Agent
 
     Args:
         business_id: Unique business identifier
-        use_learning: Enable ReasoningBank + Replay Buffer
+        use_learning: Enable ReasoningBank + Replay Buffer (legacy)
         use_reflection: Enable Reflection Harness
+        enable_memory: Enable MemoryTool integration (NEW: Tier 1 - Critical)
 
     Returns:
         Initialized DeployAgent instance
+
+    Example:
+        agent = await get_deploy_agent(
+            business_id="my_business",
+            enable_memory=True  # Enable persistent deployment memory
+        )
     """
     agent = DeployAgent(
         business_id=business_id,
         use_learning=use_learning,
-        use_reflection=use_reflection
+        use_reflection=use_reflection,
+        enable_memory=enable_memory
     )
     await agent.initialize()
     return agent

@@ -182,11 +182,12 @@ class GenesisMemoryOSMongoDB:
             "mid_term_similarity_threshold": mid_term_similarity_threshold,
         }
 
-        # Genesis 15 agents
+        # Genesis 16 agents (including business_generation)
         self.GENESIS_AGENTS = [
-            "builder", "deploy", "qa", "marketing", "support",
+            "builder", "deploy", "deploy_agent", "qa", "marketing", "support",
             "legal", "content", "analyst", "security", "maintenance",
-            "billing", "seo", "spec", "onboarding", "email"
+            "billing", "seo", "spec", "onboarding", "email",
+            "business_generation"
         ]
 
         # MongoDB client and collections
