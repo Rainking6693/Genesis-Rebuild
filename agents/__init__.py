@@ -18,6 +18,7 @@ Agent List:
 13. Maintenance Agent - System health and monitoring
 14. Onboarding Agent - User activation and onboarding
 15. Spec Agent - Requirements and specifications
+16. Business Generation Agent - Autonomous business creation (Tier 1 - Critical)
 """
 
 from .marketing_agent import MarketingAgent, get_marketing_agent
@@ -35,6 +36,7 @@ from .analyst_agent import AnalystAgent, get_analyst_agent
 from .maintenance_agent import MaintenanceAgent, get_maintenance_agent
 from .onboarding_agent import OnboardingAgent, get_onboarding_agent
 from .spec_agent import SpecAgent, get_spec_agent
+from .business_generation_agent import BusinessGenerationAgent, get_business_generation_agent
 
 __all__ = [
     # Agent Classes
@@ -53,6 +55,7 @@ __all__ = [
     "MaintenanceAgent",
     "OnboardingAgent",
     "SpecAgent",
+    "BusinessGenerationAgent",
     # Factory Functions
     "get_marketing_agent",
     "get_builder_agent",
@@ -69,4 +72,5 @@ __all__ = [
     "get_maintenance_agent",
     "get_onboarding_agent",
     "get_spec_agent",
+    "get_business_generation_agent",
 ]

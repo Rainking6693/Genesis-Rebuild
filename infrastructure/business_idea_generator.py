@@ -16,7 +16,7 @@ import logging
 import asyncio
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 import random
 
 logger = logging.getLogger(__name__)
@@ -324,7 +324,7 @@ class BusinessIdeaGenerator:
                 market_trend_score=trend_score,
                 differentiation_score=diff_score,
                 overall_score=overall_score,
-                generated_at=datetime.utcnow().isoformat()
+                generated_at=datetime.now(timezone.utc).isoformat()
             )
             last_idea = idea
 

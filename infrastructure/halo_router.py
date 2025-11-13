@@ -11,6 +11,7 @@ Key Features:
 - Agent authentication (VULN-002 fix)
 - DAAO cost optimization (Phase 2 integration)
 - CaseBank memory integration (Memento case-based reasoning)
+- MemoriClient integration for routing decision memory (Tier 1 Critical)
 """
 # Auto-load .env file for configuration
 from infrastructure.load_env import load_genesis_env
@@ -71,6 +72,14 @@ try:
     HAS_CASEBANK = True
 except ImportError:
     HAS_CASEBANK = False
+
+# MemoriClient integration for routing decision memory (Tier 1 Critical)
+try:
+    from infrastructure.memory.memori_client import MemoriClient
+    HAS_MEMORI = True
+except ImportError:
+    HAS_MEMORI = False
+    MemoriClient = None
 
 # AgentScope Alias integration for dynamic agent identity resolution
 try:
@@ -185,7 +194,9 @@ class HALORouter:
         cost_profiler = None,
         daao_optimizer = None,
         enable_casebank: bool = True,
-        model_registry = None
+        model_registry = None,
+        enable_memory: bool = True,
+        memori_client = None
     ):
         """
         Initialize HALORouter
@@ -198,6 +209,8 @@ class HALORouter:
             daao_optimizer: Optional DAAOOptimizer instance
             enable_casebank: Enable case-based learning from past routing decisions
             model_registry: Optional ModelRegistry instance for fine-tuned models
+            enable_memory: Enable MemoriClient integration for routing decision memory
+            memori_client: Optional MemoriClient instance (defaults to new instance)
         """
         self.agent_registry = agent_registry or self._get_genesis_15_agents()
         self.routing_rules = self._initialize_routing_rules()
@@ -262,6 +275,14 @@ class HALORouter:
             logger.info("CaseBank enabled for HALO router")
         else:
             self.casebank = None
+
+        # MemoriClient integration: Routing decision memory (Tier 1 Critical)
+        self.enable_memory = enable_memory and HAS_MEMORI
+        if self.enable_memory:
+            self.memori_client = memori_client or MemoriClient()
+            logger.info("MemoriClient enabled for HALO routing decision memory")
+        else:
+            self.memori_client = None
 
         # AgentScope Alias integration: Dynamic agent identity resolution
         self.alias_registry: Optional[AliasRegistry] = None
@@ -773,7 +794,9 @@ class HALORouter:
         dag_or_tasks: Union[TaskDAG, List[Task]],
         available_agents: Optional[List[str]] = None,
         agent_tokens: Optional[Dict[str, str]] = None,
-        optimization_constraints = None
+        optimization_constraints = None,
+        session_id: Optional[str] = None,
+        user_id: Optional[str] = None
     ) -> RoutingPlan:
         """
         Route all tasks in DAG to optimal agents
@@ -794,6 +817,8 @@ class HALORouter:
             available_agents: Optional list of available agent names (defaults to all)
             agent_tokens: Optional dict of agent_name -> auth_token (VULN-002 fix)
             optimization_constraints: Optional DAAO optimization constraints (Phase 2)
+            session_id: Optional session identifier for memory tracking
+            user_id: Optional user identifier for personalized routing patterns
 
         Returns:
             RoutingPlan with assignments, explanations, and unassigned tasks
@@ -847,8 +872,13 @@ class HALORouter:
                 self.logger.debug(f"Skipping completed task {task_id}")
                 continue
 
-            # Try routing logic
-            agent, explanation = self._apply_routing_logic(task, available_agents)
+            # Try routing logic with memory integration
+            agent, explanation = self._apply_routing_logic(
+                task,
+                available_agents,
+                session_id=session_id,
+                user_id=user_id
+            )
 
             if agent:
                 routing_plan.assignments[task_id] = agent
@@ -859,6 +889,22 @@ class HALORouter:
                 dag.tasks[task_id].agent_assigned = agent
 
                 self.logger.info(f"Routed {task_id} → {agent}: {explanation}")
+
+                # MEMORY INTEGRATION: Store routing decision for learning
+                if self.enable_memory:
+                    self.store_routing_decision(
+                        task_id=task_id,
+                        task_type=task.task_type,
+                        task_description=task.description,
+                        agent_id=agent,
+                        session_id=session_id,
+                        user_id=user_id,
+                        success=None,  # Outcome not yet known
+                        metadata={
+                            "explanation": explanation,
+                            "workload": self.agent_workload[agent]
+                        }
+                    )
             else:
                 routing_plan.unassigned_tasks.append(task_id)
                 self.logger.warning(f"No agent found for {task_id} (type={task.task_type})")
@@ -914,12 +960,15 @@ class HALORouter:
     def _apply_routing_logic(
         self,
         task: Task,
-        available_agents: List[str]
+        available_agents: List[str],
+        session_id: Optional[str] = None,
+        user_id: Optional[str] = None
     ) -> Tuple[Optional[str], str]:
         """
         Apply routing rules to select agent
 
         Priority order:
+        0. Memory-based routing (recall successful past decisions)
         1. Declarative rules (highest priority first)
         2. Capability-based matching
         3. Load balancing consideration
@@ -932,10 +981,30 @@ class HALORouter:
         - Use task_type index for O(1) rule lookup
         - Use capability index for O(1) agent lookup
         - Early exit on first match
+        - Memory-based routing for learned patterns
         """
 
-        # OPTIMIZATION 4: Use task_type index for fast rule lookup (O(1) instead of O(n))
+        # MEMORY INTEGRATION: Recall past successful routing decisions
         task_type = task.task_type
+        if self.enable_memory and self.memori_client:
+            try:
+                memory_agent = self._recall_routing_from_memory(
+                    task=task,
+                    task_type=task_type,
+                    available_agents=available_agents,
+                    user_id=user_id
+                )
+                if memory_agent:
+                    agent_cap = self.agent_registry.get(memory_agent)
+                    if agent_cap and self.agent_workload[memory_agent] < agent_cap.max_concurrent_tasks:
+                        return (
+                            memory_agent,
+                            f"Memory recall: Past successful routing for similar {task_type} tasks"
+                        )
+            except Exception as e:
+                self.logger.debug(f"Memory recall failed: {e}")
+
+        # OPTIMIZATION 4: Use task_type index for fast rule lookup (O(1) instead of O(n))
         candidate_rules = self._task_type_index.get(task_type, [])
 
         # Step 1: Try declarative rules using index (much faster)
@@ -1790,3 +1859,207 @@ class HALORouter:
         except Exception as e:
             # Don't fail routing if ToolRM integration fails
             self.logger.debug(f"ToolRM integration failed: {e}")
+
+    # ====================================================================
+    # Memory Integration Methods (Tier 1 Critical)
+    # ====================================================================
+
+    def _recall_routing_from_memory(
+        self,
+        task: Task,
+        task_type: str,
+        available_agents: List[str],
+        user_id: Optional[str] = None
+    ) -> Optional[str]:
+        """
+        Recall past successful routing decisions from memory
+
+        Args:
+            task: Current task to route
+            task_type: Type of task
+            available_agents: List of available agents
+            user_id: Optional user ID for personalized patterns
+
+        Returns:
+            Agent name if successful pattern found, None otherwise
+        """
+        if not self.memori_client:
+            return None
+
+        try:
+            # Search for past successful routings
+            namespace = "halo_routing"
+            subject = user_id  # User-specific patterns if available
+
+            # Build search filters
+            filters = {
+                "value.task_type": task_type,
+                "value.success": True
+            }
+
+            # Search memories
+            memories = self.memori_client.search_memories(
+                namespace=namespace,
+                subject=subject,
+                filters=filters,
+                limit=5
+            )
+
+            if not memories:
+                return None
+
+            # Find most successful agent for this task type
+            agent_scores: Dict[str, float] = {}
+            agent_counts: Dict[str, int] = {}
+
+            for memory in memories:
+                agent_id = memory.value.get("agent_id")
+                success = memory.value.get("success", False)
+
+                if agent_id and agent_id in available_agents and success:
+                    agent_counts[agent_id] = agent_counts.get(agent_id, 0) + 1
+                    # Weight more recent memories higher
+                    recency_factor = 1.0
+                    agent_scores[agent_id] = agent_scores.get(agent_id, 0.0) + recency_factor
+
+            if not agent_scores:
+                return None
+
+            # Return agent with highest score
+            best_agent = max(agent_scores.items(), key=lambda x: x[1])[0]
+            self.logger.debug(
+                f"Memory recall: {best_agent} selected for {task_type} "
+                f"(score: {agent_scores[best_agent]:.2f}, count: {agent_counts[best_agent]})"
+            )
+            return best_agent
+
+        except Exception as e:
+            self.logger.debug(f"Memory recall error: {e}")
+            return None
+
+    def store_routing_decision(
+        self,
+        task_id: str,
+        task_type: str,
+        task_description: str,
+        agent_id: str,
+        session_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        success: Optional[bool] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Store routing decision in memory for future learning
+
+        Args:
+            task_id: Task identifier
+            task_type: Type of task
+            task_description: Description of task
+            agent_id: Agent assigned to task
+            session_id: Optional session identifier
+            user_id: Optional user identifier
+            success: Optional success indicator (None = pending)
+            metadata: Optional additional metadata
+        """
+        if not self.enable_memory or not self.memori_client:
+            return
+
+        try:
+            namespace = "halo_routing"
+            subject = user_id  # User-specific patterns
+            key = f"routing_{task_id}"
+
+            value = {
+                "task_id": task_id,
+                "task_type": task_type,
+                "task_description": task_description,
+                "agent_id": agent_id,
+                "success": success,
+                "session_id": session_id,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+
+            mem_metadata = {
+                "scope": "app",
+                "provenance": {
+                    "agent_id": "halo_router",
+                    "freshness": "current"
+                }
+            }
+
+            if metadata:
+                mem_metadata.update(metadata)
+
+            self.memori_client.upsert_memory(
+                namespace=namespace,
+                subject=subject,
+                key=key,
+                value=value,
+                metadata=mem_metadata,
+                ttl_seconds=None  # Keep indefinitely for learning
+            )
+
+            self.logger.debug(f"Stored routing decision: {task_id} -> {agent_id}")
+
+        except Exception as e:
+            self.logger.warning(f"Failed to store routing decision: {e}")
+
+    def update_routing_outcome(
+        self,
+        task_id: str,
+        success: bool,
+        user_id: Optional[str] = None,
+        outcome_metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Update routing outcome for feedback loop
+
+        Args:
+            task_id: Task identifier
+            success: Whether routing was successful
+            user_id: Optional user identifier
+            outcome_metadata: Optional metadata about outcome
+        """
+        if not self.enable_memory or not self.memori_client:
+            return
+
+        try:
+            namespace = "halo_routing"
+            subject = user_id
+            key = f"routing_{task_id}"
+
+            # Retrieve existing memory
+            memory = self.memori_client.get_memory(
+                namespace=namespace,
+                subject=subject,
+                key=key
+            )
+
+            if not memory:
+                self.logger.warning(f"No routing decision found for task {task_id}")
+                return
+
+            # Update with outcome
+            updated_value = memory.value.copy()
+            updated_value["success"] = success
+            updated_value["outcome_timestamp"] = datetime.now(timezone.utc).isoformat()
+
+            if outcome_metadata:
+                updated_value["outcome_metadata"] = outcome_metadata
+
+            self.memori_client.upsert_memory(
+                namespace=namespace,
+                subject=subject,
+                key=key,
+                value=updated_value,
+                metadata=memory.metadata,
+                ttl_seconds=None
+            )
+
+            self.logger.info(
+                f"Updated routing outcome: {task_id} -> "
+                f"{'SUCCESS' if success else 'FAILURE'}"
+            )
+
+        except Exception as e:
+            self.logger.warning(f"Failed to update routing outcome: {e}")

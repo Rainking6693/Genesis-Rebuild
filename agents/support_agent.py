@@ -7,7 +7,8 @@ Handles customer support, ticket management, and user assistance.
 
 import json
 import logging
-from datetime import datetime
+import time
+from datetime import datetime, timezone
 from typing import List, Dict, Optional, Any
 from agent_framework import ChatAgent
 from agent_framework.azure import AzureAIAgentClient
@@ -44,6 +45,13 @@ from infrastructure.env_learning_agent import EnvironmentLearningAgent
 from infrastructure.memory_os_mongodb_adapter import (
     GenesisMemoryOSMongoDB,
     create_genesis_memory_mongodb
+)
+
+# Import MultimodalMemoryPipeline for image processing (NEW: Tier 1 Integration)
+from infrastructure.genesis_memory_integration import (
+    MultimodalMemoryPipeline,
+    MultimodalAttachment,
+    AttachmentType
 )
 
 logger = logging.getLogger(__name__)
@@ -84,7 +92,15 @@ class SupportAgent:
         self.memory: Optional[GenesisMemoryOSMongoDB] = None
         self._init_memory()
 
-        logger.info(f"Support Agent v4.0 initialized with DAAO + TUMIX + DeepSeek-OCR + OpenEnv + MemoryOS for business: {business_id}")
+        # Initialize MultimodalMemoryPipeline for customer screenshot processing (Tier 1 - Critical)
+        self.multimodal_pipeline: Optional[MultimodalMemoryPipeline] = None
+        self._init_multimodal_pipeline()
+
+        # Initialize MemoryTool wrapper for structured memory operations
+        self.memory_tool: Optional['MemoryTool'] = None
+        self._init_memory_tool()
+
+        logger.info(f"Support Agent v4.0 initialized with DAAO + TUMIX + DeepSeek-OCR + OpenEnv + MemoryOS + MultimodalPipeline for business: {business_id}")
 
     async def initialize(self):
         cred = AzureCliCredential()
@@ -133,6 +149,34 @@ class SupportAgent:
         except Exception as e:
             logger.warning(f"[SupportAgent] Failed to initialize MemoryOS: {e}. Memory features disabled.")
             self.memory = None
+
+    def _init_multimodal_pipeline(self):
+        """Initialize MultimodalMemoryPipeline for customer screenshot processing."""
+        try:
+            import os
+            gemini_api_key = os.getenv("GEMINI_API_KEY")
+            self.multimodal_pipeline = MultimodalMemoryPipeline(gemini_api_key=gemini_api_key)
+            logger.info("[SupportAgent] MultimodalMemoryPipeline initialized for screenshot processing")
+        except Exception as e:
+            logger.warning(f"[SupportAgent] Failed to initialize MultimodalPipeline: {e}. Multimodal features disabled.")
+            self.multimodal_pipeline = None
+
+    def _init_memory_tool(self):
+        """Initialize MemoryTool wrapper for structured memory operations."""
+        if not self.memory:
+            logger.warning("[SupportAgent] MemoryTool initialization skipped (MemoryOS not available)")
+            self.memory_tool = None
+            return
+
+        try:
+            self.memory_tool = MemoryTool(
+                backend=self.memory,
+                agent_id="support"
+            )
+            logger.info("[SupportAgent] MemoryTool initialized for structured memory operations")
+        except Exception as e:
+            logger.warning(f"[SupportAgent] Failed to initialize MemoryTool: {e}. Memory tool features disabled.")
+            self.memory_tool = None
 
     async def enable_self_correction(self, qa_agent: Any, max_attempts: int = 3):
         """
@@ -206,23 +250,71 @@ class SupportAgent:
         }
         return json.dumps(result, indent=2)
 
-    def respond_to_ticket(self, ticket_id: str, response: str, resolution_type: str) -> str:
+    async def respond_to_ticket(
+        self,
+        ticket_id: str,
+        response: str,
+        resolution_type: str,
+        customer_id: Optional[str] = None,
+        issue_type: Optional[str] = None,
+        session_id: Optional[str] = None
+    ) -> str:
         """
         Respond to a support ticket with a solution.
 
-        NEW: MemoryOS integration - Retrieves similar ticket resolutions and stores successful patterns
-        for future reference (49% F1 improvement on ticket resolution accuracy).
+        NEW: Enhanced with Tier 1 Memory Integration
+        - Retrieves customer history for context
+        - Recalls common solutions for similar issues
+        - Stores interaction in customer memory
+        - Stores successful solutions in shared knowledge base
+        - 49% F1 improvement on ticket resolution accuracy
+
+        Args:
+            ticket_id: Ticket ID
+            response: Resolution response
+            resolution_type: Type of resolution (resolved, pending, escalated)
+            customer_id: Customer ID (optional, for memory tracking)
+            issue_type: Issue type/category (optional, for solution recall)
+            session_id: Session ID (optional, for interaction tracking)
+
+        Returns:
+            JSON string with ticket response and memory-enhanced context
         """
         user_id = f"support_{self.business_id}"
+        session_id = session_id or f"ticket_{ticket_id}"
 
-        # Retrieve historical ticket resolution patterns from memory
+        # 1. Retrieve customer history if customer_id provided
+        customer_context = []
+        if customer_id and self.memory_tool:
+            try:
+                customer_context = await self.recall_customer_history(
+                    customer_id=customer_id,
+                    limit=5
+                )
+                logger.info(f"[SupportAgent] Retrieved {len(customer_context)} customer interactions")
+            except Exception as e:
+                logger.warning(f"[SupportAgent] Customer history retrieval failed: {e}")
+
+        # 2. Retrieve common solutions if issue_type provided
+        common_solutions = []
+        if issue_type and self.memory_tool:
+            try:
+                common_solutions = await self.recall_common_solutions(
+                    issue_type=issue_type,
+                    min_success_rate=0.7
+                )
+                logger.info(f"[SupportAgent] Retrieved {len(common_solutions)} common solutions")
+            except Exception as e:
+                logger.warning(f"[SupportAgent] Common solutions retrieval failed: {e}")
+
+        # 3. Retrieve historical ticket resolution patterns from memory (legacy method)
         historical_context = ""
         if self.memory:
             try:
                 memories = self.memory.retrieve(
                     agent_id="support",
                     user_id=user_id,
-                    query=f"ticket resolution: {response[:100]}",  # Use response preview as query
+                    query=f"ticket resolution: {response[:100]}",
                     memory_type=None,
                     top_k=3
                 )
@@ -235,6 +327,7 @@ class SupportAgent:
             except Exception as e:
                 logger.warning(f"[SupportAgent] Memory retrieval failed: {e}")
 
+        # 4. Build result with memory-enhanced context
         result = {
             "ticket_id": ticket_id,
             "response": response,
@@ -243,10 +336,62 @@ class SupportAgent:
             "response_time_minutes": 15,
             "customer_satisfaction_score": None,
             "responded_at": datetime.now().isoformat(),
-            "historical_context": historical_context if historical_context else "No similar tickets found"
+            "memory_context": {
+                "customer_history_count": len(customer_context),
+                "common_solutions_count": len(common_solutions),
+                "historical_patterns": historical_context if historical_context else "No similar tickets found",
+                "customer_previous_issues": [
+                    {
+                        "issue": ctx.get("issue_description", ""),
+                        "resolution": ctx.get("resolution", ""),
+                        "satisfaction": ctx.get("satisfaction_score")
+                    }
+                    for ctx in customer_context[:3]
+                ] if customer_context else [],
+                "recommended_solutions": [
+                    {
+                        "solution": sol.get("solution", ""),
+                        "success_rate": sol.get("success_rate", 0.0)
+                    }
+                    for sol in common_solutions[:3]
+                ] if common_solutions else []
+            }
         }
 
-        # Store ticket resolution in memory for future reference
+        # 5. Store customer interaction in memory if resolved and customer_id provided
+        if customer_id and resolution_type == "resolved":
+            try:
+                memory_id = await self.store_customer_interaction(
+                    customer_id=customer_id,
+                    interaction_type="ticket",
+                    issue_description=issue_type or "general_support",
+                    resolution=response,
+                    satisfaction_score=None,  # To be updated later
+                    session_id=session_id
+                )
+                result["customer_memory_stored"] = True
+                result["customer_memory_id"] = memory_id
+                logger.info(f"[SupportAgent] Stored customer interaction: {memory_id}")
+            except Exception as e:
+                logger.warning(f"[SupportAgent] Customer interaction storage failed: {e}")
+                result["customer_memory_stored"] = False
+
+        # 6. Store common solution if resolved and issue_type provided
+        if issue_type and resolution_type == "resolved":
+            try:
+                solution_id = await self.store_common_solution(
+                    issue_type=issue_type,
+                    solution=response,
+                    success_rate=0.85  # Default success rate, to be updated with feedback
+                )
+                result["solution_knowledge_stored"] = True
+                result["solution_memory_id"] = solution_id
+                logger.info(f"[SupportAgent] Stored common solution: {solution_id}")
+            except Exception as e:
+                logger.warning(f"[SupportAgent] Common solution storage failed: {e}")
+                result["solution_knowledge_stored"] = False
+
+        # 7. Store ticket resolution in memory for future reference (legacy method)
         if self.memory and resolution_type == "resolved":
             try:
                 self.memory.store(
@@ -307,11 +452,25 @@ class SupportAgent:
         }
         return json.dumps(result, indent=2)
 
-    async def process_ticket_image(self, image_path: str, expected_issues: List[str] = None) -> str:
+    async def process_ticket_image(
+        self,
+        image_path: str,
+        expected_issues: List[str] = None,
+        customer_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        store_in_memory: bool = True
+    ) -> str:
         """
-        Process customer support ticket images using DeepSeek-OCR compression
+        Process customer support ticket images using dual approach:
+        1. DeepSeek-OCR compression for token efficiency (92.9% savings)
+        2. MultimodalMemoryPipeline for deep semantic analysis
 
-        NEW: Visual memory compression (92.9% token savings)
+        NEW: Tier 1 Memory Integration
+        - Stores image insights in customer memory with URIs
+        - Enables visual context retrieval in future interactions
+        - Combines OCR efficiency with semantic understanding
+
+        Token Efficiency:
         - Before: ~3,600 tokens per customer screenshot (raw image)
         - After: ~100 tokens (Small mode optimized for simple screenshots)
         - Cost savings: $50/month for 5,000 support tickets
@@ -319,9 +478,12 @@ class SupportAgent:
         Args:
             image_path: Path to customer screenshot/error image
             expected_issues: Optional list of keywords to check for (e.g., ["error", "crash"])
+            customer_id: Customer ID (optional, for memory storage)
+            session_id: Session ID (optional, for memory storage)
+            store_in_memory: Whether to store insights in memory (default: True)
 
         Returns:
-            JSON string with processed image data and compressed markdown
+            JSON string with processed image data, compressed markdown, and memory insights
         """
         try:
             # Compress ticket image using DeepSeek-OCR (Small mode: 100 tokens)
@@ -368,6 +530,28 @@ class SupportAgent:
                     keyword in compression_result.markdown.lower()
                     for keyword in urgency_keywords
                 )
+
+            # Process with MultimodalMemoryPipeline for semantic analysis (if available)
+            multimodal_insights = None
+            if self.multimodal_pipeline and customer_id:
+                try:
+                    mm_result = await self.process_customer_screenshot(
+                        screenshot_uri=image_path,
+                        customer_id=customer_id,
+                        session_id=session_id or f"ticket_{image_path}",
+                        store_in_memory=store_in_memory
+                    )
+                    multimodal_insights = mm_result.get("content")
+                    result['multimodal_insights'] = multimodal_insights
+                    result['multimodal_processing_time_ms'] = mm_result.get("processing_time_ms", 0)
+                    result['memory_stored'] = store_in_memory and multimodal_insights is not None
+
+                    logger.info(
+                        f"Multimodal analysis completed: {mm_result.get('processing_time_ms', 0):.0f}ms"
+                    )
+                except Exception as e:
+                    logger.warning(f"Multimodal analysis failed: {e}")
+                    result['multimodal_error'] = str(e)
 
             logger.info(
                 f"Ticket image processed with DeepSeek-OCR: "
@@ -497,6 +681,502 @@ class SupportAgent:
             'daao_info': 'DAAO routing automatically applied to all tasks'
         }
 
+    # =========================================================================
+    # TIER 1 - CRITICAL: Memory Integration Methods
+    # =========================================================================
+
+    async def store_customer_interaction(
+        self,
+        customer_id: str,
+        interaction_type: str,
+        issue_description: str,
+        resolution: str,
+        satisfaction_score: Optional[float],
+        session_id: str
+    ) -> str:
+        """
+        Store customer interaction history in memory.
+
+        This enables:
+        - Customer history tracking across sessions
+        - Pattern recognition for common issues
+        - Personalized support based on past interactions
+        - Quality metrics and satisfaction tracking
+
+        Args:
+            customer_id: Customer ID
+            interaction_type: Type of interaction (ticket, chat, email, phone)
+            issue_description: Description of the customer issue
+            resolution: How the issue was resolved
+            satisfaction_score: Customer satisfaction score (0-5, None if not rated)
+            session_id: Session ID for this interaction
+
+        Returns:
+            Memory ID of stored interaction
+
+        Memory Scope:
+            - Stored in user scope: (user, customer_id)
+            - Enables customer history recall across sessions
+        """
+        if not self.memory_tool:
+            logger.warning("[SupportAgent] Memory tool not available, skipping interaction storage")
+            return "memory_disabled"
+
+        try:
+            # Store interaction in customer's memory
+            memory_content = {
+                "interaction_type": interaction_type,
+                "issue_description": issue_description,
+                "resolution": resolution,
+                "satisfaction_score": satisfaction_score,
+                "session_id": session_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "agent_id": "support",
+                "resolved": bool(resolution)
+            }
+
+            memory_id = self.memory_tool.store_memory(
+                content=memory_content,
+                scope="user",
+                user_id=customer_id,
+                provenance={
+                    "source": "customer_interaction",
+                    "session_id": session_id,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            )
+
+            logger.info(
+                f"[SupportAgent] Stored customer interaction: customer={customer_id}, "
+                f"type={interaction_type}, memory_id={memory_id}"
+            )
+
+            return memory_id
+
+        except Exception as e:
+            logger.error(f"[SupportAgent] Failed to store customer interaction: {e}")
+            return "error"
+
+    async def recall_customer_history(
+        self,
+        customer_id: str,
+        limit: int = 10
+    ) -> List[Dict[str, Any]]:
+        """
+        Recall customer's past interactions from memory.
+
+        Retrieves the most recent customer interactions for context,
+        enabling personalized and informed support.
+
+        Args:
+            customer_id: Customer ID
+            limit: Maximum number of interactions to retrieve (default: 10)
+
+        Returns:
+            List of customer interaction records (sorted by recency)
+
+        Memory Scope:
+            - Retrieved from user scope: (user, customer_id)
+            - Ordered by recency (most recent first)
+        """
+        if not self.memory_tool:
+            logger.warning("[SupportAgent] Memory tool not available, returning empty history")
+            return []
+
+        try:
+            # Retrieve customer interaction history
+            memories = self.memory_tool.recall_memory(
+                query=f"customer {customer_id} interaction history",
+                scope="user",
+                user_id=customer_id,
+                top_k=limit
+            )
+
+            # Extract and format interaction records
+            interactions = []
+            for mem in memories:
+                content = mem.get("content", {})
+                if isinstance(content, dict):
+                    # Add memory metadata for reference
+                    content["memory_id"] = mem.get("memory_id", "unknown")
+                    content["heat_score"] = mem.get("heat_score", 0.0)
+                    interactions.append(content)
+
+            logger.info(
+                f"[SupportAgent] Retrieved {len(interactions)} customer interactions: "
+                f"customer={customer_id}"
+            )
+
+            return interactions
+
+        except Exception as e:
+            logger.error(f"[SupportAgent] Failed to recall customer history: {e}")
+            return []
+
+    async def store_common_solution(
+        self,
+        issue_type: str,
+        solution: str,
+        success_rate: float
+    ) -> str:
+        """
+        Store common solution for reuse across support tickets.
+
+        This enables:
+        - Knowledge base building from successful resolutions
+        - Pattern recognition for common issues
+        - Faster resolution times through solution reuse
+        - Quality improvement through success tracking
+
+        Args:
+            issue_type: Type/category of issue (e.g., "login_failure", "payment_error")
+            solution: Solution description/steps
+            success_rate: Success rate of this solution (0.0-1.0)
+
+        Returns:
+            Memory ID of stored solution
+
+        Memory Scope:
+            - Stored in app scope: (app, "support_solutions")
+            - Shared across all support sessions
+        """
+        if not self.memory_tool:
+            logger.warning("[SupportAgent] Memory tool not available, skipping solution storage")
+            return "memory_disabled"
+
+        try:
+            # Store solution in shared app memory
+            memory_content = {
+                "issue_type": issue_type,
+                "solution": solution,
+                "success_rate": success_rate,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "agent_id": "support",
+                "usage_count": 1
+            }
+
+            memory_id = self.memory_tool.store_memory(
+                content=memory_content,
+                scope="app",
+                provenance={
+                    "source": "common_solution",
+                    "issue_type": issue_type,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            )
+
+            logger.info(
+                f"[SupportAgent] Stored common solution: issue_type={issue_type}, "
+                f"success_rate={success_rate:.2%}, memory_id={memory_id}"
+            )
+
+            return memory_id
+
+        except Exception as e:
+            logger.error(f"[SupportAgent] Failed to store common solution: {e}")
+            return "error"
+
+    async def recall_common_solutions(
+        self,
+        issue_type: str,
+        min_success_rate: float = 0.7
+    ) -> List[Dict[str, Any]]:
+        """
+        Recall successful solutions for similar issues.
+
+        Retrieves proven solutions from the knowledge base, filtered
+        by success rate to ensure quality recommendations.
+
+        Args:
+            issue_type: Type/category of issue to search for
+            min_success_rate: Minimum success rate threshold (default: 0.7 = 70%)
+
+        Returns:
+            List of solution records (sorted by success rate)
+
+        Memory Scope:
+            - Retrieved from app scope: (app, "support_solutions")
+            - Shared knowledge base across all support sessions
+        """
+        if not self.memory_tool:
+            logger.warning("[SupportAgent] Memory tool not available, returning empty solutions")
+            return []
+
+        try:
+            # Retrieve common solutions from app memory
+            memories = self.memory_tool.recall_memory(
+                query=f"solution for {issue_type}",
+                scope="app",
+                top_k=10
+            )
+
+            # Filter by success rate and extract solution records
+            solutions = []
+            for mem in memories:
+                content = mem.get("content", {})
+                if isinstance(content, dict):
+                    success_rate = content.get("success_rate", 0.0)
+
+                    # Filter by minimum success rate
+                    if success_rate >= min_success_rate:
+                        # Add memory metadata for reference
+                        content["memory_id"] = mem.get("memory_id", "unknown")
+                        content["heat_score"] = mem.get("heat_score", 0.0)
+                        solutions.append(content)
+
+            # Sort by success rate (highest first)
+            solutions.sort(key=lambda x: x.get("success_rate", 0.0), reverse=True)
+
+            logger.info(
+                f"[SupportAgent] Retrieved {len(solutions)} common solutions: "
+                f"issue_type={issue_type}, min_success_rate={min_success_rate:.2%}"
+            )
+
+            return solutions
+
+        except Exception as e:
+            logger.error(f"[SupportAgent] Failed to recall common solutions: {e}")
+            return []
+
+    async def process_customer_screenshot(
+        self,
+        screenshot_uri: str,
+        customer_id: str,
+        session_id: str,
+        store_in_memory: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Process customer screenshot using MultimodalMemoryPipeline.
+
+        This enables:
+        - Automatic error message extraction from screenshots
+        - Visual context understanding for support issues
+        - Memory storage of image insights with source URIs
+        - Faster diagnosis through automated image analysis
+
+        Args:
+            screenshot_uri: URI/path to customer screenshot
+            customer_id: Customer ID
+            session_id: Session ID
+            store_in_memory: Whether to store insights in customer memory (default: True)
+
+        Returns:
+            Dict with processed screenshot data:
+                - uri: Screenshot URI
+                - type: "image"
+                - content: Extracted insights from image
+                - processing_time_ms: Processing time
+                - error: Error message (if failed)
+
+        Memory Scope:
+            - Stored in user scope: (user, customer_id)
+            - Enables image context retrieval in future interactions
+        """
+        if not self.multimodal_pipeline:
+            logger.warning("[SupportAgent] Multimodal pipeline not available, skipping screenshot processing")
+            return {
+                "uri": screenshot_uri,
+                "type": "image",
+                "content": None,
+                "error": "Multimodal pipeline not initialized"
+            }
+
+        try:
+            # Process screenshot using Gemini Vision
+            start_time = time.time()
+
+            attachment = await self.multimodal_pipeline.process_image(
+                image_uri=screenshot_uri,
+                user_id=customer_id,
+                prompt="Analyze this customer support screenshot. Extract any error messages, UI issues, or technical problems visible."
+            )
+
+            processing_time_ms = (time.time() - start_time) * 1000
+
+            # Store insights in customer memory if enabled
+            if store_in_memory and attachment.processed_content and self.memory_tool:
+                try:
+                    memory_content = {
+                        "type": "screenshot_analysis",
+                        "screenshot_uri": screenshot_uri,
+                        "insights": attachment.processed_content,
+                        "session_id": session_id,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "processing_time_ms": processing_time_ms
+                    }
+
+                    self.memory_tool.store_memory(
+                        content=memory_content,
+                        scope="user",
+                        user_id=customer_id,
+                        provenance={
+                            "source": "screenshot_analysis",
+                            "session_id": session_id,
+                            "uri": screenshot_uri,
+                            "timestamp": datetime.now(timezone.utc).isoformat()
+                        }
+                    )
+
+                    logger.info(
+                        f"[SupportAgent] Stored screenshot insights in memory: "
+                        f"customer={customer_id}, uri={screenshot_uri}"
+                    )
+
+                except Exception as e:
+                    logger.warning(f"[SupportAgent] Failed to store screenshot insights: {e}")
+
+            return {
+                "uri": screenshot_uri,
+                "type": "image",
+                "content": attachment.processed_content,
+                "processing_time_ms": processing_time_ms,
+                "error": attachment.error
+            }
+
+        except Exception as e:
+            logger.error(f"[SupportAgent] Failed to process customer screenshot: {e}")
+            return {
+                "uri": screenshot_uri,
+                "type": "image",
+                "content": None,
+                "error": str(e)
+            }
+
+
+
+class MemoryTool:
+    """
+    MemoryTool wrapper for Support Agent.
+
+    Provides structured memory storage/retrieval for:
+    - Customer interaction history
+    - Common solution patterns
+    - Ticket resolution knowledge
+    - Support metrics and satisfaction tracking
+
+    Scopes:
+    - app: Cross-agent support knowledge (shared solutions)
+    - user: Customer-specific interaction history
+    """
+
+    def __init__(self, backend: GenesisMemoryOSMongoDB, agent_id: str = "support"):
+        """
+        Initialize MemoryTool for Support Agent.
+
+        Args:
+            backend: GenesisMemoryOSMongoDB instance
+            agent_id: Agent identifier (default: "support")
+        """
+        self.backend = backend
+        self.agent_id = agent_id
+        logger.debug(f"[Support MemoryTool] Initialized for agent_id={agent_id}")
+
+    def store_memory(
+        self,
+        content: Dict[str, Any],
+        scope: str = "app",
+        user_id: Optional[str] = None,
+        provenance: Optional[Dict[str, Any]] = None,
+        memory_type: str = "conversation"
+    ) -> str:
+        """
+        Store memory with specified scope.
+
+        Args:
+            content: Memory content (dict with interaction/solution data)
+            scope: "app" for shared knowledge, "user" for customer-specific
+            user_id: User ID (required for user scope)
+            provenance: Optional provenance metadata
+            memory_type: Memory type (default: "conversation")
+
+        Returns:
+            Memory ID
+        """
+        if scope == "user" and not user_id:
+            raise ValueError("user_id required for user scope")
+
+        # Determine effective user_id for storage
+        effective_user_id = user_id if scope == "user" else f"{self.agent_id}_app"
+
+        # Store in backend
+        memory_id = self.backend.store(
+            agent_id=self.agent_id,
+            user_id=effective_user_id,
+            user_input=json.dumps(provenance) if provenance else "",
+            agent_response=json.dumps(content),
+            memory_type=memory_type
+        )
+
+        logger.debug(
+            f"[Support MemoryTool] Stored memory: scope={scope}, "
+            f"user_id={effective_user_id}, memory_id={memory_id}"
+        )
+
+        return memory_id
+
+    def recall_memory(
+        self,
+        query: str,
+        scope: str = "app",
+        user_id: Optional[str] = None,
+        top_k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Recall memories with semantic search.
+
+        Args:
+            query: Search query
+            scope: "app" for shared knowledge, "user" for customer-specific
+            user_id: User ID (required for user scope)
+            top_k: Number of results to return
+
+        Returns:
+            List of memory entries
+        """
+        if scope == "user" and not user_id:
+            raise ValueError("user_id required for user scope")
+
+        # Determine effective user_id for retrieval
+        effective_user_id = user_id if scope == "user" else f"{self.agent_id}_app"
+
+        # Retrieve from backend
+        memories = self.backend.retrieve(
+            agent_id=self.agent_id,
+            user_id=effective_user_id,
+            query=query,
+            memory_type=None,
+            top_k=top_k
+        )
+
+        # Parse and return results
+        results = []
+        for mem in memories:
+            try:
+                content = mem.get("content", {})
+                if isinstance(content, dict) and "agent_response" in content:
+                    # Parse JSON-encoded content
+                    agent_response = content["agent_response"]
+                    if isinstance(agent_response, str):
+                        parsed_content = json.loads(agent_response)
+                    else:
+                        parsed_content = agent_response
+
+                    results.append({
+                        "memory_id": mem.get("memory_id", "unknown"),
+                        "content": parsed_content,
+                        "heat_score": mem.get("heat_score", 0.0),
+                        "created_at": mem.get("created_at", "")
+                    })
+            except Exception as e:
+                logger.warning(f"[Support MemoryTool] Failed to parse memory: {e}")
+                continue
+
+        logger.debug(
+            f"[Support MemoryTool] Retrieved {len(results)} memories: "
+            f"scope={scope}, query='{query}'"
+        )
+
+        return results
 
 
 async def get_support_agent(business_id: str = "default") -> SupportAgent:
