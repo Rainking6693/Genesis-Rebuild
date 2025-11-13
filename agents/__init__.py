@@ -2,7 +2,7 @@
 Genesis Agents - Microsoft Agent Framework Version
 Day 2 Migration: All 15 agents converted to Microsoft Agent Framework
 
-Agent List:
+Agent List (Tier 1 - Critical):
 1. Marketing Agent - Growth and marketing campaigns
 2. Builder Agent - Code generation and development
 3. Content Agent - Blog posts and documentation
@@ -18,11 +18,17 @@ Agent List:
 13. Maintenance Agent - System health and monitoring
 14. Onboarding Agent - User activation and onboarding
 15. Spec Agent - Requirements and specifications
-16. Business Generation Agent - Autonomous business creation (Tier 1 - Critical)
-17. Data Juicer Agent - Trajectory data curation (Tier 2 - High Value)
-18. ReAct Training Agent - Reinforcement learning for reasoning agents (Tier 2 - High Value)
-19. AgentScope Runtime Agent - Runtime performance & configuration management (Tier 2 - High Value)
-20. LLM Judge RL Agent - Reinforcement learning with LLM-as-Judge evaluation (Tier 2 - High Value)
+16. Business Generation Agent - Autonomous business creation
+
+Tier 2 - High Value Memory Integration:
+17. Data Juicer Agent - Trajectory data curation
+18. ReAct Training Agent - Reinforcement learning for reasoning agents
+19. AgentScope Runtime Agent - Runtime performance & configuration management
+20. LLM Judge RL Agent - Reinforcement learning with LLM-as-Judge evaluation
+21. Content Creation Agent - Multimodal content generation (NEW)
+22. SEO Optimization Agent - SEO pattern optimization (NEW)
+23. Email Marketing Agent - Campaign templates and A/B testing (NEW)
+24. Analytics Agent - Multimodal analytics and dashboards (NEW)
 """
 
 from .marketing_agent import MarketingAgent, get_marketing_agent
@@ -45,6 +51,11 @@ from .data_juicer_agent import DataJuicerAgent, create_data_juicer_agent
 from .react_training_agent import ReActTrainingAgent, create_react_training_agent
 from .agentscope_runtime_agent import AgentScopeRuntimeAgent, create_runtime_agent
 from .llm_judge_rl_agent import LLMJudgeRLAgent, create_judge_rl_agent
+# Tier 2 - Final Batch (NEW)
+from .content_creation_agent import ContentCreationAgent, create_content_creation_agent
+from .seo_optimization_agent import SEOOptimizationAgent, create_seo_optimization_agent
+from .email_marketing_agent import EmailMarketingAgent, create_email_marketing_agent
+from .analytics_agent import AnalyticsAgent, create_analytics_agent
 
 __all__ = [
     # Agent Classes
@@ -68,6 +79,10 @@ __all__ = [
     "ReActTrainingAgent",
     "AgentScopeRuntimeAgent",
     "LLMJudgeRLAgent",
+    "ContentCreationAgent",
+    "SEOOptimizationAgent",
+    "EmailMarketingAgent",
+    "AnalyticsAgent",
     # Factory Functions
     "get_marketing_agent",
     "get_builder_agent",
@@ -89,4 +104,8 @@ __all__ = [
     "create_react_training_agent",
     "create_runtime_agent",
     "create_judge_rl_agent",
+    "create_content_creation_agent",
+    "create_seo_optimization_agent",
+    "create_email_marketing_agent",
+    "create_analytics_agent",
 ]
