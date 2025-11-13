@@ -33,6 +33,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import os
 import numpy as np
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
@@ -42,6 +43,8 @@ from typing import Dict, Any, List, Optional, Tuple
 # Genesis infrastructure
 from infrastructure import get_logger
 from infrastructure.security_utils import redact_credentials
+from infrastructure.memory.memori_client import MemoriClient
+from infrastructure.memory.genesis_sql_memory import memori_enabled
 
 # OTEL observability
 try:
@@ -129,7 +132,9 @@ class CaseBank:
         self,
         storage_path: str = "data/memory/casebank.jsonl",
         embedding_dim: int = 384,  # sentence-transformers default
-        enable_otel: bool = True
+        enable_otel: bool = True,
+        backend: Optional[str] = None,
+        memori_client: Optional[MemoriClient] = None,
     ):
         """
         Initialize CaseBank with persistent storage.
@@ -143,6 +148,15 @@ class CaseBank:
         self.storage_path.parent.mkdir(parents=True, exist_ok=True)
         self.embedding_dim = embedding_dim
         self.enable_otel = enable_otel and HAS_OTEL
+
+        default_backend = "sql" if memori_enabled() else "jsonl"
+        self.backend = (backend or os.getenv("CASEBANK_BACKEND", default_backend)).lower()
+        if self.backend not in {"jsonl", "sql"}:
+            raise ValueError(f"Unsupported CaseBank backend: {self.backend}")
+
+        self.memori_client = None
+        if self.backend == "sql":
+            self.memori_client = memori_client or MemoriClient()
 
         # In-memory case index (loads from disk on init)
         self.cases: List[Case] = []
@@ -388,13 +402,18 @@ class CaseBank:
             self.cases = [c for c in self.cases if c.metadata.get("agent") != agent_filter]
             self.case_index = {c.case_id: c for c in self.cases}
             cleared = before - len(self.cases)
+            if self.backend == "sql" and self.memori_client:
+                await self.memori_client.aclear_cases(agent_filter)
         else:
             # Clear all
             cleared = len(self.cases)
             self.cases = []
             self.case_index = {}
-            # Truncate storage file
-            self.storage_path.write_text("")
+            if self.backend == "sql" and self.memori_client:
+                await self.memori_client.aclear_cases(None)
+            else:
+                # Truncate storage file
+                self.storage_path.write_text("")
 
         logger.info(f"Cleared {cleared} cases (agent_filter={agent_filter})")
         return cleared
@@ -487,6 +506,11 @@ class CaseBank:
     async def _persist_case(self, case: Case) -> None:
         """Append case to JSONL storage"""
         try:
+            if self.backend == "sql":
+                if self.memori_client:
+                    await self.memori_client.aupsert_case(case.to_dict())
+                return
+
             with open(self.storage_path, "a") as f:
                 json.dump(case.to_dict(), f)
                 f.write("\n")
@@ -495,7 +519,11 @@ class CaseBank:
             raise
 
     def _load_cases(self) -> None:
-        """Load existing cases from JSONL storage"""
+        """Load existing cases from storage backend"""
+        if self.backend == "sql":
+            self._load_cases_sql()
+            return
+
         if not self.storage_path.exists():
             logger.info(f"No existing storage at {self.storage_path}, starting fresh")
             return
@@ -518,6 +546,21 @@ class CaseBank:
         except Exception as e:
             logger.error(f"Failed to load cases: {e}", exc_info=True)
             raise
+
+    def _load_cases_sql(self) -> None:
+        if not self.memori_client:
+            logger.warning("Memori client unavailable; skipping SQL case load")
+            return
+
+        try:
+            rows = self.memori_client.fetch_cases(limit=2000)
+            for payload in rows:
+                case = Case.from_dict(payload)
+                self.cases.append(case)
+                self.case_index[case.case_id] = case
+            logger.info(f"Loaded {len(self.cases)} cases from Memori backend")
+        except Exception as exc:
+            logger.error(f"Failed to load cases from Memori: {exc}")
 
 
 # Singleton instance

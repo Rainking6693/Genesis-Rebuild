@@ -1,0 +1,23 @@
+{
+  "name": "RetentionGenius",
+  "type": "content",
+  "description": "AI-powered subscription analytics platform that automatically generates personalized retention content and campaigns for SaaS businesses. It analyzes user behavior patterns and creates targeted email sequences, in-app messages, and educational content to reduce churn and increase customer lifetime value.",
+  "generated_at": "2025-11-10T15:39:46.456974+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/retentiongenius/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/retentiongenius/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/retentiongenius/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/retentiongenius/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/retentiongenius/src/app/layout.tsx",
+    "businesses/fully_integrated/content/retentiongenius/src/app/globals.css",
+    "businesses/fully_integrated/content/retentiongenius/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

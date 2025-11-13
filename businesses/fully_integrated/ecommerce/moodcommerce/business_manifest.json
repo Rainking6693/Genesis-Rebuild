@@ -1,0 +1,25 @@
+{
+  "name": "MoodCommerce",
+  "type": "ecommerce",
+  "description": "AI-powered emotional commerce platform that curates personalized product recommendations based on users' real-time mood and mental state. Combines mental health tracking with sustainable e-commerce to deliver 'emotional retail therapy' through mindful purchasing decisions.",
+  "generated_at": "2025-11-10T14:37:24.244949+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/moodcommerce/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/moodcommerce/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/moodcommerce/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/moodcommerce/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/moodcommerce/src/lib/customer_support_bot.ts",
+    "businesses/fully_integrated/ecommerce/moodcommerce/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/moodcommerce/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/moodcommerce/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

@@ -1,0 +1,25 @@
+{
+  "name": "StressLens Pro",
+  "type": "ecommerce",
+  "description": "AI-powered workplace wellness platform that analyzes team communication patterns (Slack, email, calendar) to predict burnout risks and automatically generates personalized mental health interventions. Combines real-time stress detection with actionable wellness recommendations specifically designed for small business teams.",
+  "generated_at": "2025-11-09T21:30:24.702108+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/stresslens-pro/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/stresslens-pro/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/stresslens-pro/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/stresslens-pro/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/stresslens-pro/src/lib/customer_support_bot.ts",
+    "businesses/fully_integrated/ecommerce/stresslens-pro/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/stresslens-pro/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/stresslens-pro/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

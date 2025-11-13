@@ -1,0 +1,24 @@
+{
+  "name": "AutoTool 874",
+  "type": "saas",
+  "description": "SaaS automation tool for small businesses. Saves 10+ hours/week on repetitive tasks.",
+  "generated_at": "2025-11-09T21:37:20.445102",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/autonomous/saas/autotool-874/src/components/dashboard_ui.tsx",
+    "businesses/autonomous/saas/autotool-874/src/components/user_auth.tsx",
+    "businesses/autonomous/saas/autotool-874/src/lib/stripe_billing.ts",
+    "businesses/autonomous/saas/autotool-874/src/components/docs.tsx",
+    "businesses/autonomous/saas/autotool-874/src/app/layout.tsx",
+    "businesses/autonomous/saas/autotool-874/src/app/globals.css",
+    "businesses/autonomous/saas/autotool-874/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

@@ -1,0 +1,20 @@
+{
+  "business_name": "MoodMetrics Pro",
+  "business_type": "saas",
+  "start_time": 1762716011.6552043,
+  "end_time": 1762716056.3841429,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 499,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 44.728938579559326,
+  "success_rate": 100.0
+}

@@ -42,8 +42,12 @@ def check_api_keys() -> tuple[bool, list[str]]:
     if not config.jina_api_key:
         missing.append("JINA_API_KEY")
     
-    if not config.dashscope_api_key:
-        missing.append("DASHSCOPE_API_KEY")
+    if config.uses_openrouter:
+        if not config.openrouter_api_key:
+            missing.append("OPENROUTER_API_KEY")
+    else:
+        if config.requires_dashscope and not config.dashscope_api_key:
+            missing.append("DASHSCOPE_API_KEY")
     
     if not config.openai_api_key:
         missing.append("OPENAI_API_KEY")

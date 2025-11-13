@@ -16,9 +16,26 @@ import sys
 import time
 import torch
 from pathlib import Path
+import os
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+cuda_available = torch.cuda.is_available()
+IMPORT_MODE = __name__ != "__main__"
+SHOULD_SKIP = IMPORT_MODE and (
+    os.getenv("RUN_UNSLOTH_TESTS", "false").lower() != "true" or not cuda_available
+)
+
+if SHOULD_SKIP:
+    try:
+        import pytest
+        pytest.skip(
+            "Unsloth setup test requires CUDA hardware. Set RUN_UNSLOTH_TESTS=true when GPU is available.",
+            allow_module_level=True,
+        )
+    except Exception:
+        pass
 
 print("=" * 60)
 print("Unsloth + DeepSeek-OCR Setup Test")
@@ -36,7 +53,7 @@ except ImportError as e:
 
 # Test 2: CUDA Availability
 print("\n[2/5] Testing CUDA availability...")
-if torch.cuda.is_available():
+if cuda_available:
     print(f"✅ CUDA available: {torch.cuda.get_device_name(0)}")
     print(f"   CUDA version: {torch.version.cuda}")
     print(f"   Total VRAM: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
@@ -161,4 +178,3 @@ print("2. Run first fine-tune: python scripts/ocr_finetune_loop.py --force")
 print("3. Validate results: Check CER/WER improvements")
 
 print("\n" + "=" * 60)
-

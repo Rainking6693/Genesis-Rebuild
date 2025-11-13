@@ -1,0 +1,20 @@
+{
+  "business_name": "MoodSync",
+  "business_type": "ecommerce",
+  "start_time": 1762723672.3631678,
+  "end_time": 1762723705.4936864,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 162,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 33.130518674850464,
+  "success_rate": 100.0
+}

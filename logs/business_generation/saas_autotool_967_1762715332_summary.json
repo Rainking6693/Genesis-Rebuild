@@ -1,0 +1,20 @@
+{
+  "business_name": "AutoTool 967",
+  "business_type": "saas",
+  "start_time": 1762715332.6777549,
+  "end_time": 1762715388.7990277,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 653,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 56.121272802352905,
+  "success_rate": 100.0
+}

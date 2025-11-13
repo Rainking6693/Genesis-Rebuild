@@ -1,0 +1,20 @@
+{
+  "business_name": "EcoStory",
+  "business_type": "content",
+  "start_time": 1762722883.3584888,
+  "end_time": 1762722905.5215626,
+  "status": "completed",
+  "components_requested": 4,
+  "components_completed": 4,
+  "components_failed": 0,
+  "files_generated": 4,
+  "lines_of_code": 128,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 4,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 4,
+  "retry_count": 0,
+  "duration_seconds": 22.163073778152466,
+  "success_rate": 100.0
+}

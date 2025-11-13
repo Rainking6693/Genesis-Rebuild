@@ -1,0 +1,25 @@
+{
+  "business_name": "EcoSpend Tracker",
+  "business_type": "content",
+  "start_time": 1762713758.8830485,
+  "end_time": 1762713784.3387046,
+  "status": "failed",
+  "components_requested": 4,
+  "components_completed": 0,
+  "components_failed": 4,
+  "files_generated": 0,
+  "lines_of_code": 0,
+  "cost_usd": 0.0,
+  "errors": [
+    "blog_system: Could not extract code from LLM response",
+    "newsletter: Could not extract code from LLM response",
+    "seo_optimization: Could not extract code from LLM response",
+    "social_media: Could not extract code from LLM response"
+  ],
+  "agent_calls": 4,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 25.455656051635742,
+  "success_rate": 0.0
+}

@@ -1,0 +1,25 @@
+{
+  "name": "ClimateClerk",
+  "type": "ecommerce",
+  "description": "AI-powered carbon accounting and sustainability compliance platform that automatically tracks, calculates, and reports carbon emissions for small businesses through receipt scanning and API integrations. Transforms complex climate reporting into a simple monthly subscription with automated ESG reports that help businesses win more contracts and meet regulatory requirements.",
+  "generated_at": "2025-11-09T22:40:21.724806+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/climateclerk/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/climateclerk/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/climateclerk/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/climateclerk/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/climateclerk/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/climateclerk/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/climateclerk/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/climateclerk/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

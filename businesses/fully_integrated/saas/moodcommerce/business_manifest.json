@@ -1,0 +1,22 @@
+{
+  "name": "MoodCommerce",
+  "type": "saas",
+  "description": "AI-powered e-commerce personalization platform that adapts product recommendations and website experiences based on customers' real-time emotional state and mental wellness goals. Combines sentiment analysis, behavioral psychology, and commerce optimization to boost conversions while promoting healthier purchasing decisions.",
+  "generated_at": "2025-11-10T15:47:21.603722+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/moodcommerce/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/moodcommerce/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/moodcommerce/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/moodcommerce/src/lib/stripe_billing.ts",
+    "businesses/fully_integrated/saas/moodcommerce/src/lib/docs.ts"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

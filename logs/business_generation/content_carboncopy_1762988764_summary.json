@@ -1,0 +1,20 @@
+{
+  "business_name": "CarbonCopy",
+  "business_type": "content",
+  "start_time": 1762988764.5159435,
+  "end_time": 1762989196.869942,
+  "status": "completed",
+  "components_requested": 24,
+  "components_completed": 24,
+  "components_failed": 0,
+  "files_generated": 24,
+  "lines_of_code": 1957,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 24,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 24,
+  "retry_count": 0,
+  "duration_seconds": 432.3539984226227,
+  "success_rate": 100.0
+}

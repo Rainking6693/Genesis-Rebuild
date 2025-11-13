@@ -1,0 +1,24 @@
+{
+  "name": "CarbonShift",
+  "type": "saas",
+  "description": "AI-powered carbon footprint tracker for e-commerce businesses that automatically calculates emissions from supply chain activities and provides actionable sustainability recommendations. Helps online retailers meet ESG goals while attracting eco-conscious customers through transparent carbon impact reporting.",
+  "generated_at": "2025-11-10T15:57:16.022069+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/carbonshift/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/carbonshift/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/carbonshift/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/carbonshift/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/carbonshift/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/carbonshift/src/app/globals.css",
+    "businesses/fully_integrated/saas/carbonshift/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

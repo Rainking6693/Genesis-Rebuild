@@ -1,0 +1,23 @@
+{
+  "name": "GreenGrowth AI",
+  "type": "content",
+  "description": "AI-powered sustainability content platform that automatically generates customized climate action plans, ESG reports, and green marketing content for small businesses. Helps companies quickly create professional sustainability documentation while building their eco-friendly brand presence.",
+  "generated_at": "2025-11-10T15:11:04.384046+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/greengrowth-ai/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/greengrowth-ai/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/greengrowth-ai/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/greengrowth-ai/src/lib/social_media.ts",
+    "businesses/fully_integrated/content/greengrowth-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/content/greengrowth-ai/src/app/globals.css",
+    "businesses/fully_integrated/content/greengrowth-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

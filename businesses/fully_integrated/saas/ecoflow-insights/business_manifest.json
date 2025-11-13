@@ -1,0 +1,25 @@
+{
+  "name": "EcoFlow Insights",
+  "type": "saas",
+  "description": "AI-powered carbon footprint tracking and sustainability automation platform that helps small businesses automatically calculate, reduce, and report their environmental impact while generating cost savings. Combines real-time expense monitoring with climate action recommendations, turning sustainability compliance into a profit center through tax incentives and operational efficiencies.",
+  "generated_at": "2025-11-09T21:17:26.167067+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/ecoflow-insights/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/ecoflow-insights/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/ecoflow-insights/src/lib/user_auth.ts",
+    "businesses/fully_integrated/saas/ecoflow-insights/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/ecoflow-insights/src/lib/docs.ts",
+    "businesses/fully_integrated/saas/ecoflow-insights/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/ecoflow-insights/src/app/globals.css",
+    "businesses/fully_integrated/saas/ecoflow-insights/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

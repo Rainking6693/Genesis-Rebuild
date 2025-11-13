@@ -158,7 +158,7 @@ Socratic-Zero (Integration 16/65)
 ├────────────────────────────────────────────
 │  Research Loop
 │  ├─ OpenEnv tool calls (Playwright, Supabase)
-│  ├─ DeepResearch pipeline (web insights)
+│  ├─ DeepResearch pipeline (web insights via Tongyi DeepResearch 30B)
 │  └─ ADP dataset ingestion
 
 ADP Pipeline (Integration 17/65)

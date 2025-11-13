@@ -1,0 +1,23 @@
+{
+  "name": "ClimateSkill Academy",
+  "type": "content",
+  "description": "AI-powered microlearning platform that delivers bite-sized, role-specific climate action training for employees, helping companies build sustainability expertise while meeting ESG compliance requirements. Each 5-minute daily lesson is personalized by job function and includes practical implementation steps with progress tracking.",
+  "generated_at": "2025-11-09T19:30:26.809433+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/climateskill-academy/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/climateskill-academy/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/climateskill-academy/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/climateskill-academy/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/climateskill-academy/src/app/layout.tsx",
+    "businesses/fully_integrated/content/climateskill-academy/src/app/globals.css",
+    "businesses/fully_integrated/content/climateskill-academy/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

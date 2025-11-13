@@ -1,0 +1,20 @@
+{
+  "business_name": "MeetingMiner",
+  "business_type": "content",
+  "start_time": 1762807831.4289813,
+  "end_time": 1762808178.870883,
+  "status": "completed",
+  "components_requested": 24,
+  "components_completed": 24,
+  "components_failed": 0,
+  "files_generated": 24,
+  "lines_of_code": 1188,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 24,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 24,
+  "retry_count": 0,
+  "duration_seconds": 347.4419016838074,
+  "success_rate": 100.0
+}

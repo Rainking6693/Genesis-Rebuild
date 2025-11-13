@@ -1,0 +1,1 @@
+You can call this function with an integer argument, like so:

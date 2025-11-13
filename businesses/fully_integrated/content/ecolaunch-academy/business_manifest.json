@@ -1,0 +1,23 @@
+{
+  "name": "EcoLaunch Academy",
+  "type": "content",
+  "description": "AI-powered learning platform that teaches small business owners how to implement profitable climate-tech solutions through interactive case studies and no-code automation tools. Combines sustainability education with actionable business growth strategies, featuring real ROI calculators and implementation roadmaps.",
+  "generated_at": "2025-11-10T13:15:31.707435+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/ecolaunch-academy/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/ecolaunch-academy/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/ecolaunch-academy/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/ecolaunch-academy/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/ecolaunch-academy/src/app/layout.tsx",
+    "businesses/fully_integrated/content/ecolaunch-academy/src/app/globals.css",
+    "businesses/fully_integrated/content/ecolaunch-academy/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

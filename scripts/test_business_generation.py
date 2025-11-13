@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from infrastructure.genesis_meta_agent import GenesisMetaAgent, BusinessSpec
 
-async def test():
+async def _workflow_test():
     print("\n" + "="*70)
     print("  TESTING BUSINESS GENERATION WORKFLOW")
     print("="*70 + "\n")
@@ -59,4 +59,9 @@ async def test():
     print("\nNext: Run with local LLM for actual generation")
     print("Command: python scripts/generate_business.py --business ecommerce\n")
 
-asyncio.run(test())
+def test_business_generation_workflow():
+    asyncio.run(_workflow_test())
+
+
+if __name__ == "__main__":
+    asyncio.run(_workflow_test())

@@ -1,0 +1,20 @@
+{
+  "business_name": "AutoTool 470",
+  "business_type": "saas",
+  "start_time": 1762710066.6813006,
+  "end_time": 1762710118.184085,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 399,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 51.50278425216675,
+  "success_rate": 100.0
+}

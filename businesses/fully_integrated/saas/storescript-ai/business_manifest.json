@@ -1,0 +1,25 @@
+{
+  "name": "StoreScript AI",
+  "type": "saas",
+  "description": "AI-powered no-code platform that automatically generates and optimizes product descriptions, email sequences, and social media content for e-commerce stores based on product images and basic details. Small e-commerce businesses get professional copywriting at scale without hiring expensive agencies or spending hours writing content.",
+  "generated_at": "2025-11-10T14:03:13.265884+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/storescript-ai/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/storescript-ai/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/storescript-ai/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/storescript-ai/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/storescript-ai/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/storescript-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/storescript-ai/src/app/globals.css",
+    "businesses/fully_integrated/saas/storescript-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

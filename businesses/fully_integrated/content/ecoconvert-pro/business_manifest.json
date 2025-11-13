@@ -1,0 +1,23 @@
+{
+  "name": "EcoConvert Pro",
+  "type": "content",
+  "description": "AI-powered sustainability audit and conversion optimization platform that helps e-commerce businesses automatically identify eco-friendly product alternatives and create compelling green marketing content that increases conversions. Combines real-time sustainability scoring with automated content generation to turn environmental consciousness into profitable sales.",
+  "generated_at": "2025-11-10T14:40:39.045680+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/ecoconvert-pro/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/ecoconvert-pro/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/ecoconvert-pro/src/lib/seo_optimization.ts",
+    "businesses/fully_integrated/content/ecoconvert-pro/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/ecoconvert-pro/src/app/layout.tsx",
+    "businesses/fully_integrated/content/ecoconvert-pro/src/app/globals.css",
+    "businesses/fully_integrated/content/ecoconvert-pro/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

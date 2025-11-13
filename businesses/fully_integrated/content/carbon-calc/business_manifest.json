@@ -1,0 +1,23 @@
+{
+  "name": "Carbon Calc",
+  "type": "content",
+  "description": "AI-powered carbon footprint calculator and reduction planner specifically designed for small e-commerce businesses to track, reduce, and market their sustainability efforts. Combines real-time shipping data, inventory tracking, and automated ESG reporting with customer-facing sustainability badges and marketing content.",
+  "generated_at": "2025-11-09T21:04:38.135034+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/carbon-calc/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/carbon-calc/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/carbon-calc/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/carbon-calc/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/carbon-calc/src/app/layout.tsx",
+    "businesses/fully_integrated/content/carbon-calc/src/app/globals.css",
+    "businesses/fully_integrated/content/carbon-calc/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

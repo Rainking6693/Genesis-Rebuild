@@ -1,0 +1,11 @@
+**
+!Dockerfile.fly
+!fly.toml
+!requirements-monitor.txt
+!infrastructure/
+!infrastructure/__init__.py
+!infrastructure/health_check.py
+!infrastructure/load_env.py
+!scripts/
+!scripts/__init__.py
+!scripts/genesis_data_source.py

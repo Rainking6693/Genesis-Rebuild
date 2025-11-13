@@ -1,0 +1,20 @@
+{
+  "business_name": "Review Genie",
+  "business_type": "ecommerce",
+  "start_time": 1762805874.8953424,
+  "end_time": 1762806266.7424848,
+  "status": "completed",
+  "components_requested": 24,
+  "components_completed": 24,
+  "components_failed": 0,
+  "files_generated": 24,
+  "lines_of_code": 1377,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 24,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 24,
+  "retry_count": 0,
+  "duration_seconds": 391.84714245796204,
+  "success_rate": 100.0
+}

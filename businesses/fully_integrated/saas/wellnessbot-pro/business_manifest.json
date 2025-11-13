@@ -1,0 +1,25 @@
+{
+  "name": "WellnessBot Pro",
+  "type": "saas",
+  "description": "AI-powered employee wellness automation platform that creates personalized mental health check-ins, stress alerts, and team wellness dashboards for small businesses. Combines workplace mental health monitoring with automated intervention suggestions to reduce burnout and increase productivity.",
+  "generated_at": "2025-11-09T21:25:37.457582+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/wellnessbot-pro/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/wellnessbot-pro/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/wellnessbot-pro/src/lib/user_auth.ts",
+    "businesses/fully_integrated/saas/wellnessbot-pro/src/lib/stripe_billing.ts",
+    "businesses/fully_integrated/saas/wellnessbot-pro/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/wellnessbot-pro/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/wellnessbot-pro/src/app/globals.css",
+    "businesses/fully_integrated/saas/wellnessbot-pro/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

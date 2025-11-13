@@ -1,0 +1,51 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+        tls:
+          insecure: true
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+  resource:
+    attributes:
+      - key: service.name
+        action: upsert
+        value: genesis-agents
+      - key: deployment.platform
+        action: upsert
+        value: podman
+
+exporters:
+  otlphttp:
+    endpoint: ${GRAFANA_OTLP_ENDPOINT}
+    headers:
+      authorization: "Bearer ${GRAFANA_API_KEY}"
+    tls:
+      insecure_skip_verify: false
+  logging:
+    loglevel: info
+
+service:
+  telemetry:
+    logs:
+      level: info
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlphttp, logging]
+    traces:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlphttp, logging]
+    logs:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [logging]
+

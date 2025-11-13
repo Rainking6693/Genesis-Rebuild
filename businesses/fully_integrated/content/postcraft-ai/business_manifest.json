@@ -1,0 +1,23 @@
+{
+  "name": "PostCraft AI",
+  "type": "content",
+  "description": "An AI-powered social media automation platform that creates, schedules, and optimizes content specifically for small businesses by analyzing their industry trends and competitor strategies. It combines no-code workflow builders with intelligent content generation to help businesses maintain consistent, engaging social presence without hiring agencies.",
+  "generated_at": "2025-11-09T21:06:14.088724+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/postcraft-ai/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/postcraft-ai/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/postcraft-ai/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/postcraft-ai/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/postcraft-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/content/postcraft-ai/src/app/globals.css",
+    "businesses/fully_integrated/content/postcraft-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

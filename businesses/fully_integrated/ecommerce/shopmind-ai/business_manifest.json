@@ -1,0 +1,25 @@
+{
+  "name": "ShopMind AI",
+  "type": "ecommerce",
+  "description": "AI-powered mental wellness marketplace that uses shopping behavior analysis to recommend personalized stress-relief products and micro-coaching sessions. Combines impulse shopping psychology with therapeutic interventions to turn retail therapy into actual therapy.",
+  "generated_at": "2025-11-10T14:38:27.917604+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/shopmind-ai/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/shopmind-ai/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/shopmind-ai/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/shopmind-ai/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/shopmind-ai/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/shopmind-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/shopmind-ai/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/shopmind-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

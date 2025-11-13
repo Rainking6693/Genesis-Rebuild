@@ -1,0 +1,20 @@
+{
+  "business_name": "MoodCart AI",
+  "business_type": "saas",
+  "start_time": 1762830435.8883257,
+  "end_time": 1762830801.5143247,
+  "status": "completed",
+  "components_requested": 24,
+  "components_completed": 24,
+  "components_failed": 0,
+  "files_generated": 24,
+  "lines_of_code": 1253,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 24,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 24,
+  "retry_count": 0,
+  "duration_seconds": 365.62599897384644,
+  "success_rate": 100.0
+}

@@ -1,0 +1,20 @@
+{
+  "business_name": "AutoTool 675",
+  "business_type": "saas",
+  "start_time": 1762717621.3419082,
+  "end_time": 1762717675.6867151,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 547,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 54.34480690956116,
+  "success_rate": 100.0
+}

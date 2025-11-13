@@ -1,0 +1,25 @@
+{
+  "name": "EcoScore AI",
+  "type": "ecommerce",
+  "description": "AI-powered sustainability analytics platform that automatically calculates and optimizes the environmental impact score of any ecommerce business's operations, supply chain, and product catalog. Transforms complex climate data into actionable insights and automated green marketing content that increases conversions by 23% while reducing carbon footprint.",
+  "generated_at": "2025-11-09T22:09:22.563084+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/ecoscore-ai/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/ecoscore-ai/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/ecoscore-ai/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/ecoscore-ai/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/ecoscore-ai/src/lib/customer_support_bot.ts",
+    "businesses/fully_integrated/ecommerce/ecoscore-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/ecoscore-ai/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/ecoscore-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

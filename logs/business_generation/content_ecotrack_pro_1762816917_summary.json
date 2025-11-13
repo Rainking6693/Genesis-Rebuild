@@ -1,0 +1,20 @@
+{
+  "business_name": "EcoTrack Pro",
+  "business_type": "content",
+  "start_time": 1762816917.9149,
+  "end_time": 1762817248.022225,
+  "status": "completed",
+  "components_requested": 24,
+  "components_completed": 24,
+  "components_failed": 0,
+  "files_generated": 24,
+  "lines_of_code": 1301,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 24,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 24,
+  "retry_count": 0,
+  "duration_seconds": 330.1073248386383,
+  "success_rate": 100.0
+}

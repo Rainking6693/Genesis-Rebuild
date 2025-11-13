@@ -1,0 +1,25 @@
+{
+  "name": "ClimateHire",
+  "type": "saas",
+  "description": "AI-powered recruitment platform that matches climate-conscious professionals with sustainability-focused roles at companies with verified ESG credentials. We solve the disconnect between talented professionals wanting meaningful climate work and companies struggling to attract purpose-driven talent in the green economy.",
+  "generated_at": "2025-11-09T22:49:13.856047+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/climatehire/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/climatehire/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/climatehire/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/climatehire/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/climatehire/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/climatehire/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/climatehire/src/app/globals.css",
+    "businesses/fully_integrated/saas/climatehire/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

@@ -1,0 +1,20 @@
+{
+  "business_name": "EcoBox Builder",
+  "business_type": "content",
+  "start_time": 1762830051.826854,
+  "end_time": 1762830397.1297717,
+  "status": "completed",
+  "components_requested": 24,
+  "components_completed": 24,
+  "components_failed": 0,
+  "files_generated": 24,
+  "lines_of_code": 1081,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 24,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 24,
+  "retry_count": 0,
+  "duration_seconds": 345.30291771888733,
+  "success_rate": 100.0
+}

@@ -1,0 +1,25 @@
+{
+  "name": "EcoTeam Pulse",
+  "type": "saas",
+  "description": "AI-powered platform that gamifies workplace sustainability while boosting remote team engagement through collaborative climate challenges and mental wellness tracking. Combines carbon footprint reduction with team building activities that improve employee satisfaction and company ESG scores.",
+  "generated_at": "2025-11-09T17:46:36.101385",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/ecoteam-pulse/src/lib/dashboard_ui.ts",
+    "businesses/fully_integrated/saas/ecoteam-pulse/src/app/api/rest_api/route.ts",
+    "businesses/fully_integrated/saas/ecoteam-pulse/src/lib/user_auth.ts",
+    "businesses/fully_integrated/saas/ecoteam-pulse/src/lib/stripe_billing.ts",
+    "businesses/fully_integrated/saas/ecoteam-pulse/src/lib/docs.ts",
+    "businesses/fully_integrated/saas/ecoteam-pulse/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/ecoteam-pulse/src/app/globals.css",
+    "businesses/fully_integrated/saas/ecoteam-pulse/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

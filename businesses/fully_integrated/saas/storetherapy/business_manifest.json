@@ -1,0 +1,25 @@
+{
+  "name": "StoreTherapy",
+  "type": "saas",
+  "description": "AI-powered mental wellness platform that helps e-commerce entrepreneurs and small business owners manage stress, burnout, and decision fatigue through personalized micro-coaching sessions and automated wellness workflows. Combines business performance tracking with mental health insights to optimize both profit and well-being.",
+  "generated_at": "2025-11-10T14:43:34.805634+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/storetherapy/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/storetherapy/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/storetherapy/src/lib/user_auth.ts",
+    "businesses/fully_integrated/saas/storetherapy/src/lib/stripe_billing.ts",
+    "businesses/fully_integrated/saas/storetherapy/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/storetherapy/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/storetherapy/src/app/globals.css",
+    "businesses/fully_integrated/saas/storetherapy/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

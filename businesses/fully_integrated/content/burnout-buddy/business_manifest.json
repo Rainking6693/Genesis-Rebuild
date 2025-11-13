@@ -1,0 +1,23 @@
+{
+  "name": "Burnout Buddy",
+  "type": "content",
+  "description": "AI-powered micro-coaching platform that delivers personalized burnout prevention content and wellness nudges directly integrated into remote workers' daily workflows through Slack/Teams. Combines mental health insights with productivity analytics to create custom intervention strategies before burnout occurs.",
+  "generated_at": "2025-11-10T15:58:56.020718+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/burnout-buddy/src/lib/blog_system.ts",
+    "businesses/fully_integrated/content/burnout-buddy/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/burnout-buddy/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/burnout-buddy/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/burnout-buddy/src/app/layout.tsx",
+    "businesses/fully_integrated/content/burnout-buddy/src/app/globals.css",
+    "businesses/fully_integrated/content/burnout-buddy/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

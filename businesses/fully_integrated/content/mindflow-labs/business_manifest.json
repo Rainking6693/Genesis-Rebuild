@@ -1,0 +1,23 @@
+{
+  "name": "MindFlow Labs",
+  "type": "content",
+  "description": "AI-powered mental wellness platform that creates personalized productivity rituals by combining cognitive behavioral therapy techniques with workflow optimization for remote teams. Delivers bite-sized, science-backed content modules that improve both individual mental health and team performance metrics.",
+  "generated_at": "2025-11-10T14:35:21.747029+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/mindflow-labs/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/mindflow-labs/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/mindflow-labs/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/mindflow-labs/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/mindflow-labs/src/app/layout.tsx",
+    "businesses/fully_integrated/content/mindflow-labs/src/app/globals.css",
+    "businesses/fully_integrated/content/mindflow-labs/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

@@ -1,0 +1,20 @@
+{
+  "business_name": "TrendShop 567",
+  "business_type": "ecommerce",
+  "start_time": 1762708399.8983414,
+  "end_time": 1762708454.5992346,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 589,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 54.70089316368103,
+  "success_rate": 100.0
+}

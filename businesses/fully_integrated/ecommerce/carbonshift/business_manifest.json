@@ -1,0 +1,25 @@
+{
+  "name": "CarbonShift",
+  "type": "ecommerce",
+  "description": "AI-powered platform that automatically calculates carbon footprints for e-commerce purchases and instantly suggests lower-carbon alternatives from verified sustainable brands. Transforms climate guilt into profitable action by gamifying sustainable shopping with rewards and community challenges.",
+  "generated_at": "2025-11-09T20:43:33.515987+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/carbonshift/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/carbonshift/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/carbonshift/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/carbonshift/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/carbonshift/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/carbonshift/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/carbonshift/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/carbonshift/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

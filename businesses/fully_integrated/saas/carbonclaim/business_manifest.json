@@ -1,0 +1,25 @@
+{
+  "name": "CarbonClaim",
+  "type": "saas",
+  "description": "AI-powered platform that automatically tracks e-commerce businesses' carbon footprint across their supply chain and generates verified sustainability reports for customers at checkout. Transforms climate compliance from a cost center into a competitive advantage by enabling real-time carbon transparency that drives customer loyalty and premium pricing.",
+  "generated_at": "2025-11-09T21:34:20.059732+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/carbonclaim/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/carbonclaim/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/carbonclaim/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/carbonclaim/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/carbonclaim/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/carbonclaim/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/carbonclaim/src/app/globals.css",
+    "businesses/fully_integrated/saas/carbonclaim/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

@@ -1,0 +1,20 @@
+{
+  "business_name": "MeetingMind AI",
+  "business_type": "saas",
+  "start_time": 1762784730.9963903,
+  "end_time": 1762784800.8545635,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 205,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 69.85817313194275,
+  "success_rate": 100.0
+}

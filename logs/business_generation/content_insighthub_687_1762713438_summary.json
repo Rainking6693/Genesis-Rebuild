@@ -1,0 +1,20 @@
+{
+  "business_name": "InsightHub 687",
+  "business_type": "content",
+  "start_time": 1762713438.7711213,
+  "end_time": 1762713498.144167,
+  "status": "completed",
+  "components_requested": 4,
+  "components_completed": 4,
+  "components_failed": 0,
+  "files_generated": 4,
+  "lines_of_code": 365,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 4,
+  "vertex_ai_calls": 4,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 59.373045682907104,
+  "success_rate": 100.0
+}

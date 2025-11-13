@@ -1,0 +1,25 @@
+{
+  "name": "EcoFlow Builder",
+  "type": "ecommerce",
+  "description": "A no-code platform that helps small businesses automatically create and optimize their carbon offset workflows while building customer loyalty through transparent sustainability tracking. Businesses can launch branded eco-initiatives in minutes without technical expertise, turning climate action into a competitive advantage.",
+  "generated_at": "2025-11-10T15:12:15.596328+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/ecoflow-builder/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/ecoflow-builder/src/lib/shopping_cart.ts",
+    "businesses/fully_integrated/ecommerce/ecoflow-builder/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/ecoflow-builder/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/ecoflow-builder/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/ecoflow-builder/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/ecoflow-builder/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/ecoflow-builder/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

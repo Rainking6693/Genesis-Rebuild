@@ -1,0 +1,20 @@
+{
+  "business_name": "ReturnFlow AI",
+  "business_type": "saas",
+  "start_time": 1762729699.795578,
+  "end_time": 1762729737.1304111,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 167,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 37.3348331451416,
+  "success_rate": 100.0
+}

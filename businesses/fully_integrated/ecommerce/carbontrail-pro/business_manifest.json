@@ -1,0 +1,25 @@
+{
+  "name": "CarbonTrail Pro",
+  "type": "ecommerce",
+  "description": "AI-powered carbon footprint tracking SaaS that automatically calculates and offsets small businesses' environmental impact through real-time integrations with their existing tools. Transforms compliance headaches into competitive advantages with automated ESG reporting and customer-facing sustainability badges.",
+  "generated_at": "2025-11-09T19:40:27.954953+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/carbontrail-pro/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/carbontrail-pro/src/lib/shopping_cart.ts",
+    "businesses/fully_integrated/ecommerce/carbontrail-pro/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/carbontrail-pro/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/carbontrail-pro/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/carbontrail-pro/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/carbontrail-pro/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/carbontrail-pro/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

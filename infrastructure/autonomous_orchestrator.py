@@ -24,7 +24,7 @@ from infrastructure.load_env import load_genesis_env
 load_genesis_env()
 
 # Layer 1: Orchestration
-from infrastructure.htdag_planner import HTDAGPlanner
+from infrastructure.htdag_planner import HTDAGPlanner, DualPlanResult
 from infrastructure.halo_router import HALORouter
 from infrastructure.aop_validator import AOPValidator, ValidationResult
 from infrastructure.daao_router import DAAORouter
@@ -349,8 +349,32 @@ class AutonomousOrchestrator:
         """
         
         try:
-            dag = await self.htdag.plan_task(task_description)
-            task_count = len(dag.tasks) if hasattr(dag, 'tasks') else dag.size() if hasattr(dag, 'size') else 0
+            context = {
+                "business_type": spec.business_type,
+                "idea": {
+                    "mvp_features": idea.mvp_features,
+                    "tech_stack": idea.tech_stack,
+                },
+            }
+            plan_result = await self.htdag.plan_task(task_description, context=context)
+
+            if isinstance(plan_result, DualPlanResult):
+                reactive_tasks = len(plan_result.reactive_dag) if plan_result.reactive_dag else 0
+                final_tasks = len(plan_result.final_dag) if plan_result.final_dag else 0
+                logger.info(
+                    "⚡ Dual-thread HTDAG: reactive=%d tasks (%.2fs) → final=%d tasks (%.2fs)",
+                    reactive_tasks,
+                    plan_result.reactive_latency,
+                    final_tasks,
+                    plan_result.final_latency,
+                )
+                if plan_result.used_reactive_fallback:
+                    logger.warning("Dual-thread planner fell back to reactive plan due to decomposition failure.")
+                dag = plan_result.final_dag
+            else:
+                dag = plan_result
+
+            task_count = len(dag.tasks) if hasattr(dag, "tasks") else dag.size() if hasattr(dag, "size") else 0
             logger.info(f"✅ Decomposed into {task_count} tasks")
             return dag
         except Exception as e:

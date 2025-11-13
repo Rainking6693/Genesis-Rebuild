@@ -1,0 +1,25 @@
+{
+  "name": "Community Pulse",
+  "type": "saas",
+  "description": "AI-powered community health analytics that transforms Discord/Slack conversations into actionable business insights for remote teams and creator communities. Automatically detects engagement patterns, sentiment shifts, and revenue opportunities hidden in your community chatter.",
+  "generated_at": "2025-11-10T13:50:13.175173+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/community-pulse/src/lib/dashboard_ui.ts",
+    "businesses/fully_integrated/saas/community-pulse/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/community-pulse/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/community-pulse/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/community-pulse/src/lib/docs.ts",
+    "businesses/fully_integrated/saas/community-pulse/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/community-pulse/src/app/globals.css",
+    "businesses/fully_integrated/saas/community-pulse/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

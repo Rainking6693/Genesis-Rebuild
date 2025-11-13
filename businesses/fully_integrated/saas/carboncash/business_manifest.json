@@ -1,0 +1,25 @@
+{
+  "name": "CarbonCash",
+  "type": "saas",
+  "description": "AI-powered platform that automatically tracks small businesses' carbon footprint across operations and converts sustainability improvements into verified carbon credits they can sell for profit. Transforms environmental responsibility from a cost center into a revenue stream while building customer loyalty through transparent green practices.",
+  "generated_at": "2025-11-09T22:02:40.006518+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/carboncash/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/carboncash/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/carboncash/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/carboncash/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/carboncash/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/carboncash/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/carboncash/src/app/globals.css",
+    "businesses/fully_integrated/saas/carboncash/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

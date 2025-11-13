@@ -1,0 +1,23 @@
+{
+  "name": "ReviewFlow",
+  "type": "content",
+  "description": "AI-powered micro-SaaS that automatically generates personalized review request campaigns and tracks customer sentiment across all platforms for small e-commerce businesses. Combines automated email/SMS sequences with AI-driven sentiment analysis to boost positive reviews while flagging potential issues before they become public complaints.",
+  "generated_at": "2025-11-10T13:18:35.913235+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/reviewflow/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/reviewflow/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/reviewflow/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/reviewflow/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/reviewflow/src/app/layout.tsx",
+    "businesses/fully_integrated/content/reviewflow/src/app/globals.css",
+    "businesses/fully_integrated/content/reviewflow/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

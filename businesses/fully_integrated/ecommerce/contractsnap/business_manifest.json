@@ -1,0 +1,24 @@
+{
+  "name": "ContractSnap",
+  "type": "ecommerce",
+  "description": "AI-powered platform that instantly generates legally-compliant business contracts and agreements from simple conversational inputs, eliminating expensive lawyer consultations for routine documents. Users describe their needs in plain English, and our AI creates, customizes, and manages contract templates with automated reminders and e-signature workflows.",
+  "generated_at": "2025-11-10T15:04:37.573515+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/contractsnap/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/contractsnap/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/contractsnap/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/contractsnap/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/contractsnap/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/contractsnap/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/contractsnap/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

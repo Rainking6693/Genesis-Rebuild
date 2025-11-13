@@ -1,0 +1,25 @@
+{
+  "name": "CarbonLedger Pro",
+  "type": "ecommerce",
+  "description": "AI-powered carbon accounting platform that automatically tracks, calculates, and offsets small business emissions while generating compliance reports for ESG requirements. Transforms complex sustainability reporting into a simple monthly subscription with automated data collection from business tools like accounting software, shipping APIs, and utility bills.",
+  "generated_at": "2025-11-10T13:49:58.673138+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/carbonledger-pro/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/carbonledger-pro/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/carbonledger-pro/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/carbonledger-pro/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/carbonledger-pro/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/carbonledger-pro/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/carbonledger-pro/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/carbonledger-pro/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

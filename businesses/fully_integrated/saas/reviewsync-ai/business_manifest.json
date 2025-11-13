@@ -1,0 +1,22 @@
+{
+  "name": "ReviewSync AI",
+  "type": "saas",
+  "description": "AI-powered review management platform that automatically monitors, responds to, and analyzes customer reviews across all platforms while generating personalized response templates that match your brand voice. It combines community-driven best practices with no-code automation to help small businesses maintain their online reputation without hiring dedicated staff.",
+  "generated_at": "2025-11-10T16:05:38.137249+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/reviewsync-ai/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/reviewsync-ai/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/reviewsync-ai/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/reviewsync-ai/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/reviewsync-ai/src/components/docs.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

@@ -1,0 +1,23 @@
+{
+  "name": "MeetingMind AI",
+  "type": "content",
+  "description": "AI-powered platform that transforms chaotic meeting recordings into actionable business intelligence, automatically generating follow-up tasks, risk assessments, and strategic insights. Unlike basic transcription tools, it creates a searchable knowledge base that identifies patterns, tracks commitments, and predicts project outcomes across your entire organization.",
+  "generated_at": "2025-11-09T21:27:20.935688+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/meetingmind-ai/src/lib/blog_system.ts",
+    "businesses/fully_integrated/content/meetingmind-ai/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/meetingmind-ai/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/meetingmind-ai/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/meetingmind-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/content/meetingmind-ai/src/app/globals.css",
+    "businesses/fully_integrated/content/meetingmind-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

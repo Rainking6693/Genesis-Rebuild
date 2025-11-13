@@ -1,0 +1,23 @@
+{
+  "name": "ReviewCraft AI",
+  "type": "content",
+  "description": "AI-powered platform that automatically generates authentic, compliant customer review responses and follow-up sequences for small businesses. Combines sentiment analysis with brand voice training to create personalized responses that boost customer retention and online reputation.",
+  "generated_at": "2025-11-09T20:30:38.650157+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/reviewcraft-ai/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/reviewcraft-ai/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/reviewcraft-ai/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/reviewcraft-ai/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/reviewcraft-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/content/reviewcraft-ai/src/app/globals.css",
+    "businesses/fully_integrated/content/reviewcraft-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

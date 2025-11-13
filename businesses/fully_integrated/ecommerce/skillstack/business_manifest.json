@@ -1,0 +1,22 @@
+{
+  "name": "SkillStack",
+  "type": "ecommerce",
+  "description": "AI-powered marketplace that automatically creates personalized learning paths by combining micro-courses from multiple creators, then delivers them as subscription boxes with physical materials and digital content. Each box contains curated tools, templates, and exclusive creator content tailored to the learner's skill progression and industry needs.",
+  "generated_at": "2025-11-10T15:32:58.323641+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/skillstack/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/skillstack/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/skillstack/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/skillstack/src/lib/email_marketing.ts",
+    "businesses/fully_integrated/ecommerce/skillstack/src/components/customer_support_bot.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

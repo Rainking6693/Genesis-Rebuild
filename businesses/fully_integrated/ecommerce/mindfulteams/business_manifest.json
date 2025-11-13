@@ -1,0 +1,25 @@
+{
+  "name": "MindfulTeams",
+  "type": "ecommerce",
+  "description": "AI-powered mental wellness subscription platform that delivers personalized stress-relief boxes to small business teams while providing data-driven wellness insights to managers. Combines physical wellness products with digital mental health tracking and team-building activities to boost productivity and reduce burnout.",
+  "generated_at": "2025-11-10T15:51:44.201532+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/mindfulteams/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/mindfulteams/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/mindfulteams/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/mindfulteams/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/mindfulteams/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/mindfulteams/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/mindfulteams/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/mindfulteams/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

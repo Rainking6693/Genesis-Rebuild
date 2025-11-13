@@ -1,0 +1,25 @@
+{
+  "name": "ReviewBot Pro",
+  "type": "ecommerce",
+  "description": "AI-powered review management platform that automatically generates personalized responses to customer reviews across all platforms while maintaining brand voice and sentiment analysis. Helps small businesses turn negative reviews into customer retention opportunities and amplify positive feedback through smart automation.",
+  "generated_at": "2025-11-10T14:36:12.540827+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/reviewbot-pro/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/reviewbot-pro/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/reviewbot-pro/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/reviewbot-pro/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/reviewbot-pro/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/reviewbot-pro/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/reviewbot-pro/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/reviewbot-pro/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

@@ -1,0 +1,21 @@
+{
+  "name": "GreenConvert",
+  "type": "saas",
+  "description": "AI-powered sustainability analytics platform that automatically calculates and optimizes the carbon footprint of e-commerce businesses while turning eco-friendly practices into customer acquisition tools. Transforms environmental compliance from a cost center into a revenue-generating marketing advantage through automated sustainability badges, carbon offset upsells, and green loyalty programs.",
+  "generated_at": "2025-11-10T15:53:48.654240+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/greenconvert/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/greenconvert/src/app/api/rest_api/route.ts",
+    "businesses/fully_integrated/saas/greenconvert/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/greenconvert/src/components/stripe_billing.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

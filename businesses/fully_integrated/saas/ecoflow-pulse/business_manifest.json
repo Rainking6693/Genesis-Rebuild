@@ -1,0 +1,25 @@
+{
+  "name": "EcoFlow Pulse",
+  "type": "saas",
+  "description": "AI-powered automation platform that helps small e-commerce businesses optimize their supply chain for sustainability while reducing costs through intelligent vendor matching and carbon footprint tracking. Transforms complex sustainability compliance into automated workflows with real-time cost savings alerts and eco-certification generation.",
+  "generated_at": "2025-11-10T13:19:57.091250+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/ecoflow-pulse/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/ecoflow-pulse/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/ecoflow-pulse/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/ecoflow-pulse/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/ecoflow-pulse/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/ecoflow-pulse/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/ecoflow-pulse/src/app/globals.css",
+    "businesses/fully_integrated/saas/ecoflow-pulse/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

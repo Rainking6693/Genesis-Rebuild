@@ -1,0 +1,25 @@
+{
+  "name": "MoodCart",
+  "type": "ecommerce",
+  "description": "AI-powered wellness subscription platform that curates personalized product boxes based on users' real-time emotional states and mental health goals. Combines mood tracking with smart commerce to deliver exactly what customers need when they need it most.",
+  "generated_at": "2025-11-09T20:31:29.416990+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/moodcart/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/moodcart/src/lib/shopping_cart.ts",
+    "businesses/fully_integrated/ecommerce/moodcart/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/moodcart/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/moodcart/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/moodcart/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/moodcart/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/moodcart/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

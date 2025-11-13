@@ -1,0 +1,23 @@
+{
+  "name": "WorkflowWise",
+  "type": "content",
+  "description": "AI-powered platform that creates personalized workflow automation blueprints and templates for small businesses, combining interactive tutorials with ready-to-deploy no-code solutions. Users get step-by-step video guides, template libraries, and custom automation recommendations based on their industry and team size.",
+  "generated_at": "2025-11-10T15:26:25.875663+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/workflowwise/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/workflowwise/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/workflowwise/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/workflowwise/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/workflowwise/src/app/layout.tsx",
+    "businesses/fully_integrated/content/workflowwise/src/app/globals.css",
+    "businesses/fully_integrated/content/workflowwise/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

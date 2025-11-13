@@ -1,0 +1,20 @@
+{
+  "business_name": "PriceSync Pro",
+  "business_type": "saas",
+  "start_time": 1762785598.7749555,
+  "end_time": 1762785688.9507725,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 312,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 90.17581701278687,
+  "success_rate": 100.0
+}

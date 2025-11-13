@@ -1,0 +1,285 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: Critical Alerts
+    folder: Genesis Alerts
+    interval: 1m
+    rules:
+      - uid: website-5xx
+        title: Website Down - 5xx errors > 5m
+        condition: C
+        for: 5m
+        annotations:
+          summary: "Primary web property returning 5xx responses for more than five minutes."
+          message: "Investigate API / frontend availability. Check reverse proxy and app pods."
+        labels:
+          severity: critical
+          team: platform
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: sum(rate(genesis_http_requests_total{status=~"5.."}[5m]))
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B > 0
+              type: math
+      - uid: agent-crash-loop
+        title: Agent Crash Loop
+        condition: C
+        for: 2m
+        annotations:
+          summary: "Agent container restarted 5 or more times in 10 minutes."
+          message: "Check offending pod logs and halt task routing to the agent until stabilised."
+        labels:
+          severity: critical
+          team: infra
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: sum(increase(kube_pod_container_status_restarts_total{pod=~\"agent-.*\"}[10m]))
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B >= 5
+              type: math
+      - uid: mongo-connection
+        title: MongoDB Connection Lost
+        condition: C
+        for: 3m
+        annotations:
+          summary: "All MongoDB instances reporting down."
+          message: "Memory persistence offline. Fail open if possible and restore Mongo cluster."
+        labels:
+          severity: critical
+          team: data
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 180
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: min(up{job=\"genesis-mongodb\"})
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 180
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 180
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B < 0.5
+              type: math
+      - uid: api-cost-spike
+        title: API Cost Spike
+        condition: C
+        for: 10m
+        annotations:
+          summary: "API spend is 3x higher than 24h moving average."
+          message: "Review task volume and model routing. Consider throttling generation jobs."
+        labels:
+          severity: critical
+          team: finance
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1440
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: genesis_cost_current_usd
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 1440
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: avg_over_time(genesis_cost_current_usd[24h])
+              type: math
+          - refId: C
+            relativeTimeRange:
+              from: 1440
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A > 3 * B
+              type: math
+      - uid: security-breach
+        title: Security Breach Suspected
+        condition: C
+        for: 1m
+        annotations:
+          summary: "Suspicious admin access detected by policy engine."
+          message: "Rotate credentials and review audit logs immediately."
+        labels:
+          severity: critical
+          team: security
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: increase(genesis_security_critical_events_total[10m])
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B > 0
+              type: math
+      - uid: mass-churn
+        title: Mass Churn Event
+        condition: C
+        for: 10m
+        annotations:
+          summary: "Subscription cancellations exceed 20% of active customers in 24h."
+          message: "Coordinate with CX and investigate outage/regression causing churn."
+        labels:
+          severity: critical
+          team: growth
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: increase(genesis_subscription_cancellations_total[24h])
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: max_over_time(genesis_active_customers[24h])
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: (A / clamp_min(B, 1e-6)) > 0.2
+              type: math
+      - uid: deploy-total-failure
+        title: Deployment Total Failure
+        condition: C
+        for: 10m
+        annotations:
+          summary: "No successful deployments observed in the last 30 minutes."
+          message: "Investigate DeployAgent, CI credentials, and platform quotas."
+        labels:
+          severity: critical
+          team: deploy
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: increase(genesis_deploy_success_total[30m])
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: increase(genesis_deploy_attempt_total[30m])
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: (A == 0) and (B > 0)
+              type: math
+

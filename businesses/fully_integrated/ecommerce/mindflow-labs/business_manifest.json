@@ -1,0 +1,25 @@
+{
+  "name": "MindFlow Labs",
+  "type": "ecommerce",
+  "description": "AI-powered mental wellness automation platform that creates personalized stress-reduction workflows for remote teams and small businesses. Combines employee mental health tracking with automated intervention suggestions and sustainable wellness product recommendations.",
+  "generated_at": "2025-11-10T15:35:40.558301+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/mindflow-labs/src/lib/product_catalog.ts",
+    "businesses/fully_integrated/ecommerce/mindflow-labs/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/mindflow-labs/src/lib/stripe_checkout.ts",
+    "businesses/fully_integrated/ecommerce/mindflow-labs/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/mindflow-labs/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/mindflow-labs/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/mindflow-labs/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/mindflow-labs/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

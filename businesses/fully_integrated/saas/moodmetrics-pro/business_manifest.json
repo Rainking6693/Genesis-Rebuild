@@ -1,0 +1,22 @@
+{
+  "name": "MoodMetrics Pro",
+  "type": "saas",
+  "description": "AI-powered employee wellness dashboard that correlates team mood patterns with productivity metrics, helping small businesses predict burnout and optimize work schedules. Combines anonymous mood tracking with performance analytics to provide actionable insights for managers while protecting employee privacy.",
+  "generated_at": "2025-11-09T19:25:41.555058+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/moodmetrics-pro/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/moodmetrics-pro/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/moodmetrics-pro/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/moodmetrics-pro/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/moodmetrics-pro/src/components/docs.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

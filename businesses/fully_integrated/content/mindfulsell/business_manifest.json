@@ -1,0 +1,23 @@
+{
+  "name": "MindfulSell",
+  "type": "content",
+  "description": "AI-powered platform that helps e-commerce brands create mental wellness-focused product content and community experiences to boost customer loyalty and reduce return rates. Combines sustainable shopping psychology with AI-generated wellness content that positions products as mindful lifestyle choices rather than impulse purchases.",
+  "generated_at": "2025-11-09T21:56:51.138744+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/mindfulsell/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/mindfulsell/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/mindfulsell/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/mindfulsell/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/mindfulsell/src/app/layout.tsx",
+    "businesses/fully_integrated/content/mindfulsell/src/app/globals.css",
+    "businesses/fully_integrated/content/mindfulsell/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

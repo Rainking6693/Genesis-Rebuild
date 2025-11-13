@@ -1,0 +1,25 @@
+{
+  "name": "FlowCraft",
+  "type": "ecommerce",
+  "description": "A no-code automation marketplace where small businesses can instantly purchase, customize, and deploy pre-built workflow automations created by expert automation builders. Think 'Shopify themes but for business processes' - businesses get instant productivity solutions while creators earn recurring revenue from their automation templates.",
+  "generated_at": "2025-11-10T15:10:10.779117+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/flowcraft/src/lib/product_catalog.ts",
+    "businesses/fully_integrated/ecommerce/flowcraft/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/flowcraft/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/flowcraft/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/flowcraft/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/flowcraft/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/flowcraft/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/flowcraft/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

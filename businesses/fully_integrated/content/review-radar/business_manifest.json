@@ -1,0 +1,23 @@
+{
+  "name": "Review Radar",
+  "type": "content",
+  "description": "AI-powered review monitoring and response automation platform that tracks mentions across 50+ review sites, generates personalized responses using brand voice, and creates actionable reputation reports. Transforms overwhelming review management into a 10-minute weekly task for small businesses.",
+  "generated_at": "2025-11-10T14:53:41.380110+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/review-radar/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/review-radar/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/review-radar/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/review-radar/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/review-radar/src/app/layout.tsx",
+    "businesses/fully_integrated/content/review-radar/src/app/globals.css",
+    "businesses/fully_integrated/content/review-radar/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

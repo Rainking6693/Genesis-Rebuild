@@ -1,0 +1,25 @@
+{
+  "name": "MoodSpace",
+  "type": "ecommerce",
+  "description": "AI-powered workspace environment optimization platform that analyzes remote workers' productivity patterns and automatically suggests/sells personalized workspace products, lighting, and wellness tools. Combines mental health insights with e-commerce recommendations to create the perfect productive home office environment.",
+  "generated_at": "2025-11-09T21:18:58.030574+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/moodspace/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/moodspace/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/moodspace/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/moodspace/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/moodspace/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/moodspace/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/moodspace/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/moodspace/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

@@ -1,0 +1,23 @@
+{
+  "name": "WellnessBot Pro",
+  "type": "content",
+  "description": "AI-powered wellness content automation platform that generates personalized health newsletters, social media posts, and client check-ins for wellness professionals and small health businesses. Combines health expertise with creator economy tools to help practitioners scale their content marketing while maintaining authenticity and compliance.",
+  "generated_at": "2025-11-10T14:20:11.258820+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/wellnessbot-pro/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/wellnessbot-pro/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/wellnessbot-pro/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/wellnessbot-pro/src/lib/social_media.ts",
+    "businesses/fully_integrated/content/wellnessbot-pro/src/app/layout.tsx",
+    "businesses/fully_integrated/content/wellnessbot-pro/src/app/globals.css",
+    "businesses/fully_integrated/content/wellnessbot-pro/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

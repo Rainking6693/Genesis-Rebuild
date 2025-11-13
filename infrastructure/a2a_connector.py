@@ -73,6 +73,11 @@ from infrastructure.security_utils import (
 from infrastructure.agent_auth_registry import AgentAuthRegistry, SecurityError
 from infrastructure.toon_encoder import toon_or_json, decode_from_toon, calculate_token_reduction
 
+try:
+    from infrastructure.memory.a2a_memori_bridge import build_bridge_if_enabled
+except Exception:  # pragma: no cover - optional dependency
+    build_bridge_if_enabled = lambda: None  # type: ignore
+
 logger = logging.getLogger(__name__)
 tracer = trace.get_tracer(__name__)
 
@@ -302,6 +307,10 @@ class A2AConnector:
             "json_encoded": 0,
             "total_token_reduction": 0.0
         }
+
+        self.memory_bridge = build_bridge_if_enabled()
+        if self.memory_bridge:
+            logger.info("A2A Memory Bridge enabled (Memori backend)")
 
         logger.info(
             f"A2AConnector initialized (base_url={base_url}, timeout={timeout_seconds}s, "
@@ -630,6 +639,7 @@ class A2AConnector:
 
             self.execution_history.append(exec_result)
 
+            await self._record_memory_event(task, a2a_agent, tool_name, exec_result, arguments)
             return exec_result
 
         except Exception as e:
@@ -646,7 +656,67 @@ class A2AConnector:
 
             self.execution_history.append(exec_result)
 
+            await self._record_memory_event(task, a2a_agent, tool_name, exec_result, arguments)
             return exec_result
+
+    async def _record_memory_event(
+        self,
+        task: Task,
+        agent_name: str,
+        tool_name: str,
+        exec_result: A2AExecutionResult,
+        arguments: Dict[str, Any],
+    ) -> None:
+        if not self.memory_bridge:
+            return
+
+        payload = {
+            "task": {
+                "id": task.task_id,
+                "description": task.description,
+                "dependencies": task.depends_on,
+            },
+            "arguments": self._sanitize_arguments(arguments),
+            "result": exec_result.result if exec_result.status == "success" else None,
+            "error": exec_result.error,
+            "execution_time_ms": exec_result.execution_time_ms,
+        }
+        try:
+            await self.memory_bridge.record_execution(
+                task_id=task.task_id,
+                agent_name=agent_name,
+                tool_name=tool_name,
+                status=exec_result.status,
+                payload=payload,
+            )
+        except Exception as exc:  # pragma: no cover - telemetry best effort
+            logger.debug(f"Failed to store A2A memory event: {exc}")
+
+    def _sanitize_arguments(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        sanitized: Dict[str, Any] = {}
+        sensitive = {
+            "api_key",
+            "apikey",
+            "password",
+            "passwd",
+            "token",
+            "secret",
+            "bearer",
+        }
+
+        for key, value in arguments.items():
+            if key.lower() in sensitive:
+                sanitized[key] = "[REDACTED]"
+            elif isinstance(value, str):
+                sanitized[key] = redact_credentials(value)
+            elif isinstance(value, dict):
+                sanitized[key] = {
+                    sub_key: ("[REDACTED]" if sub_key.lower() in sensitive else value[sub_key])
+                    for sub_key in value
+                }
+            else:
+                sanitized[key] = value
+        return sanitized
 
     async def invoke_agent_tool(
         self,

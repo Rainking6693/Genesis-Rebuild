@@ -1,0 +1,20 @@
+{
+  "business_name": "MoodBoard Analytics",
+  "business_type": "saas",
+  "start_time": 1762790987.5189016,
+  "end_time": 1762791107.5032167,
+  "status": "completed",
+  "components_requested": 7,
+  "components_completed": 7,
+  "components_failed": 0,
+  "files_generated": 7,
+  "lines_of_code": 368,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 7,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 7,
+  "retry_count": 0,
+  "duration_seconds": 119.98431515693665,
+  "success_rate": 100.0
+}

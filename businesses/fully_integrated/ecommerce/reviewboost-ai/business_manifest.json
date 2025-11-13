@@ -1,0 +1,25 @@
+{
+  "name": "ReviewBoost AI",
+  "type": "ecommerce",
+  "description": "AI-powered platform that helps small e-commerce businesses automatically generate personalized follow-up campaigns to increase customer reviews and repeat purchases. Combines review management with smart customer retention automation to boost revenue by 25-40% through targeted post-purchase engagement.",
+  "generated_at": "2025-11-10T14:15:08.215481+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/reviewboost-ai/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/reviewboost-ai/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/reviewboost-ai/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/reviewboost-ai/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/reviewboost-ai/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/reviewboost-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/reviewboost-ai/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/reviewboost-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

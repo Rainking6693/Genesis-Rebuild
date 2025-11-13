@@ -1,0 +1,25 @@
+{
+  "name": "Carbon Basket",
+  "type": "saas",
+  "description": "AI-powered micro-SaaS that automatically calculates and offsets the carbon footprint of every e-commerce purchase in real-time, turning eco-anxiety into actionable climate impact. Seamlessly integrates with any online store to provide customers instant carbon transparency and one-click offset purchasing at checkout.",
+  "generated_at": "2025-11-10T15:13:54.416171+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/carbon-basket/src/lib/dashboard_ui.ts",
+    "businesses/fully_integrated/saas/carbon-basket/src/app/api/rest_api/route.ts",
+    "businesses/fully_integrated/saas/carbon-basket/src/lib/user_auth.ts",
+    "businesses/fully_integrated/saas/carbon-basket/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/carbon-basket/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/carbon-basket/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/carbon-basket/src/app/globals.css",
+    "businesses/fully_integrated/saas/carbon-basket/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

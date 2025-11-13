@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Genesis Business Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+    <script defer src="dashboard.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="logo">G</span>
+          <div>
+            <h1>Genesis</h1>
+            <p>Business Control Room</p>
+          </div>
+        </div>
+        <nav id="nav">
+          <button class="nav-link active" data-section="executive">Executive</button>
+          <button class="nav-link" data-section="agents">Agents</button>
+          <button class="nav-link" data-section="orchestration">Orchestration</button>
+          <button class="nav-link" data-section="evolution">Evolution & Learning</button>
+          <button class="nav-link" data-section="safety">Safety & Governance</button>
+          <button class="nav-link" data-section="cost">Cost Optimization</button>
+        </nav>
+        <footer>
+          <small id="sidebar-updated">Updated —</small>
+        </footer>
+      </aside>
+
+      <main>
+        <header class="main-header">
+          <div>
+            <h2 id="section-title">Executive Overview</h2>
+            <p id="section-description">Revenue, costs, throughput, and success across the last 30 days.</p>
+          </div>
+          <button id="refresh-btn">Refresh</button>
+        </header>
+        <section id="content" class="content"></section>
+      </main>
+    </div>
+  </body>
+</html>

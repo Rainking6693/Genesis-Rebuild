@@ -1,0 +1,25 @@
+{
+  "name": "AutoFlow Studio",
+  "type": "ecommerce",
+  "description": "A no-code automation platform that helps small businesses create intelligent customer journey workflows by connecting their existing tools (CRM, email, social media) with AI-powered triggers and actions. Think Zapier meets customer success automation, but specifically designed for businesses without technical teams.",
+  "generated_at": "2025-11-09T21:21:23.650999+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/autoflow-studio/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/autoflow-studio/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/autoflow-studio/src/lib/stripe_checkout.ts",
+    "businesses/fully_integrated/ecommerce/autoflow-studio/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/autoflow-studio/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/autoflow-studio/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/autoflow-studio/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/autoflow-studio/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

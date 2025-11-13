@@ -1,0 +1,20 @@
+{
+  "business_name": "RetentionBot Pro",
+  "business_type": "ecommerce",
+  "start_time": 1762782633.3403807,
+  "end_time": 1762782737.7320707,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 332,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 104.39169001579285,
+  "success_rate": 100.0
+}

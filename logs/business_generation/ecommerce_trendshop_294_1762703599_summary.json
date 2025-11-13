@@ -1,0 +1,20 @@
+{
+  "business_name": "TrendShop 294",
+  "business_type": "ecommerce",
+  "start_time": 1762703599.2942052,
+  "end_time": 1762703669.10657,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 603,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 69.81236481666565,
+  "success_rate": 100.0
+}

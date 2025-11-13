@@ -458,7 +458,9 @@ def get_pso_optimizer(
     swarm: InclusiveFitnessSwarm,
     n_particles: int = 20,
     max_iterations: int = 100,
-    random_seed: Optional[int] = None
+    random_seed: Optional[int] = None,
+    restart_patience: int = 12,
+    restart_fraction: float = 0.5,
 ) -> ParticleSwarmOptimizer:
     """
     Factory function to create ParticleSwarmOptimizer.
@@ -476,5 +478,7 @@ def get_pso_optimizer(
         swarm=swarm,
         n_particles=n_particles,
         max_iterations=max_iterations,
-        random_seed=random_seed
+        random_seed=random_seed,
+        restart_patience=restart_patience,
+        restart_fraction=restart_fraction,
     )

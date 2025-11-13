@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
-WORKSPACE_ROOT = Path("/home/genesis/genesis-rebuild")
+WORKSPACE_ROOT = Path(os.getenv("GENESIS_WORKSPACE_ROOT", Path(__file__).resolve().parents[1]))
 EVENTS_LOG = WORKSPACE_ROOT / "logs/business_generation/events.jsonl"
 INFRA_LOG = WORKSPACE_ROOT / "logs/infrastructure.log"
 

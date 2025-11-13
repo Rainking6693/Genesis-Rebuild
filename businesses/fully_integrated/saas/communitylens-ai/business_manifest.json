@@ -1,0 +1,25 @@
+{
+  "name": "CommunityLens AI",
+  "type": "saas",
+  "description": "AI-powered community analytics platform that transforms Discord, Slack, and social media conversations into actionable business intelligence for product teams and marketers. Automatically identifies emerging trends, sentiment shifts, and feature requests from community chatter to inform product roadmaps and marketing strategies.",
+  "generated_at": "2025-11-09T19:28:33.377888+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/communitylens-ai/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/communitylens-ai/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/communitylens-ai/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/communitylens-ai/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/communitylens-ai/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/communitylens-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/communitylens-ai/src/app/globals.css",
+    "businesses/fully_integrated/saas/communitylens-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

@@ -1,0 +1,23 @@
+{
+  "name": "FlowCast AI",
+  "type": "content",
+  "description": "AI-powered podcast generation platform that transforms small business expertise into professional podcast series, complete with automated transcription, show notes, and multi-platform distribution. Enables service-based businesses to scale their thought leadership and attract premium clients through consistent, high-quality audio content.",
+  "generated_at": "2025-11-10T14:52:50.152579+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/flowcast-ai/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/flowcast-ai/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/flowcast-ai/src/lib/seo_optimization.ts",
+    "businesses/fully_integrated/content/flowcast-ai/src/lib/social_media.ts",
+    "businesses/fully_integrated/content/flowcast-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/content/flowcast-ai/src/app/globals.css",
+    "businesses/fully_integrated/content/flowcast-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

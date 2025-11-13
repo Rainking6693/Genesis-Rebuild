@@ -1,0 +1,20 @@
+{
+  "business_name": "WellnessFlow AI",
+  "business_type": "content",
+  "start_time": 1762807553.8185656,
+  "end_time": 1762807806.1531024,
+  "status": "completed",
+  "components_requested": 17,
+  "components_completed": 17,
+  "components_failed": 0,
+  "files_generated": 17,
+  "lines_of_code": 822,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 17,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 17,
+  "retry_count": 0,
+  "duration_seconds": 252.33453679084778,
+  "success_rate": 100.0
+}

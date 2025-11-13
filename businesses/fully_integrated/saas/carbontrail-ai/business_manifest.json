@@ -1,0 +1,25 @@
+{
+  "name": "CarbonTrail AI",
+  "type": "saas",
+  "description": "AI-powered carbon footprint tracker that automatically calculates and offsets business expenses in real-time by integrating with accounting software and expense platforms. Transforms every business purchase into an opportunity for climate action while providing detailed sustainability reporting for ESG compliance.",
+  "generated_at": "2025-11-10T15:33:40.019831+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/carbontrail-ai/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/carbontrail-ai/src/app/api/rest_api/route.ts",
+    "businesses/fully_integrated/saas/carbontrail-ai/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/carbontrail-ai/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/carbontrail-ai/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/carbontrail-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/carbontrail-ai/src/app/globals.css",
+    "businesses/fully_integrated/saas/carbontrail-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}
