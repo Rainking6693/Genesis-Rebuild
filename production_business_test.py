@@ -10,6 +10,8 @@ import traceback
 from datetime import datetime
 from typing import List, Dict, Any
 
+import pytest
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - [%(levelname)s] - %(message)s'
@@ -25,6 +27,7 @@ test_results = {
     "errors": []
 }
 
+@pytest.mark.asyncio
 async def test_tier1_agents():
     """Test all Tier 1 critical agents"""
     logger.info("=" * 70)
@@ -96,6 +99,7 @@ async def test_tier1_agents():
     
     logger.info(f"Tier 1 Complete: {test_results['passed']}/5 tests passed")
 
+@pytest.mark.asyncio
 async def test_tier2_agents():
     """Test all Tier 2 high value agents"""
     logger.info("=" * 70)
@@ -200,6 +204,7 @@ async def test_tier2_agents():
     
     logger.info(f"Tier 2 Complete: {test_results['passed'] - 5}/8 tests passed")
 
+@pytest.mark.asyncio
 async def test_tier3_agents():
     """Test all Tier 3 specialized agents"""
     logger.info("=" * 70)
@@ -210,7 +215,7 @@ async def test_tier3_agents():
     try:
         test_results["total_tests"] += 1
         from agents.stripe_integration_agent import get_stripe_agent
-        stripe = get_stripe_agent(enable_memory=True)
+        stripe = await get_stripe_agent(enable_memory=True)
         logger.info("✓ Test 14/25: Stripe Integration - Payment patterns operational")
         test_results["passed"] += 1
     except Exception as e:
@@ -222,7 +227,7 @@ async def test_tier3_agents():
     try:
         test_results["total_tests"] += 1
         from agents.auth0_integration_agent import get_auth0_agent
-        auth0 = get_auth0_agent(enable_memory=True)
+        auth0 = await get_auth0_agent(enable_memory=True)
         logger.info("✓ Test 15/25: Auth0 Integration - Auth patterns operational")
         test_results["passed"] += 1
     except Exception as e:
@@ -234,7 +239,7 @@ async def test_tier3_agents():
     try:
         test_results["total_tests"] += 1
         from agents.database_design_agent import get_database_design_agent
-        db = get_database_design_agent(enable_memory=True)
+        db = await get_database_design_agent(enable_memory=True)
         logger.info("✓ Test 16/25: Database Design - Schema patterns operational")
         test_results["passed"] += 1
     except Exception as e:
@@ -246,7 +251,7 @@ async def test_tier3_agents():
     try:
         test_results["total_tests"] += 1
         from agents.api_design_agent import get_api_design_agent
-        api = get_api_design_agent(enable_memory=True)
+        api = await get_api_design_agent(enable_memory=True)
         logger.info("✓ Test 17/25: API Design - API patterns operational")
         test_results["passed"] += 1
     except Exception as e:
@@ -258,7 +263,7 @@ async def test_tier3_agents():
     try:
         test_results["total_tests"] += 1
         from agents.uiux_design_agent import get_uiux_design_agent
-        uiux = get_uiux_design_agent(enable_memory=True)
+        uiux = await get_uiux_design_agent(enable_memory=True)
         logger.info("✓ Test 18/25: UI/UX Design (AligNet) - Design QA operational")
         test_results["passed"] += 1
     except Exception as e:
@@ -270,7 +275,7 @@ async def test_tier3_agents():
     try:
         test_results["total_tests"] += 1
         from agents.monitoring_agent import get_monitoring_agent
-        monitor = get_monitoring_agent(enable_memory=True)
+        monitor = await get_monitoring_agent(enable_memory=True)
         logger.info("✓ Test 19/25: Monitoring - Alert patterns operational")
         test_results["passed"] += 1
     except Exception as e:

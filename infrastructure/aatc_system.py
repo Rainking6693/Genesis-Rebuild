@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import yaml
-from pydantic import BaseModel, Field, model_validator, validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ class ToolField(BaseModel):
     required: bool = Field(default=True, description="Whether the field is required")
     example: Optional[Any] = Field(default=None, description="Example payload")
 
-    @validator("type")
+    @field_validator("type")
     def validate_type(cls, value: str) -> str:
         """Ensure field type is supported or reference-based."""
         if value in ALLOWED_FIELD_TYPES:
@@ -71,7 +71,7 @@ class ToolSchema(BaseModel):
 
     fields: Dict[str, ToolField] = Field(default_factory=dict)
 
-    @validator("fields")
+    @field_validator("fields")
     def ensure_fields(cls, value: Dict[str, ToolField]) -> Dict[str, ToolField]:
         if not value:
             raise ValueError("Schema must define at least one field")
@@ -92,7 +92,7 @@ class ToolDefinition(BaseModel):
     class Config:
         populate_by_name = True  # Pydantic V2 (was allow_population_by_field_name in V1)
 
-    @validator("name")
+    @field_validator("name")
     def validate_name(cls, value: str) -> str:
         if not value or not value.strip():
             raise ValueError("Tool name cannot be empty")

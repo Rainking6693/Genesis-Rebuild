@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Test without importing the full agent
-def test_memory_tool_code_analysis():
+def _run_memory_tool_code_analysis():
     """Analyze MemoryTool code structure"""
     import ast
 
@@ -37,7 +37,11 @@ def test_memory_tool_code_analysis():
     return True
 
 
-def test_mutation_tracker_code_analysis():
+def test_memory_tool_code_analysis():
+    assert _run_memory_tool_code_analysis()
+
+
+def _run_mutation_tracker_code_analysis():
     """Analyze MutationSuccessTracker code structure"""
     import ast
 
@@ -66,7 +70,11 @@ def test_mutation_tracker_code_analysis():
     return True
 
 
-def test_generate_trajectories_integration():
+def test_mutation_tracker_code_analysis():
+    assert _run_mutation_tracker_code_analysis()
+
+
+def _run_generate_trajectories_integration():
     """Test _generate_trajectories memory integration"""
     import ast
     import re
@@ -110,7 +118,11 @@ def test_generate_trajectories_integration():
     return True
 
 
-def test_archive_trajectories_integration():
+def test_generate_trajectories_integration():
+    assert _run_generate_trajectories_integration()
+
+
+def _run_archive_trajectories_integration():
     """Test _archive_trajectories memory integration"""
     import ast
 
@@ -151,7 +163,11 @@ def test_archive_trajectories_integration():
     return True
 
 
-def test_error_handling_coverage():
+def test_archive_trajectories_integration():
+    assert _run_archive_trajectories_integration()
+
+
+def _run_error_handling_coverage():
     """Test error handling in memory methods"""
     import ast
 
@@ -184,7 +200,14 @@ def test_error_handling_coverage():
     return critical_methods
 
 
-def test_cache_implementation():
+def test_error_handling_coverage():
+    coverage = _run_error_handling_coverage()
+    required_methods = ("store_memory", "retrieve_memory", "track_mutation")
+    missing = {name: covered for name, covered in coverage.items() if not covered}
+    assert all(coverage[m] for m in required_methods), f"Incomplete error handling coverage: {missing}"
+
+
+def _run_cache_implementation():
     """Test cache implementation in MutationSuccessTracker"""
     import ast
 
@@ -220,7 +243,11 @@ def test_cache_implementation():
     return True
 
 
-def test_scope_isolation():
+def test_cache_implementation():
+    assert _run_cache_implementation()
+
+
+def _run_scope_isolation():
     """Test scope isolation in MemoryTool"""
     import ast
 
@@ -257,6 +284,10 @@ def test_scope_isolation():
     return True
 
 
+def test_scope_isolation():
+    assert _run_scope_isolation()
+
+
 def run_all_tests():
     """Run all focused tests"""
     print("=" * 60)
@@ -265,13 +296,13 @@ def run_all_tests():
     print()
 
     tests = [
-        ("MemoryTool code structure", test_memory_tool_code_analysis),
-        ("MutationSuccessTracker code structure", test_mutation_tracker_code_analysis),
-        ("_generate_trajectories integration", test_generate_trajectories_integration),
-        ("_archive_trajectories integration", test_archive_trajectories_integration),
-        ("Error handling coverage", test_error_handling_coverage),
-        ("Cache implementation", test_cache_implementation),
-        ("Scope isolation", test_scope_isolation)
+        ("MemoryTool code structure", _run_memory_tool_code_analysis),
+        ("MutationSuccessTracker code structure", _run_mutation_tracker_code_analysis),
+        ("_generate_trajectories integration", _run_generate_trajectories_integration),
+        ("_archive_trajectories integration", _run_archive_trajectories_integration),
+        ("Error handling coverage", _run_error_handling_coverage),
+        ("Cache implementation", _run_cache_implementation),
+        ("Scope isolation", _run_scope_isolation)
     ]
 
     results = []

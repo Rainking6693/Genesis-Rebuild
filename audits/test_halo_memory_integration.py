@@ -7,6 +7,7 @@ Hudson's Audit Protocol V2 - Functional Testing
 import sys
 import os
 import tempfile
+import warnings
 from pathlib import Path
 
 # Add project root to path
@@ -16,7 +17,20 @@ from infrastructure.halo_router import HALORouter
 from infrastructure.task_dag import TaskDAG, Task
 from infrastructure.memory.memori_client import MemoriClient
 
-def test_memory_initialization():
+try:
+    from pydantic.errors import PydanticDeprecatedSince20
+except Exception:  # pragma: no cover - fallback when pydantic not available
+    class PydanticDeprecatedSince20(DeprecationWarning):
+        """Fallback warning to keep filter compatible."""
+
+warnings.filterwarnings("ignore", category=PydanticDeprecatedSince20)
+warnings.filterwarnings(
+    "ignore",
+    module=r"infrastructure\.htdag_planner",
+    category=DeprecationWarning,
+)
+
+def _run_memory_initialization():
     """Test 1: Verify MemoriClient initializes correctly"""
     print("\n=== Test 1: Memory Initialization ===")
 
@@ -48,7 +62,11 @@ def test_memory_initialization():
             os.unlink(db_path)
 
 
-def test_memory_recall():
+def test_memory_initialization():
+    assert _run_memory_initialization()
+
+
+def _run_memory_recall():
     """Test 2: Test _recall_routing_from_memory()"""
     print("\n=== Test 2: Memory Recall ===")
 
@@ -109,7 +127,11 @@ def test_memory_recall():
             os.unlink(db_path)
 
 
-def test_routing_decision_storage():
+def test_memory_recall():
+    assert _run_memory_recall()
+
+
+def _run_routing_decision_storage():
     """Test 3: Test store_routing_decision()"""
     print("\n=== Test 3: Routing Decision Storage ===")
 
@@ -155,7 +177,11 @@ def test_routing_decision_storage():
             os.unlink(db_path)
 
 
-def test_routing_outcome_update():
+def test_routing_decision_storage():
+    assert _run_routing_decision_storage()
+
+
+def _run_routing_outcome_update():
     """Test 4: Test update_routing_outcome()"""
     print("\n=== Test 4: Routing Outcome Update ===")
 
@@ -208,7 +234,11 @@ def test_routing_outcome_update():
             os.unlink(db_path)
 
 
-def test_acl_enforcement():
+def test_routing_outcome_update():
+    assert _run_routing_outcome_update()
+
+
+def _run_acl_enforcement():
     """Test 5: Test ACL enforcement (user_id isolation)"""
     print("\n=== Test 5: ACL Enforcement ===")
 
@@ -268,7 +298,11 @@ def test_acl_enforcement():
             os.unlink(db_path)
 
 
-def test_graceful_degradation():
+def test_acl_enforcement():
+    assert _run_acl_enforcement()
+
+
+def _run_graceful_degradation():
     """Test 6: Test graceful degradation when memory unavailable"""
     print("\n=== Test 6: Graceful Degradation ===")
 
@@ -312,7 +346,6 @@ def test_graceful_degradation():
         finally:
             if os.path.exists(db_path):
                 os.unlink(db_path)
-
         return True
     except Exception as e:
         print(f"✗ FAILED: {e}")
@@ -321,7 +354,11 @@ def test_graceful_degradation():
         return False
 
 
-def test_integration_with_routing():
+def test_graceful_degradation():
+    assert _run_graceful_degradation()
+
+
+def _run_integration_with_routing():
     """Test 7: Test full integration with route_tasks()"""
     print("\n=== Test 7: Integration with route_tasks() ===")
 
@@ -392,6 +429,10 @@ def test_integration_with_routing():
             os.unlink(db_path)
 
 
+def test_integration_with_routing():
+    assert _run_integration_with_routing()
+
+
 def main():
     """Run all tests"""
     print("=" * 60)
@@ -400,13 +441,13 @@ def main():
     print("=" * 60)
 
     tests = [
-        test_memory_initialization,
-        test_memory_recall,
-        test_routing_decision_storage,
-        test_routing_outcome_update,
-        test_acl_enforcement,
-        test_graceful_degradation,
-        test_integration_with_routing,
+        _run_memory_initialization,
+        _run_memory_recall,
+        _run_routing_decision_storage,
+        _run_routing_outcome_update,
+        _run_acl_enforcement,
+        _run_graceful_degradation,
+        _run_integration_with_routing,
     ]
 
     results = []
