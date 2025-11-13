@@ -19,6 +19,8 @@ Agent List:
 14. Onboarding Agent - User activation and onboarding
 15. Spec Agent - Requirements and specifications
 16. Business Generation Agent - Autonomous business creation (Tier 1 - Critical)
+17. Data Juicer Agent - Trajectory data curation (Tier 2 - High Value)
+18. ReAct Training Agent - Reinforcement learning for reasoning agents (Tier 2 - High Value)
 """
 
 from .marketing_agent import MarketingAgent, get_marketing_agent
@@ -37,6 +39,8 @@ from .maintenance_agent import MaintenanceAgent, get_maintenance_agent
 from .onboarding_agent import OnboardingAgent, get_onboarding_agent
 from .spec_agent import SpecAgent, get_spec_agent
 from .business_generation_agent import BusinessGenerationAgent, get_business_generation_agent
+from .data_juicer_agent import DataJuicerAgent, create_data_juicer_agent
+from .react_training_agent import ReActTrainingAgent, create_react_training_agent
 
 __all__ = [
     # Agent Classes
@@ -56,6 +60,8 @@ __all__ = [
     "OnboardingAgent",
     "SpecAgent",
     "BusinessGenerationAgent",
+    "DataJuicerAgent",
+    "ReActTrainingAgent",
     # Factory Functions
     "get_marketing_agent",
     "get_builder_agent",
@@ -73,4 +79,6 @@ __all__ = [
     "get_onboarding_agent",
     "get_spec_agent",
     "get_business_generation_agent",
+    "create_data_juicer_agent",
+    "create_react_training_agent",
 ]
