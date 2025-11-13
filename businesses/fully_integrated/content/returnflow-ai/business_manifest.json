@@ -1,0 +1,23 @@
+{
+  "name": "ReturnFlow AI",
+  "type": "content",
+  "description": "AI-powered subscription box analytics platform that predicts customer return behavior and generates personalized retention content campaigns. Combines predictive analytics with automated email/SMS sequences to reduce churn for subscription box businesses.",
+  "generated_at": "2025-11-09T22:17:59.631678+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/returnflow-ai/src/lib/blog_system.ts",
+    "businesses/fully_integrated/content/returnflow-ai/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/returnflow-ai/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/returnflow-ai/src/lib/social_media.ts",
+    "businesses/fully_integrated/content/returnflow-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/content/returnflow-ai/src/app/globals.css",
+    "businesses/fully_integrated/content/returnflow-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

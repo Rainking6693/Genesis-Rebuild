@@ -1,0 +1,595 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: genesis-system
+  labels:
+    app: genesis
+spec:
+  restartPolicy: Always
+  volumes:
+    - name: genesis-code
+      hostPath:
+        path: C:\Users\Public\genesis-agent-system
+        type: Directory
+    - name: otel-config
+      configMap:
+        name: otel-config
+  containers:
+    # Genesis orchestrator
+    - name: genesis-main
+      image: ghcr.io/genesislabs/genesis-orchestrator:latest
+      imagePullPolicy: Always
+      command: ["python", "-m", "genesis.orchestrator"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+        - name: SERVICE_ROLE
+          value: "orchestrator"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "1Gi"
+          cpu: "1.5"
+
+    # Claude Sonnet agents
+    - name: agent-spec
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.spec_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+        - name: MODEL_PROVIDER
+          value: "claude-sonnet-4"
+        - name: SERVICE_ROLE
+          value: "spec"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-builder
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.builder_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+        - name: MODEL_PROVIDER
+          value: "claude-sonnet-4"
+        - name: SERVICE_ROLE
+          value: "builder"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    # Gemini agents
+    - name: agent-deploy
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.deploy_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "deploy"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-qa
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.qa_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "qa"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-marketing
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.marketing_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "marketing"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-billing
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.billing_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "billing"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-support
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.support_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "support"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-analyst
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.analyst_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "analyst"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-maintenance
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.maintenance_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "maintenance"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-seo
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.seo_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "seo"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-legal
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.legal_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "legal"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-security
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.security_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "security"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-onboarding
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.onboarding_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "onboarding"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-content
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.content_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "content"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-email
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.email_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "email"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-research
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.research_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "tongyi-deepresearch-30b"
+        - name: SERVICE_ROLE
+          value: "research"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-finance
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.finance_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "finance"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-operations
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.operations_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "operations"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-growth
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.growth_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "growth"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-sales
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.sales_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "sales"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-ads
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.ads_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "ads"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-community
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.community_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "community"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-success
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.success_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "success"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+    - name: agent-data
+      image: ghcr.io/genesislabs/genesis-agent:latest
+      command: ["python", "-m", "agents.data_agent"]
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      env:
+        - name: MODEL_PROVIDER
+          value: "gemini-1.5-pro"
+        - name: SERVICE_ROLE
+          value: "data"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://localhost:4317"
+      volumeMounts:
+        - name: genesis-code
+          mountPath: /app
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "0.5"
+
+
+    # OpenTelemetry Collector sidecar
+    - name: otel-collector
+      image: otel/opentelemetry-collector-contrib:0.104.0
+      imagePullPolicy: Always
+      args: ["--config=/conf/otel-config-cloud.yaml"]
+      ports:
+        - containerPort: 4317
+          protocol: TCP
+        - containerPort: 4318
+          protocol: TCP
+      envFrom:
+        - configMapRef:
+            name: genesis-config
+      volumeMounts:
+        - name: otel-config
+          mountPath: /conf
+      resources:
+        limits:
+          memory: "256Mi"
+          cpu: "0.25"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: genesis-config
+  labels:
+    app: genesis
+data:
+  MONGODB_URI: "mongodb+srv://genesis:MySuperStrongPass!@genesis-cluster.abcd123.mongodb.net/genesis?retryWrites=true&w=majority"
+  REDIS_URL: "rediss://default:AKh8s9kLmnoPqRS_tUVwxYZ12345@us1-gentle-eel-36277.upstash.io:6379"
+  GRAFANA_OTLP_ENDPOINT: "https://otlp-gateway-prod-us-east-0.grafana.net/otlp"
+  GRAFANA_API_KEY: "glc_example_genesis_otel_token_123456789"
+  BETTERSTACK_SOURCE_TOKEN: "bt-logs-1-abc123def456"
+  ANTHROPIC_API_KEY: "sk-ant-abc123def4567890"
+  GOOGLE_API_KEY: "AIzaSyExampleKey1234567890"
+  OPENROUTER_API_KEY: "sk-or-example1234567890"
+  STRIPE_SECRET_KEY: "sk_test_51ExampleSecretKey12345"
+  VERCEL_TOKEN: "vcet_ExampleToken12345"
+  GOOGLE_ADS_DEVELOPER_TOKEN: "ABCD1234567890"
+  SENDGRID_API_KEY: "SG.exampleKey1234567890"
+  ALERT_SLACK_CRITICAL_WEBHOOK: "https://hooks.slack.com/services/T000/B000/Example"
+  ALERT_EMAIL_ONCALL: "ops@example.com"
+  WORKSPACE_SYNTHESIS_INTERVAL: "50"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://localhost:4317"
+  OTEL_SERVICE_NAME: "genesis-agents"
+  GENESIS_ENV: "cloud"
+  COMPUTER_USE_ALLOWED_AGENTS: "deploy_agent,qa_agent,marketing_agent"
+  COMPUTER_USE_ALLOWED_DOMAINS: "genesis.ai,google.com,cloud.mongodb.com"
+

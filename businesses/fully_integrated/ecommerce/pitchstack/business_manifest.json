@@ -1,0 +1,25 @@
+{
+  "name": "PitchStack",
+  "type": "ecommerce",
+  "description": "AI-powered platform that automatically generates personalized sales pitch decks and follow-up sequences by analyzing prospect data from LinkedIn, company websites, and CRM integrations. Transforms generic sales outreach into hyper-personalized presentations that convert 3x better than traditional approaches.",
+  "generated_at": "2025-11-10T14:17:52.018663+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/pitchstack/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/pitchstack/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/pitchstack/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/pitchstack/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/pitchstack/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/pitchstack/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/pitchstack/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/pitchstack/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

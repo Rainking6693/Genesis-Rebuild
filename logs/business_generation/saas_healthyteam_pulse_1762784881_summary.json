@@ -1,0 +1,20 @@
+{
+  "business_name": "HealthyTeam Pulse",
+  "business_type": "saas",
+  "start_time": 1762784881.6926186,
+  "end_time": 1762784956.180582,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 185,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 74.48796343803406,
+  "success_rate": 100.0
+}

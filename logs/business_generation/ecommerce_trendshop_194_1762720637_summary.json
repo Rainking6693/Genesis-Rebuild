@@ -1,0 +1,20 @@
+{
+  "business_name": "TrendShop 194",
+  "business_type": "ecommerce",
+  "start_time": 1762720637.331578,
+  "end_time": 1762720689.620266,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 641,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 52.28868794441223,
+  "success_rate": 100.0
+}

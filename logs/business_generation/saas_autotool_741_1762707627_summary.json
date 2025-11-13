@@ -1,0 +1,20 @@
+{
+  "business_name": "AutoTool 741",
+  "business_type": "saas",
+  "start_time": 1762707627.9929366,
+  "end_time": 1762707747.3067544,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 1520,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 119.3138177394867,
+  "success_rate": 100.0
+}

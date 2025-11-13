@@ -1,0 +1,23 @@
+{
+  "name": "ClimateComply",
+  "type": "content",
+  "description": "AI-powered platform that generates personalized sustainability compliance reports and carbon footprint reduction strategies for small businesses. Combines regulatory tracking with actionable micro-SaaS tools to help SMBs meet ESG requirements while reducing operational costs.",
+  "generated_at": "2025-11-09T20:13:11.241133+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/climatecomply/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/climatecomply/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/climatecomply/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/climatecomply/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/climatecomply/src/app/layout.tsx",
+    "businesses/fully_integrated/content/climatecomply/src/app/globals.css",
+    "businesses/fully_integrated/content/climatecomply/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

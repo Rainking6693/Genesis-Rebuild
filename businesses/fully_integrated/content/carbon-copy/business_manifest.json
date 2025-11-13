@@ -1,0 +1,23 @@
+{
+  "name": "Carbon Copy",
+  "type": "content",
+  "description": "AI-powered platform that automatically generates personalized carbon footprint reduction content and action plans for remote teams, turning sustainability goals into engaging workplace challenges. Combines climate action with remote work culture by gamifying eco-friendly habits and measuring collective impact.",
+  "generated_at": "2025-11-09T21:59:34.664854+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/carbon-copy/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/carbon-copy/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/carbon-copy/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/carbon-copy/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/carbon-copy/src/app/layout.tsx",
+    "businesses/fully_integrated/content/carbon-copy/src/app/globals.css",
+    "businesses/fully_integrated/content/carbon-copy/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

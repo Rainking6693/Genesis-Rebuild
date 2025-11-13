@@ -1,0 +1,20 @@
+{
+  "name": "EcoSpend Tracker",
+  "type": "content",
+  "description": "AI-powered platform that tracks your spending's environmental impact and provides personalized recommendations to reduce your carbon footprint while saving money. Combines real-time carbon scoring with financial wellness coaching through gamified challenges and community leaderboards.",
+  "generated_at": "2025-11-10T14:33:38.795556+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/ecospend-tracker/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/ecospend-tracker/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/ecospend-tracker/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/ecospend-tracker/src/components/social_media.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

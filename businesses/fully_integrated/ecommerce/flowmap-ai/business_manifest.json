@@ -1,0 +1,25 @@
+{
+  "name": "FlowMap AI",
+  "type": "ecommerce",
+  "description": "AI-powered workflow automation builder that helps small businesses create custom automation sequences using plain English commands, eliminating the need for technical expertise. Combines no-code simplicity with community-driven templates and sustainable business practice tracking.",
+  "generated_at": "2025-11-10T15:05:43.157205+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/flowmap-ai/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/flowmap-ai/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/flowmap-ai/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/flowmap-ai/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/flowmap-ai/src/lib/customer_support_bot.ts",
+    "businesses/fully_integrated/ecommerce/flowmap-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/flowmap-ai/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/flowmap-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

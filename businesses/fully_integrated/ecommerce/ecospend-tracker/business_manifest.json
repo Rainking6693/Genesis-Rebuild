@@ -1,0 +1,22 @@
+{
+  "name": "EcoSpend Tracker",
+  "type": "ecommerce",
+  "description": "AI-powered personal finance app that automatically tracks your carbon footprint and suggests sustainable purchasing alternatives while helping you save money. Users get rewarded with cashback and discounts from eco-friendly brands for making greener spending choices.",
+  "generated_at": "2025-11-10T14:03:39.225437+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/ecospend-tracker/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/ecospend-tracker/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/ecospend-tracker/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/ecospend-tracker/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/ecospend-tracker/src/lib/customer_support_bot.ts"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

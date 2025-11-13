@@ -1,0 +1,25 @@
+{
+  "name": "CarbonShift",
+  "type": "ecommerce",
+  "description": "AI-powered sustainability analytics platform that helps e-commerce businesses automatically calculate, reduce, and offset their carbon footprint while turning eco-friendly practices into competitive marketing advantages. We transform complex climate data into actionable insights and customer-facing sustainability badges that boost conversion rates.",
+  "generated_at": "2025-11-09T16:42:06.851587",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/autonomous/ecommerce/carbonshift/src/lib/product_catalog.ts",
+    "businesses/autonomous/ecommerce/carbonshift/src/lib/shopping_cart.ts",
+    "businesses/autonomous/ecommerce/carbonshift/src/lib/stripe_checkout.ts",
+    "businesses/autonomous/ecommerce/carbonshift/src/lib/email_marketing.ts",
+    "businesses/autonomous/ecommerce/carbonshift/src/lib/customer_support_bot.ts",
+    "businesses/autonomous/ecommerce/carbonshift/src/app/layout.tsx",
+    "businesses/autonomous/ecommerce/carbonshift/src/app/globals.css",
+    "businesses/autonomous/ecommerce/carbonshift/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

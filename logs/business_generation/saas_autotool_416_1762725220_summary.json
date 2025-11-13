@@ -1,0 +1,20 @@
+{
+  "business_name": "AutoTool 416",
+  "business_type": "saas",
+  "start_time": 1762725220.1095173,
+  "end_time": 1762725266.1154099,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 550,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 46.005892515182495,
+  "success_rate": 100.0
+}

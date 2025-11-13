@@ -1,0 +1,20 @@
+{
+  "business_name": "RetailIQ Pro",
+  "business_type": "ecommerce",
+  "start_time": 1762724150.5323207,
+  "end_time": 1762724185.7926023,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 217,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 35.260281562805176,
+  "success_rate": 100.0
+}

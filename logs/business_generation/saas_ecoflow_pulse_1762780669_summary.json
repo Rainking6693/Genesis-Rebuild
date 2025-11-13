@@ -1,0 +1,20 @@
+{
+  "business_name": "EcoFlow Pulse",
+  "business_type": "saas",
+  "start_time": 1762780669.559674,
+  "end_time": 1762780797.0913634,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 1061,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 127.53168940544128,
+  "success_rate": 100.0
+}

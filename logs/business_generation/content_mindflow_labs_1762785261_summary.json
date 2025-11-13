@@ -1,0 +1,20 @@
+{
+  "business_name": "MindFlow Labs",
+  "business_type": "content",
+  "start_time": 1762785261.4163027,
+  "end_time": 1762785321.7471786,
+  "status": "completed",
+  "components_requested": 4,
+  "components_completed": 4,
+  "components_failed": 0,
+  "files_generated": 4,
+  "lines_of_code": 232,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 4,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 4,
+  "retry_count": 0,
+  "duration_seconds": 60.330875873565674,
+  "success_rate": 100.0
+}

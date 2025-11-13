@@ -18,6 +18,8 @@ load_genesis_env()
 
 import logging
 import os
+import re
+import time
 from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, field
 from infrastructure.task_dag import TaskDAG, Task, TaskStatus
@@ -312,6 +314,8 @@ class HALORouter:
         self._mistral_model = os.getenv("MISTRAL_FALLBACK_MODEL", "open-mistral-7b")
         self._anthropic_client = self._init_anthropic_client()
         self._anthropic_model = os.getenv("ANTHROPIC_FALLBACK_MODEL", "claude-3-haiku-20240307")
+        self._gemini_backoff_until: float = 0.0
+        self._gemini_backoff_reason: Optional[str] = None
 
         self.logger = logger
         self.logger.info(
@@ -1558,6 +1562,18 @@ class HALORouter:
         if not self._gemini_clients:
             return None
 
+        now = time.time()
+        if self._gemini_backoff_until and now < self._gemini_backoff_until:
+            wait_remaining = int(self._gemini_backoff_until - now)
+            logger.info(
+                "⏳ Gemini temporarily paused (%s). Skipping generation for %s and "
+                "falling back to secondary providers (resume in %ss).",
+                self._gemini_backoff_reason or "quota backoff",
+                agent_name,
+                wait_remaining,
+            )
+            return None
+
         for idx, client in enumerate(self._gemini_clients, start=1):
             try:
                 logger.info(
@@ -1586,9 +1602,7 @@ class HALORouter:
                 if text:
                     return text
             except Exception as exc:
-                logger.warning(
-                    f"Gemini client #{idx} failed for {agent_name}: {exc}"
-                )
+                self._handle_gemini_failure(agent_name, idx, exc)
         return None
 
     def _extract_gemini_text(self, response: Any) -> Optional[str]:
@@ -1610,6 +1624,46 @@ class HALORouter:
                         return text
                 except Exception:
                     continue
+        return None
+
+    def _handle_gemini_failure(self, agent_name: str, idx: int, exc: Exception) -> None:
+        """Handle Gemini API failures and apply adaptive backoff when quotas hit."""
+        message = str(exc)
+        logger.warning("Gemini client #%s failed for %s: %s", idx, agent_name, message)
+
+        lower_msg = message.lower()
+        if "resource_exhausted" in lower_msg or "quota" in lower_msg:
+            delay = self._parse_retry_delay_seconds(message) or int(
+                os.getenv("GEMINI_QUOTA_BACKOFF_SECONDS", "120")
+            )
+            delay = max(delay, 30)
+            self._gemini_backoff_until = time.time() + delay
+            self._gemini_backoff_reason = "quota-exhausted"
+            resume_at = datetime.fromtimestamp(self._gemini_backoff_until, tz=timezone.utc)
+            logger.warning(
+                "🚫 Gemini quota exhausted for %s. Disabling Gemini calls for %ss (until %s).",
+                agent_name,
+                delay,
+                resume_at.isoformat(),
+            )
+
+    @staticmethod
+    def _parse_retry_delay_seconds(message: str) -> Optional[int]:
+        """Extract retry delay (seconds) from Gemini quota error messages."""
+        match = re.search(r"retryDelay['\"]?\s*[:=]\s*['\"]?(\d+)s", message, re.IGNORECASE)
+        if match:
+            try:
+                return int(match.group(1))
+            except ValueError:
+                pass
+
+        match = re.search(r"retry in\s+(\d+)", message, re.IGNORECASE)
+        if match:
+            try:
+                return int(match.group(1))
+            except ValueError:
+                pass
+
         return None
 
     def _generate_with_mistral(

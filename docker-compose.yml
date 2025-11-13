@@ -1,13 +1,15 @@
-version: '3.8'
+x-default-env: &default-env
+  OTEL_ENABLED: "true"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
 
 services:
-  # Genesis MongoDB - Shared memory storage
+  # ===============================
+  # Core data stores
+  # ===============================
   genesis-mongodb:
-    image: mongo:latest
+    image: mongo:7.0
     container_name: genesis-mongodb
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     volumes:
       - mongodb-data:/data/db
     environment:
@@ -15,48 +17,103 @@ services:
     networks:
       - genesis-network
 
-  # Genesis Redis - Caching and state management
   genesis-redis:
-    image: redis:latest
+    image: redis:7.2-alpine
     container_name: genesis-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis-data:/data
     networks:
       - genesis-network
 
-  # DeepSeek-OCR Service - Document OCR (CPU-optimized)
-  deepseek-ocr:
+  # ===============================
+  # Genesis services
+  # ===============================
+  # deepseek-ocr service can be reintroduced by providing a dockerfile/image.
+
+  genesis-health:
     build:
       context: .
-      dockerfile: infrastructure/docker/deepseek-ocr-cpu.Dockerfile
-    container_name: deepseek-ocr
+      dockerfile: Dockerfile.fly
+    container_name: genesis-health
     restart: unless-stopped
-    ports:
-      - "8001:8001"
-    volumes:
-      - ./data/ocr_cache:/cache
-      - ./data/ocr_test_images:/test_images:ro
+    depends_on:
+      - genesis-mongodb
+      - genesis-redis
+      - otel-collector
+    env_file:
+      - .env
     environment:
-      - OCR_SERVICE_PORT=8001
-      - CACHE_DIR=/cache
-      - ENABLE_CACHE=true
+      <<: *default-env
+      PORT: "8080"
+      GENESIS_WORKSPACE_ROOT: "/app"
+      MONGO_URL: "mongodb://genesis-mongodb:27017/genesis"
+      REDIS_URL: "redis://genesis-redis:6379/0"
+    volumes:
+      - ./logs:/app/logs:ro
+      - ./businesses:/app/businesses:ro
+      - ./data:/app/data:ro
     networks:
       - genesis-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+      - monitoring-network
+
+  # ===============================
+  # Observability stack
+  # ===============================
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.102.0
+    container_name: otel-collector
+    restart: unless-stopped
+    command: ["--config=/etc/otel-collector.yaml"]
+    volumes:
+      - ./monitoring/otel-collector-config.yaml:/etc/otel-collector.yaml:ro
+    networks:
+      - monitoring-network
+
+  prometheus:
+    image: prom/prometheus:v2.54.0
+    container_name: prometheus
+    restart: unless-stopped
+    depends_on:
+      - otel-collector
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring-network
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-admin}"
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/"
+      GF_FEATURE_TOGGLES_ENABLE: "publicDashboards"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    ports:
+      - "3001:3000"
+    networks:
+      - monitoring-network
 
 volumes:
   mongodb-data:
   redis-data:
+  prometheus-data:
+  grafana-data:
 
 networks:
   genesis-network:
     driver: bridge
     name: genesis-network
+  monitoring-network:
+    driver: bridge

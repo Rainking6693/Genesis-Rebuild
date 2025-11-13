@@ -1,0 +1,25 @@
+{
+  "name": "Carbon Compass",
+  "type": "saas",
+  "description": "AI-powered carbon footprint tracking and offset marketplace that automatically calculates small business emissions from receipts, invoices, and bank transactions. Gamifies sustainability with team leaderboards and provides automated carbon credit purchasing with verified climate projects.",
+  "generated_at": "2025-11-09T14:08:56.964821",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/carbon-compass/src/lib/dashboard_ui.ts",
+    "businesses/fully_integrated/saas/carbon-compass/src/app/api/rest_api/route.ts",
+    "businesses/fully_integrated/saas/carbon-compass/src/lib/user_auth.ts",
+    "businesses/fully_integrated/saas/carbon-compass/src/lib/stripe_billing.ts",
+    "businesses/fully_integrated/saas/carbon-compass/src/lib/docs.ts",
+    "businesses/fully_integrated/saas/carbon-compass/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/carbon-compass/src/app/globals.css",
+    "businesses/fully_integrated/saas/carbon-compass/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

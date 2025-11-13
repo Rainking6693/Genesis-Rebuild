@@ -25,7 +25,7 @@ from infrastructure.component_library import get_component_count
 from infrastructure.business_idea_generator import BusinessIdea
 
 
-async def test_component_library():
+async def _test_component_library_async():
     """Test component library."""
     print("\n" + "="*80)
     print(" "*25 + "Testing Component Library" + " "*28)
@@ -39,8 +39,11 @@ async def test_component_library():
     
     return count >= 60
 
+def test_component_library():
+    assert asyncio.run(_test_component_library_async())
 
-async def test_component_selector():
+
+async def _test_component_selector_async():
     """Test intelligent component selection."""
     print("\n" + "="*80)
     print(" "*22 + "Testing Component Selector" + " "*31)
@@ -98,8 +101,11 @@ async def test_component_selector():
     
     return len(selection.components) >= 6
 
+def test_component_selector():
+    assert asyncio.run(_test_component_selector_async())
 
-async def test_team_assembler():
+
+async def _test_team_assembler_async():
     """Test team assembly."""
     print("\n" + "="*80)
     print(" "*25 + "Testing Team Assembler" + " "*32)
@@ -140,8 +146,11 @@ async def test_team_assembler():
     
     return len(team) == 5
 
+def test_team_assembler():
+    assert asyncio.run(_test_team_assembler_async())
 
-async def test_full_autonomous_generation():
+
+async def _test_full_autonomous_generation_async():
     """Test full autonomous generation (DRY RUN - generates idea but doesn't build)."""
     print("\n" + "="*80)
     print(" "*18 + "Testing Full Autonomous Generation" + " "*27)
@@ -197,6 +206,9 @@ async def test_full_autonomous_generation():
     print(f"  python3 scripts/test_autonomous_system.py --generate")
     
     return True
+
+def test_full_autonomous_generation():
+    assert asyncio.run(_test_full_autonomous_generation_async())
 
 
 async def main():
@@ -262,4 +274,3 @@ async def main():
 if __name__ == "__main__":
     exit_code = asyncio.run(main())
     sys.exit(exit_code)
-

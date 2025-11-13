@@ -101,6 +101,10 @@ class TeamAssembler:
         )
         
         team = [agent_id for agent_id, score in sorted_agents[:team_size]]
+
+        if not team:
+            team = self._fallback_team(team_size)
+            logger.info("Using fallback specialist roster due to missing capability maps: %s", team)
         
         logger.info(f"✅ Assembled team: {team}")
         logger.debug(f"Agent scores: {dict(sorted_agents[:team_size])}")
@@ -188,6 +192,25 @@ class TeamAssembler:
             "missing": missing
         }
 
+    def _fallback_team(self, team_size: int) -> List[str]:
+        """Return a deterministic specialist roster when capability maps are unavailable."""
+        default_roster = [
+            "builder_agent",
+            "frontend_agent",
+            "backend_agent",
+            "qa_agent",
+            "deploy_agent",
+            "marketing_agent",
+            "analytics_agent",
+            "support_agent",
+        ]
+        if team_size <= len(default_roster):
+            return default_roster[:team_size]
+        # Repeat as needed to satisfy requested size
+        repeats = (team_size // len(default_roster)) + 1
+        expanded = (default_roster * repeats)[:team_size]
+        return expanded
+
 
 # Singleton
 _assembler: Optional[TeamAssembler] = None
@@ -247,4 +270,3 @@ if __name__ == "__main__":
         print(f"\n  Missing capabilities: {', '.join(report['missing'])}")
     
     print(f"\n  Team has {report['total_capabilities']} total capabilities")
-

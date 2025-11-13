@@ -1,0 +1,23 @@
+{
+  "name": "Creator Compass",
+  "type": "content",
+  "description": "AI-powered content intelligence platform that analyzes trending topics across 50+ platforms and generates personalized content briefs with viral hooks for creators and small business marketers. Combines real-time trend analysis with automated content strategy recommendations to help users create high-performing content consistently.",
+  "generated_at": "2025-11-10T15:57:34.954164+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/creator-compass/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/creator-compass/src/lib/newsletter.ts",
+    "businesses/fully_integrated/content/creator-compass/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/creator-compass/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/creator-compass/src/app/layout.tsx",
+    "businesses/fully_integrated/content/creator-compass/src/app/globals.css",
+    "businesses/fully_integrated/content/creator-compass/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

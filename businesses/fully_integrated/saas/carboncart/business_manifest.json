@@ -1,0 +1,25 @@
+{
+  "name": "CarbonCart",
+  "type": "saas",
+  "description": "AI-powered sustainability analytics platform that helps e-commerce businesses automatically calculate, offset, and market their carbon footprint to environmentally conscious consumers. Transforms environmental compliance from a cost center into a competitive advantage and revenue driver through automated green marketing campaigns.",
+  "generated_at": "2025-11-10T15:15:38.782460+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/carboncart/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/carboncart/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/carboncart/src/lib/user_auth.ts",
+    "businesses/fully_integrated/saas/carboncart/src/lib/stripe_billing.ts",
+    "businesses/fully_integrated/saas/carboncart/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/carboncart/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/carboncart/src/app/globals.css",
+    "businesses/fully_integrated/saas/carboncart/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

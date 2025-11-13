@@ -1,0 +1,20 @@
+{
+  "business_name": "StressLens AI",
+  "business_type": "saas",
+  "start_time": 1762992241.1869454,
+  "end_time": 1762992734.6002274,
+  "status": "completed",
+  "components_requested": 24,
+  "components_completed": 24,
+  "components_failed": 0,
+  "files_generated": 24,
+  "lines_of_code": 1906,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 24,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 24,
+  "retry_count": 0,
+  "duration_seconds": 493.413281917572,
+  "success_rate": 100.0
+}

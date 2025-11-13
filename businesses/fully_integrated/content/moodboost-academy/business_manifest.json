@@ -1,0 +1,23 @@
+{
+  "name": "MoodBoost Academy",
+  "type": "content",
+  "description": "AI-powered micro-learning platform that delivers personalized 3-minute mental wellness courses based on real-time mood tracking and workplace stress patterns. Combines bite-sized educational content with mood analytics to help professionals build resilience skills during their actual workday stress moments.",
+  "generated_at": "2025-11-09T20:44:30.866453+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/moodboost-academy/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/moodboost-academy/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/moodboost-academy/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/moodboost-academy/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/moodboost-academy/src/app/layout.tsx",
+    "businesses/fully_integrated/content/moodboost-academy/src/app/globals.css",
+    "businesses/fully_integrated/content/moodboost-academy/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

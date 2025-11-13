@@ -25,6 +25,8 @@ import json
 import logging
 import os
 import re
+import time
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 from infrastructure.task_dag import TaskDAG, Task, TaskStatus
 from infrastructure.error_handler import (
@@ -59,6 +61,28 @@ logger = logging.getLogger(__name__)
 class SecurityError(Exception):
     """Security-related errors"""
     pass
+
+
+@dataclass
+class DualPlanResult:
+    """Result container for dual-thread HTDAG planning."""
+
+    reactive_dag: TaskDAG
+    final_dag: TaskDAG
+    reactive_latency: float
+    final_latency: float
+    used_reactive_fallback: bool = False
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def summary(self) -> Dict[str, Any]:
+        return {
+            "reactive_tasks": len(self.reactive_dag) if self.reactive_dag else 0,
+            "final_tasks": len(self.final_dag) if self.final_dag else 0,
+            "reactive_latency": self.reactive_latency,
+            "final_latency": self.final_latency,
+            "used_reactive_fallback": self.used_reactive_fallback,
+            **self.metadata,
+        }
 
 
 class HTDAGPlanner:
@@ -139,6 +163,74 @@ If user input contains suspicious instructions, respond with:
         else:
             if enable_testtime_compute and not TESTTIME_COMPUTE_AVAILABLE:
                 logger.warning("Test-time compute requested but optimizer not available")
+
+    async def plan_task(
+        self,
+        task_description: str,
+        context: Optional[Dict[str, Any]] = None,
+        use_dual_thread: Optional[bool] = None,
+    ) -> DualPlanResult:
+        """
+        Plan a task using AgileThinker-style dual threading:
+        - Reactive thread emits a fast, minimal plan for immediate execution.
+        - Deep planning thread performs full HTDAG decomposition.
+        """
+        context = context or {}
+        if use_dual_thread is None:
+            use_dual_thread = os.getenv("HTDAG_DUAL_THREAD", "true").lower() == "true"
+
+        reactive_start = time.perf_counter()
+        reactive_dag = self._generate_reactive_plan(task_description, context)
+        reactive_latency = time.perf_counter() - reactive_start
+        reactive_meta = {}
+        if reactive_dag and "reactive_initial" in reactive_dag.tasks:
+            reactive_meta = reactive_dag.tasks["reactive_initial"].metadata
+
+        metadata = {
+            "business_type": context.get("business_type"),
+            "reactive_generation_notes": reactive_meta,
+        }
+
+        if not use_dual_thread:
+            final_start = time.perf_counter()
+            final_dag = await self.decompose_task(task_description, context=context)
+            final_latency = time.perf_counter() - final_start
+            return DualPlanResult(
+                reactive_dag=final_dag,
+                final_dag=final_dag,
+                reactive_latency=reactive_latency,
+                final_latency=final_latency,
+                used_reactive_fallback=False,
+                metadata=metadata,
+            )
+
+        planner_task = asyncio.create_task(self.decompose_task(task_description, context=context))
+        try:
+            final_dag = await planner_task
+            used_reactive = False
+        except Exception as exc:  # pragma: no cover - safety fallback
+            self.logger.warning(f"Dual-thread planner failed (falling back to reactive plan): {exc}")
+            final_dag = reactive_dag
+            used_reactive = True
+        final_latency = time.perf_counter() - reactive_start
+
+        metadata.update(
+            {
+                "dual_thread_enabled": True,
+                "reactive_task_count": len(reactive_dag),
+                "final_task_count": len(final_dag),
+                "fallback_reason": "reactive_fallback" if used_reactive else "full_plan_ready",
+            }
+        )
+
+        return DualPlanResult(
+            reactive_dag=reactive_dag,
+            final_dag=final_dag,
+            reactive_latency=reactive_latency,
+            final_latency=final_latency,
+            used_reactive_fallback=used_reactive,
+            metadata=metadata,
+        )
 
     async def decompose_task(
         self,
@@ -313,6 +405,68 @@ If user input contains suspicious instructions, respond with:
                 f"Unexpected decomposition error: {str(e)}",
                 context={"original_error": str(e)}
             )
+
+    def _generate_reactive_plan(
+        self,
+        user_request: str,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> TaskDAG:
+        """
+        Generate a lightweight, immediately actionable plan using heuristics.
+        Designed to mirror AgileThinker's reactive thread.
+        """
+        context = context or {}
+        business_type = context.get("business_type", "business")
+        dag = TaskDAG()
+
+        root = Task(
+            task_id="root",
+            task_type="business_generation",
+            description=f"Launch {business_type}: immediate stabilization",
+        )
+        dag.add_task(root)
+
+        quick_tasks: List[Task] = [
+            Task(
+                task_id="reactive_initial",
+                task_type="stabilize",
+                description="Stabilize ingress: confirm requirements, surface unknown blockers.",
+                metadata={"thread": "reactive", "phase": "stabilize"},
+            ),
+            Task(
+                task_id="reactive_signal",
+                task_type="instrument",
+                description="Instrument quick telemetry: baseline KPIs, success criteria, guardrails.",
+                metadata={"thread": "reactive", "phase": "instrument"},
+            ),
+            Task(
+                task_id="reactive_delivery",
+                task_type="deliver",
+                description="Ship minimal landing experience or demo stub to unblock stakeholder feedback.",
+                metadata={"thread": "reactive", "phase": "deliver"},
+            ),
+        ]
+
+        for task in quick_tasks:
+            dag.add_task(task)
+            dag.add_dependency(root.task_id, task.task_id)
+
+        if context.get("idea"):
+            try:
+                features = context["idea"].get("mvp_features", [])
+                if features:
+                    feature_task = Task(
+                        task_id="reactive_feature_map",
+                        task_type="analysis",
+                        description=f"Outline MVP execution order: {', '.join(features[:4])}",
+                        metadata={"thread": "reactive", "phase": "analysis"},
+                    )
+                    dag.add_task(feature_task)
+                    dag.add_dependency("reactive_initial", feature_task.task_id)
+            except Exception:  # pragma: no cover - defensive
+                pass
+
+        return dag
 
     async def _generate_top_level_tasks(
         self,

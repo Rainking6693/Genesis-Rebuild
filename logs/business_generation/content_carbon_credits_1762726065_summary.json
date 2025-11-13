@@ -1,0 +1,20 @@
+{
+  "business_name": "Carbon Credits",
+  "business_type": "content",
+  "start_time": 1762726065.6441975,
+  "end_time": 1762726089.7669501,
+  "status": "completed",
+  "components_requested": 4,
+  "components_completed": 4,
+  "components_failed": 0,
+  "files_generated": 4,
+  "lines_of_code": 131,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 4,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 4,
+  "retry_count": 0,
+  "duration_seconds": 24.12275266647339,
+  "success_rate": 100.0
+}

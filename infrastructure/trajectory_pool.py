@@ -28,6 +28,15 @@ from infrastructure.security_utils import (
     validate_storage_path,
     redact_credentials
 )
+from infrastructure.memory.memori_client import MemoriClient
+from infrastructure.memory.genesis_sql_memory import memori_enabled
+
+try:  # Optional DreamGym integration
+    from infrastructure.dreamgym.integration import DreamGymTrainer
+    HAS_DREAMGYM = True
+except Exception:  # pragma: no cover - DreamGym optional
+    DreamGymTrainer = None  # type: ignore
+    HAS_DREAMGYM = False
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +44,34 @@ logger = logging.getLogger(__name__)
 def _is_testing() -> bool:
     """Check if running in pytest test environment"""
     return "PYTEST_CURRENT_TEST" in os.environ
+
+
+class SQLTrajectoryMirror:
+    """
+    Lightweight mirror that persists trajectories to Memori so SE-Darwin
+    analytics can be queried from the SQL backend.
+    """
+
+    def __init__(self, agent_name: str, client: Optional[MemoriClient] = None):
+        self.agent_name = agent_name
+        self.client = client or MemoriClient()
+
+    def record(self, trajectory: "Trajectory") -> None:
+        try:
+            payload = trajectory.to_compact_dict()
+            payload["trajectory_id"] = trajectory.trajectory_id
+            payload["agent_name"] = trajectory.agent_name
+            payload["generation"] = trajectory.generation
+            payload["status"] = trajectory.status
+            self.client.upsert_trajectory(trajectory.trajectory_id, self.agent_name, payload)
+        except Exception as exc:  # pragma: no cover - telemetry best effort
+            logger.debug(f"Failed to mirror trajectory to SQL: {exc}")
+
+    def recent(self, limit: int = 50) -> List[Dict[str, Any]]:
+        try:
+            return self.client.list_recent_trajectories(self.agent_name, limit)
+        except Exception:
+            return []
 
 
 class TrajectoryStatus(Enum):
@@ -189,6 +226,14 @@ class TrajectoryPool:
         self.total_added = 0
         self.total_pruned = 0
 
+        self.sql_mirror = SQLTrajectoryMirror(safe_agent_name) if memori_enabled() else None
+        enable_dreamgym = os.getenv("ENABLE_DREAMGYM", "true").lower() == "true"
+        self.dreamgym = (
+            DreamGymTrainer(agent_name=safe_agent_name)
+            if enable_dreamgym and HAS_DREAMGYM
+            else None
+        )
+
         logger.info(
             f"TrajectoryPool initialized for {agent_name}",
             extra={
@@ -207,6 +252,12 @@ class TrajectoryPool:
         """
         self.trajectories[trajectory.trajectory_id] = trajectory
         self.total_added += 1
+
+        if self.sql_mirror:
+            self.sql_mirror.record(trajectory)
+
+        if self.dreamgym:
+            self.dreamgym.record_real_trajectory(trajectory)
 
         logger.debug(
             f"Added trajectory {trajectory.trajectory_id}",
@@ -382,6 +433,18 @@ class TrajectoryPool:
         )
 
         return [reason for reason, count in sorted_failures if count >= 2]
+
+    def sample_dreamgym_batch(
+        self,
+        task_signature: str,
+        batch_size: int = 32,
+    ) -> List[Dict[str, Any]]:
+        """
+        Generate synthetic experiences via DreamGym if enabled.
+        """
+        if not self.dreamgym:
+            return []
+        return self.dreamgym.generate_synthetic_batch(task_signature, batch_size)
 
     def _prune_low_performers(self) -> int:
         """

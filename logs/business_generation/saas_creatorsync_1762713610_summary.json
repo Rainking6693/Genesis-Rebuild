@@ -1,0 +1,26 @@
+{
+  "business_name": "CreatorSync",
+  "business_type": "saas",
+  "start_time": 1762713610.7796917,
+  "end_time": 1762713645.4321358,
+  "status": "failed",
+  "components_requested": 5,
+  "components_completed": 0,
+  "components_failed": 5,
+  "files_generated": 0,
+  "lines_of_code": 0,
+  "cost_usd": 0.0,
+  "errors": [
+    "dashboard_ui: Could not extract code from LLM response",
+    "rest_api: Could not extract code from LLM response",
+    "user_auth: Could not extract code from LLM response",
+    "stripe_billing: Could not extract code from LLM response",
+    "docs: Could not extract code from LLM response"
+  ],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 34.6524441242218,
+  "success_rate": 0.0
+}

@@ -1,0 +1,20 @@
+{
+  "business_name": "AutoTool 195",
+  "business_type": "saas",
+  "start_time": 1762723468.1927133,
+  "end_time": 1762723534.4189088,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 539,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 66.22619557380676,
+  "success_rate": 100.0
+}

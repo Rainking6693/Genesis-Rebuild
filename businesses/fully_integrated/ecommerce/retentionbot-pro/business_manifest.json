@@ -1,0 +1,25 @@
+{
+  "name": "RetentionBot Pro",
+  "type": "ecommerce",
+  "description": "AI-powered micro-SaaS that automatically generates personalized win-back email campaigns for e-commerce stores by analyzing customer purchase patterns and behavioral triggers. It integrates with existing e-commerce platforms to identify at-risk customers and deploys targeted retention sequences that typically recover 15-25% of churning customers.",
+  "generated_at": "2025-11-10T13:52:17.731822+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/retentionbot-pro/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/retentionbot-pro/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/retentionbot-pro/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/retentionbot-pro/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/retentionbot-pro/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/retentionbot-pro/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/retentionbot-pro/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/retentionbot-pro/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

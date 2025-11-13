@@ -1,0 +1,25 @@
+{
+  "name": "MoodBoard Pro",
+  "type": "ecommerce",
+  "description": "AI-powered employee wellness dashboard that automatically detects team burnout patterns through Slack/Teams integration and provides personalized mental health recommendations. Combines anonymous mood tracking with actionable management insights to prevent turnover and boost productivity.",
+  "generated_at": "2025-11-10T13:35:01.226445+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/moodboard-pro/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/moodboard-pro/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/moodboard-pro/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/moodboard-pro/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/moodboard-pro/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/moodboard-pro/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/moodboard-pro/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/moodboard-pro/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

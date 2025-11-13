@@ -1,0 +1,25 @@
+{
+  "name": "GreenStack Analytics",
+  "type": "saas",
+  "description": "AI-powered sustainability tracking platform that automatically calculates and optimizes carbon footprints for e-commerce businesses while turning eco-achievements into customer acquisition tools. Combines real-time environmental impact monitoring with automated green marketing campaigns that boost sales and customer loyalty.",
+  "generated_at": "2025-11-09T21:02:02.877257+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/greenstack-analytics/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/greenstack-analytics/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/greenstack-analytics/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/greenstack-analytics/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/greenstack-analytics/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/greenstack-analytics/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/greenstack-analytics/src/app/globals.css",
+    "businesses/fully_integrated/saas/greenstack-analytics/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

@@ -79,6 +79,8 @@ except ImportError:
     REFLECTION_HARNESS_AVAILABLE = False
     logging.warning("ReflectionHarness not available - quality verification disabled")
 
+from infrastructure.gemini_computer_use import GeminiComputerUseClient
+
 # Setup observability
 setup_observability(enable_sensitive_data=True)
 
@@ -228,84 +230,6 @@ class DeploymentResult:
             self.metadata = {}
 
 
-class GeminiComputerUseClient:
-    """
-    Simplified client for Gemini Computer Use API
-
-    In production, this would use the official Gemini Computer Use SDK.
-    For now, this is a mock implementation that demonstrates the pattern.
-    """
-
-    def __init__(self, require_human_confirmation: bool = False):
-        self.require_human_confirmation = require_human_confirmation
-        self.browser_running = False
-        self.action_history = []
-
-    async def start_browser(self, headless: bool = True):
-        """Start browser session"""
-        logger.info(f"🌐 Starting browser (headless={headless})")
-        self.browser_running = True
-        await asyncio.sleep(0.5)  # Simulate startup
-
-    async def stop_browser(self):
-        """Stop browser session"""
-        if self.browser_running:
-            logger.info("🛑 Stopping browser")
-            self.browser_running = False
-            await asyncio.sleep(0.2)
-
-    async def navigate(self, url: str):
-        """Navigate to URL"""
-        logger.info(f"🔗 Navigating to {url}")
-        self.action_history.append(f"navigate:{url}")
-        await asyncio.sleep(1)
-
-    async def wait(self, milliseconds: int):
-        """Wait for specified time"""
-        await asyncio.sleep(milliseconds / 1000.0)
-
-    async def take_screenshot(self) -> str:
-        """Take screenshot and return base64 or path"""
-        logger.info("📸 Taking screenshot")
-        await asyncio.sleep(0.3)
-        return f"screenshot_{len(self.action_history)}.png"
-
-    async def autonomous_task(self, task_description: str, max_steps: int = 20) -> Dict[str, Any]:
-        """
-        Execute autonomous task using Gemini Computer Use
-
-        In production, this uses Gemini's multimodal capabilities to:
-        1. See the screen (screenshot)
-        2. Reason about what actions to take
-        3. Execute actions (click, type, scroll)
-        4. Repeat until task complete
-        """
-        logger.info(f"🤖 Executing autonomous task: {task_description[:100]}...")
-
-        steps = 0
-        actions = []
-
-        # Simulate autonomous task execution
-        # In production, this calls Gemini Computer Use API
-        for i in range(min(max_steps, 10)):
-            steps += 1
-            action = f"step_{i+1}_simulated"
-            actions.append(action)
-            self.action_history.append(action)
-            await asyncio.sleep(0.2)
-
-            # Simulate task completion after reasonable steps
-            if i >= 5:
-                break
-
-        return {
-            "success": True,
-            "steps": steps,
-            "action_log": actions,
-            "final_state": "task_completed"
-        }
-
-
 class DeployAgent:
     """
     Production-ready deployment agent with self-improvement capabilities
@@ -335,7 +259,10 @@ class DeployAgent:
         self.business_id = business_id
         self.agent_id = f"deploy_agent_{business_id}"
         self.agent = None
-        self.computer_use = GeminiComputerUseClient()
+        self.computer_use = GeminiComputerUseClient(
+            agent_role="deploy_agent",
+            require_human_confirmation=False,
+        )
 
         # Learning infrastructure
         self.use_learning = use_learning and (REASONING_BANK_AVAILABLE and REPLAY_BUFFER_AVAILABLE)

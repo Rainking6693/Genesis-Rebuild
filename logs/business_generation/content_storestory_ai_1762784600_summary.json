@@ -1,0 +1,20 @@
+{
+  "business_name": "StoreStory AI",
+  "business_type": "content",
+  "start_time": 1762784600.0423424,
+  "end_time": 1762784651.4437404,
+  "status": "completed",
+  "components_requested": 4,
+  "components_completed": 4,
+  "components_failed": 0,
+  "files_generated": 4,
+  "lines_of_code": 182,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 4,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 4,
+  "retry_count": 0,
+  "duration_seconds": 51.401397943496704,
+  "success_rate": 100.0
+}

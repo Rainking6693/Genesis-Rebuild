@@ -1,0 +1,20 @@
+{
+  "business_name": "Climate Pulse",
+  "business_type": "saas",
+  "start_time": 1762836738.3845608,
+  "end_time": 1762837134.493421,
+  "status": "completed",
+  "components_requested": 24,
+  "components_completed": 24,
+  "components_failed": 0,
+  "files_generated": 24,
+  "lines_of_code": 1322,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 24,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 24,
+  "retry_count": 0,
+  "duration_seconds": 396.1088602542877,
+  "success_rate": 100.0
+}

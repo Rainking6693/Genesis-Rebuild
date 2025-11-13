@@ -1,0 +1,20 @@
+{
+  "business_name": "WellnessFlow",
+  "business_type": "saas",
+  "start_time": 1762722507.0153363,
+  "end_time": 1762722537.1073518,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 140,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 30.092015504837036,
+  "success_rate": 100.0
+}

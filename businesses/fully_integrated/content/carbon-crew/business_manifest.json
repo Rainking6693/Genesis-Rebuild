@@ -1,0 +1,23 @@
+{
+  "name": "Carbon Crew",
+  "type": "content",
+  "description": "An AI-powered platform that generates personalized sustainability action plans and progress tracking for remote teams, turning climate action into engaging team challenges with real environmental impact measurement. Companies subscribe to boost employee engagement while achieving measurable ESG goals through gamified carbon reduction competitions.",
+  "generated_at": "2025-11-10T15:20:51.780011+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/carbon-crew/src/lib/blog_system.ts",
+    "businesses/fully_integrated/content/carbon-crew/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/carbon-crew/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/carbon-crew/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/carbon-crew/src/app/layout.tsx",
+    "businesses/fully_integrated/content/carbon-crew/src/app/globals.css",
+    "businesses/fully_integrated/content/carbon-crew/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

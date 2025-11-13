@@ -1,0 +1,20 @@
+{
+  "business_name": "TrendShop 898",
+  "business_type": "ecommerce",
+  "start_time": 1762707455.6978164,
+  "end_time": 1762707507.8239384,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 465,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 52.12612199783325,
+  "success_rate": 100.0
+}

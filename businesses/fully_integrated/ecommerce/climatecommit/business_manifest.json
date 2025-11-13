@@ -1,0 +1,25 @@
+{
+  "name": "ClimateCommit",
+  "type": "ecommerce",
+  "description": "AI-powered platform that automatically tracks small businesses' carbon footprint through their existing tools (Shopify, QuickBooks, etc.) and creates verified sustainability reports for customers while connecting them to a marketplace of vetted carbon offset projects. Turns environmental compliance from a burden into a competitive advantage and revenue driver for SMBs.",
+  "generated_at": "2025-11-09T22:37:58.368640+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/climatecommit/src/lib/product_catalog.ts",
+    "businesses/fully_integrated/ecommerce/climatecommit/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/climatecommit/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/climatecommit/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/climatecommit/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/climatecommit/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/climatecommit/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/climatecommit/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

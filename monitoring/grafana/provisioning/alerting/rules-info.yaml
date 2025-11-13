@@ -1,0 +1,174 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: Informational Alerts
+    folder: Genesis Alerts
+    interval: 1m
+    rules:
+      - uid: biz-mrr-milestone
+        title: Business Hit $1K Monthly Revenue
+        condition: C
+        for: 5m
+        annotations:
+          summary: "A business crossed $1K in monthly recurring revenue."
+          message: "Celebrate the milestone and notify account management."
+        labels:
+          severity: info
+          team: growth
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1440
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: genesis_monthly_revenue_usd
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 1440
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 1440
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B >= 1000
+              type: math
+      - uid: traffic-spike
+        title: Traffic Spike Detected
+        condition: D
+        for: 2m
+        annotations:
+          summary: "Request rate spiked above 3x hourly baseline."
+          message: "Potential viral moment. Ensure autoscaling keeps pace."
+        labels:
+          severity: info
+          team: marketing
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: sum(rate(genesis_http_requests_total[5m]))
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: avg_over_time(sum(rate(genesis_http_requests_total[5m]))[1h])
+              type: math
+          - refId: C
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A / clamp_min(B, 1e-6)
+              type: math
+          - refId: D
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: C > 3
+              type: math
+      - uid: growth-milestone
+        title: Growth Milestone Reached
+        condition: C
+        for: 10m
+        annotations:
+          summary: "Active customers increased by 100 in the last week."
+          message: "Update growth dashboards and notify leadership."
+        labels:
+          severity: info
+          team: growth
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: increase(genesis_active_customers[7d])
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B >= 100
+              type: math
+      - uid: normal-operations
+        title: Normal Operations Pulse
+        condition: C
+        for: 15m
+        annotations:
+          summary: "System operating within nominal parameters."
+          message: "All primary KPIs healthy; logging heartbeat for audit trail."
+        labels:
+          severity: info
+          team: platform
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: min(genesis_agent_success_rate)
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: sum(rate(genesis_http_requests_total{status=~\"5..\"}[5m])) / clamp_min(sum(rate(genesis_http_requests_total[5m])), 1e-6)
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: (A > 0.9) and (B < 0.02)
+              type: math
+

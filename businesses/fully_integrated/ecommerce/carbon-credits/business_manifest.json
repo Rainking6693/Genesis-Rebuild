@@ -1,0 +1,25 @@
+{
+  "name": "Carbon Credits",
+  "type": "ecommerce",
+  "description": "AI-powered platform that automatically calculates small business carbon footprints and creates personalized monthly subscription boxes of verified carbon offset credits bundled with eco-friendly office supplies. Businesses get automated ESG compliance reporting while employees receive tangible sustainable products, creating a viral workplace sustainability program.",
+  "generated_at": "2025-11-10T14:31:22.825327+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/carbon-credits/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/carbon-credits/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/carbon-credits/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/carbon-credits/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/carbon-credits/src/lib/customer_support_bot.ts",
+    "businesses/fully_integrated/ecommerce/carbon-credits/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/carbon-credits/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/carbon-credits/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

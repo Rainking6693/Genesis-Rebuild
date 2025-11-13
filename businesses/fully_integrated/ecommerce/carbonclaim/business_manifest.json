@@ -1,0 +1,25 @@
+{
+  "name": "CarbonClaim",
+  "type": "ecommerce",
+  "description": "AI-powered platform that automatically calculates and offsets the carbon footprint of every ecommerce transaction, turning sustainability into a competitive advantage for online stores. Customers receive instant carbon-neutral certificates and businesses get detailed emissions analytics to optimize their supply chain.",
+  "generated_at": "2025-11-10T13:21:39.677279+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/carbonclaim/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/carbonclaim/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/carbonclaim/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/carbonclaim/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/carbonclaim/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/carbonclaim/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/carbonclaim/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/carbonclaim/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

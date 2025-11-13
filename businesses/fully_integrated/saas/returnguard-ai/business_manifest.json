@@ -1,0 +1,25 @@
+{
+  "name": "ReturnGuard AI",
+  "type": "saas",
+  "description": "AI-powered micro-SaaS that automatically analyzes customer return patterns and generates personalized retention offers to reduce e-commerce return rates by 40%. Transforms costly returns into revenue opportunities through intelligent intervention campaigns that trigger before customers initiate returns.",
+  "generated_at": "2025-11-09T20:14:08.631442+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/returnguard-ai/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/returnguard-ai/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/returnguard-ai/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/returnguard-ai/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/returnguard-ai/src/lib/docs.ts",
+    "businesses/fully_integrated/saas/returnguard-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/returnguard-ai/src/app/globals.css",
+    "businesses/fully_integrated/saas/returnguard-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

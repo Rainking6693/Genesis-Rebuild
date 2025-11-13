@@ -1,0 +1,23 @@
+{
+  "name": "ShopScript AI",
+  "type": "content",
+  "description": "AI-powered platform that automatically generates personalized product demo scripts and video outlines for e-commerce brands based on customer data and trending content formats. Transforms boring product listings into engaging, conversion-optimized content that speaks directly to different customer segments.",
+  "generated_at": "2025-11-09T19:09:39.174769+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/shopscript-ai/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/shopscript-ai/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/shopscript-ai/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/shopscript-ai/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/shopscript-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/content/shopscript-ai/src/app/globals.css",
+    "businesses/fully_integrated/content/shopscript-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

@@ -1,0 +1,20 @@
+{
+  "business_name": "AutoTool 307",
+  "business_type": "saas",
+  "start_time": 1762704204.9523342,
+  "end_time": 1762704322.9413943,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 1449,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 117.98906016349792,
+  "success_rate": 100.0
+}

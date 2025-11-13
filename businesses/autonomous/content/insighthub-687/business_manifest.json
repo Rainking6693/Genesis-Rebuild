@@ -1,0 +1,23 @@
+{
+  "name": "InsightHub 687",
+  "type": "content",
+  "description": "Premium content platform with expert insights. Subscription-based access to exclusive articles and courses.",
+  "generated_at": "2025-11-09T18:38:18.144031",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/autonomous/content/insighthub-687/src/components/blog_system.tsx",
+    "businesses/autonomous/content/insighthub-687/src/components/newsletter.tsx",
+    "businesses/autonomous/content/insighthub-687/src/components/seo_optimization.tsx",
+    "businesses/autonomous/content/insighthub-687/src/components/social_media.tsx",
+    "businesses/autonomous/content/insighthub-687/src/app/layout.tsx",
+    "businesses/autonomous/content/insighthub-687/src/app/globals.css",
+    "businesses/autonomous/content/insighthub-687/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

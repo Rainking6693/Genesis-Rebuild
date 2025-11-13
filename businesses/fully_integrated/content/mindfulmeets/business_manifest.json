@@ -1,0 +1,23 @@
+{
+  "name": "MindfulMeets",
+  "type": "content",
+  "description": "AI-powered platform that generates personalized mental wellness content and micro-interventions specifically designed for remote teams during virtual meetings. Combines real-time meeting sentiment analysis with evidence-based wellness techniques to boost team mental health and productivity.",
+  "generated_at": "2025-11-09T22:20:08.914738+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/mindfulmeets/src/lib/blog_system.ts",
+    "businesses/fully_integrated/content/mindfulmeets/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/mindfulmeets/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/mindfulmeets/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/mindfulmeets/src/app/layout.tsx",
+    "businesses/fully_integrated/content/mindfulmeets/src/app/globals.css",
+    "businesses/fully_integrated/content/mindfulmeets/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

@@ -1,0 +1,21 @@
+{
+  "name": "MeetingMind AI",
+  "type": "saas",
+  "description": "AI-powered meeting intelligence platform that automatically transforms remote team meetings into actionable business insights, tracking team wellness indicators and generating personalized productivity recommendations. Goes beyond basic transcription to provide emotional sentiment analysis, decision tracking, and automated follow-up task assignment with wellness-focused workload balancing.",
+  "generated_at": "2025-11-10T14:26:40.854134+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/meetingmind-ai/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/meetingmind-ai/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/meetingmind-ai/src/lib/user_auth.ts",
+    "businesses/fully_integrated/saas/meetingmind-ai/src/components/docs.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

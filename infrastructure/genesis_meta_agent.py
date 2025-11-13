@@ -45,6 +45,7 @@ Generate the complete component code:"""
 
 from infrastructure.code_extractor import extract_and_validate
 from infrastructure.business_monitor import get_monitor
+from infrastructure.workspace_state_manager import WorkspaceStateManager
 
 try:
     from agents.reflection_agent import get_reflection_agent  # type: ignore
@@ -745,6 +746,7 @@ vercel deploy --prod
         dag = self._decompose_business_to_tasks(spec)
         component_list = [task.description.replace("Build ", "") for task in dag.get_all_tasks() if task.task_id != "root"]
         business_id = monitor.start_business(spec.name, spec.business_type, component_list)
+        workspace_manager = self._create_workspace_manager(business_id, spec)
         tasks_completed = 0
         tasks_failed = 0
         components_generated = []
@@ -763,10 +765,12 @@ vercel deploy --prod
             result = await self._execute_task_with_llm(task, component_agent)
             task_results[task.task_id] = result
             
-            if result.get("success"):
+            success = result.get("success")
+            cost = result.get("cost", 0.0)
+            latency_ms = result.get("latency_ms") or result.get("latency")
+            if success:
                 tasks_completed += 1
                 components_generated.append(task.task_id)
-                cost = result.get("cost", 0.0)
                 total_cost += cost
                 
                 # Estimate lines of code (will be accurate after file write)
@@ -782,6 +786,22 @@ vercel deploy --prod
                 error_msg = result.get('error', 'Unknown error')
                 errors.append(f"Task {task.task_id} failed: {error_msg}")
                 monitor.record_component_failed(business_id, component_name, error_msg)
+
+            event_payload = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "task_id": task.task_id,
+                "component": component_name,
+                "agent": component_agent,
+                "status": "success" if success else "failure",
+                "cost": cost,
+                "latency_ms": latency_ms,
+                "error": result.get("error"),
+                "tasks_completed": tasks_completed,
+                "tasks_failed": tasks_failed,
+                "total_cost": total_cost,
+                "notes": result.get("notes"),
+            }
+            await workspace_manager.record_event(event_payload)
             
             # Write dashboard snapshot after each component
             monitor.write_dashboard_snapshot()
@@ -806,6 +826,7 @@ vercel deploy --prod
         
         # Complete monitoring
         monitor.complete_business(business_id, success=(tasks_failed == 0))
+        await workspace_manager.finalize()
         monitor.write_dashboard_snapshot()
         
         self._current_team_agents = []
@@ -819,6 +840,54 @@ vercel deploy --prod
         )
         self._current_spec = None
         return result_obj
+
+    def _create_workspace_manager(self, business_id: str, spec: BusinessSpec) -> WorkspaceStateManager:
+        """Initialize workspace synthesis manager for the current run."""
+        interval = int(os.getenv("WORKSPACE_SYNTHESIS_INTERVAL", "50"))
+        return WorkspaceStateManager(
+            business_id=business_id,
+            persistence_root=spec.output_dir,
+            summary_interval=max(5, interval),
+            llm_callback=self._workspace_insight_callback,
+        )
+
+    async def _workspace_insight_callback(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Use analyst agent to synthesize workspace insights every interval."""
+        prompt = (
+            "You are Genesis' workspace synthesizer. Analyze the JSON payload summarizing "
+            "recent agent progress and produce:\n"
+            "1. `workspace_summary`: concise narrative (<=120 words).\n"
+            "2. `risks`: list of concrete risks (<=4) or empty.\n"
+            "3. `next_actions`: prioritized actions for the orchestrator.\n"
+            "Respond with JSON only.\n\n"
+            f"Payload:\n```json\n{json.dumps(payload, indent=2)}\n```"
+        )
+
+        try:
+            response = await self._call_router("analyst_agent", prompt, temperature=0.1)
+            if not response:
+                raise ValueError("Empty response")
+            parsed = json.loads(self._extract_json_block(response))
+            if not isinstance(parsed, dict):
+                raise ValueError("LLM returned non-dict JSON")
+            return parsed
+        except Exception as exc:
+            logger.warning(f"Workspace insight synthesis failed: {exc}")
+            return {
+                "workspace_summary": "Analyst synthesis unavailable; using fallback.",
+                "risks": [f"Insight callback error: {exc}"],
+                "next_actions": [],
+            }
+
+    @staticmethod
+    def _extract_json_block(raw_response: str) -> str:
+        """Extract JSON content from potential code fences."""
+        raw_response = raw_response.strip()
+        if raw_response.startswith("```"):
+            lines = raw_response.splitlines()
+            json_lines = [line for line in lines[1:] if not line.startswith("```")]
+            return "\n".join(json_lines)
+        return raw_response
     
     async def autonomous_generate_business(
         self,

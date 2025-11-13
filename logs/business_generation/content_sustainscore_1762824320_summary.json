@@ -1,0 +1,20 @@
+{
+  "business_name": "SustainScore",
+  "business_type": "content",
+  "start_time": 1762824320.9518487,
+  "end_time": 1762824715.527672,
+  "status": "completed",
+  "components_requested": 24,
+  "components_completed": 24,
+  "components_failed": 0,
+  "files_generated": 24,
+  "lines_of_code": 1398,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 24,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 24,
+  "retry_count": 0,
+  "duration_seconds": 394.57582330703735,
+  "success_rate": 100.0
+}

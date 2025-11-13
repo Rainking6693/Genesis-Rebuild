@@ -1,0 +1,20 @@
+{
+  "business_name": "EcoMetrics Pro",
+  "business_type": "content",
+  "start_time": 1762729386.1411996,
+  "end_time": 1762729416.81542,
+  "status": "completed",
+  "components_requested": 4,
+  "components_completed": 4,
+  "components_failed": 0,
+  "files_generated": 4,
+  "lines_of_code": 87,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 4,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 4,
+  "retry_count": 0,
+  "duration_seconds": 30.674220323562622,
+  "success_rate": 100.0
+}

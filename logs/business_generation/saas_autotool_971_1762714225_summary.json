@@ -1,0 +1,20 @@
+{
+  "business_name": "AutoTool 971",
+  "business_type": "saas",
+  "start_time": 1762714225.6148493,
+  "end_time": 1762714271.4015424,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 458,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 45.78669309616089,
+  "success_rate": 100.0
+}

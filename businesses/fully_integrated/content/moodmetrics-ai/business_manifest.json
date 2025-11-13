@@ -1,0 +1,23 @@
+{
+  "name": "MoodMetrics AI",
+  "type": "content",
+  "description": "AI-powered workplace wellness dashboard that analyzes team communication patterns to predict burnout risks and provides personalized mental health interventions. Transforms Slack/Teams data into actionable wellness insights for small business managers who want to prevent employee turnover before it happens.",
+  "generated_at": "2025-11-09T22:23:47.290278+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/moodmetrics-ai/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/moodmetrics-ai/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/moodmetrics-ai/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/moodmetrics-ai/src/lib/social_media.ts",
+    "businesses/fully_integrated/content/moodmetrics-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/content/moodmetrics-ai/src/app/globals.css",
+    "businesses/fully_integrated/content/moodmetrics-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

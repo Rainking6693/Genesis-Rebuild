@@ -1,0 +1,20 @@
+{
+  "business_name": "Test E-Commerce Store",
+  "business_type": "ecommerce",
+  "start_time": 1762884078.5251641,
+  "end_time": 1762884407.9934394,
+  "status": "completed",
+  "components_requested": 17,
+  "components_completed": 17,
+  "components_failed": 0,
+  "files_generated": 17,
+  "lines_of_code": 1648,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 17,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 17,
+  "retry_count": 0,
+  "duration_seconds": 329.468275308609,
+  "success_rate": 100.0
+}

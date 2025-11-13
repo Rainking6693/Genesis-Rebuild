@@ -1,0 +1,25 @@
+app = "genesis-health-monitor-6693"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile.fly"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[services.ports]]
+  handlers = ["http", "tls"]
+  port = 80
+
+[[services.ports]]
+  handlers = ["tls"]
+  port = 443
+
+[[services.tcp_checks]]
+  interval = "15s"
+  timeout = "2s"

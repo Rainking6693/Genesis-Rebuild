@@ -1,0 +1,25 @@
+{
+  "name": "MoodFlow Analytics",
+  "type": "saas",
+  "description": "AI-powered employee wellness dashboard that automatically tracks team mood patterns through Slack/Teams interactions and provides actionable mental health insights for remote managers. Combines sentiment analysis with productivity metrics to prevent burnout before it happens and optimize team performance.",
+  "generated_at": "2025-11-10T15:41:54.675411+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/moodflow-analytics/src/lib/dashboard_ui.ts",
+    "businesses/fully_integrated/saas/moodflow-analytics/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/moodflow-analytics/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/moodflow-analytics/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/moodflow-analytics/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/moodflow-analytics/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/moodflow-analytics/src/app/globals.css",
+    "businesses/fully_integrated/saas/moodflow-analytics/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

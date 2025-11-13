@@ -1,0 +1,20 @@
+{
+  "business_name": "TrendShop 246",
+  "business_type": "ecommerce",
+  "start_time": 1762725161.5848017,
+  "end_time": 1762725220.0544877,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 586,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 58.46968603134155,
+  "success_rate": 100.0
+}

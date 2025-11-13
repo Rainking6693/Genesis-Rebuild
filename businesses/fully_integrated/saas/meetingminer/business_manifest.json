@@ -1,0 +1,22 @@
+{
+  "name": "MeetingMiner",
+  "type": "saas",
+  "description": "AI-powered meeting intelligence platform that automatically extracts actionable tasks, decisions, and follow-ups from video calls and generates smart project workflows. Transforms chaotic meeting outputs into organized, trackable business outcomes with zero manual effort.",
+  "generated_at": "2025-11-09T22:50:06.664385+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/meetingminer/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/meetingminer/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/meetingminer/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/meetingminer/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/meetingminer/src/components/docs.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

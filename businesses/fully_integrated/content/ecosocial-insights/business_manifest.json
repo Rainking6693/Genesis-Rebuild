@@ -1,0 +1,23 @@
+{
+  "name": "EcoSocial Insights",
+  "type": "content",
+  "description": "AI-powered sustainability marketing intelligence platform that helps e-commerce brands identify trending eco-conscious consumer behaviors and create viral green content. Combines real-time social sentiment analysis with carbon footprint data to generate weekly content strategies that boost both sales and environmental impact scores.",
+  "generated_at": "2025-11-09T22:10:46.740554+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/ecosocial-insights/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/ecosocial-insights/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/ecosocial-insights/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/ecosocial-insights/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/ecosocial-insights/src/app/layout.tsx",
+    "businesses/fully_integrated/content/ecosocial-insights/src/app/globals.css",
+    "businesses/fully_integrated/content/ecosocial-insights/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

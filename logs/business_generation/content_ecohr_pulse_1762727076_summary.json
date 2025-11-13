@@ -1,0 +1,20 @@
+{
+  "business_name": "EcoHR Pulse",
+  "business_type": "content",
+  "start_time": 1762727076.0539215,
+  "end_time": 1762727096.9680572,
+  "status": "completed",
+  "components_requested": 4,
+  "components_completed": 4,
+  "components_failed": 0,
+  "files_generated": 4,
+  "lines_of_code": 66,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 4,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 4,
+  "retry_count": 0,
+  "duration_seconds": 20.914135694503784,
+  "success_rate": 100.0
+}

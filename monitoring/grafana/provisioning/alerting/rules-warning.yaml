@@ -1,0 +1,411 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: Warning Alerts
+    folder: Genesis Alerts
+    interval: 1m
+    rules:
+      - uid: budget-approaching
+        title: Monthly Budget Approaching 80%
+        condition: C
+        for: 5m
+        annotations:
+          summary: "Cost-to-budget ratio above 80%."
+          message: "Review API usage, consider throttling or switching to cheaper models."
+        labels:
+          severity: warning
+          team: finance
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: genesis_cost_current_usd / clamp_min(genesis_monthly_budget_usd, 1e-6)
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B > 0.8
+              type: math
+      - uid: api-rate-limit
+        title: API Rate Limit Hit Burst
+        condition: C
+        for: 1m
+        annotations:
+          summary: "Ten or more rate limit hits recorded in the last hour."
+          message: "Check concurrency controls and backoff strategies in queue manager."
+        labels:
+          severity: warning
+          team: platform
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: increase(genesis_api_rate_limit_hits_total[1h])
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B >= 10
+              type: math
+      - uid: free-tier-limits
+        title: Free Tier Limits Approaching
+        condition: C
+        for: 10m
+        annotations:
+          summary: "Cloud free-tier usage exceeded 85%."
+          message: "Plan capacity expansion or clean up idle resources."
+        labels:
+          severity: warning
+          team: infra
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: genesis_free_tier_usage_ratio
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B > 0.85
+              type: math
+      - uid: deploy-failed
+        title: Deployment Failure Detected
+        condition: C
+        for: 5m
+        annotations:
+          summary: "DeployAgent reported failures in the last 15 minutes."
+          message: "Inspect deployment logs and rollback if necessary."
+        labels:
+          severity: warning
+          team: deploy
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: increase(genesis_deploy_failures_total[15m])
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B > 0
+              type: math
+      - uid: revenue-drop
+        title: Revenue Dropped 50%
+        condition: C
+        for: 15m
+        annotations:
+          summary: "24h revenue average below half of trailing 7-day average."
+          message: "Coordinate with growth team and review recent releases."
+        labels:
+          severity: warning
+          team: finance
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: avg_over_time(genesis_monthly_revenue_usd[24h])
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: avg_over_time(genesis_monthly_revenue_usd[7d])
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A < 0.5 * B
+              type: math
+      - uid: agent-success-low
+        title: Agent Success Rate Below 70%
+        condition: C
+        for: 5m
+        annotations:
+          summary: "At least one agent is below the 70% success threshold."
+          message: "Inspect failing agent logs, consider rotating duties."
+        labels:
+          severity: warning
+          team: orchestration
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: min(genesis_agent_success_rate)
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B < 0.7
+              type: math
+      - uid: redis-down
+        title: Redis Down
+        condition: C
+        for: 2m
+        annotations:
+          summary: "Redis exporter reporting instance down."
+          message: "Restart redis pod or failover to replica."
+        labels:
+          severity: warning
+          team: infra
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 180
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: min(up{job=\"genesis-redis\"})
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 180
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 180
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B < 0.5
+              type: math
+      - uid: high-memory
+        title: High Memory Usage (>80%)
+        condition: C
+        for: 5m
+        annotations:
+          summary: "Node memory usage above 80%."
+          message: "Scale node pool or clean up memory-heavy workloads."
+        labels:
+          severity: warning
+          team: infra
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: node_memory_Active_bytes / node_memory_MemTotal_bytes
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: max(A)
+              type: reduce
+              reducer: max
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B > 0.8
+              type: math
+      - uid: zero-traffic
+        title: Zero Traffic for 24h
+        condition: C
+        for: 10m
+        annotations:
+          summary: "No incoming requests registered in 24 hours."
+          message: "Verify public endpoints, DNS, marketing campaigns."
+        labels:
+          severity: warning
+          team: growth
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: sum(increase(genesis_http_requests_total[24h]))
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: B == 0
+              type: math
+      - uid: error-rate
+        title: High Error Rate (>5%)
+        condition: D
+        for: 3m
+        annotations:
+          summary: "5xx to total request ratio exceeded 5%."
+          message: "Check recent deploys, rollbacks, and error dashboards."
+        labels:
+          severity: warning
+          team: platform
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: sum(rate(genesis_http_requests_total{status=~\"5..\"}[5m]))
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: sum(rate(genesis_http_requests_total[5m]))
+              interval: ""
+              intervalFactor: 2
+              legendFormat: ""
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A / clamp_min(B, 1e-6)
+              type: math
+          - refId: D
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: C > 0.05
+              type: math
+

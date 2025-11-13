@@ -1,0 +1,23 @@
+{
+  "name": "Carbon Compass",
+  "type": "content",
+  "description": "AI-powered sustainability content platform that generates personalized carbon reduction action plans and tracks impact for small businesses. Combines educational climate tech content with automated reporting tools to help SMBs meet ESG requirements while saving costs.",
+  "generated_at": "2025-11-10T14:54:22.360055+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/carbon-compass/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/carbon-compass/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/carbon-compass/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/carbon-compass/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/carbon-compass/src/app/layout.tsx",
+    "businesses/fully_integrated/content/carbon-compass/src/app/globals.css",
+    "businesses/fully_integrated/content/carbon-compass/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

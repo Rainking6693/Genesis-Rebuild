@@ -23,11 +23,12 @@ Genotype Groups:
 - analysis: Analyst, QA, Security, Spec
 """
 
+import os
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 
 import numpy as np
 
@@ -91,6 +92,7 @@ class TeamOutcome:
     individual_contributions: Dict[str, float]  # agent_name -> contribution
     execution_time: float
     timestamp: datetime = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         if self.timestamp is None:
@@ -139,6 +141,10 @@ class InclusiveFitnessSwarm:
 
         # Initialize instance-specific RNG for reproducibility
         self.rng = random.Random(random_seed)
+        self.causal_influence_weight = float(os.getenv("SWARM_CAUSAL_INFLUENCE_WEIGHT", "0.5"))
+        self.agent_credit: Dict[str, Dict[str, float]] = {
+            agent.name: {"influence": 0.0, "appearances": 0.0} for agent in agents
+        }
 
     def _assign_genotypes(self) -> Dict[str, GenotypeGroup]:
         """
@@ -242,10 +248,89 @@ class InclusiveFitnessSwarm:
                 # Weight by relatedness (Hamilton's rule)
                 indirect_reward += relatedness * teammate_benefit
 
-        # Total inclusive fitness
-        total_fitness = direct_reward + indirect_reward
+        influence_bonus = self.causal_influence_weight * outcome.metadata.get("causal_influence", {}).get(agent.name, 0.0)
+
+        # Total inclusive fitness with participation fairness
+        total_fitness = direct_reward + indirect_reward + influence_bonus
+        total_fitness *= self._compute_participation_modifier(agent.name)
 
         return total_fitness
+
+    def _estimate_success_probability(
+        self,
+        team: List[Agent],
+        task: TaskRequirement,
+        has_all_capabilities: Optional[bool] = None,
+    ) -> float:
+        """Deterministically estimate team success probability."""
+        if has_all_capabilities is None:
+            required_caps = set(task.required_capabilities)
+            team_caps = set()
+            for agent in team:
+                team_caps.update(agent.capabilities)
+            has_all_capabilities = required_caps.issubset(team_caps)
+
+        if not has_all_capabilities:
+            success_prob = 0.3
+        else:
+            success_prob = 0.7
+            genotype_diversity = len(set(agent.genotype for agent in team)) / len(GenotypeGroup)
+            success_prob += 0.2 * genotype_diversity
+
+            genotype_counts: Dict[GenotypeGroup, int] = {}
+            for agent in team:
+                genotype_counts[agent.genotype] = genotype_counts.get(agent.genotype, 0) + 1
+            for count in genotype_counts.values():
+                if 2 <= count <= 3:
+                    success_prob += 0.1
+
+        return min(success_prob, 0.95)
+
+    def _compute_causal_influence_scores(
+        self,
+        team: List[Agent],
+        task: TaskRequirement,
+        base_success_prob: float,
+    ) -> Dict[str, float]:
+        """Approximate each agent's causal influence on success."""
+        influence: Dict[str, float] = {}
+        for agent in team:
+            reduced_team = [a for a in team if a.name != agent.name]
+            if not reduced_team:
+                reduced_prob = 0.0
+            else:
+                reduced_prob = self._estimate_success_probability(reduced_team, task)
+            delta = max(0.0, base_success_prob - reduced_prob)
+            influence[agent.name] = delta * task.priority
+        return influence
+
+    def _update_agent_credit(self, team: List[Agent], influence: Dict[str, float]) -> None:
+        """Track per-agent influence and participation for fairness adjustments."""
+        for agent in team:
+            stats = self.agent_credit.setdefault(agent.name, {"influence": 0.0, "appearances": 0.0})
+            stats["influence"] += influence.get(agent.name, 0.0)
+            stats["appearances"] += 1.0
+
+    def _compute_participation_modifier(self, agent_name: str) -> float:
+        """Reduce reward for chronic low-influence contributors."""
+        stats = self.agent_credit.get(agent_name)
+        if not stats or stats["appearances"] == 0:
+            return 1.0
+        agent_avg = stats["influence"] / max(1.0, stats["appearances"])
+        global_avg = self._global_average_influence()
+        if global_avg <= 0:
+            return 1.0
+        if agent_avg >= global_avg:
+            return 1.0
+        ratio = agent_avg / global_avg
+        return max(0.6, 0.8 * ratio + 0.2)
+
+    def _global_average_influence(self) -> float:
+        total_influence = sum(stats["influence"] for stats in self.agent_credit.values())
+        total_appearances = sum(stats["appearances"] for stats in self.agent_credit.values())
+        if total_appearances <= 0:
+            return 0.0
+        return total_influence / total_appearances
 
     def evaluate_team(
         self,
@@ -273,29 +358,11 @@ class InclusiveFitnessSwarm:
         required_caps = set(task.required_capabilities)
         has_all_capabilities = required_caps.issubset(team_capabilities)
 
-        # Calculate base success probability
-        if not has_all_capabilities:
-            success_prob = 0.3  # Low chance without all capabilities
-        else:
-            # Higher chance with all capabilities
-            success_prob = 0.7
-
-            # Bonus for genetic diversity (different genotypes bring unique strengths)
-            genotype_diversity = len(set(agent.genotype for agent in team)) / len(GenotypeGroup)
-            success_prob += 0.2 * genotype_diversity
-
-            # Bonus for kin cooperation (same genotype = better coordination)
-            genotype_counts = {}
-            for agent in team:
-                genotype_counts[agent.genotype] = genotype_counts.get(agent.genotype, 0) + 1
-
-            # Teams with 2-3 kin cooperate well
-            for count in genotype_counts.values():
-                if 2 <= count <= 3:
-                    success_prob += 0.1
-
-        # Cap at 0.95 (never guaranteed)
-        success_prob = min(success_prob, 0.95)
+        success_prob = self._estimate_success_probability(
+            team=team,
+            task=task,
+            has_all_capabilities=has_all_capabilities,
+        )
 
         if simulate:
             # Simulated outcome
@@ -329,8 +396,22 @@ class InclusiveFitnessSwarm:
             success=success,
             overall_reward=overall_reward,
             individual_contributions=individual_contributions,
-            execution_time=execution_time
+            execution_time=execution_time,
+            metadata={}
         )
+        outcome.metadata["success_probability"] = success_prob
+
+        causal_influence = self._compute_causal_influence_scores(team, task, success_prob)
+        outcome.metadata["causal_influence"] = causal_influence
+        self._update_agent_credit(team, causal_influence)
+
+        # Reward share adjusted to discourage free-riding
+        for agent in team:
+            name = agent.name
+            outcome.individual_contributions[name] = (
+                outcome.individual_contributions.get(name, 0.0)
+                + 0.25 * causal_influence.get(name, 0.0)
+            )
 
         return outcome
 
@@ -353,6 +434,8 @@ class ParticleSwarmOptimizer:
         c1: float = 1.5,  # Cognitive parameter
         c2: float = 1.5,  # Social parameter
         random_seed: Optional[int] = None,
+        restart_patience: int = 12,
+        restart_fraction: float = 0.5,
     ):
         """
         Initialize Particle Swarm Optimizer
@@ -378,6 +461,10 @@ class ParticleSwarmOptimizer:
             raise ValueError(f"inertia weight w must be in [0,1], got {w}")
         if c1 < 0 or c2 < 0:
             raise ValueError(f"PSO parameters c1, c2 must be >= 0, got c1={c1}, c2={c2}")
+        if restart_patience < 0:
+            raise ValueError(f"restart_patience must be >= 0, got {restart_patience}")
+        if not (0.0 < restart_fraction <= 1.0):
+            raise ValueError(f"restart_fraction must be in (0,1], got {restart_fraction}")
 
         self.swarm = swarm
         self.n_particles = n_particles
@@ -385,12 +472,15 @@ class ParticleSwarmOptimizer:
         self.w = w
         self.c1 = c1
         self.c2 = c2
+        self.restart_patience = restart_patience
+        self.restart_fraction = restart_fraction
 
         # Initialize instance-specific RNG for reproducibility
         self.rng = random.Random(random_seed)
 
         self.global_best_team: Optional[List[Agent]] = None
         self.global_best_fitness: float = -float('inf')
+        self.restart_events: int = 0
 
     def _initialize_particle(self, task: TaskRequirement) -> List[Agent]:
         """Initialize random team composition"""
@@ -434,8 +524,11 @@ class ParticleSwarmOptimizer:
         self.global_best_team = personal_best_teams[best_idx].copy()
         self.global_best_fitness = personal_best_fitness[best_idx]
 
+        stagnation_counter = 0
+
         # PSO iterations
         for iteration in range(self.max_iterations):
+            improved = False
             for i, team in enumerate(particles):
                 # Evaluate current team
                 current_fitness = self._evaluate_team_fitness(team, task)
@@ -444,11 +537,13 @@ class ParticleSwarmOptimizer:
                 if current_fitness > personal_best_fitness[i]:
                     personal_best_fitness[i] = current_fitness
                     personal_best_teams[i] = team.copy()
+                    improved = True
 
                 # Update global best
                 if current_fitness > self.global_best_fitness:
                     self.global_best_fitness = current_fitness
                     self.global_best_team = team.copy()
+                    improved = True
 
                 # PSO update: Move towards personal best and global best
                 new_team = self._update_particle(
@@ -459,10 +554,40 @@ class ParticleSwarmOptimizer:
                 )
                 particles[i] = new_team
 
+            if improved:
+                stagnation_counter = 0
+            else:
+                stagnation_counter += 1
+                if self.restart_patience and stagnation_counter >= self.restart_patience:
+                    self._apply_restart_token(
+                        particles=particles,
+                        personal_best_teams=personal_best_teams,
+                        personal_best_fitness=personal_best_fitness,
+                        task=task,
+                    )
+                    stagnation_counter = 0
+                    self.restart_events += 1
+
             if verbose and (iteration % 10 == 0 or iteration == self.max_iterations - 1):
                 print(f"Iteration {iteration}: Best fitness = {self.global_best_fitness:.3f}")
 
         return self.global_best_team, self.global_best_fitness
+
+    def _apply_restart_token(
+        self,
+        particles: List[List[Agent]],
+        personal_best_teams: List[List[Agent]],
+        personal_best_fitness: List[float],
+        task: TaskRequirement,
+    ) -> None:
+        """Reinitialize a portion of particles to escape stagnation."""
+        restart_count = max(1, int(len(particles) * self.restart_fraction))
+        indices = self.rng.sample(range(len(particles)), restart_count)
+        for idx in indices:
+            new_team = self._initialize_particle(task)
+            particles[idx] = new_team
+            personal_best_teams[idx] = new_team.copy()
+            personal_best_fitness[idx] = self._evaluate_team_fitness(new_team, task)
 
     def _evaluate_team_fitness(self, team: List[Agent], task: TaskRequirement) -> float:
         """
@@ -573,7 +698,9 @@ def get_pso_optimizer(
     swarm: InclusiveFitnessSwarm,
     n_particles: int = 20,
     max_iterations: int = 50,
-    random_seed: Optional[int] = None
+    random_seed: Optional[int] = None,
+    restart_patience: int = 12,
+    restart_fraction: float = 0.5,
 ) -> ParticleSwarmOptimizer:
     """
     Factory function to create PSO optimizer
@@ -591,5 +718,7 @@ def get_pso_optimizer(
         swarm=swarm,
         n_particles=n_particles,
         max_iterations=max_iterations,
-        random_seed=random_seed
+        random_seed=random_seed,
+        restart_patience=restart_patience,
+        restart_fraction=restart_fraction,
     )

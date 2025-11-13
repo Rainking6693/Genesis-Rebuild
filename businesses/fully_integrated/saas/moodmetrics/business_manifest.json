@@ -1,0 +1,25 @@
+{
+  "name": "MoodMetrics",
+  "type": "saas",
+  "description": "AI-powered team wellness dashboard that analyzes remote team communication patterns to predict burnout and automatically suggests personalized interventions. Combines mental health monitoring with productivity insights to help managers create healthier remote work environments.",
+  "generated_at": "2025-11-09T22:39:04.333408+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/moodmetrics/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/moodmetrics/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/moodmetrics/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/moodmetrics/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/moodmetrics/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/moodmetrics/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/moodmetrics/src/app/globals.css",
+    "businesses/fully_integrated/saas/moodmetrics/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

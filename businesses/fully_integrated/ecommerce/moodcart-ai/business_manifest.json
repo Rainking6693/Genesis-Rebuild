@@ -1,0 +1,22 @@
+{
+  "name": "MoodCart AI",
+  "type": "ecommerce",
+  "description": "AI-powered personalized product recommendations that adapt to users' current emotional state and mental wellness goals. Combines mood tracking with curated product subscriptions to deliver items that genuinely improve users' daily mental health and productivity.",
+  "generated_at": "2025-11-09T23:26:39.990559+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/moodcart-ai/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/moodcart-ai/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/moodcart-ai/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/moodcart-ai/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/moodcart-ai/src/lib/customer_support_bot.ts"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

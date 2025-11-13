@@ -1,0 +1,25 @@
+{
+  "name": "EcoSell Analytics",
+  "type": "saas",
+  "description": "AI-powered sustainability analytics platform that helps small e-commerce brands track, optimize, and market their environmental impact to eco-conscious consumers. Combines carbon footprint tracking with automated green marketing content generation and customer sustainability scoring.",
+  "generated_at": "2025-11-10T15:39:57.894474+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/ecosell-analytics/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/ecosell-analytics/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/ecosell-analytics/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/ecosell-analytics/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/ecosell-analytics/src/components/docs.tsx",
+    "businesses/fully_integrated/saas/ecosell-analytics/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/ecosell-analytics/src/app/globals.css",
+    "businesses/fully_integrated/saas/ecosell-analytics/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

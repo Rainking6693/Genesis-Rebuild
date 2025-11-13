@@ -1,0 +1,25 @@
+{
+  "name": "RetentionAI",
+  "type": "ecommerce",
+  "description": "AI-powered customer retention platform that automatically generates personalized win-back campaigns for ecommerce businesses based on real-time behavioral analysis. Combines community insights from similar businesses with AI-driven automation to recover churning customers before they're lost forever.",
+  "generated_at": "2025-11-09T19:31:55.631405+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/retentionai/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/retentionai/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/retentionai/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/retentionai/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/retentionai/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/retentionai/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/retentionai/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/retentionai/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

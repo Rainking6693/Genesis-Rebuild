@@ -1,0 +1,20 @@
+{
+  "business_name": "AutoTool 652",
+  "business_type": "saas",
+  "start_time": 1762722984.8650775,
+  "end_time": 1762723053.3038452,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 609,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 68.43876767158508,
+  "success_rate": 100.0
+}

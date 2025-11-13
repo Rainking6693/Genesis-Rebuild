@@ -1,0 +1,25 @@
+{
+  "name": "MoodSync",
+  "type": "ecommerce",
+  "description": "AI-powered platform that automatically adjusts remote team productivity tools and meeting schedules based on real-time collective mood analysis from Slack/Teams communications. Combines mental health awareness with remote work optimization to boost team performance while preventing burnout.",
+  "generated_at": "2025-11-09T21:28:25.493560+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/moodsync/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/moodsync/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/moodsync/src/lib/stripe_checkout.ts",
+    "businesses/fully_integrated/ecommerce/moodsync/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/moodsync/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/moodsync/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/moodsync/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/moodsync/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

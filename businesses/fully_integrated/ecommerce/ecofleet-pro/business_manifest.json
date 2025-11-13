@@ -1,0 +1,25 @@
+{
+  "name": "EcoFleet Pro",
+  "type": "ecommerce",
+  "description": "AI-powered SaaS platform that helps small businesses automatically track, optimize, and offset their delivery carbon footprint while providing customers with real-time sustainability scores. Combines climate tech with micro-SaaS tools to turn environmental compliance into a competitive advantage for SMBs.",
+  "generated_at": "2025-11-09T21:16:19.926777+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/ecofleet-pro/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/ecofleet-pro/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/ecofleet-pro/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/ecofleet-pro/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/ecofleet-pro/src/components/customer_support_bot.tsx",
+    "businesses/fully_integrated/ecommerce/ecofleet-pro/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/ecofleet-pro/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/ecofleet-pro/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

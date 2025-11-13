@@ -1,0 +1,24 @@
+{
+  "name": "HealthyTeam Pulse",
+  "type": "saas",
+  "description": "AI-powered wellness automation platform that monitors team health metrics through Slack/Teams integration and automatically suggests personalized interventions to reduce burnout and boost productivity. Combines anonymous health check-ins with smart scheduling, break reminders, and team wellness challenges to create healthier remote work cultures.",
+  "generated_at": "2025-11-10T14:29:16.178698+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/healthyteam-pulse/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/healthyteam-pulse/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/healthyteam-pulse/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/healthyteam-pulse/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/healthyteam-pulse/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/healthyteam-pulse/src/app/globals.css",
+    "businesses/fully_integrated/saas/healthyteam-pulse/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

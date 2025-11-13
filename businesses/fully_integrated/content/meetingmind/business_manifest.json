@@ -1,0 +1,20 @@
+{
+  "name": "MeetingMind",
+  "type": "content",
+  "description": "AI-powered meeting intelligence platform that transforms remote team meetings into actionable content libraries, automatically generating searchable transcripts, decision trees, and personalized follow-up content for each attendee. Turns every meeting into a knowledge asset that reduces repetitive discussions and accelerates team decision-making.",
+  "generated_at": "2025-11-10T13:30:43.558628+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/meetingmind/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/meetingmind/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/meetingmind/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/meetingmind/src/components/social_media.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

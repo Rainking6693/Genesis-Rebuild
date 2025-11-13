@@ -1,0 +1,23 @@
+{
+  "name": "MoodFlow AI",
+  "type": "content",
+  "description": "AI-powered wellness automation platform that creates personalized daily mental health content and micro-interventions based on team mood analytics for small businesses. Combines anonymous employee sentiment tracking with automated delivery of targeted wellness resources, meditation scripts, and productivity tips.",
+  "generated_at": "2025-11-10T14:12:49.477010+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/moodflow-ai/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/moodflow-ai/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/moodflow-ai/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/moodflow-ai/src/components/social_media.tsx",
+    "businesses/fully_integrated/content/moodflow-ai/src/app/layout.tsx",
+    "businesses/fully_integrated/content/moodflow-ai/src/app/globals.css",
+    "businesses/fully_integrated/content/moodflow-ai/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

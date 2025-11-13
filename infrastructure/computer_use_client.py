@@ -1,10 +1,10 @@
 """
 COMPUTER USE CLIENT - Unified GUI Automation Interface
-Version: 1.0
-Last Updated: October 27, 2025
+Version: 1.1
+Last Updated: November 12, 2025
 
 Unified client for GUI automation with pluggable backends:
-- Gemini Computer Use (mock implementation, ~50-60% success rate)
+- Gemini Computer Use (Gemini 2.5 Computer Use model)
 - Agent-S (production implementation, 83.6% OSWorld success rate)
 
 ARCHITECTURE:
@@ -95,13 +95,17 @@ class ComputerUseClient:
         logger.info(f"✅ ComputerUseClient initialized with backend: {self.backend_name}")
 
     def _init_gemini_backend(self, **kwargs):
-        """Initialize Gemini Computer Use backend (mock)"""
-        # Import here to avoid circular dependency
-        from agents.deploy_agent import GeminiComputerUseClient
+        """Initialize Gemini Computer Use backend"""
+        from infrastructure.gemini_computer_use import GeminiComputerUseClient
 
         require_human_confirmation = kwargs.get("require_human_confirmation", False)
+        agent_role = kwargs.get("agent_role", "generic")
+        headless = kwargs.get("headless", True)
+
         return GeminiComputerUseClient(
-            require_human_confirmation=require_human_confirmation
+            agent_role=agent_role,
+            require_human_confirmation=require_human_confirmation,
+            headless=headless,
         )
 
     def _init_agent_s_backend(self, model: str, **kwargs):
@@ -290,10 +294,9 @@ class ComputerUseClient:
         if self.backend_name == "agent_s":
             return self.backend.get_metrics()
         else:
-            # Gemini mock doesn't track metrics
             return {
                 "backend": "gemini",
-                "note": "Metrics not available for Gemini mock backend",
+                "note": "Gemini backend does not yet report granular metrics",
             }
 
 

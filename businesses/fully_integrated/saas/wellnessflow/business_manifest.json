@@ -1,0 +1,22 @@
+{
+  "name": "WellnessFlow",
+  "type": "saas",
+  "description": "AI-powered employee wellness automation platform that integrates mental health check-ins, sustainable workplace habits, and financial wellness coaching directly into Slack/Teams. Creates personalized wellness action plans while providing employers with anonymous team wellness analytics to reduce burnout and increase retention.",
+  "generated_at": "2025-11-10T14:24:32.837827+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/wellnessflow/src/components/dashboard_ui.tsx",
+    "businesses/fully_integrated/saas/wellnessflow/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/wellnessflow/src/components/user_auth.tsx",
+    "businesses/fully_integrated/saas/wellnessflow/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/wellnessflow/src/lib/docs.ts"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

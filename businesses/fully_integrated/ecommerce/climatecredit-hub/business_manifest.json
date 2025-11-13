@@ -1,0 +1,25 @@
+{
+  "name": "ClimateCredit Hub",
+  "type": "ecommerce",
+  "description": "AI-powered marketplace that helps small businesses automatically purchase verified carbon credits through their existing subscriptions and services, turning every business transaction into climate action. Businesses earn sustainability badges and reporting while supporting vetted climate projects, with zero manual effort required.",
+  "generated_at": "2025-11-10T15:55:29.275696+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/climatecredit-hub/src/lib/product_catalog.ts",
+    "businesses/fully_integrated/ecommerce/climatecredit-hub/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/climatecredit-hub/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/climatecredit-hub/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/climatecredit-hub/src/lib/customer_support_bot.ts",
+    "businesses/fully_integrated/ecommerce/climatecredit-hub/src/app/layout.tsx",
+    "businesses/fully_integrated/ecommerce/climatecredit-hub/src/app/globals.css",
+    "businesses/fully_integrated/ecommerce/climatecredit-hub/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

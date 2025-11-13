@@ -1,0 +1,20 @@
+{
+  "business_name": "AutoTool 872",
+  "business_type": "saas",
+  "start_time": 1762702465.4966702,
+  "end_time": 1762702518.527895,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 531,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 53.031224727630615,
+  "success_rate": 100.0
+}

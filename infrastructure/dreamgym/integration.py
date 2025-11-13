@@ -1,0 +1,86 @@
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+
+from infrastructure.dreamgym.curriculum import DreamGymCurriculumGenerator
+from infrastructure.dreamgym.experience_model import DreamGymExperience, DreamGymExperienceModel
+from infrastructure.dreamgym.hybrid_buffer import HybridReplayBuffer
+
+if TYPE_CHECKING:
+    from infrastructure.trajectory_pool import Trajectory
+
+
+class DreamGymTrainer:
+    """
+    Coordinates DreamGym components for SE-Darwin evolution.
+    """
+
+    def __init__(self, agent_name: str) -> None:
+        self.agent_name = agent_name
+        self.model = DreamGymExperienceModel()
+        self.curriculum = DreamGymCurriculumGenerator()
+        self.buffer = HybridReplayBuffer()
+
+    def record_real_trajectory(self, trajectory: "Trajectory") -> None:
+        experience = self._real_to_experience(trajectory)
+        self.buffer.add(experience, source="real")
+        self.curriculum.record_outcome(
+            experience.task_signature,
+            experience.reward,
+            experience.novelty_score,
+        )
+
+    def _real_to_experience(self, trajectory: "Trajectory") -> DreamGymExperience:
+        task_signature = trajectory.operator_applied or "baseline"
+        reward = max(0.0, min(1.0, trajectory.success_score))
+        novelty = 0.6 if trajectory.reasoning_pattern else 0.7
+        metadata = {
+            "generation": trajectory.generation,
+            "agent": trajectory.agent_name,
+            "status": trajectory.status,
+        }
+        return DreamGymExperience(
+            task_signature=task_signature,
+            difficulty="real",
+            synthetic=False,
+            observation=trajectory.problem_diagnosis or "N/A",
+            action=trajectory.code_changes or "",
+            reward=reward,
+            novelty_score=novelty,
+            generated_at=trajectory.created_at,
+            metadata=metadata,
+        )
+
+    def generate_synthetic_batch(self, task_signature: str, batch_size: int = 16) -> List[Dict[str, Any]]:
+        stage = self.curriculum.next_stage(task_signature)
+        experiences: List[Dict[str, Any]] = []
+        for _ in range(batch_size):
+            exp = self.model.generate_episode(task_signature, stage)
+            self.buffer.add(exp, "synthetic")
+            self.curriculum.record_outcome(task_signature, exp.reward, exp.novelty_score)
+            experiences.append(exp.to_dict())
+        return experiences
+
+    def prepare_evolution_batch(
+        self,
+        task_signature: str,
+        batch_size: int = 32,
+        synthetic_ratio: float = 0.5,
+    ) -> List[Dict[str, Any]]:
+        samples = self.buffer.sample(batch_size, synthetic_ratio)
+        deficit = batch_size - len(samples)
+        if deficit > 0:
+            samples.extend(self.generate_synthetic_batch(task_signature, deficit))
+
+        return [
+            sample if isinstance(sample, dict) else sample.to_dict()
+            for sample in samples
+        ]
+
+    def stats(self) -> Dict[str, Any]:
+        buffer_stats = self.buffer.stats()
+        return {
+            "agent": self.agent_name,
+            "buffer_real": buffer_stats["real"],
+            "buffer_synthetic": buffer_stats["synthetic"],
+        }

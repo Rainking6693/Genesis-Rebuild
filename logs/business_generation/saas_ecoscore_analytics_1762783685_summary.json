@@ -1,0 +1,20 @@
+{
+  "business_name": "EcoScore Analytics",
+  "business_type": "saas",
+  "start_time": 1762783685.1660447,
+  "end_time": 1762783759.3040195,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 180,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 74.1379747390747,
+  "success_rate": 100.0
+}

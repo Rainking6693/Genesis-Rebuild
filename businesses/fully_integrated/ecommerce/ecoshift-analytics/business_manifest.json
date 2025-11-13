@@ -1,0 +1,22 @@
+{
+  "name": "EcoShift Analytics",
+  "type": "ecommerce",
+  "description": "AI-powered sustainability assessment platform that helps small e-commerce businesses instantly calculate, optimize, and market their environmental impact while turning green practices into competitive advantages. We transform complex carbon footprint data into actionable insights and automated marketing content that drives both sustainability and sales.",
+  "generated_at": "2025-11-10T13:25:00.814231+00:00",
+  "components": [
+    "component_0_product_catalog",
+    "component_1_shopping_cart",
+    "component_2_stripe_checkout",
+    "component_3_email_marketing",
+    "component_4_customer_support_bot"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/ecommerce/ecoshift-analytics/src/components/product_catalog.tsx",
+    "businesses/fully_integrated/ecommerce/ecoshift-analytics/src/components/shopping_cart.tsx",
+    "businesses/fully_integrated/ecommerce/ecoshift-analytics/src/components/stripe_checkout.tsx",
+    "businesses/fully_integrated/ecommerce/ecoshift-analytics/src/components/email_marketing.tsx",
+    "businesses/fully_integrated/ecommerce/ecoshift-analytics/src/components/customer_support_bot.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

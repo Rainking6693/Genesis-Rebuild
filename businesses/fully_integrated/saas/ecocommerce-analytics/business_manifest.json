@@ -1,0 +1,25 @@
+{
+  "name": "EcoCommerce Analytics",
+  "type": "saas",
+  "description": "AI-powered sustainability scoring and carbon tracking platform that helps e-commerce businesses automatically calculate, display, and offset their products' environmental impact while boosting green sales conversions. Combines real-time supply chain data with consumer sustainability preferences to drive profitable eco-conscious purchasing decisions.",
+  "generated_at": "2025-11-10T15:44:57.388691+00:00",
+  "components": [
+    "component_0_dashboard_ui",
+    "component_1_rest_api",
+    "component_2_user_auth",
+    "component_3_stripe_billing",
+    "component_4_docs"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/saas/ecocommerce-analytics/src/lib/dashboard_ui.ts",
+    "businesses/fully_integrated/saas/ecocommerce-analytics/src/components/rest_api.tsx",
+    "businesses/fully_integrated/saas/ecocommerce-analytics/src/lib/user_auth.ts",
+    "businesses/fully_integrated/saas/ecocommerce-analytics/src/components/stripe_billing.tsx",
+    "businesses/fully_integrated/saas/ecocommerce-analytics/src/lib/docs.ts",
+    "businesses/fully_integrated/saas/ecocommerce-analytics/src/app/layout.tsx",
+    "businesses/fully_integrated/saas/ecocommerce-analytics/src/app/globals.css",
+    "businesses/fully_integrated/saas/ecocommerce-analytics/src/app/page.tsx"
+  ],
+  "tasks_completed": 5,
+  "tasks_failed": 0
+}

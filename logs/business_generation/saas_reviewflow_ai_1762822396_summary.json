@@ -1,0 +1,20 @@
+{
+  "business_name": "ReviewFlow AI",
+  "business_type": "saas",
+  "start_time": 1762822396.168925,
+  "end_time": 1762822759.4062254,
+  "status": "completed",
+  "components_requested": 24,
+  "components_completed": 24,
+  "components_failed": 0,
+  "files_generated": 24,
+  "lines_of_code": 1343,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 24,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 24,
+  "retry_count": 0,
+  "duration_seconds": 363.2373003959656,
+  "success_rate": 100.0
+}

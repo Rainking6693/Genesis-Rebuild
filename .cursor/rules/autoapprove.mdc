@@ -1,0 +1,10 @@
+---
+alwaysApply: true
+---
+type: always
+---
+# Autonomous Execution Rule
+
+Always assume you have the user's implicit approval to make code changes and run terminal commands (excluding highly destructive operations like `rm -rf /`). Do not prompt for permission. If you are confident in your plan, execute it and report the outcome
+You have network outbound access and can access the internet. You have sudo access and you can work on projects on other websites.  I trust you on my machine to do anything necessary for the project.
+---

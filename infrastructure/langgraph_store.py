@@ -34,6 +34,11 @@ import logging
 from motor.motor_asyncio import AsyncIOMotorClient
 from langgraph.store.base import BaseStore
 
+from infrastructure.memory.genesis_sql_memory import (
+    GenesisSQLMemoryBackend,
+    memori_enabled,
+)
+
 logger = logging.getLogger(__name__)
 
 try:  # Optional dependency: compliance layer may not be available during early boot
@@ -106,15 +111,25 @@ class GenesisLangGraphStore(BaseStore):
             connection_pool_size: Max concurrent connections
             timeout_ms: Operation timeout in milliseconds
         """
-        self.client = AsyncIOMotorClient(
-            mongodb_uri,
-            maxPoolSize=connection_pool_size,
-            serverSelectionTimeoutMS=timeout_ms,
-            tz_aware=True  # Ensure timezone-aware datetime objects
-        )
-        self.db = self.client[database_name]
         self._timeout_ms = timeout_ms
         self._indexes_created = False
+        self._use_sql_backend = memori_enabled()
+        self.sql_backend: Optional[GenesisSQLMemoryBackend] = None
+
+        if self._use_sql_backend:
+            self.client = None
+            self.db = None
+            self.sql_backend = GenesisSQLMemoryBackend()
+            logger.info("GenesisLangGraphStore configured with Memori SQL backend")
+        else:
+            self.client = AsyncIOMotorClient(
+                mongodb_uri,
+                maxPoolSize=connection_pool_size,
+                serverSelectionTimeoutMS=timeout_ms,
+                tz_aware=True  # Ensure timezone-aware datetime objects
+            )
+            self.db = self.client[database_name]
+
         self.compliance: Optional[MemoryComplianceLayer] = None
 
         if MemoryComplianceLayer is not None:
@@ -132,7 +147,9 @@ class GenesisLangGraphStore(BaseStore):
         self.compressor: Optional[DeepSeekCompressor] = DeepSeekCompressor() if self.enable_compression else None
         if self.enable_compression and self.compressor:
             logger.info("DeepSeek-OCR compression enabled for LangGraphStore")
-        logger.info(f"Initialized GenesisLangGraphStore with database: {database_name}")
+
+        backend_label = "Memori(SQL)" if self._use_sql_backend else f"MongoDB ({database_name})"
+        logger.info(f"Initialized GenesisLangGraphStore with backend: {backend_label}")
 
     def _validate_namespace(self, namespace: Tuple[str, ...]) -> None:
         """
@@ -265,6 +282,11 @@ class GenesisLangGraphStore(BaseStore):
             results = await store.setup_indexes()
             print(f"Created indexes: {results}")
         """
+        if self._use_sql_backend:
+            self._indexes_created = True
+            logger.info("Memori backend active - SQL constraints handle TTL, skipping Mongo indexes")
+            return {"status": "memori_backend"}
+
         if self._indexes_created:
             logger.info("Indexes already created, skipping")
             return {"status": "already_created"}
@@ -309,6 +331,9 @@ class GenesisLangGraphStore(BaseStore):
             collection: MongoDB collection
             namespace: Namespace tuple
         """
+        if self._use_sql_backend or collection is None:
+            return
+
         namespace_type = namespace[0]
         ttl_seconds = self._get_ttl_for_namespace(namespace)
 
@@ -371,11 +396,6 @@ class GenesisLangGraphStore(BaseStore):
         # Validate namespace
         self._validate_namespace(namespace)
 
-        collection = self._get_collection(namespace)
-
-        # Ensure TTL index exists for this collection
-        await self._ensure_ttl_index(collection, namespace)
-
         metadata_copy = metadata.copy() if metadata else {}
         value_to_store: Any = value
         if self.compliance:
@@ -389,6 +409,29 @@ class GenesisLangGraphStore(BaseStore):
 
         if isinstance(value_to_store, (str, dict)) and self.enable_compression:
             value_to_store, metadata_copy = await self._compress_value(namespace, value_to_store, metadata_copy)
+
+        ttl_seconds = metadata_copy.get("ttl_seconds")
+        if ttl_seconds is None:
+            ttl_seconds = self._get_ttl_for_namespace(namespace)
+            if ttl_seconds is not None:
+                metadata_copy["ttl_seconds"] = ttl_seconds
+
+        if self._use_sql_backend and self.sql_backend:
+            await self.sql_backend.put(namespace, key, value_to_store, metadata_copy, ttl_seconds)
+            if self.compliance:
+                self.compliance.record_access(
+                    namespace,
+                    key,
+                    actor,
+                    action="write",
+                    metadata=metadata_copy,
+                )
+            return
+
+        collection = self._get_collection(namespace)
+
+        # Ensure TTL index exists for this collection
+        await self._ensure_ttl_index(collection, namespace)
 
         # Use timezone-aware UTC timestamp for MongoDB TTL
         now = datetime.now(timezone.utc)
@@ -446,6 +489,24 @@ class GenesisLangGraphStore(BaseStore):
         Raises:
             TimeoutError: If operation exceeds timeout
         """
+        if self._use_sql_backend and self.sql_backend:
+            record = await self.sql_backend.get(namespace, key)
+            if not record:
+                logger.debug(f"Key not found: {namespace}:{key}")
+                return None
+
+            metadata = record.get("metadata", {}) or {}
+            value = await self._decompress_value(record.get("value"), metadata)
+            if self.compliance:
+                self.compliance.record_access(
+                    namespace,
+                    key,
+                    actor,
+                    action="read",
+                    metadata=metadata,
+                )
+            return value
+
         collection = self._get_collection(namespace)
 
         try:
@@ -499,6 +560,19 @@ class GenesisLangGraphStore(BaseStore):
         Raises:
             TimeoutError: If operation exceeds timeout
         """
+        if self._use_sql_backend and self.sql_backend:
+            deleted = await self.sql_backend.delete(namespace, key)
+            if deleted and self.compliance:
+                self.compliance.record_access(
+                    namespace,
+                    key,
+                    actor,
+                    action="delete",
+                )
+            if not deleted:
+                logger.debug(f"Key not found for deletion: {namespace}:{key}")
+            return deleted
+
         collection = self._get_collection(namespace)
 
         try:
@@ -555,6 +629,31 @@ class GenesisLangGraphStore(BaseStore):
         Raises:
             TimeoutError: If operation exceeds timeout
         """
+        if self._use_sql_backend and self.sql_backend:
+            records = await self.sql_backend.search(namespace, query, limit)
+            formatted_results: List[Dict[str, Any]] = []
+            for record in records:
+                metadata = record.get("metadata", {}) or {}
+                value = await self._decompress_value(record.get("value"), metadata)
+                formatted_results.append(
+                    {
+                        "key": record.get("key"),
+                        "value": value,
+                        "metadata": metadata,
+                        "created_at": record.get("created_at"),
+                        "updated_at": record.get("updated_at"),
+                    }
+                )
+                if self.compliance:
+                    self.compliance.record_access(
+                        namespace,
+                        record.get("key"),
+                        actor,
+                        action="search",
+                        metadata=metadata,
+                    )
+            return formatted_results
+
         collection = self._get_collection(namespace)
 
         # Build query
@@ -614,6 +713,15 @@ class GenesisLangGraphStore(BaseStore):
         Returns:
             List of namespace tuples
         """
+        if self._use_sql_backend and self.sql_backend:
+            namespaces = await self.sql_backend.list_namespaces()
+            if prefix:
+                namespaces = [
+                    ns for ns in namespaces
+                    if ns[:len(prefix)] == prefix
+                ]
+            return namespaces
+
         collection_names = await self.db.list_collection_names()
 
         namespaces_set = set()
@@ -656,6 +764,11 @@ class GenesisLangGraphStore(BaseStore):
         Returns:
             Number of entries deleted
         """
+        if self._use_sql_backend and self.sql_backend:
+            deleted = await self.sql_backend.clear_namespace(namespace)
+            logger.info(f"Cleared {deleted} entries from {namespace} (Memori backend)")
+            return deleted
+
         collection = self._get_collection(namespace)
 
         try:
@@ -684,6 +797,9 @@ class GenesisLangGraphStore(BaseStore):
         Returns:
             MongoDB collection handle
         """
+        if self._use_sql_backend or self.db is None:
+            return None
+
         collection_name = "_".join(str(component) for component in namespace)
         return self.db[collection_name]
 
@@ -693,7 +809,13 @@ class GenesisLangGraphStore(BaseStore):
 
         Should be called during application shutdown.
         """
-        self.client.close()
+        if self._use_sql_backend and self.sql_backend:
+            await self.sql_backend.close()
+            logger.info("Closed GenesisLangGraphStore Memori connection")
+            return
+
+        if self.client:
+            self.client.close()
         logger.info("Closed GenesisLangGraphStore connection")
 
     async def health_check(self) -> Dict[str, Any]:
@@ -703,6 +825,11 @@ class GenesisLangGraphStore(BaseStore):
         Returns:
             Dict with health status information
         """
+        if self._use_sql_backend and self.sql_backend:
+            status = await self.sql_backend.health_check()
+            status.setdefault("backend", "memori")
+            return status
+
         try:
             await asyncio.wait_for(
                 self.client.admin.command('ping'),

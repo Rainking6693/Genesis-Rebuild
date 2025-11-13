@@ -1,0 +1,23 @@
+{
+  "name": "MindfulSales",
+  "type": "content",
+  "description": "AI-powered mental wellness platform specifically designed for sales professionals to manage rejection stress, maintain peak performance, and build resilience through personalized micro-interventions during their workday. Combines sales CRM integration with real-time mood tracking and evidence-based mental health techniques delivered at the moment of need.",
+  "generated_at": "2025-11-10T15:18:00.289262+00:00",
+  "components": [
+    "component_0_blog_system",
+    "component_1_newsletter",
+    "component_2_seo_optimization",
+    "component_3_social_media"
+  ],
+  "files_written": [
+    "businesses/fully_integrated/content/mindfulsales/src/components/blog_system.tsx",
+    "businesses/fully_integrated/content/mindfulsales/src/components/newsletter.tsx",
+    "businesses/fully_integrated/content/mindfulsales/src/components/seo_optimization.tsx",
+    "businesses/fully_integrated/content/mindfulsales/src/lib/social_media.ts",
+    "businesses/fully_integrated/content/mindfulsales/src/app/layout.tsx",
+    "businesses/fully_integrated/content/mindfulsales/src/app/globals.css",
+    "businesses/fully_integrated/content/mindfulsales/src/app/page.tsx"
+  ],
+  "tasks_completed": 4,
+  "tasks_failed": 0
+}

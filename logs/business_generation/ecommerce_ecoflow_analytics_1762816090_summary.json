@@ -1,0 +1,20 @@
+{
+  "business_name": "EcoFlow Analytics",
+  "business_type": "ecommerce",
+  "start_time": 1762816090.2877545,
+  "end_time": 1762816463.0628898,
+  "status": "completed",
+  "components_requested": 24,
+  "components_completed": 24,
+  "components_failed": 0,
+  "files_generated": 24,
+  "lines_of_code": 1504,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 24,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 24,
+  "retry_count": 0,
+  "duration_seconds": 372.7751352787018,
+  "success_rate": 100.0
+}

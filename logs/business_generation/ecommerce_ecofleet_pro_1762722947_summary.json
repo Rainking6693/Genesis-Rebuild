@@ -1,0 +1,20 @@
+{
+  "business_name": "EcoFleet Pro",
+  "business_type": "ecommerce",
+  "start_time": 1762722947.2674952,
+  "end_time": 1762722979.926925,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 125,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 0,
+  "local_llm_calls": 5,
+  "retry_count": 0,
+  "duration_seconds": 32.65942978858948,
+  "success_rate": 100.0
+}

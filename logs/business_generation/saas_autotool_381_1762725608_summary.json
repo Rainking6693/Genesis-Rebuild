@@ -1,0 +1,20 @@
+{
+  "business_name": "AutoTool 381",
+  "business_type": "saas",
+  "start_time": 1762725608.513589,
+  "end_time": 1762725659.5368462,
+  "status": "completed",
+  "components_requested": 5,
+  "components_completed": 5,
+  "components_failed": 0,
+  "files_generated": 5,
+  "lines_of_code": 477,
+  "cost_usd": 0.0,
+  "errors": [],
+  "agent_calls": 5,
+  "vertex_ai_calls": 5,
+  "fallback_cloud_calls": 0,
+  "retry_count": 0,
+  "duration_seconds": 51.0232572555542,
+  "success_rate": 100.0
+}
