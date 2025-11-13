@@ -468,3 +468,15 @@ async def get_stripe_integration_agent(
         enable_memory=enable_memory
     )
     return agent
+
+
+# Alias for shorter name
+async def get_stripe_agent(
+    business_id: str = "default",
+    enable_memory: bool = True
+) -> StripeIntegrationAgent:
+    """Factory function alias for Stripe Integration Agent."""
+    return await get_stripe_integration_agent(
+        business_id=business_id,
+        enable_memory=enable_memory
+    )
