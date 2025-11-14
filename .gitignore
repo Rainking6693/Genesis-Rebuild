@@ -7,17 +7,39 @@ __pycache__/
 venv/
 env/
 ENV/
-.env.local
+
+# Environment variables (all variants)
+.env
+.env.*
+!.env.example
+*.env
+*.env.*
+
+# Logs
 *.log
+logs/
+*.log.*
+
+# Data files
+data/autonomous_learning.json
+logs/business_generation/
+
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
+
+# OS
 .DS_Store
 Thumbs.db
+
+# Temp files
 tmp/
 temp/
 *.tmp
+
+# Monitoring
 monitoring/dashboard_static/dashboard-data.json
 
 

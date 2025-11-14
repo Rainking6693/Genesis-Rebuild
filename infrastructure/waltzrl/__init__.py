@@ -21,10 +21,10 @@ Components:
 - trainer: RL training pipeline (Stage 1 + Stage 2)
 """
 
-from .conversation_agent import WaltzRLConversationAgent
-from .feedback_agent import WaltzRLFeedbackAgent
-from .safety_wrapper import WaltzRLSafetyWrapper
-from .trainer import WaltzRLTrainer, Stage1Trainer, Stage2Trainer
+from __future__ import annotations
+
+from importlib import import_module
+from typing import Any, Dict
 
 __all__ = [
     "WaltzRLConversationAgent",
@@ -36,3 +36,24 @@ __all__ = [
 ]
 
 __version__ = "1.0.0"
+
+_ATTR_TO_MODULE: Dict[str, str] = {
+    "WaltzRLConversationAgent": "infrastructure.waltzrl.conversation_agent",
+    "WaltzRLFeedbackAgent": "infrastructure.waltzrl.feedback_agent",
+    "WaltzRLSafetyWrapper": "infrastructure.waltzrl.safety_wrapper",
+    "WaltzRLTrainer": "infrastructure.waltzrl.trainer",
+    "Stage1Trainer": "infrastructure.waltzrl.trainer",
+    "Stage2Trainer": "infrastructure.waltzrl.trainer",
+}
+
+
+def __getattr__(name: str) -> Any:  # pragma: no cover - exercised during imports
+    module_name = _ATTR_TO_MODULE.get(name)
+    if not module_name:
+        raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+    module = import_module(module_name)
+    return getattr(module, name)
+
+
+def __dir__() -> list[str]:  # pragma: no cover - cosmetic helper
+    return sorted(list(__all__) + list(globals().keys()))

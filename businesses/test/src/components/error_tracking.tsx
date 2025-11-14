@@ -1,115 +1,95 @@
-import React, { ErrorInfo, ReactNode, useState } from 'react';
+import React, { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   message: string;
-  errorMessage?: string;
-  errorFallback?: ReactNode;
+  error?: Error;
 }
 
 interface State {
   hasError: boolean;
-  error?: Error | null;
-  errorInfo?: ErrorInfo | null;
+  error: Error | null;
 }
 
-const MyComponent: React.FC<Props> = (props) => {
-  const [state, setState] = useState<State>({ hasError: false, error: null, errorInfo: null });
+class MyComponent extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false, error: props.error || null };
+  }
 
-  React.useEffect(() => {
-    const handleError = (error: Error, info: ErrorInfo) => {
-      console.error(error, info);
-      setState({ hasError: true, error, errorInfo });
-    };
-
-    // Add error handling for synchronous errors
-    try {
-      // Your component logic here
-    } catch (error) {
-      handleError(error, undefined);
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+    if (nextProps.error && !prevState.hasError) {
+      return { hasError: true, error: nextProps.error };
     }
+    return null;
+  }
 
-    // Add error handling for asynchronous errors
-    const subscription = window.addEventListener('error', (event) => {
-      handleError(new Error(event.message), event);
-    });
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    this.setState({ hasError: true, error });
+  }
 
-    // Clean up the event listener on unmount
-    return () => {
-      window.removeEventListener('error', subscription);
-    };
-  }, []);
+  render(): ReactNode {
+    const { hasError, error } = this.state;
 
-  if (state.hasError) {
-    return props.errorFallback || (
-      <div role="alert">
-        <h2>An error occurred:</h2>
-        <p>{state.error?.message || 'An unknown error occurred.'}</p>
-        {state.errorInfo && (
-          <pre>{JSON.stringify(state.errorInfo, null, 2)}</pre>
+    return (
+      <div>
+        {hasError && (
+          <>
+            <h2>An error occurred:</h2>
+            <div role="alert">{error?.message}</div>
+          </>
         )}
+        {!hasError && <div>{this.props.message}</div>}
       </div>
     );
   }
-
-  return <div>{props.message}</div>;
-};
+}
 
 export default MyComponent;
 
-import React, { ErrorInfo, ReactNode, useState } from 'react';
+import React, { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   message: string;
-  errorMessage?: string;
-  errorFallback?: ReactNode;
+  error?: Error;
 }
 
 interface State {
   hasError: boolean;
-  error?: Error | null;
-  errorInfo?: ErrorInfo | null;
+  error: Error | null;
 }
 
-const MyComponent: React.FC<Props> = (props) => {
-  const [state, setState] = useState<State>({ hasError: false, error: null, errorInfo: null });
+class MyComponent extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false, error: props.error || null };
+  }
 
-  React.useEffect(() => {
-    const handleError = (error: Error, info: ErrorInfo) => {
-      console.error(error, info);
-      setState({ hasError: true, error, errorInfo });
-    };
-
-    // Add error handling for synchronous errors
-    try {
-      // Your component logic here
-    } catch (error) {
-      handleError(error, undefined);
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+    if (nextProps.error && !prevState.hasError) {
+      return { hasError: true, error: nextProps.error };
     }
+    return null;
+  }
 
-    // Add error handling for asynchronous errors
-    const subscription = window.addEventListener('error', (event) => {
-      handleError(new Error(event.message), event);
-    });
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    this.setState({ hasError: true, error });
+  }
 
-    // Clean up the event listener on unmount
-    return () => {
-      window.removeEventListener('error', subscription);
-    };
-  }, []);
+  render(): ReactNode {
+    const { hasError, error } = this.state;
 
-  if (state.hasError) {
-    return props.errorFallback || (
-      <div role="alert">
-        <h2>An error occurred:</h2>
-        <p>{state.error?.message || 'An unknown error occurred.'}</p>
-        {state.errorInfo && (
-          <pre>{JSON.stringify(state.errorInfo, null, 2)}</pre>
+    return (
+      <div>
+        {hasError && (
+          <>
+            <h2>An error occurred:</h2>
+            <div role="alert">{error?.message}</div>
+          </>
         )}
+        {!hasError && <div>{this.props.message}</div>}
       </div>
     );
   }
-
-  return <div>{props.message}</div>;
-};
+}
 
 export default MyComponent;

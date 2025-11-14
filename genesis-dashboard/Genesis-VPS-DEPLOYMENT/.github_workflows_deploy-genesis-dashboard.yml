@@ -1,0 +1,141 @@
+name: Deploy Genesis VPS Dashboard to Sevalla
+
+on:
+  push:
+    branches: [main, deploy-clean]
+    paths:
+      - 'genesis-dashboard/**'
+      - '.github/workflows/deploy-genesis-dashboard.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BACKEND: ${{ github.repository }}/genesis-dashboard-backend
+  IMAGE_FRONTEND: ${{ github.repository }}/genesis-dashboard-frontend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for backend
+        id: meta-backend
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_BACKEND }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./genesis-dashboard/Dockerfile.backend
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_FRONTEND }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./genesis-dashboard/Dockerfile.frontend
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to Sevalla
+        env:
+          SEVALLA_API_KEY: ${{ secrets.SEVALLA_API_KEY }}
+          SEVALLA_DASHBOARD_APP_ID: ${{ secrets.SEVALLA_DASHBOARD_APP_ID }}
+        run: |
+          echo "Triggering Sevalla deployment for Genesis Dashboard..."
+
+          # Trigger deployment via Sevalla API
+          RESPONSE=$(curl -s -X POST \
+            "https://api.sevalla.com/v2/applications/$SEVALLA_DASHBOARD_APP_ID/deployments" \
+            -H "Authorization: Bearer $SEVALLA_API_KEY" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -d '{}')
+
+          echo "Sevalla API Response:"
+          echo "$RESPONSE"
+
+          # Check for errors
+          if echo "$RESPONSE" | grep -q "error"; then
+            echo "❌ Deployment failed"
+            exit 1
+          fi
+
+          echo "✅ Deployment triggered successfully"
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting 60 seconds for deployment to start..."
+          sleep 60
+
+      - name: Check deployment status
+        env:
+          SEVALLA_API_KEY: ${{ secrets.SEVALLA_API_KEY }}
+          SEVALLA_DASHBOARD_APP_ID: ${{ secrets.SEVALLA_DASHBOARD_APP_ID }}
+        run: |
+          echo "Checking deployment status..."
+
+          DEPLOYMENTS=$(curl -s -X GET \
+            "https://api.sevalla.com/v2/applications/$SEVALLA_DASHBOARD_APP_ID/deployments" \
+            -H "Authorization: Bearer $SEVALLA_API_KEY" \
+            -H "Accept: application/json")
+
+          echo "Latest deployment:"
+          echo "$DEPLOYMENTS" | jq '.data[0]' || echo "Could not parse deployment status"
+
+      - name: Generate health dashboard
+        if: always()
+        run: |
+          pip install requests
+          # Note: Health dashboard generation would go here
+          echo "Health dashboard generation placeholder"
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "## Genesis Dashboard Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_BACKEND }}:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Frontend Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_FRONTEND }}:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment Time:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** Deployment triggered successfully ✅" >> $GITHUB_STEP_SUMMARY

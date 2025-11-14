@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # FastAPI Backend
+  backend:
+    build:
+      context: ..
+      dockerfile: genesis-dashboard/Dockerfile.backend
+    container_name: genesis-dashboard-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PROMETHEUS_URL=http://prometheus:9090
+      - GENESIS_BASE_PATH=/app
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,https://*.sevalla.app}
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
+      - LANGWATCH_API_KEY=${LANGWATCH_API_KEY}
+    volumes:
+      - ../logs:/app/logs
+      - ../data:/app/data
+      - revenue-data:/app/data/revenue
+    networks:
+      - genesis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ..
+      dockerfile: genesis-dashboard/Dockerfile.frontend
+    container_name: genesis-dashboard-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://backend:8000}
+      - NEXT_PUBLIC_POLLING_INTERVAL=${NEXT_PUBLIC_POLLING_INTERVAL:-5000}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - genesis-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: genesis-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - genesis-network
+    restart: unless-stopped
+
+networks:
+  genesis-network:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+    driver: local
+  revenue-data:
+    driver: local

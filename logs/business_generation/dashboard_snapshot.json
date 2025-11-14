@@ -1,265 +1,108 @@
 {
   "global_stats": {
-    "total_businesses": 10,
-    "completed": 10,
+    "total_businesses": 1,
+    "completed": 0,
     "failed": 0,
-    "in_progress": 0,
-    "total_components": 240,
-    "total_files": 240,
-    "total_lines_of_code": 18424,
+    "in_progress": 1,
+    "total_components": 11,
+    "total_files": 11,
+    "total_lines_of_code": 405,
     "total_cost_usd": 0.0,
-    "start_time": 1762987741.5198498,
-    "uptime_seconds": 5005.6687569618225,
+    "start_time": 1763065738.4733636,
+    "uptime_seconds": 131.64192366600037,
     "avg_cost_per_business": 0.0,
-    "avg_components_per_business": 24.0
+    "avg_components_per_business": 0.0
   },
   "component_stats": {
-    "Create business specification": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "core functionality": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "Deploy to production": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "Gather requirements": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "Design architecture": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "Write code": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "Write tests": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
     "dashboard_ui": {
-      "attempted": 10,
-      "succeeded": 10,
+      "attempted": 1,
+      "succeeded": 1,
       "failed": 0,
       "success_rate": 100.0
     },
     "rest_api": {
-      "attempted": 10,
-      "succeeded": 10,
+      "attempted": 1,
+      "succeeded": 1,
       "failed": 0,
       "success_rate": 100.0
     },
     "role_permissions": {
-      "attempted": 10,
-      "succeeded": 10,
+      "attempted": 1,
+      "succeeded": 1,
       "failed": 0,
       "success_rate": 100.0
     },
     "a/b_testing": {
-      "attempted": 10,
-      "succeeded": 10,
+      "attempted": 1,
+      "succeeded": 1,
       "failed": 0,
       "success_rate": 100.0
     },
     "usage_analytics": {
-      "attempted": 10,
-      "succeeded": 10,
+      "attempted": 1,
+      "succeeded": 1,
       "failed": 0,
       "success_rate": 100.0
     },
     "email_marketing": {
-      "attempted": 10,
-      "succeeded": 10,
+      "attempted": 1,
+      "succeeded": 1,
       "failed": 0,
       "success_rate": 100.0
     },
     "blog_system": {
-      "attempted": 10,
-      "succeeded": 10,
+      "attempted": 1,
+      "succeeded": 1,
       "failed": 0,
       "success_rate": 100.0
     },
     "stripe_billing": {
-      "attempted": 10,
-      "succeeded": 10,
+      "attempted": 1,
+      "succeeded": 1,
       "failed": 0,
       "success_rate": 100.0
     },
     "customer_support_bot": {
-      "attempted": 10,
-      "succeeded": 10,
+      "attempted": 1,
+      "succeeded": 1,
       "failed": 0,
       "success_rate": 100.0
     },
     "backup_system": {
-      "attempted": 10,
-      "succeeded": 10,
+      "attempted": 1,
+      "succeeded": 1,
       "failed": 0,
       "success_rate": 100.0
     },
     "error_tracking": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "subscription_management": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "referral_system": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "reporting_engine": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "docs": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "feature_flags": {
-      "attempted": 10,
-      "succeeded": 10,
-      "failed": 0,
-      "success_rate": 100.0
-    },
-    "audit_logs": {
-      "attempted": 10,
-      "succeeded": 10,
+      "attempted": 1,
+      "succeeded": 1,
       "failed": 0,
       "success_rate": 100.0
     }
   },
   "agent_usage": {
-    "builder_agent": 40,
-    "deploy_agent": 20,
-    "frontend_agent": 20,
-    "qa_agent": 20,
-    "backend_agent": 10,
-    "security_agent": 10,
-    "analytics_agent": 10,
-    "marketing_agent": 10,
-    "content_agent": 10,
-    "billing_agent": 10,
-    "support_agent": 10,
-    "monitoring_agent": 10,
-    "finance_agent": 10,
-    "sales_agent": 10,
-    "research_agent": 10,
-    "spec_agent": 10,
-    "architect_agent": 10,
-    "legal_agent": 10
+    "frontend_agent": 1,
+    "backend_agent": 1,
+    "security_agent": 1,
+    "qa_agent": 1,
+    "analytics_agent": 1,
+    "marketing_agent": 1,
+    "content_agent": 1,
+    "billing_agent": 1,
+    "support_agent": 1,
+    "deploy_agent": 1,
+    "monitoring_agent": 1
   },
-  "active_businesses": [],
-  "recent_completions": [
+  "active_businesses": [
     {
-      "name": "StressLens AI",
-      "type": "saas",
-      "duration": "493.4s",
-      "components": 24,
-      "cost": "$0.0000",
-      "success_rate": "100.0%"
-    },
-    {
-      "name": "CarbonFlow",
+      "id": "ecommerce_test_e-commerce_store_1763065761",
+      "name": "Test E-Commerce Store",
       "type": "ecommerce",
-      "duration": "444.9s",
-      "components": 24,
-      "cost": "$0.0000",
-      "success_rate": "100.0%"
-    },
-    {
-      "name": "MindfulMetrics",
-      "type": "ecommerce",
-      "duration": "473.0s",
-      "components": 24,
-      "cost": "$0.0000",
-      "success_rate": "100.0%"
-    },
-    {
-      "name": "Carbon Ledger",
-      "type": "content",
-      "duration": "444.2s",
-      "components": 24,
-      "cost": "$0.0000",
-      "success_rate": "100.0%"
-    },
-    {
-      "name": "MindFlow Analytics",
-      "type": "ecommerce",
-      "duration": "519.3s",
-      "components": 24,
-      "cost": "$0.0000",
-      "success_rate": "100.0%"
-    },
-    {
-      "name": "MoodFlow Analytics",
-      "type": "ecommerce",
-      "duration": "452.4s",
-      "components": 24,
-      "cost": "$0.0000",
-      "success_rate": "100.0%"
-    },
-    {
-      "name": "EcoTrack Commerce",
-      "type": "saas",
-      "duration": "412.1s",
-      "components": 24,
-      "cost": "$0.0000",
-      "success_rate": "100.0%"
-    },
-    {
-      "name": "CarbonCopy",
-      "type": "content",
-      "duration": "432.4s",
-      "components": 24,
-      "cost": "$0.0000",
-      "success_rate": "100.0%"
-    },
-    {
-      "name": "ClimateStory",
-      "type": "content",
-      "duration": "411.2s",
-      "components": 24,
-      "cost": "$0.0000",
-      "success_rate": "100.0%"
-    },
-    {
-      "name": "ClimateCase Studio",
-      "type": "content",
-      "duration": "449.7s",
-      "components": 24,
-      "cost": "$0.0000",
-      "success_rate": "100.0%"
+      "progress": "11/17",
+      "duration": "109.1s",
+      "status": "in_progress"
     }
-  ]
+  ],
+  "recent_completions": []
 }
