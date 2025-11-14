@@ -13,6 +13,7 @@ import json
 import logging
 from collections import deque
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -57,10 +58,12 @@ class AuditLLMAgent:
         ),
     ]
 
-    def __init__(self, log_path: Optional[Path] = None, stream_recent: int = 500):
+    def __init__(self, log_path: Optional[Path] = None, stream_recent: int = 500, policy_path: Optional[Path] = None):
         self.log_path = log_path or Path("logs/agents.log")
         self.recent_lines = deque(maxlen=stream_recent)
         self.requirements = list(self.DEFAULT_REQUIREMENTS)
+        self.policy_path = policy_path or Path("data/audit_policies.json")
+        self.policy_definitions = self._load_policies()
 
     def load_recent(self) -> List[str]:
         if not self.log_path.exists():
@@ -108,3 +111,42 @@ class AuditLLMAgent:
 
     async def audit_async(self) -> List[AuditOutcome]:
         return await asyncio.to_thread(self.evaluate)
+
+    def policy_score(self, lines: Optional[List[str]] = None) -> List[AuditOutcome]:
+        lines = lines or self.load_recent()
+        text = " ".join(lines).lower()
+        alerts = []
+        for entry in self.policy_definitions:
+            keywords = entry.get("keywords", [])
+            count = sum(text.count(keyword.lower()) for keyword in keywords)
+            satisfied = count > 0
+            alert = AuditOutcome(
+                requirement=entry.get("agent", "policy"),
+                satisfied=satisfied,
+                count=count,
+                details=entry.get("description"),
+            )
+            alerts.append(alert)
+            if not satisfied:
+                self._write_policy_alert(entry.get("agent", "policy"), alert)
+        return alerts
+
+    def _load_policies(self) -> List[Dict[str, Any]]:
+        if not self.policy_path.exists():
+            return []
+        with self.policy_path.open("r", encoding="utf-8") as fd:
+            return json.load(fd)
+
+    def _write_policy_alert(self, agent: str, outcome: AuditOutcome) -> None:
+        out_path = Path("reports/audit_policy_alerts.jsonl")
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "agent": agent,
+                "requirement": outcome.requirement,
+                "satisfied": outcome.satisfied,
+                "count": outcome.count,
+                "details": outcome.details,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        with out_path.open("a", encoding="utf-8") as fd:
+            fd.write(json.dumps(payload) + "\n")

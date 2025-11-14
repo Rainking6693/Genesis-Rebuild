@@ -220,6 +220,15 @@ class BusinessMonitor:
         
         # Write summary
         self._write_business_summary(business_id, biz)
+
+    def record_rubric_report(self, business_id: str, report: Dict[str, Any]):
+        """Log rubric outcomes for dashboard/alerts."""
+        if business_id not in self.businesses:
+            logger.warning("Rubric report for unknown business %s", business_id)
+        self._write_event("rubric_report", {"business_id": business_id, "report": report})
+        alerts_path = self.log_dir / "rubric_alerts.jsonl"
+        with alerts_path.open("a", encoding="utf-8") as fd:
+            fd.write(json.dumps({"business_id": business_id, "report": report}) + "\n")
     
     def get_business_metrics(self, business_id: str) -> Optional[Dict[str, Any]]:
         """Get metrics for a specific business."""
@@ -326,4 +335,3 @@ def get_monitor() -> BusinessMonitor:
     if _monitor is None:
         _monitor = BusinessMonitor()
     return _monitor
-

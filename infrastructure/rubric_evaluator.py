@@ -105,8 +105,8 @@ def risk_awareness_score(dag: TaskDAG, context: Dict[str, Any]) -> float:
     return min(1.0, count / len(keywords))
 
 
-DEFAULT_RUBRIC = RubricEvaluator(
-    criteria=[
+def default_criteria() -> List[RubricCriterion]:
+    return [
         RubricCriterion(
             name="completeness",
             description="Plan covers sufficient components and sub-steps.",
@@ -126,4 +126,8 @@ DEFAULT_RUBRIC = RubricEvaluator(
             scorer=risk_awareness_score,
         ),
     ]
+
+
+DEFAULT_RUBRIC = RubricEvaluator(
+    criteria=default_criteria() + load_research_rubrics()
 )
