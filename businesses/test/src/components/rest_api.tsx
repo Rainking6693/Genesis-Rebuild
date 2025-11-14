@@ -1,163 +1,89 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 
-interface Props {
+interface CounterProps {
   initialCount?: number;
-  incrementBy?: number;
+  incrementStep?: number;
   min?: number;
   max?: number;
   ariaLabelIncrement?: string;
   ariaLabelDecrement?: string;
-  ariaLabelCounter?: string;
-  onCountChange?: (count: number) => void;
-  debounceDelay?: number; // Debounce delay for onChange event
+  onCountChange?: (count: number) => void; // Callback for when the count changes
 }
 
-const Counter: React.FC<Props> = ({
+const Counter: React.FC<CounterProps> = ({
   initialCount = 0,
-  incrementBy = 1,
+  incrementStep = 1,
   min = Number.NEGATIVE_INFINITY,
   max = Number.POSITIVE_INFINITY,
   ariaLabelIncrement = 'Increment',
   ariaLabelDecrement = 'Decrement',
-  ariaLabelCounter = 'Counter Value',
   onCountChange,
-  debounceDelay = 500,
 }) => {
   const [count, setCount] = useState(initialCount);
-  const [error, setError] = useState<string | null>(null);
-  const isMounted = useRef(false);
-  const timeoutId = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
+  const countRef = useRef(count); // Use a ref to hold the latest count value
 
+  // Update the ref whenever the count changes
   useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-      if (timeoutId.current) {
-        clearTimeout(timeoutId.current); // Clear timeout on unmount
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isMounted.current && onCountChange) {
+    countRef.current = count;
+    if (onCountChange) {
       onCountChange(count);
     }
   }, [count, onCountChange]);
 
   const increment = useCallback(() => {
     setCount((prevCount) => {
-      const newCount = prevCount + incrementBy;
-      if (newCount > max) {
-        setError(`Maximum value reached: ${max}`);
-        return prevCount;
+      const newCount = prevCount + incrementStep;
+      if (newCount <= max) {
+        return newCount;
+      } else {
+        return prevCount; // Prevent incrementing beyond max
       }
-      setError(null);
-      return newCount;
     });
-  }, [incrementBy, max]);
+  }, [incrementStep, max]);
 
   const decrement = useCallback(() => {
     setCount((prevCount) => {
-      const newCount = prevCount - incrementBy;
-      if (newCount < min) {
-        setError(`Minimum value reached: ${min}`);
-        return prevCount;
+      const newCount = prevCount - incrementStep;
+      if (newCount >= min) {
+        return newCount;
+      } else {
+        return prevCount; // Prevent decrementing below min
       }
-      setError(null);
-      return newCount;
     });
-  }, [incrementBy, min]);
+  }, [incrementStep, min]);
 
-  const handleBlur = useCallback(() => {
-    if (isNaN(count)) {
-      setCount(initialCount);
-      setError('Invalid input. Reset to initial value.');
-      return;
-    }
-
-    if (count < min) {
-      setCount(min);
-      setError(`Value reset to minimum: ${min}`);
-    } else if (count > max) {
-      setCount(max);
-      setError(`Value reset to maximum: ${max}`);
-    } else {
-      setError(null);
-    }
-  }, [count, min, max, initialCount]);
-
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
-    // Clear previous timeout
-    if (timeoutId.current) {
-      clearTimeout(timeoutId.current);
-    }
-
-    timeoutId.current = setTimeout(() => {
-      const newValue = Number(value);
-
-      if (isNaN(newValue)) {
-        setError('Invalid input. Please enter a number.');
-        return;
+  // Handle keyboard accessibility
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault(); // Prevent scrolling on spacebar
+        if (event.currentTarget.ariaLabel === ariaLabelIncrement) {
+          increment();
+        } else if (event.currentTarget.ariaLabel === ariaLabelDecrement) {
+          decrement();
+        }
       }
-
-      if (newValue < min) {
-        setCount(min);
-        setError(`Value reset to minimum: ${min}`);
-        return;
-      }
-
-      if (newValue > max) {
-        setCount(max);
-        setError(`Value reset to maximum: ${max}`);
-        return;
-      }
-
-      setCount(newValue);
-      setError(null);
-    }, debounceDelay);
-  }, [debounceDelay, max, min]);
+    },
+    [increment, decrement, ariaLabelIncrement, ariaLabelDecrement]
+  );
 
   return (
-    <div role="group" aria-label="Counter Group">
-      <label htmlFor="counter-input">Count:</label>
-      <input
-        type="number"
-        id="counter-input"
-        value={count}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        aria-label={ariaLabelCounter}
-        min={min}
-        max={max}
-        data-testid="counter-input"
-      />
+    <div>
+      <p aria-live="polite">Count: {count}</p>
       <button
         onClick={increment}
         aria-label={ariaLabelIncrement}
-        disabled={count >= max}
-        data-testid="increment-button"
+        onKeyDown={handleKeyDown}
       >
-        Increment
+        {ariaLabelIncrement}
       </button>
       <button
         onClick={decrement}
         aria-label={ariaLabelDecrement}
-        disabled={count <= min}
-        data-testid="decrement-button"
+        onKeyDown={handleKeyDown}
       >
-        Decrement
+        {ariaLabelDecrement}
       </button>
-      {error && (
-        <div
-          role="alert"
-          style={{ color: 'red' }}
-          data-testid="error-message"
-        >
-          {error}
-        </div>
-      )}
     </div>
   );
 };
@@ -166,164 +92,90 @@ export default Counter;
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 
-interface Props {
+interface CounterProps {
   initialCount?: number;
-  incrementBy?: number;
+  incrementStep?: number;
   min?: number;
   max?: number;
   ariaLabelIncrement?: string;
   ariaLabelDecrement?: string;
-  ariaLabelCounter?: string;
-  onCountChange?: (count: number) => void;
-  debounceDelay?: number; // Debounce delay for onChange event
+  onCountChange?: (count: number) => void; // Callback for when the count changes
 }
 
-const Counter: React.FC<Props> = ({
+const Counter: React.FC<CounterProps> = ({
   initialCount = 0,
-  incrementBy = 1,
+  incrementStep = 1,
   min = Number.NEGATIVE_INFINITY,
   max = Number.POSITIVE_INFINITY,
   ariaLabelIncrement = 'Increment',
   ariaLabelDecrement = 'Decrement',
-  ariaLabelCounter = 'Counter Value',
   onCountChange,
-  debounceDelay = 500,
 }) => {
   const [count, setCount] = useState(initialCount);
-  const [error, setError] = useState<string | null>(null);
-  const isMounted = useRef(false);
-  const timeoutId = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
+  const countRef = useRef(count); // Use a ref to hold the latest count value
 
+  // Update the ref whenever the count changes
   useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-      if (timeoutId.current) {
-        clearTimeout(timeoutId.current); // Clear timeout on unmount
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isMounted.current && onCountChange) {
+    countRef.current = count;
+    if (onCountChange) {
       onCountChange(count);
     }
   }, [count, onCountChange]);
 
   const increment = useCallback(() => {
     setCount((prevCount) => {
-      const newCount = prevCount + incrementBy;
-      if (newCount > max) {
-        setError(`Maximum value reached: ${max}`);
-        return prevCount;
+      const newCount = prevCount + incrementStep;
+      if (newCount <= max) {
+        return newCount;
+      } else {
+        return prevCount; // Prevent incrementing beyond max
       }
-      setError(null);
-      return newCount;
     });
-  }, [incrementBy, max]);
+  }, [incrementStep, max]);
 
   const decrement = useCallback(() => {
     setCount((prevCount) => {
-      const newCount = prevCount - incrementBy;
-      if (newCount < min) {
-        setError(`Minimum value reached: ${min}`);
-        return prevCount;
+      const newCount = prevCount - incrementStep;
+      if (newCount >= min) {
+        return newCount;
+      } else {
+        return prevCount; // Prevent decrementing below min
       }
-      setError(null);
-      return newCount;
     });
-  }, [incrementBy, min]);
+  }, [incrementStep, min]);
 
-  const handleBlur = useCallback(() => {
-    if (isNaN(count)) {
-      setCount(initialCount);
-      setError('Invalid input. Reset to initial value.');
-      return;
-    }
-
-    if (count < min) {
-      setCount(min);
-      setError(`Value reset to minimum: ${min}`);
-    } else if (count > max) {
-      setCount(max);
-      setError(`Value reset to maximum: ${max}`);
-    } else {
-      setError(null);
-    }
-  }, [count, min, max, initialCount]);
-
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
-    // Clear previous timeout
-    if (timeoutId.current) {
-      clearTimeout(timeoutId.current);
-    }
-
-    timeoutId.current = setTimeout(() => {
-      const newValue = Number(value);
-
-      if (isNaN(newValue)) {
-        setError('Invalid input. Please enter a number.');
-        return;
+  // Handle keyboard accessibility
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault(); // Prevent scrolling on spacebar
+        if (event.currentTarget.ariaLabel === ariaLabelIncrement) {
+          increment();
+        } else if (event.currentTarget.ariaLabel === ariaLabelDecrement) {
+          decrement();
+        }
       }
-
-      if (newValue < min) {
-        setCount(min);
-        setError(`Value reset to minimum: ${min}`);
-        return;
-      }
-
-      if (newValue > max) {
-        setCount(max);
-        setError(`Value reset to maximum: ${max}`);
-        return;
-      }
-
-      setCount(newValue);
-      setError(null);
-    }, debounceDelay);
-  }, [debounceDelay, max, min]);
+    },
+    [increment, decrement, ariaLabelIncrement, ariaLabelDecrement]
+  );
 
   return (
-    <div role="group" aria-label="Counter Group">
-      <label htmlFor="counter-input">Count:</label>
-      <input
-        type="number"
-        id="counter-input"
-        value={count}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        aria-label={ariaLabelCounter}
-        min={min}
-        max={max}
-        data-testid="counter-input"
-      />
+    <div>
+      <p aria-live="polite">Count: {count}</p>
       <button
         onClick={increment}
         aria-label={ariaLabelIncrement}
-        disabled={count >= max}
-        data-testid="increment-button"
+        onKeyDown={handleKeyDown}
       >
-        Increment
+        {ariaLabelIncrement}
       </button>
       <button
         onClick={decrement}
         aria-label={ariaLabelDecrement}
-        disabled={count <= min}
-        data-testid="decrement-button"
+        onKeyDown={handleKeyDown}
       >
-        Decrement
+        {ariaLabelDecrement}
       </button>
-      {error && (
-        <div
-          role="alert"
-          style={{ color: 'red' }}
-          data-testid="error-message"
-        >
-          {error}
-        </div>
-      )}
     </div>
   );
 };

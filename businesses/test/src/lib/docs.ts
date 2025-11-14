@@ -1,117 +1,119 @@
-import { isNaN, assert } from 'assert';
-
-type Price = number;
-type Quantity = number;
-type TotalCost = number;
+import BigNumber from 'big-number';
 
 /**
- * Ensures the provided value is a non-negative number.
+ * Calculates the factorial of a given number using BigNumber library for large numbers.
  *
- * @param value - The value to validate.
- * @throws Error if the value is not a non-negative number.
+ * @param {number} n - The number for which the factorial is to be calculated.
+ * @returns {BigNumber} The factorial of the given number.
+ * @throws {Error} If the input is not a non-negative number.
  */
-function assertNonNegative(value: number): asserts value >= 0 {
-  if (value < 0) {
-    throw new Error('Value must be non-negative.');
+export function factorial(n: number): BigNumber {
+  if (n < 0) {
+    throw new Error('Factorial is not defined for negative numbers.');
   }
-}
 
-/**
- * Checks if the provided value is a number.
- *
- * @param value - The value to check.
- * @throws Error if the value is not a number.
- */
-function assertNumber(value: any): asserts value is number {
-  if (isNaN(value)) {
-    throw new Error('Value must be a number.');
+  if (n === 0 || n === 1) {
+    return BigNumber(1);
   }
-}
 
-/**
- * Calculates the total cost of a product based on its price and quantity.
- *
- * @param price - The price of the product.
- * @param quantity - The quantity of the product.
- * @returns The total cost of the product.
- * @throws Error if the price or quantity is not a non-negative number or not a number.
- */
-function calculateTotalCost(price: Price, quantity: Quantity): TotalCost {
-  assertNumber(price);
-  assertNonNegative(price);
-  assertNumber(quantity);
-  assertNonNegative(quantity);
+  let result = BigNumber(1);
 
-  // Calculate the total cost by multiplying the price and quantity
-  const totalCost = price * quantity;
-  return totalCost;
-}
-
-// Example usage:
-try {
-  const productPrice = '10';
-  const productQuantity = -5;
-  const totalCost = calculateTotalCost(productPrice, productQuantity);
-  console.log(`Total cost: ${totalCost}`);
-} catch (error) {
-  console.error(error.message);
-}
-
-import { isNaN, assert } from 'assert';
-
-type Price = number;
-type Quantity = number;
-type TotalCost = number;
-
-/**
- * Ensures the provided value is a non-negative number.
- *
- * @param value - The value to validate.
- * @throws Error if the value is not a non-negative number.
- */
-function assertNonNegative(value: number): asserts value >= 0 {
-  if (value < 0) {
-    throw new Error('Value must be non-negative.');
+  for (let i = 2; i <= n; i++) {
+    result = result.multipliedBy(i);
   }
+
+  return result;
 }
 
+// Adding a type for the BigNumber instance to improve type safety
+type BigNumberInstance = BigNumber<number>;
+
 /**
- * Checks if the provided value is a number.
+ * Calculates the factorial of a given number using BigNumber library for large numbers.
  *
- * @param value - The value to check.
- * @throws Error if the value is not a number.
+ * @param {number} n - The number for which the factorial is to be calculated.
+ * @returns {BigNumberInstance} The factorial of the given number.
+ * @throws {Error} If the input is not a non-negative number.
  */
-function assertNumber(value: any): asserts value is number {
-  if (isNaN(value)) {
-    throw new Error('Value must be a number.');
+export function factorial(n: number): BigNumberInstance {
+  // Using named function to improve readability
+  function validateInput(n: number): asserts n >= 0 {
+    if (n < 0) {
+      throw new Error('Factorial is not defined for negative numbers.');
+    }
   }
+
+  validateInput(n);
+
+  if (n === 0 || n === 1) {
+    return BigNumber(1);
+  }
+
+  let result = BigNumber(1);
+
+  for (let i = 2; i <= n; i++) {
+    result = result.multipliedBy(i);
+  }
+
+  return result;
 }
+
+import BigNumber from 'big-number';
 
 /**
- * Calculates the total cost of a product based on its price and quantity.
+ * Calculates the factorial of a given number using BigNumber library for large numbers.
  *
- * @param price - The price of the product.
- * @param quantity - The quantity of the product.
- * @returns The total cost of the product.
- * @throws Error if the price or quantity is not a non-negative number or not a number.
+ * @param {number} n - The number for which the factorial is to be calculated.
+ * @returns {BigNumber} The factorial of the given number.
+ * @throws {Error} If the input is not a non-negative number.
  */
-function calculateTotalCost(price: Price, quantity: Quantity): TotalCost {
-  assertNumber(price);
-  assertNonNegative(price);
-  assertNumber(quantity);
-  assertNonNegative(quantity);
+export function factorial(n: number): BigNumber {
+  if (n < 0) {
+    throw new Error('Factorial is not defined for negative numbers.');
+  }
 
-  // Calculate the total cost by multiplying the price and quantity
-  const totalCost = price * quantity;
-  return totalCost;
+  if (n === 0 || n === 1) {
+    return BigNumber(1);
+  }
+
+  let result = BigNumber(1);
+
+  for (let i = 2; i <= n; i++) {
+    result = result.multipliedBy(i);
+  }
+
+  return result;
 }
 
-// Example usage:
-try {
-  const productPrice = '10';
-  const productQuantity = -5;
-  const totalCost = calculateTotalCost(productPrice, productQuantity);
-  console.log(`Total cost: ${totalCost}`);
-} catch (error) {
-  console.error(error.message);
+// Adding a type for the BigNumber instance to improve type safety
+type BigNumberInstance = BigNumber<number>;
+
+/**
+ * Calculates the factorial of a given number using BigNumber library for large numbers.
+ *
+ * @param {number} n - The number for which the factorial is to be calculated.
+ * @returns {BigNumberInstance} The factorial of the given number.
+ * @throws {Error} If the input is not a non-negative number.
+ */
+export function factorial(n: number): BigNumberInstance {
+  // Using named function to improve readability
+  function validateInput(n: number): asserts n >= 0 {
+    if (n < 0) {
+      throw new Error('Factorial is not defined for negative numbers.');
+    }
+  }
+
+  validateInput(n);
+
+  if (n === 0 || n === 1) {
+    return BigNumber(1);
+  }
+
+  let result = BigNumber(1);
+
+  for (let i = 2; i <= n; i++) {
+    result = result.multipliedBy(i);
+  }
+
+  return result;
 }

@@ -1,50 +1,79 @@
-import React, { ReactNode, RefObject, useState } from 'react';
-import { ComponentPropsWithRef } from 'react';
-
-interface ReportingEngineProps extends ComponentPropsWithRef<typeof MyComponent> {
-  reportTitle: string;
-  reportData: { [key: string]: string | number }[];
+// reporting-component-props.ts
+export interface ReportingComponentProps {
+  message: string;
+  isLoading?: boolean;
+  error?: Error | null;
+  ariaLabel?: string;
 }
 
-const MyComponent = React.forwardRef<RefObject<HTMLDivElement>, ReportingEngineProps>(({ reportTitle, reportData, ...props }, ref) => {
-  const [hasData, setHasData] = useState(reportData.length > 0);
+// MyReportingComponent.tsx
+import React, { useState, useEffect } from 'react';
+import { ReportingComponentProps } from './reporting-component-props';
 
-  const generateRow = (key: string, value: string | number) => (
-    <tr key={key}>
-      <td>{key}</td>
-      <td>{value}</td>
-    </tr>
-  );
+const MyReportingComponent: React.FC<ReportingComponentProps> = ({ message, isLoading, error, ariaLabel }) => {
+  const [loading, setLoading] = useState(isLoading || false);
+
+  useEffect(() => {
+    setLoading(isLoading || false);
+  }, [isLoading]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div role="alert">
+        <p>An error occurred: {error.message}</p>
+      </div>
+    );
+  }
 
   return (
-    <div ref={ref} {...props}>
-      <h2>{reportTitle}</h2>
-      <table aria-label="Reporting Engine Data">
-        <thead>
-          <tr>
-            <th aria-label="Key">Key</th>
-            <th aria-label="Value">Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          {reportData.map((item, index) => {
-            const keys = Object.keys(item);
-            if (keys.length === 0) return generateRow('Empty', 'Empty');
-            const values = Object.values(item);
-            if (keys.length !== values.length) return generateRow('Invalid Data', 'Invalid Data');
-            return keys.map((key, index) => generateRow(key, values[index] || 'N/A'))[0];
-          })}
-        </tbody>
-        {hasData && <tfoot>
-          <tr>
-            <td colSpan={2}>
-              <span id="report-engine-footer">Reporting Engine</span>
-            </td>
-          </tr>
-        </tfoot>}
-      </table>
+    <div role="region" aria-label={ariaLabel || "Reporting component"}>
+      <div>{message}</div>
     </div>
   );
-});
+};
 
-export default MyComponent;
+export default MyReportingComponent;
+
+// reporting-component-props.ts
+export interface ReportingComponentProps {
+  message: string;
+  isLoading?: boolean;
+  error?: Error | null;
+  ariaLabel?: string;
+}
+
+// MyReportingComponent.tsx
+import React, { useState, useEffect } from 'react';
+import { ReportingComponentProps } from './reporting-component-props';
+
+const MyReportingComponent: React.FC<ReportingComponentProps> = ({ message, isLoading, error, ariaLabel }) => {
+  const [loading, setLoading] = useState(isLoading || false);
+
+  useEffect(() => {
+    setLoading(isLoading || false);
+  }, [isLoading]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div role="alert">
+        <p>An error occurred: {error.message}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div role="region" aria-label={ariaLabel || "Reporting component"}>
+      <div>{message}</div>
+    </div>
+  );
+};
+
+export default MyReportingComponent;

@@ -1,0 +1,54 @@
+# Genesis Dashboard Frontend - Next.js
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY genesis-dashboard/package*.json ./
+COPY genesis-dashboard/tsconfig.json ./
+COPY genesis-dashboard/next.config.js ./
+COPY genesis-dashboard/tailwind.config.ts ./
+COPY genesis-dashboard/postcss.config.js ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY genesis-dashboard/src/ ./src/
+COPY genesis-dashboard/public/ ./public/
+
+# Build Next.js app
+ENV NEXT_TELEMETRY_DISABLED 1
+RUN npm run build
+
+# Production image
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy built files from builder
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+
+# Start Next.js
+CMD ["node", "server.js"]

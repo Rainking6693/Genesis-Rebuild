@@ -55,6 +55,7 @@ import hashlib
 import json
 import logging
 import time
+import psutil
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -73,7 +74,11 @@ obs_manager = get_observability_manager()
 
 @dataclass
 class TokenCacheStats:
-    """Statistics for token caching performance"""
+    """
+    Statistics for token caching performance.
+
+    FIX P1-3: Enhanced with memory tracking to detect and prevent memory leaks.
+    """
 
     cache_hits: int = 0
     cache_misses: int = 0
@@ -81,6 +86,11 @@ class TokenCacheStats:
     total_cache_size_bytes: int = 0
     avg_hit_latency_ms: float = 0.0
     avg_miss_latency_ms: float = 0.0
+
+    # FIX P1-3: Memory tracking fields
+    memory_usage_mb: float = 0.0
+    peak_memory_mb: float = 0.0
+    memory_growth_mb: float = 0.0
 
     @property
     def hit_rate(self) -> float:
@@ -105,6 +115,10 @@ class TokenCacheStats:
             "cache_size_mb": self.cache_size_mb,
             "avg_hit_latency_ms": self.avg_hit_latency_ms,
             "avg_miss_latency_ms": self.avg_miss_latency_ms,
+            # FIX P1-3: Include memory metrics
+            "memory_usage_mb": self.memory_usage_mb,
+            "peak_memory_mb": self.peak_memory_mb,
+            "memory_growth_mb": self.memory_growth_mb,
         }
 
 
@@ -165,7 +179,9 @@ class TokenCachedRAG:
         redis_client: Optional[Any] = None,  # Redis client for caching
         cache_ttl: int = 300,  # Cache TTL in seconds (5 minutes)
         max_context_tokens: int = 8192,  # Maximum context window
-        enable_caching: bool = True  # Feature flag
+        enable_caching: bool = True,  # Feature flag
+        max_cache_size_mb: int = 100,  # FIX P1-5: Max cache size in MB (default: 100MB)
+        enable_lru_eviction: bool = True  # FIX P1-5: Enable LRU eviction
     ):
         """
         Initialize token-cached RAG system.
@@ -177,6 +193,8 @@ class TokenCachedRAG:
             cache_ttl: Cache TTL in seconds (default: 300 = 5 minutes)
             max_context_tokens: Maximum context window for LLM
             enable_caching: Enable/disable token caching (feature flag)
+            max_cache_size_mb: Maximum cache size in MB (FIX P1-5, default: 100MB)
+            enable_lru_eviction: Enable LRU eviction when cache exceeds limit (FIX P1-5)
         """
         self.vector_db = vector_db
         self.llm = llm_client
@@ -185,11 +203,24 @@ class TokenCachedRAG:
         self.max_context_tokens = max_context_tokens
         self.enable_caching = enable_caching and redis_client is not None
 
+        # FIX P1-5: LRU cache eviction configuration
+        self.max_cache_size_mb = max_cache_size_mb
+        self.max_cache_size_bytes = max_cache_size_mb * 1024 * 1024
+        self.enable_lru_eviction = enable_lru_eviction
+
         # Statistics tracking
         self.stats = TokenCacheStats()
 
+        # FIX P0-2: Add async lock for thread-safe concurrent access to stats
+        self._stats_lock = asyncio.Lock()
+
         # In-memory deduplication cache (avoid concurrent identical requests)
         self._pending_requests: Dict[str, asyncio.Future] = {}
+
+        # FIX P1-3: Memory tracking for leak detection
+        self._process = psutil.Process()
+        self._initial_memory_mb = self._get_memory_usage_mb()
+        self._peak_memory_mb = self._initial_memory_mb
 
         logger.info(
             "TokenCachedRAG initialized",
@@ -197,7 +228,8 @@ class TokenCachedRAG:
                 "has_redis": redis_client is not None,
                 "cache_ttl": cache_ttl,
                 "max_context_tokens": max_context_tokens,
-                "caching_enabled": self.enable_caching
+                "caching_enabled": self.enable_caching,
+                "initial_memory_mb": self._initial_memory_mb
             }
         )
 
@@ -251,7 +283,9 @@ class TokenCachedRAG:
                 span.set_attribute("cache_hit", False)
                 span.set_attribute("doc_count", 0)
                 # Still count as cache miss even with no docs
-                self.stats.cache_misses += 1
+                # FIX P0-2: Thread-safe stats update
+                async with self._stats_lock:
+                    self.stats.cache_misses += 1
                 return [], {"cache_hit": False, "doc_count": 0, "token_count": 0}
 
             # Step 2: Generate cache key from doc IDs
@@ -268,11 +302,14 @@ class TokenCachedRAG:
                 if cached_tokens:
                     # Cache HIT - Return immediately (60-80% faster!)
                     elapsed_ms = (time.time() - start_time) * 1000
-                    self.stats.cache_hits += 1
-                    self.stats.avg_hit_latency_ms = (
-                        (self.stats.avg_hit_latency_ms * (self.stats.cache_hits - 1) + elapsed_ms)
-                        / self.stats.cache_hits
-                    )
+
+                    # FIX P0-2: Thread-safe stats update
+                    async with self._stats_lock:
+                        self.stats.cache_hits += 1
+                        self.stats.avg_hit_latency_ms = (
+                            (self.stats.avg_hit_latency_ms * (self.stats.cache_hits - 1) + elapsed_ms)
+                            / self.stats.cache_hits
+                        )
 
                     span.set_attribute("cache_hit", True)
                     span.set_attribute("token_count", len(cached_tokens))
@@ -302,7 +339,10 @@ class TokenCachedRAG:
                     }
 
             # Step 4: Cache MISS - Tokenize and store
-            self.stats.cache_misses += 1
+            # FIX P0-2: Thread-safe stats update
+            async with self._stats_lock:
+                self.stats.cache_misses += 1
+                cache_miss_count = self.stats.cache_misses
 
             # Concatenate document text
             text_chunks = [d.get("content", d.get("text", "")) for d in docs]
@@ -324,10 +364,13 @@ class TokenCachedRAG:
                 await self._cache_tokens(cache_key, token_ids)
 
             elapsed_ms = (time.time() - start_time) * 1000
-            self.stats.avg_miss_latency_ms = (
-                (self.stats.avg_miss_latency_ms * (self.stats.cache_misses - 1) + elapsed_ms)
-                / self.stats.cache_misses
-            )
+
+            # FIX P0-2: Thread-safe stats update for avg latency
+            async with self._stats_lock:
+                self.stats.avg_miss_latency_ms = (
+                    (self.stats.avg_miss_latency_ms * (cache_miss_count - 1) + elapsed_ms)
+                    / cache_miss_count
+                )
 
             span.set_attribute("cache_hit", False)
             span.set_attribute("token_count", len(token_ids))
@@ -474,6 +517,8 @@ class TokenCachedRAG:
         """
         Retrieve cached token IDs from Redis.
 
+        FIX P1-5: Updates LRU access time on cache hit for accurate eviction.
+
         Args:
             cache_key: Cache key generated by _generate_cache_key()
 
@@ -484,7 +529,15 @@ class TokenCachedRAG:
             cached = await self.redis.get(cache_key)
             if cached:
                 token_ids = json.loads(cached)
-                # Don't track here - already tracked when cached
+
+                # FIX P1-5: Update LRU access time on hit
+                if self.enable_lru_eviction:
+                    access_time = time.time()
+                    await self.redis.zadd(
+                        "rag_tokens:lru_tracker",
+                        {cache_key: access_time}
+                    )
+
                 return token_ids
             return None
         except Exception as e:
@@ -496,7 +549,10 @@ class TokenCachedRAG:
 
     async def _cache_tokens(self, cache_key: str, token_ids: List[int]) -> None:
         """
-        Store token IDs in Redis with TTL.
+        Store token IDs in Redis with TTL and LRU eviction.
+
+        FIX P1-5: Implements LRU eviction when cache exceeds size limit.
+        Uses Redis ZADD with timestamp-based scoring for efficient LRU tracking.
 
         Args:
             cache_key: Cache key
@@ -504,19 +560,34 @@ class TokenCachedRAG:
         """
         try:
             token_json = json.dumps(token_ids)
+            token_size_bytes = len(token_json.encode())
+
+            # FIX P1-5: Check if cache exceeds size limit and evict if needed
+            if self.enable_lru_eviction and self.stats.total_cache_size_bytes + token_size_bytes > self.max_cache_size_bytes:
+                await self._evict_lru_entries(target_free_bytes=token_size_bytes * 2)  # Free 2x the needed space
 
             # Update cache size stats BEFORE storing (for deterministic testing)
-            self.stats.total_cache_size_bytes += len(token_json.encode())
+            self.stats.total_cache_size_bytes += token_size_bytes
             self.stats.total_tokens_cached += len(token_ids)
 
+            # Store token data
             await self.redis.setex(
                 cache_key,
                 self.cache_ttl,
                 token_json
             )
 
+            # FIX P1-5: Track access time in sorted set for LRU eviction
+            if self.enable_lru_eviction:
+                access_time = time.time()
+                await self.redis.zadd(
+                    "rag_tokens:lru_tracker",
+                    {cache_key: access_time}
+                )
+
             logger.debug(
-                f"Cached {len(token_ids)} tokens with TTL={self.cache_ttl}s",
+                f"Cached {len(token_ids)} tokens with TTL={self.cache_ttl}s "
+                f"(cache_size={self.stats.cache_size_mb:.1f}MB/{self.max_cache_size_mb}MB)",
                 extra={"cache_key": cache_key[:32], "token_count": len(token_ids)}
             )
         except Exception as e:
@@ -566,9 +637,14 @@ class TokenCachedRAG:
         """
         Get cache performance statistics.
 
+        FIX P1-3: Updates memory tracking metrics before returning stats.
+
         Returns:
-            Dict with cache stats: hit_rate, hits, misses, latencies, etc.
+            Dict with cache stats: hit_rate, hits, misses, latencies, memory usage, etc.
         """
+        # Update memory tracking
+        self._update_memory_tracking()
+
         stats_dict = self.stats.to_dict()
         # Ensure all expected keys are present for backward compatibility
         if "hits" not in stats_dict:
@@ -578,8 +654,125 @@ class TokenCachedRAG:
         return stats_dict
 
     def reset_stats(self) -> None:
-        """Reset cache statistics"""
+        """
+        Reset cache statistics.
+
+        FIX P1-3: Resets memory baseline for accurate growth tracking.
+        """
         self.stats = TokenCacheStats()
+        self._initial_memory_mb = self._get_memory_usage_mb()
+        self._peak_memory_mb = self._initial_memory_mb
+
+    def _get_memory_usage_mb(self) -> float:
+        """
+        Get current memory usage in MB.
+
+        FIX P1-3: Helper method for memory tracking.
+
+        Returns:
+            Current process memory usage in megabytes
+        """
+        try:
+            memory_info = self._process.memory_info()
+            return memory_info.rss / (1024 * 1024)  # Convert bytes to MB
+        except Exception as e:
+            logger.warning(f"Failed to get memory usage: {e}")
+            return 0.0
+
+    def _update_memory_tracking(self) -> None:
+        """
+        Update memory tracking statistics.
+
+        FIX P1-3: Tracks current memory usage, peak memory, and growth
+        to detect potential memory leaks. Logs warning if growth exceeds 500MB.
+        """
+        try:
+            current_memory = self._get_memory_usage_mb()
+            self.stats.memory_usage_mb = current_memory
+
+            # Update peak memory
+            if current_memory > self._peak_memory_mb:
+                self._peak_memory_mb = current_memory
+            self.stats.peak_memory_mb = self._peak_memory_mb
+
+            # Calculate memory growth from initialization
+            self.stats.memory_growth_mb = current_memory - self._initial_memory_mb
+
+            # Warn if memory growth is excessive (> 500MB)
+            if self.stats.memory_growth_mb > 500:
+                logger.warning(
+                    f"High memory growth detected: {self.stats.memory_growth_mb:.1f}MB "
+                    f"(current: {current_memory:.1f}MB, peak: {self._peak_memory_mb:.1f}MB). "
+                    "Possible memory leak."
+                )
+
+        except Exception as e:
+            logger.warning(f"Failed to update memory tracking: {e}")
+
+    async def _evict_lru_entries(self, target_free_bytes: int) -> int:
+        """
+        Evict least recently used entries from cache.
+
+        FIX P1-5: Implements LRU eviction to maintain cache size limits.
+        Uses Redis sorted set (ZRANGE) to find oldest entries by access time.
+
+        Args:
+            target_free_bytes: Target number of bytes to free from cache
+
+        Returns:
+            Number of entries evicted
+        """
+        if not self.enable_caching or not self.enable_lru_eviction:
+            return 0
+
+        try:
+            evicted_count = 0
+            freed_bytes = 0
+
+            # Get oldest entries from LRU tracker (lowest timestamp = oldest access)
+            # Fetch in batches of 10 for efficiency
+            while freed_bytes < target_free_bytes:
+                oldest_keys = await self.redis.zrange(
+                    "rag_tokens:lru_tracker",
+                    0,
+                    9  # Get 10 oldest entries
+                )
+
+                if not oldest_keys:
+                    # No more entries to evict
+                    break
+
+                for key in oldest_keys:
+                    # Get size before deleting
+                    cached_data = await self.redis.get(key)
+                    if cached_data:
+                        entry_size = len(cached_data.encode() if isinstance(cached_data, str) else cached_data)
+                        freed_bytes += entry_size
+
+                        # Delete the cache entry
+                        await self.redis.delete(key)
+                        evicted_count += 1
+
+                        # Remove from LRU tracker
+                        await self.redis.zrem("rag_tokens:lru_tracker", key)
+
+                        # Update stats
+                        self.stats.total_cache_size_bytes -= entry_size
+
+                    if freed_bytes >= target_free_bytes:
+                        break
+
+            logger.info(
+                f"[LRU Eviction] Evicted {evicted_count} entries, "
+                f"freed {freed_bytes / (1024 * 1024):.2f}MB "
+                f"(new cache size: {self.stats.cache_size_mb:.1f}MB/{self.max_cache_size_mb}MB)"
+            )
+
+            return evicted_count
+
+        except Exception as e:
+            logger.error(f"LRU eviction failed: {e}")
+            return 0
 
     async def clear_cache(self, pattern: str = "rag_tokens:*") -> int:
         """

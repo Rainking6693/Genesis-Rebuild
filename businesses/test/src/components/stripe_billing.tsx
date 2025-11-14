@@ -1,315 +1,165 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useContext } from 'react';
+import { StripeBillingProps, StripeBillingMessageId } from './types';
+import { LocalizationContext } from '../localization/LocalizationContext';
 
-interface CounterProps {
-  /** Initial value of the counter. Defaults to 0. */
-  initialCount?: number;
-  /** Amount to increment/decrement the counter by. Defaults to 1. Must be positive. */
-  incrementBy?: number;
-  /** Minimum allowed value for the counter. Defaults to negative infinity. */
-  min?: number;
-  /** Maximum allowed value for the counter. Defaults to positive infinity. */
-  max?: number;
-  /** Aria label for the increment button. Defaults to 'Increment'. */
-  ariaLabelIncrement?: string;
-  /** Aria label for the decrement button. Defaults to 'Decrement'. */
-  ariaLabelDecrement?: string;
-  /** Callback function called when the count changes, debounced by `debounceDelay`. */
-  onCountChange?: (count: number) => void;
-  /** Debounce delay in milliseconds for the `onCountChange` callback. Defaults to 200. */
-  debounceDelay?: number;
-  /** Custom CSS class name for the counter container. */
-  className?: string;
-  /** Custom CSS class name for the increment button. */
-  incrementButtonClassName?: string;
-  /** Custom CSS class name for the decrement button. */
-  decrementButtonClassName?: string;
-  /** Custom CSS class name for the count display. */
-  countDisplayClassName?: string;
-}
+const StripeBillingMessage: React.FC<StripeBillingProps> = ({ messageId }) => {
+  const { messages } = useContext(LocalizationContext);
+  const message = messages[messageId];
 
-const Counter: React.FC<CounterProps> = ({
-  initialCount = 0,
-  incrementBy = 1,
-  min = Number.NEGATIVE_INFINITY,
-  max = Number.POSITIVE_INFINITY,
-  ariaLabelIncrement = 'Increment',
-  ariaLabelDecrement = 'Decrement',
-  onCountChange,
-  debounceDelay = 200,
-  className,
-  incrementButtonClassName,
-  decrementButtonClassName,
-  countDisplayClassName,
-}) => {
-  const [count, setCount] = useState<number>(() => {
-    if (typeof initialCount !== 'number' || isNaN(initialCount)) {
-      console.error('Invalid initialCount prop. Must be a number.');
-      return 0;
-    }
-    return Math.max(min, Math.min(initialCount, max)); // Ensure initialCount is within bounds
-  });
-
-  const [isIncrementing, setIsIncrementing] = useState(false);
-  const [isDecrementing, setIsDecrementing] = useState(false);
-  const timeoutId = useRef<NodeJS.Timeout | null>(null);
-
-  // Validate props using useEffect to avoid running on every render
-  useEffect(() => {
-    if (typeof incrementBy !== 'number' || isNaN(incrementBy) || incrementBy <= 0) {
-      console.error('Invalid incrementBy prop. Must be a positive number.');
-      incrementBy = 1;
-    }
-
-    if (typeof min !== 'number' || isNaN(min)) {
-      console.error('Invalid min prop. Must be a number.');
-    }
-
-    if (typeof max !== 'number' || isNaN(max)) {
-      console.error('Invalid max prop. Must be a number.');
-    }
-
-    if (typeof debounceDelay !== 'number' || isNaN(debounceDelay) || debounceDelay < 0) {
-      console.error('Invalid debounceDelay prop. Must be a non-negative number.');
-    }
-  }, [incrementBy, min, max, debounceDelay]);
-
-  const safeSetCount = useCallback(
-    (newCount: number) => {
-      const clampedCount = Math.max(min, Math.min(newCount, max));
-      setCount(clampedCount);
-      return clampedCount;
-    },
-    [min, max]
-  );
-
-  const increment = useCallback(() => {
-    setIsIncrementing(true);
-    safeSetCount(prevCount => prevCount + incrementBy);
-    setTimeout(() => setIsIncrementing(false), 100); // Small delay to prevent rapid clicks
-  }, [incrementBy, safeSetCount]);
-
-  const decrement = useCallback(() => {
-    setIsDecrementing(true);
-    safeSetCount(prevCount => prevCount - incrementBy);
-    setTimeout(() => setIsDecrementing(false), 100); // Small delay to prevent rapid clicks
-  }, [incrementBy, safeSetCount]);
-
-  // Debounced onCountChange effect
-  useEffect(() => {
-    if (onCountChange) {
-      if (timeoutId.current) {
-        clearTimeout(timeoutId.current);
-      }
-
-      timeoutId.current = setTimeout(() => {
-        onCountChange(count);
-        timeoutId.current = null;
-      }, debounceDelay);
-
-      return () => {
-        if (timeoutId.current) {
-          clearTimeout(timeoutId.current);
-        }
-      };
-    }
-  }, [count, onCountChange, debounceDelay]);
-
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault(); // Prevent form submission or page scrolling
-      if (document.activeElement === event.currentTarget) { // Ensure focus is still on the button
-        if (event.currentTarget.id === 'increment-button') {
-          increment();
-        } else if (event.currentTarget.id === 'decrement-button') {
-          decrement();
-        }
-      }
-    }
-  }, [increment, decrement]);
+  if (!message) {
+    // Handle case when message is not found
+    return <div>Unable to find message with ID: {messageId}</div>;
+  }
 
   return (
-    <div role="group" aria-label="Counter" className={className}>
-      <div className={countDisplayClassName}>Count: {count}</div>
-      <button
-        id="increment-button"
-        onClick={increment}
-        aria-label={ariaLabelIncrement}
-        disabled={count >= max || isIncrementing}
-        className={incrementButtonClassName}
-        onKeyDown={handleKeyDown}
-      >
-        {ariaLabelIncrement}
-      </button>
-      <button
-        id="decrement-button"
-        onClick={decrement}
-        aria-label={ariaLabelDecrement}
-        disabled={count <= min || isDecrementing}
-        className={decrementButtonClassName}
-        onKeyDown={handleKeyDown}
-      >
-        {ariaLabelDecrement}
-      </button>
+    <div>
+      {/* Add ARIA attributes for accessibility */}
+      <article aria-labelledby="message-title" role="article">
+        <h2 id="message-title" className="sr-only">
+          {getMessageTitle(messageId)}
+        </h2>
+        <div dangerouslySetInnerHTML={{ __html: message }} />
+      </article>
     </div>
   );
 };
 
-export default Counter;
+const getMessageTitle = (messageId: StripeBillingMessageId) => {
+  // Return a human-readable title for the message
+  switch (messageId) {
+    case 'WelcomeToTestECommerceStore':
+      return 'Welcome to our eCommerce store';
+    case 'ErrorProcessingPayment':
+      return 'Error processing your payment';
+    // Add more message titles as needed
+    default:
+      return `Message ID: ${messageId}`;
+  }
+};
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-
-interface CounterProps {
-  /** Initial value of the counter. Defaults to 0. */
-  initialCount?: number;
-  /** Amount to increment/decrement the counter by. Defaults to 1. Must be positive. */
-  incrementBy?: number;
-  /** Minimum allowed value for the counter. Defaults to negative infinity. */
-  min?: number;
-  /** Maximum allowed value for the counter. Defaults to positive infinity. */
-  max?: number;
-  /** Aria label for the increment button. Defaults to 'Increment'. */
-  ariaLabelIncrement?: string;
-  /** Aria label for the decrement button. Defaults to 'Decrement'. */
-  ariaLabelDecrement?: string;
-  /** Callback function called when the count changes, debounced by `debounceDelay`. */
-  onCountChange?: (count: number) => void;
-  /** Debounce delay in milliseconds for the `onCountChange` callback. Defaults to 200. */
-  debounceDelay?: number;
-  /** Custom CSS class name for the counter container. */
-  className?: string;
-  /** Custom CSS class name for the increment button. */
-  incrementButtonClassName?: string;
-  /** Custom CSS class name for the decrement button. */
-  decrementButtonClassName?: string;
-  /** Custom CSS class name for the count display. */
-  countDisplayClassName?: string;
+export interface StripeBillingProps {
+  messageId: StripeBillingMessageId;
 }
 
-const Counter: React.FC<CounterProps> = ({
-  initialCount = 0,
-  incrementBy = 1,
-  min = Number.NEGATIVE_INFINITY,
-  max = Number.POSITIVE_INFINITY,
-  ariaLabelIncrement = 'Increment',
-  ariaLabelDecrement = 'Decrement',
-  onCountChange,
-  debounceDelay = 200,
-  className,
-  incrementButtonClassName,
-  decrementButtonClassName,
-  countDisplayClassName,
-}) => {
-  const [count, setCount] = useState<number>(() => {
-    if (typeof initialCount !== 'number' || isNaN(initialCount)) {
-      console.error('Invalid initialCount prop. Must be a number.');
-      return 0;
-    }
-    return Math.max(min, Math.min(initialCount, max)); // Ensure initialCount is within bounds
-  });
+export type StripeBillingMessageId =
+  | 'WelcomeToTestECommerceStore'
+  | 'ErrorProcessingPayment'
+  // Add more message IDs as needed
+  ;
 
-  const [isIncrementing, setIsIncrementing] = useState(false);
-  const [isDecrementing, setIsDecrementing] = useState(false);
-  const timeoutId = useRef<NodeJS.Timeout | null>(null);
+export default StripeBillingMessage;
 
-  // Validate props using useEffect to avoid running on every render
-  useEffect(() => {
-    if (typeof incrementBy !== 'number' || isNaN(incrementBy) || incrementBy <= 0) {
-      console.error('Invalid incrementBy prop. Must be a positive number.');
-      incrementBy = 1;
-    }
+// LocalizationContext.ts
+import React from 'react';
 
-    if (typeof min !== 'number' || isNaN(min)) {
-      console.error('Invalid min prop. Must be a number.');
-    }
+interface LocalizationContextData {
+  messages: { [key: StripeBillingMessageId]: string };
+}
 
-    if (typeof max !== 'number' || isNaN(max)) {
-      console.error('Invalid max prop. Must be a number.');
-    }
+export const LocalizationContext = React.createContext<LocalizationContextData>({
+  messages: {},
+});
 
-    if (typeof debounceDelay !== 'number' || isNaN(debounceDelay) || debounceDelay < 0) {
-      console.error('Invalid debounceDelay prop. Must be a non-negative number.');
-    }
-  }, [incrementBy, min, max, debounceDelay]);
+import React from 'react';
+import { LocalizationContextProvider } from './localization/LocalizationContext';
+import App from './App';
 
-  const safeSetCount = useCallback(
-    (newCount: number) => {
-      const clampedCount = Math.max(min, Math.min(newCount, max));
-      setCount(clampedCount);
-      return clampedCount;
-    },
-    [min, max]
-  );
+const AppWrapper = () => (
+  <LocalizationContextProvider>
+    <App />
+  </LocalizationContextProvider>
+);
 
-  const increment = useCallback(() => {
-    setIsIncrementing(true);
-    safeSetCount(prevCount => prevCount + incrementBy);
-    setTimeout(() => setIsIncrementing(false), 100); // Small delay to prevent rapid clicks
-  }, [incrementBy, safeSetCount]);
+export default AppWrapper;
 
-  const decrement = useCallback(() => {
-    setIsDecrementing(true);
-    safeSetCount(prevCount => prevCount - incrementBy);
-    setTimeout(() => setIsDecrementing(false), 100); // Small delay to prevent rapid clicks
-  }, [incrementBy, safeSetCount]);
+import React from 'react';
+import ReactDOM from 'react-dom';
+import AppWrapper from './AppWrapper';
 
-  // Debounced onCountChange effect
-  useEffect(() => {
-    if (onCountChange) {
-      if (timeoutId.current) {
-        clearTimeout(timeoutId.current);
-      }
+ReactDOM.render(<AppWrapper />, document.getElementById('root'));
 
-      timeoutId.current = setTimeout(() => {
-        onCountChange(count);
-        timeoutId.current = null;
-      }, debounceDelay);
+import React, { useContext } from 'react';
+import { StripeBillingProps, StripeBillingMessageId } from './types';
+import { LocalizationContext } from '../localization/LocalizationContext';
 
-      return () => {
-        if (timeoutId.current) {
-          clearTimeout(timeoutId.current);
-        }
-      };
-    }
-  }, [count, onCountChange, debounceDelay]);
+const StripeBillingMessage: React.FC<StripeBillingProps> = ({ messageId }) => {
+  const { messages } = useContext(LocalizationContext);
+  const message = messages[messageId];
 
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault(); // Prevent form submission or page scrolling
-      if (document.activeElement === event.currentTarget) { // Ensure focus is still on the button
-        if (event.currentTarget.id === 'increment-button') {
-          increment();
-        } else if (event.currentTarget.id === 'decrement-button') {
-          decrement();
-        }
-      }
-    }
-  }, [increment, decrement]);
+  if (!message) {
+    // Handle case when message is not found
+    return <div>Unable to find message with ID: {messageId}</div>;
+  }
 
   return (
-    <div role="group" aria-label="Counter" className={className}>
-      <div className={countDisplayClassName}>Count: {count}</div>
-      <button
-        id="increment-button"
-        onClick={increment}
-        aria-label={ariaLabelIncrement}
-        disabled={count >= max || isIncrementing}
-        className={incrementButtonClassName}
-        onKeyDown={handleKeyDown}
-      >
-        {ariaLabelIncrement}
-      </button>
-      <button
-        id="decrement-button"
-        onClick={decrement}
-        aria-label={ariaLabelDecrement}
-        disabled={count <= min || isDecrementing}
-        className={decrementButtonClassName}
-        onKeyDown={handleKeyDown}
-      >
-        {ariaLabelDecrement}
-      </button>
+    <div>
+      {/* Add ARIA attributes for accessibility */}
+      <article aria-labelledby="message-title" role="article">
+        <h2 id="message-title" className="sr-only">
+          {getMessageTitle(messageId)}
+        </h2>
+        <div dangerouslySetInnerHTML={{ __html: message }} />
+      </article>
     </div>
   );
 };
 
-export default Counter;
+const getMessageTitle = (messageId: StripeBillingMessageId) => {
+  // Return a human-readable title for the message
+  switch (messageId) {
+    case 'WelcomeToTestECommerceStore':
+      return 'Welcome to our eCommerce store';
+    case 'ErrorProcessingPayment':
+      return 'Error processing your payment';
+    // Add more message titles as needed
+    default:
+      return `Message ID: ${messageId}`;
+  }
+};
+
+export interface StripeBillingProps {
+  messageId: StripeBillingMessageId;
+}
+
+export type StripeBillingMessageId =
+  | 'WelcomeToTestECommerceStore'
+  | 'ErrorProcessingPayment'
+  // Add more message IDs as needed
+  ;
+
+export default StripeBillingMessage;
+
+// LocalizationContext.ts
+import React from 'react';
+
+interface LocalizationContextData {
+  messages: { [key: StripeBillingMessageId]: string };
+}
+
+export const LocalizationContext = React.createContext<LocalizationContextData>({
+  messages: {},
+});
+
+import React from 'react';
+import { LocalizationContextProvider } from './localization/LocalizationContext';
+import App from './App';
+
+const AppWrapper = () => (
+  <LocalizationContextProvider>
+    <App />
+  </LocalizationContextProvider>
+);
+
+export default AppWrapper;
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import AppWrapper from './AppWrapper';
+
+ReactDOM.render(<AppWrapper />, document.getElementById('root'));
+
+In this updated code, I've added a `LocalizationContext` to handle message localization. The `StripeBillingMessage` component now uses the context to fetch messages and handles the case when a message is not found. I've also added ARIA attributes for accessibility and a function to return a human-readable title for each message.
+
+To use the `LocalizationContext`, you'll need to create a provider component that sets the messages and wraps your application. Here's an example:
+
+Then, in your main entry point (e.g., index.tsx), wrap your application with the `AppWrapper`:
