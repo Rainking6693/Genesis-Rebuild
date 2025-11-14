@@ -22,7 +22,7 @@ This plan captures the major architecture upgrades we're integrating into Genesi
       * Anchor: **ArXiv 2510.17733** plus the `https://github.com/chentong0/rl-binary-rar` repo.
 
 ## 5. Reasoning codebooks (Codebook-aware agents)
-- [ ] Add Memori-backed “codebooks” so each agent caches reusable reasoning snippets, stabilizing DreamGym evolution and reducing repeated mistakes.  
+- [x] Add Memori-backed “codebooks” so each agent caches reusable reasoning snippets, stabilizing DreamGym evolution and reducing repeated mistakes.  
       * Anchor: Compositional reasoning + codebook guidance from the literature above, applied to the DreamGym evolution loop.
 
 ## References

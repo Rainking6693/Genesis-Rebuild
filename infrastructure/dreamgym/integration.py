@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
+from infrastructure.codebook_manager import CodebookManager
 from infrastructure.dreamgym.binary_rar import BinaryRarRetriever, BinaryRarVerifier
 from infrastructure.dreamgym.curriculum import DreamGymCurriculumGenerator
 from infrastructure.dreamgym.experience_model import DreamGymExperience, DreamGymExperienceModel
@@ -25,6 +26,7 @@ class DreamGymTrainer:
         doc_lines = os.getenv("BINARY_RAR_DOCS", "")
         index = [line.strip() for line in doc_lines.split("|") if line.strip()]
         self.binary_rar = BinaryRarVerifier(BinaryRarRetriever(index=index))
+        self.codebook = CodebookManager()
 
     def record_real_trajectory(self, trajectory: "Trajectory") -> None:
         experience = self._real_to_experience(trajectory)
@@ -56,7 +58,16 @@ class DreamGymTrainer:
             "generation": trajectory.generation,
             "agent": trajectory.agent_name,
             "status": trajectory.status,
+            "rar_passed": verification.passed,
+            "rar_score": round(verification.score, 3),
+            "rar_evidence": verification.evidence,
         }
+        if trajectory.agent_response:
+            self.codebook.store_snippet(
+                agent_id=trajectory.agent_name,
+                snippet=trajectory.agent_response,
+                tags=[trajectory.operator_applied or "baseline"],
+            )
         return DreamGymExperience(
             task_signature=task_signature,
             difficulty="real",
@@ -90,10 +101,13 @@ class DreamGymTrainer:
         if deficit > 0:
             samples.extend(self.generate_synthetic_batch(task_signature, deficit))
 
-        return [
-            sample if isinstance(sample, dict) else sample.to_dict()
-            for sample in samples
-        ]
+        enriched = []
+        snippets = self.codebook.retrieve_snippets(task_signature, limit=2)
+        for sample in samples:
+            item = sample if isinstance(sample, dict) else sample.to_dict()
+            item["codebook_snippets"] = [s.snippet for s in snippets]
+            enriched.append(item)
+        return enriched
 
     def stats(self) -> Dict[str, Any]:
         buffer_stats = self.buffer.stats()
