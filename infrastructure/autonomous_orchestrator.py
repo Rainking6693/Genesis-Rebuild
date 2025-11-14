@@ -101,6 +101,7 @@ except ImportError:
 
 # Business generation
 from infrastructure.genesis_meta_agent import GenesisMetaAgent, BusinessSpec
+from infrastructure.audit_llm import AuditLLMAgent
 from infrastructure.business_idea_generator import BusinessIdea
 from infrastructure.business_monitor import get_monitor
 
@@ -198,6 +199,7 @@ class AutonomousOrchestrator:
         self.sglang = SGLangInferenceEngine() if SGLANG_AVAILABLE and self.config.enable_sglang else None
         self.slice_linter = ContextLinter() if SLICE_AVAILABLE else None
         self.async_coordinator = AsyncThinkCoordinator(concurrency=8)
+        self.audit_agent = AuditLLMAgent()
         
         # Business generation
         self.meta_agent = GenesisMetaAgent()
@@ -469,6 +471,11 @@ class AutonomousOrchestrator:
                 id="hgm-probe",
                 description="HGM readiness probe",
                 worker=self._run_hgm_probe,
+            ),
+            AsyncSubtask(
+                id="audit-compliance",
+                description="AuditLLM compliance review",
+                worker=self.audit_agent.audit_async,
             ),
         ]
 

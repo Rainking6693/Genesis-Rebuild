@@ -12,8 +12,7 @@ This plan captures the major architecture upgrades we're integrating into Genesi
       * Aim: Layer-1 checks evaluate every business plan or research task against Research Rubrics + RIFL.  
       * Anchors: **ArXiv 2511.07685**, **ArXiv 2511.10507**.
 
-## 3. AuditLLM-like continuous auditor
-- [ ] Deploy an autonomous auditing agent that continuously reviews traces/compliance (QA tests executed, Support tickets logged, etc.), enforcing readiness without manual spot checks.  
+- [x] Deploy an autonomous auditing agent that continuously reviews traces/compliance (QA tests executed, Support tickets logged, etc.), enforcing readiness without manual spot checks.  
       * Anchor: Inspired by **AuditLLM-style autonomous audits** from the broader literature and Gen-AI Ops patterns.
 
 ## 4. Binary RAR hallucination control
