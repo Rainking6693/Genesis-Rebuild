@@ -12,13 +12,11 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: LANGWATCH_API_KEY
-        value: sk-lw-ASNB2GzuOH5L8bIHWC6c1dEHuGk4XIoH4BM6ZxIn6cGTSz9x
+        sync: false
       - key: PROMETHEUS_URL
         value: http://genesis-prometheus:9090
       - key: DATABASE_PATH
         value: /app/data
-      - key: PORT
-        value: 8000
     disk:
       name: revenue-data
       mountPath: /app/data
@@ -37,11 +35,9 @@ services:
         fromService:
           type: web
           name: genesis-backend
-          property: host
+          property: hostport
       - key: ENVIRONMENT
         value: production
-      - key: PORT
-        value: 3000
 
   # Prometheus (Optional - Background Service)
   - type: pserv
@@ -51,6 +47,3 @@ services:
       url: prom/prometheus:latest
     region: oregon
     plan: starter
-    envVars:
-      - key: PORT
-        value: 9090
