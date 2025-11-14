@@ -12,11 +12,12 @@ This plan captures the major architecture upgrades we're integrating into Genesi
       * Aim: Layer-1 checks evaluate every business plan or research task against Research Rubrics + RIFL.  
       * Anchors: **ArXiv 2511.07685**, **ArXiv 2511.10507**.
 
+## 3. AuditLLM-like continuous auditor
 - [x] Deploy an autonomous auditing agent that continuously reviews traces/compliance (QA tests executed, Support tickets logged, etc.), enforcing readiness without manual spot checks.  
       * Anchor: Inspired by **AuditLLM-style autonomous audits** from the broader literature and Gen-AI Ops patterns.
 
 ## 4. Binary RAR hallucination control
-- [ ] Integrate binary retrieve-and-verify reward (and RL scripts from the `rl-binary-rar` repo) into DreamGym/evolution so agents only accept outputs that align with retrieved documents.  
+- [x] Integrate binary retrieve-and-verify reward (and RL scripts from the `rl-binary-rar` repo) into DreamGym/evolution so agents only accept outputs that align with retrieved documents.  
       * This prevents hallucinations for customer-facing content; valuable even on VPS.  
       * Anchor: **ArXiv 2510.17733** plus the `https://github.com/chentong0/rl-binary-rar` repo.
 
