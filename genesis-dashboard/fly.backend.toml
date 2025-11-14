@@ -1,0 +1,47 @@
+# Fly.io configuration for Genesis Backend (FastAPI)
+# Deploy: flyctl deploy --config fly.backend.toml -a genesis-backend
+
+app = "genesis-backend"
+primary_region = "ord"  # Chicago - closest to your location
+
+[build]
+  dockerfile = "Dockerfile.backend"
+  ignorefile = ".dockerignore"
+
+[env]
+  ENVIRONMENT = "production"
+  DATABASE_PATH = "/data"
+  PORT = "8000"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"      # Stop when idle to save money
+  auto_start_machines = true       # Restart on first request (<1s)
+  min_machines_running = 0         # Can scale to zero when not in use
+
+  # Health checks
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/health"
+    timeout = "5s"
+
+  # Load balancing
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 100
+    hard_limit = 150
+
+# Persistent volume for revenue data
+[[mounts]]
+  source = "revenue_data"
+  destination = "/data"
+  initial_size = "1gb"
+
+# VM resources (256MB shared CPU)
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

@@ -1,0 +1,41 @@
+# Fly.io configuration for Genesis Frontend (Next.js)
+# Deploy: flyctl deploy --config fly.frontend.toml -a genesis-frontend
+
+app = "genesis-frontend"
+primary_region = "ord"  # Chicago - closest to your location
+
+[build]
+  dockerfile = "Dockerfile.frontend"
+  ignorefile = ".dockerignore"
+
+[env]
+  ENVIRONMENT = "production"
+  PORT = "3000"
+  # NEXT_PUBLIC_API_URL is set via flyctl secrets (not committed to Git)
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"      # Stop when idle to save money
+  auto_start_machines = true       # Restart on first request (<1s)
+  min_machines_running = 0         # Can scale to zero when not in use
+
+  # Health checks
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/"
+    timeout = "5s"
+
+  # Load balancing
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 100
+    hard_limit = 150
+
+# VM resources (256MB shared CPU)
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
