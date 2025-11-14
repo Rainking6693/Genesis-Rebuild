@@ -19,6 +19,8 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 from dataclasses import dataclass
 
+from infrastructure.orchestration.asyncthink import AsyncSubtask, AsyncThinkCoordinator
+
 # Load .env FIRST
 from infrastructure.load_env import load_genesis_env
 load_genesis_env()
@@ -32,7 +34,7 @@ from infrastructure.daao_router import DAAORouter
 # Layer 2: Evolution
 from infrastructure.trajectory_pool import TrajectoryPool
 from infrastructure.se_operators import RevisionOperator, RecombinationOperator, RefinementOperator
-from infrastructure.sica_integration import SICAComplexityDetector, SICAReasoningLoop
+from infrastructure.sica_integration import SICAComplexityDetector, SICAReasoningLoop, ReasoningComplexity
 try:
     from infrastructure.spice.challenger_agent import ChallengerAgent
     SPICE_AVAILABLE = True
@@ -195,6 +197,7 @@ class AutonomousOrchestrator:
             self.agent_judge = None
         self.sglang = SGLangInferenceEngine() if SGLANG_AVAILABLE and self.config.enable_sglang else None
         self.slice_linter = ContextLinter() if SLICE_AVAILABLE else None
+        self.async_coordinator = AsyncThinkCoordinator(concurrency=8)
         
         # Business generation
         self.meta_agent = GenesisMetaAgent()
@@ -450,25 +453,98 @@ class AutonomousOrchestrator:
     ) -> Dict[str, Any]:
         """Execute with full system integration."""
         logger.info("🔨 Executing with full integration...")
-        
-        # For now, delegate to meta_agent
-        # Full integration would execute each task with:
-        # - SICA complexity detection
-        # - A2A multi-agent coordination
-        # - HGM code selection
-        # - Memory retrieval
-        # - Computer Use validation
-        
+
+        observers = [
+            AsyncSubtask(
+                id="sica-complexity",
+                description="SICA complexity profiling",
+                worker=lambda: self._run_sica_complexity(task_dag),
+            ),
+            AsyncSubtask(
+                id="memory-snapshot",
+                description="Memory snapshot",
+                worker=self._run_memory_snapshot,
+            ),
+            AsyncSubtask(
+                id="hgm-probe",
+                description="HGM readiness probe",
+                worker=self._run_hgm_probe,
+            ),
+        ]
+
+        observer_results = await self.async_coordinator.fork_join(
+            context=f"business-{spec.name}",
+            subtasks=observers
+        )
+
         result = await self.meta_agent.generate_business(spec)
-        
+
         return {
             "success": result.success,
             "components": result.tasks_completed,
             "time": result.generation_time_seconds,
             "cost": result.metrics.get("cost_usd", 0.0),
             "output_dir": result.output_directory,
-            "errors": result.errors if hasattr(result, 'errors') else []
+            "errors": result.errors if hasattr(result, "errors") else [],
+            "async_think": [
+                {
+                    "id": r.subtask_id,
+                    "description": r.description,
+                    "success": r.success,
+                    "duration_seconds": round(r.duration_seconds, 3),
+                    "result": r.result if r.success else None,
+                    "error": r.error,
+                }
+                for r in observer_results
+            ],
         }
+
+    async def _run_sica_complexity(self, task_dag: Any) -> Dict[str, Any]:
+        """Asynchronous wrapper around SICA complexity analysis."""
+        if not self.sica:
+            return {"status": "disabled"}
+
+        def sync() -> Dict[str, Any]:
+            descriptions = [
+                getattr(task, "description", "unknown") or "unknown"
+                for task in task_dag.get_all_tasks()
+            ]
+            problem_text = " ".join(descriptions)
+            complexity, confidence = self.sica.analyze_complexity(problem_text)
+            return {
+                "status": "ok",
+                "complexity": complexity.value,
+                "confidence": round(confidence, 3),
+            }
+
+        return await asyncio.to_thread(sync)
+
+    async def _run_memory_snapshot(self) -> Dict[str, Any]:
+        """Capture a quick snapshot of memory-related systems."""
+        def sync() -> Dict[str, Any]:
+            case_count = len(getattr(self.casebank, "cases", []))
+            router_enabled = self.memory_router is not None
+            return {
+                "status": "ok",
+                "casebank_entries": case_count,
+                "memory_router": "enabled" if router_enabled else "disabled",
+            }
+
+        return await asyncio.to_thread(sync)
+
+    async def _run_hgm_probe(self) -> Dict[str, Any]:
+        """Light HGM readiness probe."""
+        if not self.oracle_hgm or not self.agent_judge:
+            return {"status": "disabled"}
+
+        def sync() -> Dict[str, Any]:
+            return {
+                "status": "ok",
+                "oracle": "available",
+                "judge": "available",
+            }
+
+        return await asyncio.to_thread(sync)
     
     async def _learn_from_result(self, result: Dict[str, Any], idea: BusinessIdea):
         """Learn from result using TrajectoryPool."""
@@ -543,4 +619,3 @@ if __name__ == "__main__":
         print(f"  Time: {result['time']:.1f}s")
     
     asyncio.run(test())
-
