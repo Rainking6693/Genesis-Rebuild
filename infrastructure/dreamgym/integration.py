@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
+from infrastructure.dreamgym.binary_rar import BinaryRarRetriever, BinaryRarVerifier
 from infrastructure.dreamgym.curriculum import DreamGymCurriculumGenerator
 from infrastructure.dreamgym.experience_model import DreamGymExperience, DreamGymExperienceModel
 from infrastructure.dreamgym.hybrid_buffer import HybridReplayBuffer
@@ -20,6 +22,9 @@ class DreamGymTrainer:
         self.model = DreamGymExperienceModel()
         self.curriculum = DreamGymCurriculumGenerator()
         self.buffer = HybridReplayBuffer()
+        doc_lines = os.getenv("BINARY_RAR_DOCS", "")
+        index = [line.strip() for line in doc_lines.split("|") if line.strip()]
+        self.binary_rar = BinaryRarVerifier(BinaryRarRetriever(index=index))
 
     def record_real_trajectory(self, trajectory: "Trajectory") -> None:
         experience = self._real_to_experience(trajectory)
@@ -32,7 +37,20 @@ class DreamGymTrainer:
 
     def _real_to_experience(self, trajectory: "Trajectory") -> DreamGymExperience:
         task_signature = trajectory.operator_applied or "baseline"
-        reward = max(0.0, min(1.0, trajectory.success_score))
+        verification = self.binary_rar.verify(
+            prompt=trajectory.problem_diagnosis or "",
+            candidate=trajectory.agent_response or "",
+        )
+
+        reward = 0.0 if not verification.passed else max(0.0, min(1.0, trajectory.success_score))
+        metadata = {
+            "generation": trajectory.generation,
+            "agent": trajectory.agent_name,
+            "status": trajectory.status,
+            "rar_passed": verification.passed,
+            "rar_score": round(verification.score, 3),
+            "rar_evidence": verification.evidence,
+        }
         novelty = 0.6 if trajectory.reasoning_pattern else 0.7
         metadata = {
             "generation": trajectory.generation,
