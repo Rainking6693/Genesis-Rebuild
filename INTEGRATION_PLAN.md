@@ -8,7 +8,7 @@ This plan captures the major architecture upgrades we're integrating into Genesi
       * Anchor: **ArXiv 2510.26658**.
 
 ## 2. Rubric-based auditing (Research Rubrics + RIFL)
-- [ ] Plug the published rubric-verifier pipelines into HTDAG planning and multi-turn responses so each artifact is graded using explicit criteria.  
+- [x] Plug the published rubric-verifier pipelines into HTDAG planning and multi-turn responses so each artifact is graded using explicit criteria.  
       * Aim: Layer-1 checks evaluate every business plan or research task against Research Rubrics + RIFL.  
       * Anchors: **ArXiv 2511.07685**, **ArXiv 2511.10507**.
 
