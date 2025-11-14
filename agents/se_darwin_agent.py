@@ -118,6 +118,7 @@ from infrastructure.se_operators import (
 )
 from infrastructure.benchmark_runner import BenchmarkRunner, BenchmarkResult, BenchmarkType
 from infrastructure.security_utils import sanitize_agent_name, redact_credentials
+from infrastructure.rifl.rifl_pipeline import RIFLPipeline, RIFLReport
 from infrastructure.casebank import CaseBank, get_casebank
 
 # Import self-correction for evolution validation
@@ -1196,6 +1197,13 @@ class SEDarwinAgent:
         self.drgrpo_optimizer = None
         if self.spice_enabled:
             self._init_spice()
+
+        rifl_rubrics = [
+            r.strip()
+            for r in os.getenv("RIFL_RUBRICS", "completeness,clarity,robustness").split(",")
+            if r.strip()
+        ]
+        self.rifl_pipeline = RIFLPipeline(rubrics=rifl_rubrics)
 
         # Initialize DataJuicer for trajectory curation (NEW: +20% data quality)
         # Feature flag: USE_DATAJUICER=true to enable (default: true if available)
@@ -2691,6 +2699,9 @@ class SEDarwinAgent:
                         f"(operator={trajectory.operator_applied}, success={success})"
                     )
 
+                    rifl_report = self._run_rifl_guard(trajectory)
+                    if rifl_report:
+                        self._log_rifl_report(trajectory, rifl_report)
                 except Exception as e:
                     logger.warning(f"[Memory] Failed to track mutation: {e}")
 
@@ -2743,6 +2754,31 @@ class SEDarwinAgent:
                 self.trajectory_pool.add_trajectory(traj)
 
         logger.info(f"Archived trajectories to pool (curated={self.datajuicer_enabled})")
+
+    def _run_rifl_guard(self, trajectory: Trajectory) -> Optional[RIFLReport]:
+        if not self.rifl_pipeline:
+            return None
+        prompt = trajectory.problem_diagnosis or ""
+        candidate = trajectory.agent_response or trajectory.code_after or ""
+        if not candidate:
+            return None
+        rubric = self.rifl_pipeline.generate_rubric(prompt)
+        report = self.rifl_pipeline.verify(rubric, candidate)
+        return report
+
+    def _log_rifl_report(self, trajectory: Trajectory, report: RIFLReport) -> None:
+        path = Path("reports/rifl_reports.jsonl")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "trajectory": trajectory.trajectory_id,
+            "agent": trajectory.agent_name,
+            "verdict": report.verdict,
+            "score": round(report.score, 3),
+            "rubric": report.rubric,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        with path.open("a", encoding="utf-8") as fd:
+            fd.write(json.dumps(payload) + "\n")
 
     def _check_convergence(
         self,

@@ -4,7 +4,9 @@ import os
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from infrastructure.codebook_manager import CodebookManager
+from infrastructure.hallucination_monitor import HallucinationMonitor
 from infrastructure.dreamgym.binary_rar import BinaryRarRetriever, BinaryRarVerifier
+from infrastructure.dreamgym.bm25_retriever import BM25Retriever
 from infrastructure.dreamgym.curriculum import DreamGymCurriculumGenerator
 from infrastructure.dreamgym.experience_model import DreamGymExperience, DreamGymExperienceModel
 from infrastructure.dreamgym.hybrid_buffer import HybridReplayBuffer
@@ -25,8 +27,11 @@ class DreamGymTrainer:
         self.buffer = HybridReplayBuffer()
         doc_lines = os.getenv("BINARY_RAR_DOCS", "")
         index = [line.strip() for line in doc_lines.split("|") if line.strip()]
-        self.binary_rar = BinaryRarVerifier(BinaryRarRetriever(index=index))
+        use_bm25 = os.getenv("BINARY_RAR_USE_BM25", "true").lower() == "true"
+        retriever_cls = BM25Retriever if use_bm25 else BinaryRarRetriever
+        self.binary_rar = BinaryRarVerifier(retriever_cls(index=index))
         self.codebook = CodebookManager()
+        self.hallucination_monitor = HallucinationMonitor()
 
     def record_real_trajectory(self, trajectory: "Trajectory") -> None:
         experience = self._real_to_experience(trajectory)
@@ -43,6 +48,7 @@ class DreamGymTrainer:
             prompt=trajectory.problem_diagnosis or "",
             candidate=trajectory.agent_response or "",
         )
+        self.hallucination_monitor.record(verification.passed)
 
         reward = 0.0 if not verification.passed else max(0.0, min(1.0, trajectory.success_score))
         metadata = {

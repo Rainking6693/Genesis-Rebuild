@@ -1,0 +1,17 @@
+[
+  {
+    "agent": "QA Agent",
+    "keywords": ["pytest", "unit test", "integration test", "bug verify"],
+    "description": "QA agents must log test executions."
+  },
+  {
+    "agent": "Support Agent",
+    "keywords": ["support_ticket", "customer_issue", "ticket logged", "escalation"],
+    "description": "Support must note tickets or escalations."
+  },
+  {
+    "agent": "Marketing Agent",
+    "keywords": ["campaign review", "brand audit", "compliance check"],
+    "description": "Marketing outputs require brand/compliance notes."
+  }
+]

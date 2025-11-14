@@ -1,0 +1,20 @@
+[
+  {
+    "criterion": "coverage",
+    "description": "Task decomposition must cover the declared business components.",
+    "weight": 0.4,
+    "keywords": ["components", "deliverables", "modules", "features"]
+  },
+  {
+    "criterion": "clarity",
+    "description": "Each HTDAG step should be clear, unambiguous, and executable.",
+    "weight": 0.3,
+    "keywords": ["clarity", "unambiguous", "clear steps", "executable"]
+  },
+  {
+    "criterion": "risk_awareness",
+    "description": "High-risk elements must include mitigation or verification steps.",
+    "weight": 0.3,
+    "keywords": ["mitigate", "verify", "control", "audit", "review"]
+  }
+]
