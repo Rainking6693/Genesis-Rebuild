@@ -1,0 +1,49 @@
+services:
+  # Backend Service (FastAPI)
+  - type: web
+    name: genesis-backend
+    runtime: docker
+    dockerfilePath: ./genesis-dashboard/Dockerfile.backend
+    dockerContext: .
+    region: oregon
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LANGWATCH_API_KEY
+        sync: false
+      - key: PROMETHEUS_URL
+        value: http://genesis-prometheus:9090
+      - key: DATABASE_PATH
+        value: /app/data
+    disk:
+      name: revenue-data
+      mountPath: /app/data
+      sizeGB: 1
+
+  # Frontend Service (Next.js)
+  - type: web
+    name: genesis-frontend
+    runtime: docker
+    dockerfilePath: ./genesis-dashboard/Dockerfile.frontend
+    dockerContext: .
+    region: oregon
+    plan: starter
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: genesis-backend
+          property: hostport
+      - key: ENVIRONMENT
+        value: production
+
+  # Prometheus (Optional - Background Service)
+  - type: pserv
+    name: genesis-prometheus
+    runtime: image
+    image:
+      url: prom/prometheus:latest
+    region: oregon
+    plan: starter

@@ -9,6 +9,7 @@ export default function Sidebar({ activeView, setActiveView }: SidebarProps) {
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'agents', label: 'Agent Status', icon: '🤖' },
+    { id: 'revenue', label: 'Revenue & Profit', icon: '💰' },
     { id: 'halo', label: 'HALO Routes', icon: '🔀' },
     { id: 'memory', label: 'CaseBank', icon: '💾' },
     { id: 'traces', label: 'OTEL Traces', icon: '🔍' },
