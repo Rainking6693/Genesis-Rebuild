@@ -255,6 +255,49 @@ class MemoriClient:
             expires_at=datetime.fromisoformat(expires_at) if expires_at else None,
         )
 
+    def list_memory(
+        self,
+        namespace: str,
+        subject: Optional[str] = None,
+    ) -> List[MemoryRecord]:
+        query = """
+            SELECT record_key, value_json, metadata_json, created_at, updated_at, ttl_seconds, expires_at
+            FROM memories
+            WHERE namespace=?
+        """
+        params: Tuple[Any, ...] = (namespace,)
+
+        if subject is None:
+            query += " AND subject IS NULL"
+        else:
+            query += " AND subject=?"
+            params += (subject,)
+
+        with self._lock:
+            cursor = self._conn.execute(query, params)
+            rows = cursor.fetchall()
+
+        records: List[MemoryRecord] = []
+        for row in rows:
+            expires_at = row[6]
+            if expires_at and datetime.fromisoformat(expires_at) < _now():
+                continue
+            records.append(
+                MemoryRecord(
+                    namespace=namespace,
+                    subject=subject,
+                    key=row[0],
+                    value=_deserialize(row[1]),
+                    metadata=_deserialize(row[2]) or {},
+                    created_at=datetime.fromisoformat(row[3]),
+                    updated_at=datetime.fromisoformat(row[4]),
+                    ttl_seconds=row[5],
+                    expires_at=datetime.fromisoformat(expires_at) if expires_at else None,
+                )
+            )
+
+        return records
+
     def delete_memory(self, namespace: str, subject: Optional[str], key: str) -> bool:
         with self._lock, self._conn:
             cursor = self._conn.execute(
