@@ -26,12 +26,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from scripts.analyze_memory_patterns import MemoryAnalytics
 from infrastructure.langgraph_store import get_store
 from scripts.analyze_revenue_patterns import RevenueReport, analyze_revenue
+from backend.revenue_tracker import router as revenue_router
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Genesis Dashboard API", version="1.0.0")
+
+# Include revenue tracker router
+app.include_router(revenue_router)
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
 if ENVIRONMENT == "production":

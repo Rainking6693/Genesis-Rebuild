@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import OverviewDashboard from '@/components/OverviewDashboard'
 import AgentStatusGrid from '@/components/AgentStatusGrid'
+import RevenueDashboard from '@/components/RevenueDashboard'
 import HALORoutes from '@/components/HALORoutes'
 import CaseBankMemory from '@/components/CaseBankMemory'
 import OTELTraces from '@/components/OTELTraces'
@@ -18,6 +19,8 @@ export default function Home() {
         return <OverviewDashboard />
       case 'agents':
         return <AgentStatusGrid />
+      case 'revenue':
+        return <RevenueDashboard />
       case 'halo':
         return <HALORoutes />
       case 'memory':

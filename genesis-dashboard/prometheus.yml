@@ -1,0 +1,20 @@
+# Prometheus configuration for Genesis Dashboard
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'genesis-dashboard'
+
+# Scrape configurations
+scrape_configs:
+  # Genesis Backend API
+  - job_name: 'genesis-backend'
+    static_configs:
+      - targets: ['backend:8000']
+        labels:
+          service: 'genesis-api'
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
