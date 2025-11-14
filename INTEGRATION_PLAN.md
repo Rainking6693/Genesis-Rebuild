@@ -3,7 +3,7 @@
 This plan captures the major architecture upgrades we're integrating into Genesis, drawn from the referenced papers (links below). Each task is grouped by capability and includes the relevant research anchor. Mark a task complete as soon as it ships.
 
 ## 1. AsyncThink-style orchestration
-- [ ] Implement fork/join organizer-worker protocol so the swarm layer can fire multiple sub-tasks concurrently (parallel tool calls, parallel business evaluations).  
+- [x] Implement fork/join organizer-worker protocol so the swarm layer can fire multiple sub-tasks concurrently (parallel tool calls, parallel business evaluations).  
       * Goal: reduce latency / boost accuracy even on a single VPS (target ~28% faster, +89% accuracy as reported).  
       * Anchor: **ArXiv 2510.26658**.
 
