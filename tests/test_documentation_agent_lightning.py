@@ -303,6 +303,18 @@ class TestDocumentationAgentTokenCaching:
         assert agent.token_cached_rag is None
         assert agent.enable_memory is False
 
+    @pytest.mark.asyncio
+    async def test_documentation_agent_records_ap2_event(self, doc_agent, ap2_event_spy):
+        """Ensure AP2 metadata is emitted during documentation lookups."""
+        doc_agent.token_cached_rag = None
+
+        await doc_agent.lookup_documentation_cached(query="AP2 monitoring")
+
+        assert ap2_event_spy, "AP2 events should be emitted"
+        last_event = ap2_event_spy[-1]
+        assert last_event["agent"] == "DocumentationAgent"
+        assert "lookup_documentation" in last_event["action"]
+
 
 class TestDocumentationAgentIntegration:
     """Integration tests for Documentation Agent token caching."""

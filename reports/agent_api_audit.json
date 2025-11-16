@@ -1,0 +1,766 @@
+{
+  "business_generation_agent.py": {
+    "status": "success",
+    "class_name": "BusinessGenerationAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory, enable_multimodal)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        },
+        "enable_multimodal": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [],
+    "factory_functions": [
+      "get_business_generation_agent"
+    ]
+  },
+  "deploy_agent.py": {
+    "status": "success",
+    "class_name": "DeployAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, use_learning, use_reflection, enable_memory)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "use_learning": {
+          "default": true
+        },
+        "use_reflection": {
+          "default": true
+        },
+        "enable_memory": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "prepare_deployment_files",
+        "async": false,
+        "parameters": [
+          "business_name",
+          "code_files",
+          "framework"
+        ],
+        "signature": "prepare_deployment_files(business_name, code_files, framework)",
+        "docstring": "Prepare code files for deployment\n\nArgs:\n    business_name: Name of the business/app\n    code_files:"
+      },
+      {
+        "name": "push_to_github",
+        "async": false,
+        "parameters": [
+          "deploy_dir",
+          "repo_name",
+          "branch"
+        ],
+        "signature": "push_to_github(deploy_dir, repo_name, branch)",
+        "docstring": "Push code to GitHub repository\n\nArgs:\n    deploy_dir: Directory containing code to push\n    repo_nam"
+      },
+      {
+        "name": "verify_deployment",
+        "async": false,
+        "parameters": [
+          "deployment_url",
+          "expected_status"
+        ],
+        "signature": "verify_deployment(deployment_url, expected_status)",
+        "docstring": "Verify deployment is live and accessible\n\nArgs:\n    deployment_url: URL to verify\n    expected_statu"
+      },
+      {
+        "name": "rollback_deployment",
+        "async": false,
+        "parameters": [
+          "platform",
+          "deployment_id",
+          "target_version"
+        ],
+        "signature": "rollback_deployment(platform, deployment_id, target_version)",
+        "docstring": "Rollback deployment to previous version\n\nArgs:\n    platform: Platform name (vercel, netlify)\n    dep"
+      },
+      {
+        "name": "get_statistics",
+        "async": false,
+        "parameters": [],
+        "signature": "get_statistics()",
+        "docstring": "Get deployment statistics"
+      }
+    ],
+    "factory_functions": []
+  },
+  "database_design_agent.py": {
+    "status": "success",
+    "class_name": "DatabaseDesignAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "design_schema",
+        "async": false,
+        "parameters": [
+          "business_type",
+          "requirements",
+          "database_type",
+          "config",
+          "user_id"
+        ],
+        "signature": "design_schema(business_type, requirements, database_type, config, user_id)",
+        "docstring": "Design database schema (synchronous wrapper for compatibility).\n\nCan be called in two ways:\n1. Simpl"
+      },
+      {
+        "name": "get_statistics",
+        "async": false,
+        "parameters": [],
+        "signature": "get_statistics()",
+        "docstring": "Get schema design statistics."
+      }
+    ],
+    "factory_functions": []
+  },
+  "api_design_agent.py": {
+    "status": "success",
+    "class_name": "APIDesignAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_statistics",
+        "async": false,
+        "parameters": [],
+        "signature": "get_statistics()",
+        "docstring": "Get API design statistics."
+      }
+    ],
+    "factory_functions": []
+  },
+  "stripe_integration_agent.py": {
+    "status": "success",
+    "class_name": "StripeIntegrationAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "setup_payment_integration",
+        "async": false,
+        "parameters": [
+          "business_id",
+          "payment_type",
+          "currency",
+          "user_id"
+        ],
+        "signature": "setup_payment_integration(business_id, payment_type, currency, user_id)",
+        "docstring": "Setup payment integration for a business (synchronous wrapper).\n\nArgs:\n    business_id: Business ID "
+      },
+      {
+        "name": "get_statistics",
+        "async": false,
+        "parameters": [],
+        "signature": "get_statistics()",
+        "docstring": "Get payment processing statistics."
+      }
+    ],
+    "factory_functions": []
+  },
+  "auth0_integration_agent.py": {
+    "status": "success",
+    "class_name": "Auth0IntegrationAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_statistics",
+        "async": false,
+        "parameters": [],
+        "signature": "get_statistics()",
+        "docstring": "Get authentication statistics."
+      }
+    ],
+    "factory_functions": []
+  },
+  "content_creation_agent.py": {
+    "status": "success",
+    "class_name": "ContentCreationAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory, mongodb_uri)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        },
+        "mongodb_uri": {
+          "default": null
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_stats",
+        "async": false,
+        "parameters": [],
+        "signature": "get_stats()",
+        "docstring": "Get agent statistics"
+      }
+    ],
+    "factory_functions": []
+  },
+  "seo_optimization_agent.py": {
+    "status": "success",
+    "class_name": "SEOOptimizationAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory, mongodb_uri)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        },
+        "mongodb_uri": {
+          "default": null
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_stats",
+        "async": false,
+        "parameters": [],
+        "signature": "get_stats()",
+        "docstring": "Get agent statistics"
+      }
+    ],
+    "factory_functions": []
+  },
+  "email_marketing_agent.py": {
+    "status": "success",
+    "class_name": "EmailMarketingAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory, mongodb_uri)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        },
+        "mongodb_uri": {
+          "default": null
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_stats",
+        "async": false,
+        "parameters": [],
+        "signature": "get_stats()",
+        "docstring": "Get agent statistics"
+      }
+    ],
+    "factory_functions": []
+  },
+  "marketing_agent_multimodal.py": {
+    "status": "success",
+    "class_name": "MarketingAgentMultimodal",
+    "constructor": {
+      "signature": "__init__(self, enable_memory)",
+      "parameters": {
+        "enable_memory": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_agent_stats",
+        "async": false,
+        "parameters": [],
+        "signature": "get_agent_stats()",
+        "docstring": "Get agent statistics and memory info"
+      }
+    ],
+    "factory_functions": [
+      "get_agent_stats"
+    ]
+  },
+  "uiux_design_agent.py": {
+    "status": "success",
+    "class_name": "UIUXDesignAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory, enable_multimodal)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        },
+        "enable_multimodal": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_statistics",
+        "async": false,
+        "parameters": [],
+        "signature": "get_statistics()",
+        "docstring": "Get design statistics."
+      }
+    ],
+    "factory_functions": []
+  },
+  "support_agent.py": {
+    "status": "success",
+    "class_name": "SupportAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "create_ticket",
+        "async": false,
+        "parameters": [
+          "user_id",
+          "issue_description",
+          "priority"
+        ],
+        "signature": "create_ticket(user_id, issue_description, priority)",
+        "docstring": "Create a new support ticket"
+      },
+      {
+        "name": "escalate_ticket",
+        "async": false,
+        "parameters": [
+          "ticket_id",
+          "escalation_reason",
+          "escalation_team"
+        ],
+        "signature": "escalate_ticket(ticket_id, escalation_reason, escalation_team)",
+        "docstring": "Escalate a ticket to a specialized team"
+      },
+      {
+        "name": "search_knowledge_base",
+        "async": false,
+        "parameters": [
+          "query",
+          "category"
+        ],
+        "signature": "search_knowledge_base(query, category)",
+        "docstring": "Search the knowledge base for relevant articles"
+      },
+      {
+        "name": "generate_support_report",
+        "async": false,
+        "parameters": [
+          "start_date",
+          "end_date"
+        ],
+        "signature": "generate_support_report(start_date, end_date)",
+        "docstring": "Generate a support metrics report for a date range"
+      },
+      {
+        "name": "route_task",
+        "async": false,
+        "parameters": [
+          "task_description",
+          "priority"
+        ],
+        "signature": "route_task(task_description, priority)",
+        "docstring": "Route task to appropriate model using DAAO\n\nArgs:\n    task_description: Description of the task\n    "
+      },
+      {
+        "name": "get_cost_metrics",
+        "async": false,
+        "parameters": [],
+        "signature": "get_cost_metrics()",
+        "docstring": "Get cumulative cost savings from DAAO and TUMIX"
+      }
+    ],
+    "factory_functions": []
+  },
+  "analytics_agent.py": {
+    "status": "success",
+    "class_name": "AnalyticsAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory, mongodb_uri)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        },
+        "mongodb_uri": {
+          "default": null
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_stats",
+        "async": false,
+        "parameters": [],
+        "signature": "get_stats()",
+        "docstring": "Get agent statistics"
+      }
+    ],
+    "factory_functions": []
+  },
+  "monitoring_agent.py": {
+    "status": "success",
+    "class_name": "MonitoringAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_statistics",
+        "async": false,
+        "parameters": [],
+        "signature": "get_statistics()",
+        "docstring": "Get monitoring statistics."
+      }
+    ],
+    "factory_functions": []
+  },
+  "qa_agent.py": {
+    "status": "success",
+    "class_name": "QAAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory, enable_token_caching)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        },
+        "enable_token_caching": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "create_test_plan",
+        "async": false,
+        "parameters": [
+          "feature_name",
+          "test_types",
+          "coverage_target"
+        ],
+        "signature": "create_test_plan(feature_name, test_types, coverage_target)",
+        "docstring": "Create a comprehensive test plan for a feature"
+      },
+      {
+        "name": "run_test_suite",
+        "async": false,
+        "parameters": [
+          "test_suite_name",
+          "environment"
+        ],
+        "signature": "run_test_suite(test_suite_name, environment)",
+        "docstring": "Execute a test suite and return results.\n\nNEW: Enhanced MemoryTool integration - Retrieves historica"
+      },
+      {
+        "name": "report_bug",
+        "async": false,
+        "parameters": [
+          "bug_description",
+          "severity",
+          "steps_to_reproduce"
+        ],
+        "signature": "report_bug(bug_description, severity, steps_to_reproduce)",
+        "docstring": "Report a bug with detailed information.\n\nNEW: MemoryTool integration - Recalls similar past bugs to "
+      },
+      {
+        "name": "measure_code_quality",
+        "async": false,
+        "parameters": [
+          "repository",
+          "branch"
+        ],
+        "signature": "measure_code_quality(repository, branch)",
+        "docstring": "Measure code quality metrics for a repository"
+      },
+      {
+        "name": "validate_acceptance_criteria",
+        "async": false,
+        "parameters": [
+          "story_id",
+          "criteria"
+        ],
+        "signature": "validate_acceptance_criteria(story_id, criteria)",
+        "docstring": "Validate that acceptance criteria are met"
+      },
+      {
+        "name": "route_task",
+        "async": false,
+        "parameters": [
+          "task_description",
+          "priority"
+        ],
+        "signature": "route_task(task_description, priority)",
+        "docstring": "Route QA task to appropriate model using DAAO\n\nArgs:\n    task_description: Description of the QA tas"
+      },
+      {
+        "name": "get_cost_metrics",
+        "async": false,
+        "parameters": [],
+        "signature": "get_cost_metrics()",
+        "docstring": "Get cumulative cost savings from DAAO and TUMIX"
+      }
+    ],
+    "factory_functions": []
+  },
+  "code_review_agent.py": {
+    "status": "success",
+    "class_name": "CodeReviewAgent",
+    "constructor": {
+      "signature": "__init__(self, enable_token_caching)",
+      "parameters": {
+        "enable_token_caching": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_cache_stats",
+        "async": false,
+        "parameters": [],
+        "signature": "get_cache_stats()",
+        "docstring": "Get current cache statistics."
+      }
+    ],
+    "factory_functions": []
+  },
+  "documentation_agent.py": {
+    "status": "success",
+    "class_name": "DocumentationAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_cache_stats",
+        "async": false,
+        "parameters": [],
+        "signature": "get_cache_stats()",
+        "docstring": "Get token cache statistics.\n\nReturns:\n    Cache statistics or None if caching not available"
+      }
+    ],
+    "factory_functions": [
+      "get_documentation_agent"
+    ]
+  },
+  "data_juicer_agent.py": {
+    "status": "success",
+    "class_name": "DataJuicerAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory, mongodb_uri)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        },
+        "mongodb_uri": {
+          "default": null
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_stats",
+        "async": false,
+        "parameters": [],
+        "signature": "get_stats()",
+        "docstring": "Get curation statistics"
+      }
+    ],
+    "factory_functions": [
+      "create_data_juicer_agent"
+    ]
+  },
+  "react_training_agent.py": {
+    "status": "success",
+    "class_name": "ReActTrainingAgent",
+    "constructor": {
+      "signature": "__init__(self, business_id, enable_memory, mongodb_uri, training_config)",
+      "parameters": {
+        "business_id": {
+          "default": "default"
+        },
+        "enable_memory": {
+          "default": true
+        },
+        "mongodb_uri": {
+          "default": null
+        },
+        "training_config": {
+          "default": null
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_stats",
+        "async": false,
+        "parameters": [],
+        "signature": "get_stats()",
+        "docstring": "Get training statistics"
+      }
+    ],
+    "factory_functions": [
+      "create_react_training_agent"
+    ]
+  },
+  "se_darwin_agent.py": {
+    "status": "success",
+    "class_name": "SEDarwinAgent",
+    "constructor": {
+      "signature": "__init__(self, agent_name, llm_client, trajectories_per_iteration, max_iterations, timeout_per_trajectory, success_threshold, benchmark_type)",
+      "parameters": {
+        "agent_name": {
+          "required": true
+        },
+        "llm_client": {
+          "default": null
+        },
+        "trajectories_per_iteration": {
+          "default": 3
+        },
+        "max_iterations": {
+          "default": 3
+        },
+        "timeout_per_trajectory": {
+          "default": 300
+        },
+        "success_threshold": {
+          "default": 0.7
+        },
+        "benchmark_type": {
+          "default": "complex_default"
+        }
+      }
+    },
+    "public_methods": [],
+    "factory_functions": [
+      "get_se_darwin_agent",
+      "get_scenarios_for_agent"
+    ]
+  },
+  "gemini_computer_use_agent.py": {
+    "status": "success",
+    "class_name": "GeminiComputerUseAgent",
+    "constructor": {
+      "signature": "__init__(self, enable_memory)",
+      "parameters": {
+        "enable_memory": {
+          "default": true
+        }
+      }
+    },
+    "public_methods": [
+      {
+        "name": "get_agent_stats",
+        "async": false,
+        "parameters": [],
+        "signature": "get_agent_stats()",
+        "docstring": "Get agent statistics and memory info"
+      }
+    ],
+    "factory_functions": [
+      "get_agent_stats"
+    ]
+  },
+  "async_think_agent.py": {
+    "error": "File not found",
+    "status": "missing"
+  },
+  "rifl_agent.py": {
+    "error": "File not found",
+    "status": "missing"
+  },
+  "auditor_agent.py": {
+    "error": "File not found",
+    "status": "missing"
+  },
+  "business_monitor.py": {
+    "error": "File not found",
+    "status": "missing"
+  }
+}

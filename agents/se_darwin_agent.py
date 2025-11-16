@@ -119,6 +119,7 @@ from infrastructure.se_operators import (
 from infrastructure.benchmark_runner import BenchmarkRunner, BenchmarkResult, BenchmarkType
 from infrastructure.security_utils import sanitize_agent_name, redact_credentials
 from infrastructure.rifl.rifl_pipeline import RIFLPipeline, RIFLReport
+from infrastructure.ap2_helpers import record_ap2_event
 from infrastructure.casebank import CaseBank, get_casebank
 
 # Import self-correction for evolution validation
@@ -1204,6 +1205,8 @@ class SEDarwinAgent:
             if r.strip()
         ]
         self.rifl_pipeline = RIFLPipeline(rubrics=rifl_rubrics)
+        self.ap2_cost = float(os.getenv("AP2_DARWIN_COST", "4.0"))
+        self.ap2_budget = 50.0  # $50 threshold per user requirement
 
         # Initialize DataJuicer for trajectory curation (NEW: +20% data quality)
         # Feature flag: USE_DATAJUICER=true to enable (default: true if available)
@@ -1952,6 +1955,15 @@ class SEDarwinAgent:
 
         logger.info(f"Evolution completed in {total_time:.2f}s, best score: {self.best_score:.3f}")
 
+        self._record_ap2_event(
+            action="evolution_cycle",
+            context={
+                "best_score": f"{self.best_score:.3f}",
+                "trajectories": str(len(self.iterations)),
+            },
+            cost=self.best_score or self.ap2_cost,
+        )
+
         return result
 
     def _generate_trajectories(
@@ -2025,6 +2037,13 @@ class SEDarwinAgent:
         Returns:
             List of trajectories to execute
         """
+        self._record_ap2_event(
+            action="generate_trajectories",
+            context={
+                "generation": str(generation),
+                "problem_length": str(len(problem_description)),
+            },
+        )
         trajectories = []
 
         # MEMORY: Learn from past successful mutations (if available)
@@ -2194,6 +2213,7 @@ class SEDarwinAgent:
             operator_applied=OperatorType.BASELINE.value,
             proposed_strategy=f"Baseline approach {index} for: {problem_description[:50]}",
             reasoning_pattern="direct_implementation",
+            agent_response="",  # Will be populated during execution
             status=TrajectoryStatus.PENDING.value
         )
 
@@ -2214,6 +2234,7 @@ class SEDarwinAgent:
             parent_trajectories=parent_ids,
             operator_applied=operator_type.value,
             code_changes=operator_result.generated_code or "",
+            agent_response=operator_result.generated_code or "",  # Store generated code as response
             proposed_strategy=operator_result.strategy_description,
             reasoning_pattern=operator_result.reasoning,
             status=TrajectoryStatus.PENDING.value
@@ -2303,6 +2324,7 @@ class SEDarwinAgent:
             agent_name=self.agent_name,
             operator_applied="baseline",  # SPICE generates baseline-level solutions
             code_changes=reasoner_result.solution,
+            agent_response=reasoner_result.solution,  # Store solution as response
             proposed_strategy=f"SPICE frontier task approach: {reasoner_result.approach}",
             reasoning_pattern="spice_self_play",
             status=TrajectoryStatus.PENDING.value,
@@ -2324,6 +2346,14 @@ class SEDarwinAgent:
         Returns:
             List of execution results
         """
+        self._record_ap2_event(
+            action="execute_trajectories",
+            context={
+                "count": str(len(trajectories)),
+                "problem_length": str(len(problem_description)),
+            },
+            cost=self.ap2_cost * max(1, len(trajectories)),
+        )
         logger.info(f"Executing {len(trajectories)} trajectories in parallel")
 
         # Create execution tasks
@@ -2722,7 +2752,7 @@ class SEDarwinAgent:
                     DJTrajectoryData(
                         trajectory_id=t.trajectory_id,
                         agent_id=t.agent_name,
-                        steps=[{"code": t.code}],  # Simplified conversion
+                        steps=[{"code": t.code_after or t.code_changes}],  # Use actual code attributes
                         success=t.status == TrajectoryStatus.SUCCESS,
                         quality_score=t.metrics.get("quality_score", 0.5),
                         metadata=t.metrics
@@ -2779,6 +2809,27 @@ class SEDarwinAgent:
         }
         with path.open("a", encoding="utf-8") as fd:
             fd.write(json.dumps(payload) + "\n")
+
+    def _record_ap2_event(self, action: str, context: Dict[str, str], cost: Optional[float] = None):
+        from infrastructure.ap2_protocol import get_ap2_client
+
+        client = get_ap2_client()
+        actual_cost = cost or self.ap2_cost
+
+        # Check if spending would exceed $50 threshold
+        if client.spent + actual_cost > self.ap2_budget:
+            logger.warning(
+                f"[SEDarwinAgent] AP2 spending would exceed ${self.ap2_budget} threshold. "
+                f"Current: ${client.spent:.2f}, Requested: ${actual_cost:.2f}. "
+                f"USER APPROVAL REQUIRED before proceeding."
+            )
+
+        record_ap2_event(
+            agent="SEDarwinAgent",
+            action=action,
+            cost=actual_cost,
+            context=context,
+        )
 
     def _check_convergence(
         self,

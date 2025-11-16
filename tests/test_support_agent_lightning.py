@@ -219,6 +219,19 @@ class TestSupportAgentTokenCaching:
             assert "response" in result
             assert "cache_hit" in result
 
+    @pytest.mark.asyncio
+    async def test_support_agent_records_ap2_event(self, support_agent, ap2_event_spy):
+        """Ensure AP2 metadata is logged when answering a support query."""
+        support_agent.token_cached_rag = None
+
+        await support_agent.answer_support_query_cached(query="AP2 budget check?")
+
+        assert ap2_event_spy, "AP2 event should be emitted"
+        last_event = ap2_event_spy[-1]
+        assert last_event["agent"] == "SupportAgent"
+        assert "answer_support_query" in last_event["action"]
+        assert "query" in last_event["context"]
+
 
 class TestSupportAgentIntegration:
     """Integration tests for Support Agent token caching."""
@@ -295,7 +308,6 @@ class TestSupportAgentIntegration:
         for result in successful_results:
             assert "response" in result
             assert "latency_ms" in result
-
 
 class TestTokenCacheStatsDataclass:
     """Test TokenCacheStats dataclass functionality."""

@@ -319,6 +319,28 @@ class TestSEDarwinAgentTokenCaching:
         assert len(result_small["selected_operators"]) > 0
         assert len(result_large["selected_operators"]) > 0
 
+    @pytest.mark.asyncio
+    async def test_se_darwin_records_ap2_event(self, darwin_agent, ap2_event_spy):
+        """Ensure AP2 metadata is logged while generating trajectories."""
+        darwin_agent.spice_enabled = False
+        darwin_agent.challenger_agent = None
+        darwin_agent.reasoner_agent = None
+        darwin_agent.memory_tool = None
+        darwin_agent.mutation_success_tracker = None
+        darwin_agent.trajectories_per_iteration = 1
+
+        trajectories = await darwin_agent._generate_trajectories_async(
+            problem_description="AP2 test",
+            context={},
+            generation=0
+        )
+
+        assert isinstance(trajectories, list)
+        assert ap2_event_spy, "AP2 event should be emitted during trajectory generation"
+        last_event = ap2_event_spy[-1]
+        assert last_event["agent"] == "SEDarwinAgent"
+        assert last_event["action"] == "generate_trajectories"
+
 
 class TestSEDarwinIntegration:
     """Integration tests for SE-Darwin Agent."""
@@ -392,7 +414,6 @@ class TestSEDarwinIntegration:
         # Both should return valid operators
         assert result1["operator_count"] > 0
         assert result2["operator_count"] > 0
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

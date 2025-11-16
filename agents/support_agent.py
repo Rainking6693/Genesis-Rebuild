@@ -5,6 +5,7 @@ Version: 4.0 (Enhanced with DAAO + TUMIX) (Day 2 Migration)
 Handles customer support, ticket management, and user assistance.
 """
 
+import asyncio
 import json
 import logging
 import time
@@ -61,6 +62,10 @@ from infrastructure.genesis_memory_integration import (
 # Import vLLM Agent-Lightning token caching for 60-80% latency reduction (NEW: Token Cache Optimization)
 from infrastructure.token_cached_rag import TokenCachedRAG, TokenCacheStats
 from infrastructure.token_cache_helper import initialize_token_cached_rag
+from infrastructure.ap2_helpers import record_ap2_event
+from infrastructure.payments import get_payment_manager
+from infrastructure.payments.budget_enforcer import BudgetExceeded
+from infrastructure.payments.media_helper import MediaPaymentHelper
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +122,10 @@ class SupportAgent:
         self.token_cached_rag: Optional[TokenCachedRAG] = None
         if self.enable_memory:
             self._init_token_cache()
+
+        self.payment_manager = get_payment_manager()
+        self.media_helper = MediaPaymentHelper("support_agent", vendor_name="support_ops_vendor")
+        self.payment_contexts: List[Dict[str, str]] = []
 
         logger.info(f"Support Agent v4.0 initialized with DAAO + TUMIX + DeepSeek-OCR + OpenEnv + MemoryOS + MultimodalPipeline + Token-Caching for business: {business_id}")
 
@@ -481,7 +490,48 @@ class SupportAgent:
             "escalation_notes": "Requires specialized technical knowledge",
             "escalated_at": datetime.now().isoformat()
         }
+        try:
+            purchase = self.media_helper.purchase(
+                resource="support_escalation",
+                amount_usd=0.65,
+                vendor="support_escalation_api"
+            )
+            self._record_payment_context(
+                "escalate_ticket",
+                {
+                    "ticket_id": ticket_id,
+                    "escalated_to": escalation_team,
+                    "vendor": purchase.vendor
+                }
+            )
+        except BudgetExceeded as exc:
+            logger.warning("Support escalation blocked by budget guard: %s", exc)
+
+        self._emit_ap2_event(
+            action="escalate_ticket",
+            context={
+                "ticket_id": ticket_id,
+                "escalation_team": escalation_team
+            },
+            cost=0.65
+        )
+
         return json.dumps(result, indent=2)
+
+    def _record_payment_context(self, action: str, context: Dict[str, str]) -> None:
+        self.payment_contexts.append({
+            "action": action,
+            "context": context,
+            "recorded_at": datetime.now(timezone.utc).isoformat()
+        })
+
+    def _emit_ap2_event(self, action: str, context: Dict[str, Any], cost: Optional[float] = None):
+        record_ap2_event(
+            agent="SupportAgent",
+            action=action,
+            cost=cost or 0.65,
+            context=context
+        )
 
     def search_knowledge_base(self, query: str, category: str) -> str:
         """Search the knowledge base for relevant articles"""
@@ -744,6 +794,40 @@ class SupportAgent:
             legacy_result['fallback_mode'] = True
             legacy_result['error'] = str(e)
             return json.dumps(legacy_result, indent=2)
+
+    async def create_helpdesk_ticket(self, ticket_data: Dict[str, Any]) -> dict:
+        """Create a helpdesk ticket and record the payment."""
+        cost = 0.35
+        response = await asyncio.to_thread(
+            self.payment_manager.pay,
+            "support_agent",
+            "https://helpdesk.genesis.com/create-ticket",
+            cost,
+            metadata={"ticket": ticket_data}
+        )
+        return {
+            "transaction_id": response.transaction_id,
+            "status": response.status,
+            "amount": response.amount,
+            "vendor": response.vendor
+        }
+
+    async def transcribe_voice_call(self, audio_url: str) -> dict:
+        """Transcribe a voice call via the payment-managed transcription service."""
+        cost = 0.25
+        response = await asyncio.to_thread(
+            self.payment_manager.pay,
+            "support_agent",
+            "https://voice-support.genesis.com/transcribe",
+            cost,
+            metadata={"audio_url": audio_url, "language": "en"}
+        )
+        return {
+            "transaction_id": response.transaction_id,
+            "status": response.status,
+            "amount": response.amount,
+            "vendor": response.vendor
+        }
 
     async def reproduce_customer_issue(self, ticket_id: str, reproduction_steps: str) -> str:
         """

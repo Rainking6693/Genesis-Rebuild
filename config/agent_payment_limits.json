@@ -1,0 +1,22 @@
+{
+  "builder_agent": {
+    "daily_limit_usdc": 80,
+    "monthly_limit_usdc": 800,
+    "per_transaction_max_usdc": 6
+  },
+  "research_agent": {
+    "daily_limit_usdc": 60,
+    "monthly_limit_usdc": 480,
+    "per_transaction_max_usdc": 4
+  },
+  "qa_agent": {
+    "daily_limit_usdc": 40,
+    "monthly_limit_usdc": 320,
+    "per_transaction_max_usdc": 3
+  },
+  "support_agent": {
+    "daily_limit_usdc": 30,
+    "monthly_limit_usdc": 240,
+    "per_transaction_max_usdc": 2
+  }
+}

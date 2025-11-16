@@ -36,6 +36,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from agents.se_darwin_agent import SEDarwinAgent
 from infrastructure.benchmark_runner import BenchmarkRunner, BenchmarkResult
+from infrastructure.load_env import load_genesis_env
+from infrastructure.genesis_discord import get_discord_client, close_discord_client
 
 logging.basicConfig(
     level=logging.INFO,
@@ -587,25 +589,48 @@ class SPICEBenchmarkValidator:
 
 async def main():
     """Main entry point"""
-    validator = SPICEBenchmarkValidator(
-        iterations=30,
-        agent_name="QA"
-    )
+    load_genesis_env()
+    discord = get_discord_client()
+    business_id = "sedarwin_spice_benchmark"
+    try:
+        await discord.agent_started(
+            business_id,
+            "SEDarwinAgent",
+            "SPICE benchmark validation",
+        )
 
-    results = await validator.run_full_validation()
+        validator = SPICEBenchmarkValidator(
+            iterations=30,
+            agent_name="QA"
+        )
 
-    # Print summary
-    stats = results['statistics']
-    print("\n" + "="*80)
-    print("FINAL SUMMARY")
-    print("="*80)
-    print(f"Baseline Score: {results['baseline'].avg_score:.2f}/10")
-    print(f"SPICE Score: {results['spice'].avg_score:.2f}/10")
-    print(f"Improvement: +{stats['improvement_percentage']:.1f}%")
-    print(f"Target Met: {'✅ YES' if stats['target_met'] else '❌ NO'}")
-    print(f"Significant: {'✅ YES' if stats['significant'] else '❌ NO'}")
-    print(f"GO/NO-GO: {'✅ GO' if stats['target_met'] and stats['significant'] else '❌ NO-GO'}")
-    print("="*80)
+        results = await validator.run_full_validation()
+        stats = results['statistics']
+
+        await discord.agent_completed(
+            business_id,
+            "SEDarwinAgent",
+            f"Improvement +{stats['improvement_percentage']:.1f}% ({'PASS' if stats['significant'] and stats['target_met'] else 'FAIL'})",
+        )
+
+        # Print summary
+        print("\n" + "="*80)
+        print("FINAL SUMMARY")
+        print("="*80)
+        print(f"Baseline Score: {results['baseline'].avg_score:.2f}/10")
+        print(f"SPICE Score: {results['spice'].avg_score:.2f}/10")
+        print(f"Improvement: +{stats['improvement_percentage']:.1f}%")
+        print(f"Target Met: {'✅ YES' if stats['target_met'] else '❌ NO'}")
+        print(f"Significant: {'✅ YES' if stats['significant'] else '❌ NO'}")
+        print(f"GO/NO-GO: {'✅ GO' if stats['target_met'] and stats['significant'] else '❌ NO-GO'}")
+        print("="*80)
+
+        return results
+    except Exception as exc:
+        await discord.agent_error(business_id, "SEDarwinAgent", str(exc))
+        raise
+    finally:
+        await close_discord_client()
 
 
 if __name__ == "__main__":

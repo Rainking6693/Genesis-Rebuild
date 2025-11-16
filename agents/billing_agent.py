@@ -5,10 +5,12 @@ Version: 4.0 (Enhanced with DAAO + TUMIX) (Day 2 Migration)
 Handles payment processing, invoicing, and revenue management.
 """
 
+import asyncio
 import json
 import logging
+import os
 from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Optional
 from agent_framework import ChatAgent
 from agent_framework.azure import AzureAIAgentClient
 from agent_framework.observability import setup_observability
@@ -23,6 +25,11 @@ from infrastructure.tumix_termination import (
     TerminationDecision
 )
 
+# Import AP2
+from infrastructure.ap2_helpers import record_ap2_event
+from infrastructure.ap2_protocol import get_ap2_client
+from infrastructure.genesis_discord import get_discord_client
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,6 +39,7 @@ class BillingAgent:
     def __init__(self, business_id: str = "default"):
         self.business_id = business_id
         self.agent = None
+        self._discord = None
 
         # Initialize DAAO router for cost optimization
         self.router = get_daao_router()
@@ -46,21 +54,63 @@ class BillingAgent:
         # Track refinement sessions for metrics
         self.refinement_history: List[List[RefinementResult]] = []
 
+        # AP2 integration: Cost tracking and budget management
+        self.ap2_cost = 1.5  # $1.5 per operation
+        self.ap2_budget = 50.0  # $50 threshold per user requirement
+
         logger.info(f"{{agent_name}} v4.0 initialized with DAAO + TUMIX for business: {{business_id}}")
+
+    def _get_discord(self):
+        if self._discord is None:
+            self._discord = get_discord_client()
+        return self._discord
+
+    def _notify_discord(self, coro):
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(coro)
+        else:
+            loop.create_task(coro)
 
     async def initialize(self):
         cred = AzureCliCredential()
         client = AzureAIAgentClient(async_credential=cred)
         self.agent = ChatAgent(
             chat_client=client,
-            instructions="You are a billing and payment specialist. Process payments, generate invoices, manage subscriptions, handle refunds, and track revenue. Integrate with payment providers (Stripe, x402 protocol for agent-to-agent micropayments). Ensure PCI-DSS compliance, prevent fraud, and maintain accurate financial records. Support programmable, permissionless micropayments on Sei Network blockchain.",
+        instructions="You are a billing and payment specialist. Process payments, generate invoices, manage subscriptions, handle refunds, and track revenue. Integrate with payment providers (Stripe, the agent payment ledger). Ensure PCI-DSS compliance, prevent fraud, and maintain accurate financial records. Support programmable, permissionless micropayments on Sei Network blockchain.",
             name="billing-agent",
             tools=[self.process_payment, self.generate_invoice, self.manage_subscription, self.issue_refund, self.generate_revenue_report]
         )
         print(f"💰 Billing Agent initialized for business: {self.business_id}\n")
 
+    def _emit_ap2_event(self, action: str, context: Dict[str, str], cost: Optional[float] = None):
+        """Emit AP2 event with budget tracking and $50 threshold monitoring"""
+        client = get_ap2_client()
+        actual_cost = cost or self.ap2_cost
+
+        # Check if spending would exceed $50 threshold
+        if client.spent + actual_cost > self.ap2_budget:
+            logger.warning(
+                f"[BillingAgent] AP2 spending would exceed ${self.ap2_budget} threshold. "
+                f"Current: ${client.spent:.2f}, Requested: ${actual_cost:.2f}. "
+                f"USER APPROVAL REQUIRED before proceeding."
+            )
+
+        record_ap2_event(
+            agent="BillingAgent",
+            action=action,
+            cost=actual_cost,
+            context=context
+        )
+
     def process_payment(self, customer_id: str, amount: float, payment_method: str, currency: str) -> str:
         """Process a payment transaction"""
+        discord = self._get_discord()
+        business_id = self.business_id or "billing"
+        self._notify_discord(
+            discord.agent_started(business_id, "BillingAgent", f"Processing payment for {customer_id}")
+        )
         result = {
             "transaction_id": f"TXN-{datetime.now().strftime('%Y%m%d%H%M%S')}",
             "customer_id": customer_id,
@@ -68,15 +118,38 @@ class BillingAgent:
             "currency": currency,
             "payment_method": payment_method,
             "status": "success",
-            "payment_provider": "stripe" if amount >= 1.0 else "x402",
+            "payment_provider": "stripe" if amount >= 1.0 else "payments",
             "transaction_fee": amount * 0.029 + 0.30 if amount >= 1.0 else amount * 0.001,
             "net_amount": amount - (amount * 0.029 + 0.30 if amount >= 1.0 else amount * 0.001),
             "processed_at": datetime.now().isoformat()
         }
+
+        # Emit AP2 event
+        self._emit_ap2_event(
+            action="process_payment",
+            context={
+                "customer_id": customer_id,
+                "amount": str(amount),
+                "currency": currency,
+                "payment_method": payment_method
+            }
+        )
+
+        self._notify_discord(
+            discord.payment_received(self.business_id or "Business", amount, customer_id)
+        )
+        self._notify_discord(
+            discord.agent_completed(business_id, "BillingAgent", f"Txn {result['transaction_id']} success")
+        )
         return json.dumps(result, indent=2)
 
     def generate_invoice(self, customer_id: str, line_items: List[Dict[str, float]], due_date: str) -> str:
         """Generate an invoice for a customer"""
+        discord = self._get_discord()
+        business_id = self.business_id or "billing"
+        self._notify_discord(
+            discord.agent_started(business_id, "BillingAgent", f"Generating invoice for {customer_id}")
+        )
         subtotal = sum([item.get('amount', 0.0) for item in line_items])
         tax = subtotal * 0.08
         total = subtotal + tax
@@ -94,10 +167,38 @@ class BillingAgent:
             "payment_terms": "Net 30",
             "generated_at": datetime.now().isoformat()
         }
+
+        # Emit AP2 event
+        self._emit_ap2_event(
+            action="generate_invoice",
+            context={
+                "customer_id": customer_id,
+                "line_items_count": str(len(line_items)),
+                "total": str(total),
+                "due_date": due_date
+            }
+        )
+
+        self._notify_discord(
+            discord.agent_completed(
+                business_id,
+                "BillingAgent",
+                f"Invoice {result['invoice_id']} total ${total:.2f}",
+            )
+        )
         return json.dumps(result, indent=2)
 
     def manage_subscription(self, customer_id: str, plan_id: str, action: str) -> str:
         """Manage customer subscription (create, update, cancel)"""
+        discord = self._get_discord()
+        business_id = self.business_id or "billing"
+        self._notify_discord(
+            discord.agent_started(
+                business_id,
+                "BillingAgent",
+                f"{action.title()} subscription for {customer_id}",
+            )
+        )
         result = {
             "subscription_id": f"SUB-{datetime.now().strftime('%Y%m%d%H%M%S')}",
             "customer_id": customer_id,
@@ -111,10 +212,34 @@ class BillingAgent:
             "payment_method": "card_ending_4242",
             "updated_at": datetime.now().isoformat()
         }
+
+        # Emit AP2 event
+        self._emit_ap2_event(
+            action="manage_subscription",
+            context={
+                "customer_id": customer_id,
+                "plan_id": plan_id,
+                "operation": action,
+                "amount": str(result["amount"])
+            }
+        )
+
+        self._notify_discord(
+            discord.agent_completed(
+                business_id,
+                "BillingAgent",
+                f"{action.title()} subscription -> {result['status']}",
+            )
+        )
         return json.dumps(result, indent=2)
 
     def issue_refund(self, transaction_id: str, amount: float, reason: str) -> str:
         """Issue a refund for a transaction"""
+        discord = self._get_discord()
+        business_id = self.business_id or "billing"
+        self._notify_discord(
+            discord.agent_started(business_id, "BillingAgent", f"Issuing refund for {transaction_id}")
+        )
         result = {
             "refund_id": f"REF-{datetime.now().strftime('%Y%m%d%H%M%S')}",
             "transaction_id": transaction_id,
@@ -125,10 +250,37 @@ class BillingAgent:
             "processing_time_days": 5,
             "issued_at": datetime.now().isoformat()
         }
+
+        # Emit AP2 event
+        self._emit_ap2_event(
+            action="issue_refund",
+            context={
+                "transaction_id": transaction_id,
+                "amount": str(amount),
+                "reason": reason
+            }
+        )
+
+        self._notify_discord(
+            discord.agent_completed(
+                business_id,
+                "BillingAgent",
+                f"Refund {result['refund_id']} processed",
+            )
+        )
         return json.dumps(result, indent=2)
 
     def generate_revenue_report(self, start_date: str, end_date: str, breakdown_by: str) -> str:
         """Generate revenue report for a date range"""
+        discord = self._get_discord()
+        business_id = self.business_id or "billing"
+        self._notify_discord(
+            discord.agent_started(
+                business_id,
+                "BillingAgent",
+                f"Revenue report {start_date}→{end_date}",
+            )
+        )
         result = {
             "report_id": f"REV-REPORT-{datetime.now().strftime('%Y%m%d%H%M%S')}",
             "period": {"start": start_date, "end": end_date},
@@ -153,6 +305,36 @@ class BillingAgent:
             "churn_rate": 2.3,
             "generated_at": datetime.now().isoformat()
         }
+
+        # Emit AP2 event
+        self._emit_ap2_event(
+            action="generate_revenue_report",
+            context={
+                "start_date": start_date,
+                "end_date": end_date,
+                "breakdown_by": breakdown_by,
+                "total_revenue": str(result["total_revenue"])
+            }
+        )
+
+        self._notify_discord(
+            discord.daily_report(
+                {
+                    "businesses_built": result["total_transactions"],
+                    "success_rate": 100.0,
+                    "avg_quality_score": 0,
+                    "total_revenue": result["total_revenue"],
+                    "active_businesses": 0,
+                }
+            )
+        )
+        self._notify_discord(
+            discord.agent_completed(
+                business_id,
+                "BillingAgent",
+                f"Revenue report {result['report_id']} ready",
+            )
+        )
         return json.dumps(result, indent=2)
 
 

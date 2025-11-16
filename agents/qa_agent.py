@@ -28,6 +28,7 @@ Memory Scopes:
 import asyncio
 import json
 import logging
+import os
 import time
 from datetime import datetime
 from typing import List, Dict, Optional, Any, Tuple
@@ -46,6 +47,7 @@ from infrastructure.tumix_termination import (
 
 # Import TokenCachedRAG for 65-75% latency reduction on test generation
 from infrastructure.token_cached_rag import TokenCachedRAG, TokenCacheStats
+from infrastructure.ap2_helpers import record_ap2_event
 
 # Import OCR capability (legacy)
 from infrastructure.ocr.ocr_agent_tool import qa_agent_screenshot_validator
@@ -62,6 +64,10 @@ from infrastructure.memory_os_mongodb_adapter import (
     GenesisMemoryOSMongoDB,
     create_genesis_memory_mongodb
 )
+
+# Import A2A-x402 payment integration
+from infrastructure.payments import get_payment_manager
+from infrastructure.payments.agent_payment_mixin import AgentPaymentMixin
 
 setup_observability(enable_sensitive_data=True)
 logger = logging.getLogger(__name__)
@@ -289,6 +295,10 @@ class QAAgent:
         self.agent = None
         self.enable_memory = enable_memory
 
+        # Initialize A2A-x402 payment integration
+        self.payment_mixin = AgentPaymentMixin(agent_id="qa_agent")
+        self.payment_manager = get_payment_manager()
+
         # Initialize DAAO router for cost optimization
         self.router = get_daao_router()
 
@@ -324,6 +334,8 @@ class QAAgent:
             self._init_token_caching()
 
         logger.info(f"QA Agent v4.1 initialized with DAAO + TUMIX + DeepSeek-OCR + OpenEnv + MemoryOS + Agent-Lightning (memory={'enabled' if enable_memory else 'disabled'}, caching={'enabled' if enable_token_caching else 'disabled'}) for business: {business_id}")
+        self.ap2_cost = float(os.getenv("AP2_QA_COST", "1.5"))
+        self.ap2_budget = 50.0  # $50 threshold per user requirement
 
     async def initialize(self):
         cred = AzureCliCredential()
@@ -987,7 +999,7 @@ class QAAgent:
 
     async def generate_tests_cached(
         self,
-        code: str,
+        code_snippet: str,
         test_type: str = "unit",
         max_tokens: int = 1000
     ) -> Dict[str, Any]:
@@ -1005,7 +1017,7 @@ class QAAgent:
             4. Generate tests via LLM without re-tokenization (NO overhead)
 
         Args:
-            code: Source code to generate tests for
+            code_snippet: Source code to generate tests for
             test_type: Type of tests to generate (unit, integration, e2e, performance, security)
             max_tokens: Maximum tokens in generated tests (default: 1000)
 
@@ -1025,7 +1037,7 @@ class QAAgent:
 
         Example:
             result = await qa_agent.generate_tests_cached(
-                code='def add(a, b): return a + b',
+                code_snippet='def add(a, b): return a + b',
                 test_type='unit'
             )
             print(f"Generated {result['test_count']} tests in {result['latency_ms']:.0f}ms")
@@ -1036,7 +1048,14 @@ class QAAgent:
         try:
             if not self.token_cached_rag:
                 logger.warning("[QAAgent] TokenCachedRAG not initialized, falling back to non-cached")
-                return await self._generate_tests_non_cached(code, test_type, max_tokens)
+                result = await self._generate_tests_non_cached(code_snippet, test_type, max_tokens)
+                result["fallback"] = True
+                self._emit_ap2_event(
+                    action="generate_tests_fallback",
+                    context={"test_type": test_type, "reason": "cache_disabled"},
+                    cost=self.ap2_cost * 0.5,
+                )
+                return result
 
             # Step 1: Retrieve cached test template tokens
             template_query = f"test templates for {test_type}"
@@ -1047,7 +1066,7 @@ class QAAgent:
 
             # Step 2: Tokenize the provided code
             code_tokens = await self.token_cached_rag.llm.tokenize(
-                text=code,
+                text=code_snippet,
                 return_ids=True
             )
 
@@ -1074,7 +1093,7 @@ class QAAgent:
                 f"latency={elapsed_ms:.0f}ms, hit_rate={cache_stats.get('hit_rate', 0):.1f}%)"
             )
 
-            return {
+            result_payload = {
                 "tests": tests,
                 "test_count": len(tests),
                 "test_type": test_type,
@@ -1086,18 +1105,31 @@ class QAAgent:
                 "cache_stats": cache_stats,
                 "fallback": False
             }
+            self._emit_ap2_event(
+                action="generate_tests",
+                context={
+                    "test_type": test_type,
+                    "cache_hit": str(result_payload["cache_hit"]),
+                },
+            )
+            return result_payload
 
         except Exception as e:
             logger.warning(
                 f"[QAAgent] Token-cached test generation failed, falling back to non-cached: {e}"
             )
-            result = await self._generate_tests_non_cached(code, test_type, max_tokens)
+            result = await self._generate_tests_non_cached(code_snippet, test_type, max_tokens)
             result["fallback"] = True
+            self._emit_ap2_event(
+                action="generate_tests_fallback",
+                context={"test_type": test_type, "error": str(e)[:80]},
+                cost=self.ap2_cost * 0.5,
+            )
             return result
 
     async def _generate_tests_non_cached(
         self,
-        code: str,
+        code_snippet: str,
         test_type: str = "unit",
         max_tokens: int = 1000
     ) -> Dict[str, Any]:
@@ -1105,7 +1137,7 @@ class QAAgent:
         Generate tests without token caching (fallback method).
 
         Args:
-            code: Source code to generate tests for
+            code_snippet: Source code to generate tests for
             test_type: Type of tests to generate
             max_tokens: Maximum tokens in generated tests
 
@@ -1167,6 +1199,28 @@ class QAAgent:
                     logger.info("[QAAgent] Redis connection closed")
         except Exception as e:
             logger.error(f"[QAAgent] Failed to close Redis connection: {e}")
+
+    def _emit_ap2_event(self, action: str, context: Dict[str, str], cost: Optional[float] = None):
+        """Emit AP2 event for budget tracking and cost monitoring"""
+        from infrastructure.ap2_protocol import get_ap2_client
+
+        client = get_ap2_client()
+        actual_cost = cost or self.ap2_cost
+
+        # Check if spending would exceed $50 threshold
+        if client.spent + actual_cost > self.ap2_budget:
+            logger.warning(
+                f"[QAAgent] AP2 spending would exceed ${self.ap2_budget} threshold. "
+                f"Current: ${client.spent:.2f}, Requested: ${actual_cost:.2f}. "
+                f"USER APPROVAL REQUIRED before proceeding."
+            )
+
+        record_ap2_event(
+            agent="QAAgent",
+            action=action,
+            cost=actual_cost,
+            context=context,
+        )
 
 
 async def get_qa_agent(business_id: str = "default") -> QAAgent:

@@ -36,6 +36,7 @@ load_genesis_env()
 # Business generation core
 from infrastructure.business_idea_generator import get_idea_generator, BusinessIdea
 from infrastructure.genesis_meta_agent import GenesisMetaAgent, BusinessSpec
+from infrastructure.genesis_discord import get_discord_client, close_discord_client
 from infrastructure.business_monitor import get_monitor
 
 # Layer 1: Orchestration
@@ -101,8 +102,9 @@ class FullyIntegratedLoop:
         self.min_score = min_score
         
         # Core systems
+        self.discord = get_discord_client()
         self.idea_generator = get_idea_generator()
-        self.meta_agent = GenesisMetaAgent()
+        self.meta_agent = GenesisMetaAgent(discord_client=self.discord)
         self.monitor = get_monitor()
         
         # Layer 1: Orchestration
@@ -171,6 +173,9 @@ class FullyIntegratedLoop:
         logger.info(f"  Layer 6 (Memory): CaseBank ✅ ({casebank_count} cases) | TEI ✅ | Memento {'✅' if self.memento else '❌'}")
         logger.info(f"  Advanced: HGM {'✅' if self.oracle_hgm else '❌'} | SLICE {'✅' if self.slice_linter else '❌'}")
         logger.info("="*80 + "\n")
+
+    async def close(self):
+        await close_discord_client()
     
     async def generate_one_business(self) -> Dict[str, Any]:
         """
@@ -382,37 +387,45 @@ Monetization: {idea.monetization_model}
         logger.info(f"Generating {count} businesses with ALL systems integrated")
         logger.info(f"Min quality score: {self.min_score}/100")
         logger.info(f"\n{'='*80}\n")
-        
-        for i in range(count):
-            logger.info(f"\n{'='*80}")
-            logger.info(f"{f'BUSINESS #{i+1}/{count}':^80}")
-            logger.info(f"{'='*80}\n")
-            
-            try:
-                result = await self.generate_one_business()
+        started = False
+        i = -1
+        try:
+            if self.discord:
+                await self.discord.genesis_started()
+                started = True
+            for i in range(count):
+                logger.info(f"\n{'='*80}")
+                logger.info(f"{f'BUSINESS #{i+1}/{count}':^80}")
+                logger.info(f"{'='*80}\n")
                 
-                logger.info(f"\n✅ Business #{i+1} Complete:")
-                logger.info(f"   Name: {result['idea']['name']}")
-                logger.info(f"   Type: {result['idea']['business_type']}")
-                logger.info(f"   Quality: {result['idea']['overall_score']:.1f}/100")
-                logger.info(f"   Team: {result['team'][:3]}")
-                logger.info(f"   Components: {result['build_result']['components']}")
-                logger.info(f"   Time: {result['duration_total']:.1f}s")
-                logger.info(f"   Cost: ${result['build_result']['cost']:.4f}")
-                
-                if result['build_result']['success']:
-                    self.successful_ideas.append(result)
-                else:
-                    self.failed_ideas.append(result)
-                
-            except KeyboardInterrupt:
-                logger.info("\n\n⚠️  Stopped by user")
-                break
-            except Exception as e:
-                import traceback
-                logger.error(f"\n❌ Business #{i+1} failed: {e}")
-                logger.error(traceback.format_exc())
-                continue
+                try:
+                    result = await self.generate_one_business()
+                    
+                    logger.info(f"\n✅ Business #{i+1} Complete:")
+                    logger.info(f"   Name: {result['idea']['name']}")
+                    logger.info(f"   Type: {result['idea']['business_type']}")
+                    logger.info(f"   Quality: {result['idea']['overall_score']:.1f}/100")
+                    logger.info(f"   Team: {result['team'][:3]}")
+                    logger.info(f"   Components: {result['build_result']['components']}")
+                    logger.info(f"   Time: {result['duration_total']:.1f}s")
+                    logger.info(f"   Cost: ${result['build_result']['cost']:.4f}")
+                    
+                    if result['build_result']['success']:
+                        self.successful_ideas.append(result)
+                    else:
+                        self.failed_ideas.append(result)
+                    
+                except KeyboardInterrupt:
+                    logger.info("\n\n⚠️  Stopped by user")
+                    break
+                except Exception as e:
+                    import traceback
+                    logger.error(f"\n❌ Business #{i+1} failed: {e}")
+                    logger.error(traceback.format_exc())
+                    continue
+        finally:
+            if self.discord and started:
+                await self.discord.genesis_shutdown()
         
         # Summary
         logger.info(f"\n{'='*80}")
@@ -447,6 +460,7 @@ async def main():
     
     loop = FullyIntegratedLoop(min_score=args.min_score)
     await loop.run_loop(count=args.count)
+    await loop.close()
 
 
 if __name__ == "__main__":

@@ -38,6 +38,9 @@ from infrastructure.memory_os_mongodb_adapter import (
     create_genesis_memory_mongodb
 )
 
+# AP2 Protocol integration
+from infrastructure.ap2_helpers import record_ap2_event
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -218,6 +221,10 @@ class DatabaseDesignAgent:
         self.schemas_designed = 0
         self.schemas_successful = 0
 
+        # AP2 Protocol configuration
+        self.ap2_cost = float(os.getenv("AP2_DB_DESIGN_COST", "1.5"))
+        self.ap2_budget = 50.0  # $50 threshold per user requirement
+
         logger.info(f"🗄️ Database Design Agent initialized for business: {business_id}")
         logger.info(f"   Memory: {'Enabled' if self.enable_memory else 'Disabled'}")
 
@@ -318,12 +325,165 @@ class DatabaseDesignAgent:
             logger.error(f"[DBDesignAgent] Failed to recall patterns: {e}")
             return []
 
-    async def design_schema(
+    def _emit_ap2_event(self, action: str, context: Dict[str, str], cost: Optional[float] = None):
+        """Emit AP2 event for budget tracking and cost monitoring"""
+        from infrastructure.ap2_protocol import get_ap2_client
+
+        client = get_ap2_client()
+        actual_cost = cost or self.ap2_cost
+
+        # Check if spending would exceed $50 threshold
+        if client.spent + actual_cost > self.ap2_budget:
+            logger.warning(
+                f"[DatabaseDesignAgent] AP2 spending would exceed ${self.ap2_budget} threshold. "
+                f"Current: ${client.spent:.2f}, Requested: ${actual_cost:.2f}. "
+                f"USER APPROVAL REQUIRED before proceeding."
+            )
+
+        record_ap2_event(
+            agent="DatabaseDesignAgent",
+            action=action,
+            cost=actual_cost,
+            context=context,
+        )
+
+    def design_schema(
+        self,
+        business_type: Optional[str] = None,
+        requirements: Optional[List[str]] = None,
+        database_type: str = "postgresql",
+        config: Optional[SchemaConfig] = None,
+        user_id: Optional[str] = None
+    ) -> SchemaResult:
+        """
+        Design database schema (synchronous wrapper for compatibility).
+
+        Can be called in two ways:
+        1. Simple: design_schema(business_type="ecommerce", requirements=["users", "data"])
+        2. Advanced: design_schema(config=SchemaConfig(...))
+
+        Args:
+            business_type: Type of business (ecommerce, saas, etc.)
+            requirements: List of required tables/entities
+            database_type: Database type (postgresql, mysql, mongodb)
+            config: Pre-built SchemaConfig (overrides other params if provided)
+            user_id: Optional user ID for memory
+
+        Returns:
+            SchemaResult with DDL statements
+        """
+        # If config provided, use advanced async path
+        if config is not None:
+            return asyncio.run(self._design_schema_async(config=config, user_id=user_id))
+
+        # Otherwise use simplified path
+        if business_type is None:
+            raise ValueError("Either business_type or config must be provided")
+
+        # Check if we're in an async context
+        import asyncio
+        try:
+            loop = asyncio.get_running_loop()
+            # We're in an async context - create a task and run it synchronously
+            # by using asyncio.ensure_future and then getting the result
+            import nest_asyncio
+            try:
+                nest_asyncio.apply()
+            except:
+                pass
+
+            # Use asyncio.run() with nest_asyncio applied
+            return asyncio.run(self._design_schema_simple_async(
+                business_type=business_type,
+                requirements=requirements,
+                database_type=database_type,
+                user_id=user_id
+            ))
+        except RuntimeError:
+            # Not in async context, use asyncio.run()
+            return asyncio.run(self._design_schema_simple_async(
+                business_type=business_type,
+                requirements=requirements,
+                database_type=database_type,
+                user_id=user_id
+            ))
+
+    async def _design_schema_simple_async(
+        self,
+        business_type: str,
+        requirements: Optional[List[str]] = None,
+        database_type: str = "postgresql",
+        user_id: Optional[str] = None
+    ) -> SchemaResult:
+        """
+        Simplified schema design method for quick business schema generation (async).
+
+        Args:
+            business_type: Type of business (ecommerce, saas, etc.)
+            requirements: List of required tables/entities
+            database_type: Database type (postgresql, mysql, mongodb)
+            user_id: Optional user ID for memory
+
+        Returns:
+            SchemaResult with DDL statements
+        """
+        # Build default schema based on business type and requirements
+        if requirements is None:
+            requirements = ["users", "data"]
+
+        schema_name = f"{business_type}_db"
+        tables = []
+
+        # Create tables based on requirements
+        for req in requirements:
+            if req == "users":
+                tables.append({
+                    "name": "users",
+                    "columns": [
+                        {"name": "id", "type": "INTEGER", "primary_key": True},
+                        {"name": "email", "type": "VARCHAR(255)", "not_null": True},
+                        {"name": "created_at", "type": "TIMESTAMP", "not_null": True}
+                    ]
+                })
+            elif req == "data":
+                tables.append({
+                    "name": f"{business_type}_data",
+                    "columns": [
+                        {"name": "id", "type": "INTEGER", "primary_key": True},
+                        {"name": "user_id", "type": "INTEGER"},
+                        {"name": "content", "type": "TEXT"},
+                        {"name": "created_at", "type": "TIMESTAMP"}
+                    ]
+                })
+            else:
+                # Generic table for other requirements
+                tables.append({
+                    "name": req,
+                    "columns": [
+                        {"name": "id", "type": "INTEGER", "primary_key": True},
+                        {"name": "name", "type": "VARCHAR(255)"}
+                    ]
+                })
+
+        # Build config
+        config = SchemaConfig(
+            schema_name=schema_name,
+            database_type=database_type,
+            tables=tables,
+            relationships=[],
+            indexes=[],
+            metadata={"business_type": business_type}
+        )
+
+        # Call main design method
+        return await self._design_schema_async(config=config, user_id=user_id)
+
+    async def _design_schema_async(
         self,
         config: SchemaConfig,
         user_id: Optional[str] = None
     ) -> SchemaResult:
-        """Design database schema with learned patterns."""
+        """Design database schema with learned patterns (async implementation)."""
         self.schemas_designed += 1
 
         try:
@@ -353,6 +513,17 @@ class DatabaseDesignAgent:
             self.schemas_successful += 1
 
             logger.info(f"✅ Schema designed: {config.schema_name} (score: {optimization_score:.2f})")
+
+            # Emit AP2 event for successful schema design
+            self._emit_ap2_event(
+                action="design_schema",
+                context={
+                    "schema_name": config.schema_name,
+                    "database_type": config.database_type,
+                    "table_count": str(len(config.tables)),
+                    "optimization_score": f"{optimization_score:.2f}"
+                }
+            )
 
             return SchemaResult(
                 success=True,

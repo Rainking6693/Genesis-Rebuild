@@ -28,8 +28,11 @@ class DreamGymTrainer:
         doc_lines = os.getenv("BINARY_RAR_DOCS", "")
         index = [line.strip() for line in doc_lines.split("|") if line.strip()]
         use_bm25 = os.getenv("BINARY_RAR_USE_BM25", "true").lower() == "true"
-        retriever_cls = BM25Retriever if use_bm25 else BinaryRarRetriever
-        self.binary_rar = BinaryRarVerifier(retriever_cls(index=index))
+        if use_bm25:
+            retriever = BM25Retriever(documents=index)
+        else:
+            retriever = BinaryRarRetriever(index=index)
+        self.binary_rar = BinaryRarVerifier(retriever)
         self.codebook = CodebookManager()
         self.hallucination_monitor = HallucinationMonitor()
 
@@ -51,14 +54,6 @@ class DreamGymTrainer:
         self.hallucination_monitor.record(verification.passed)
 
         reward = 0.0 if not verification.passed else max(0.0, min(1.0, trajectory.success_score))
-        metadata = {
-            "generation": trajectory.generation,
-            "agent": trajectory.agent_name,
-            "status": trajectory.status,
-            "rar_passed": verification.passed,
-            "rar_score": round(verification.score, 3),
-            "rar_evidence": verification.evidence,
-        }
         novelty = 0.6 if trajectory.reasoning_pattern else 0.7
         metadata = {
             "generation": trajectory.generation,

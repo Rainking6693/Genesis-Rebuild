@@ -110,24 +110,30 @@ def default_criteria() -> List[RubricCriterion]:
         RubricCriterion(
             name="completeness",
             description="Plan covers sufficient components and sub-steps.",
-            weight=0.4,
+            weight=0.30,
             scorer=completeness_score,
         ),
         RubricCriterion(
             name="coherence",
             description="Task descriptions remain aligned and non-redundant.",
-            weight=0.3,
+            weight=0.20,
             scorer=coherence_score,
         ),
         RubricCriterion(
             name="risk_awareness",
             description="Plan explicitly calls out mitigation/verification tasks.",
-            weight=0.3,
+            weight=0.10,
             scorer=risk_awareness_score,
         ),
     ]
 
 
-DEFAULT_RUBRIC = RubricEvaluator(
-    criteria=default_criteria() + load_research_rubrics()
-)
+def get_default_rubric() -> RubricEvaluator:
+    """Get the default rubric evaluator with research rubrics loaded."""
+    from infrastructure.rubrics.research_rubric_loader import load_research_rubrics
+    return RubricEvaluator(
+        criteria=default_criteria() + load_research_rubrics()
+    )
+
+
+DEFAULT_RUBRIC = get_default_rubric()

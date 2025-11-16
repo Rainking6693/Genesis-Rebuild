@@ -40,6 +40,10 @@ from infrastructure.self_correction import (
 from infrastructure.openenv_wrapper import EnvRegistry
 from infrastructure.env_learning_agent import EnvironmentLearningAgent
 
+# Import A2A-x402 payment integration
+from infrastructure.payments import get_payment_manager
+from infrastructure.payments.agent_payment_mixin import AgentPaymentMixin
+
 setup_observability(enable_sensitive_data=True)
 logger = logging.getLogger(__name__)
 
@@ -68,6 +72,10 @@ class BuilderAgent:
         self.agent = None
         self.executions = 0
         self.total_cost = 0.0
+
+        # Initialize A2A-x402 payment integration
+        self.payment_mixin = AgentPaymentMixin(agent_id="builder_agent")
+        self.payment_manager = get_payment_manager()
 
         # Initialize DAAO router for cost optimization
         self.router = get_daao_router()

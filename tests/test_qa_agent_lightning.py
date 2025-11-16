@@ -289,6 +289,18 @@ class TestQAAgentTokenCaching:
         # Stats should show changes
         assert final_stats["cache_hits"] + final_stats["cache_misses"] > 0
 
+    @pytest.mark.asyncio
+    async def test_qa_agent_records_ap2_event(self, qa_agent, ap2_event_spy):
+        """Ensure AP2 metadata is emitted when fallback generation occurs."""
+        qa_agent.token_cached_rag = None
+
+        await qa_agent.generate_tests_cached("def ap2_check(): pass", test_type="unit")
+
+        assert ap2_event_spy, "Expected AP2 event for fallback generation"
+        last_event = ap2_event_spy[-1]
+        assert last_event["agent"] == "QAAgent"
+        assert "generate_tests" in last_event["action"]
+
 
 class TestQAAgentIntegration:
     """Integration tests for QA Agent with token caching."""
@@ -349,7 +361,6 @@ def process_user(user_id: str, username: str) -> dict:
         # Note: This is not guaranteed in mock implementation
         assert result1["latency_ms"] > 0
         assert result2["latency_ms"] > 0
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

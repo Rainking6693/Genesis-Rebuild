@@ -1,0 +1,14 @@
+{
+  "marketing_agent": {
+    "daily_spent": 5.25,
+    "last_daily": "2025-11-16",
+    "monthly_spent": 5.25,
+    "last_monthly": "2025-11"
+  },
+  "builder_agent": {
+    "daily_spent": 7.5,
+    "last_daily": "2025-11-16",
+    "monthly_spent": 7.5,
+    "last_monthly": "2025-11"
+  }
+}

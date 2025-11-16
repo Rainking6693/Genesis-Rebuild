@@ -25,12 +25,14 @@ Integration with:
 import asyncio
 import json
 import logging
+import os
 import time
 from datetime import datetime
 from typing import List, Dict, Optional, Any, Tuple
 
 from infrastructure import get_logger
 from infrastructure.token_cached_rag import TokenCachedRAG, TokenCacheStats
+from infrastructure.ap2_helpers import record_ap2_event
 
 logger = get_logger(__name__)
 
@@ -63,6 +65,8 @@ class CodeReviewAgent:
         logger.info(
             f"CodeReviewAgent initialized with token caching={'enabled' if enable_token_caching else 'disabled'}"
         )
+        self.ap2_cost = float(os.getenv("AP2_CODE_REVIEW_COST", "2.0"))
+        self.ap2_budget = 50.0  # $50 threshold per user requirement
 
     def _init_token_caching(self):
         """Initialize TokenCachedRAG for code review pattern caching."""
@@ -232,7 +236,13 @@ class CodeReviewAgent:
         try:
             if not self.token_cached_rag:
                 logger.warning("[CodeReviewAgent] TokenCachedRAG not initialized, falling back")
-                return await self._review_code_non_cached(code, file_path, review_type)
+                result = await self._review_code_non_cached(code, file_path, review_type)
+                self._record_ap2_event(
+                    action="code_review_fallback",
+                    context={"review_type": review_type, "file_path": file_path, "reason": "cache_disabled"},
+                    cost=self.ap2_cost * 0.5,
+                )
+                return result
 
             # Determine file type from path
             file_extension = file_path.split(".")[-1].lower() if "." in file_path else "unknown"
@@ -271,7 +281,7 @@ class CodeReviewAgent:
 
             severity_breakdown = self._count_by_severity(issues)
 
-            return {
+            result_payload = {
                 "issues": issues,
                 "issue_count": len(issues),
                 "file_path": file_path,
@@ -286,6 +296,15 @@ class CodeReviewAgent:
                 "cache_stats": cache_stats,
                 "fallback": False,
             }
+            self._record_ap2_event(
+                action="code_review",
+                context={
+                    "review_type": review_type,
+                    "file_path": file_path,
+                    "cache_hit": str(result_payload["cache_hit"]),
+                },
+            )
+            return result_payload
 
         except Exception as e:
             logger.warning(
@@ -293,6 +312,11 @@ class CodeReviewAgent:
             )
             result = await self._review_code_non_cached(code, file_path, review_type)
             result["fallback"] = True
+            self._record_ap2_event(
+                action="code_review_fallback",
+                context={"review_type": review_type, "file_path": file_path, "error": str(e)[:80]},
+                cost=self.ap2_cost * 0.5,
+            )
             return result
 
     async def _review_code_non_cached(
@@ -440,6 +464,27 @@ class CodeReviewAgent:
                     logger.info("[CodeReviewAgent] Redis connection closed")
         except Exception as e:
             logger.error(f"[CodeReviewAgent] Failed to close Redis connection: {e}")
+
+    def _record_ap2_event(self, action: str, context: Dict[str, str], cost: Optional[float] = None):
+        from infrastructure.ap2_protocol import get_ap2_client
+
+        client = get_ap2_client()
+        actual_cost = cost or self.ap2_cost
+
+        # Check if spending would exceed $50 threshold
+        if client.spent + actual_cost > self.ap2_budget:
+            logger.warning(
+                f"[CodeReviewAgent] AP2 spending would exceed ${self.ap2_budget} threshold. "
+                f"Current: ${client.spent:.2f}, Requested: ${actual_cost:.2f}. "
+                f"USER APPROVAL REQUIRED before proceeding."
+            )
+
+        record_ap2_event(
+            agent="CodeReviewAgent",
+            action=action,
+            cost=actual_cost,
+            context=context,
+        )
 
 
 async def get_code_review_agent(enable_token_caching: bool = True) -> CodeReviewAgent:

@@ -34,6 +34,7 @@ Memory Scopes:
 
 import json
 import logging
+import os
 import time
 import asyncio
 from datetime import datetime, timezone
@@ -64,6 +65,7 @@ from infrastructure.genesis_memory_integration import (
 # Import vLLM Agent-Lightning token caching for 60-80% latency reduction (NEW: Token Cache Optimization)
 from infrastructure.token_cached_rag import TokenCachedRAG, TokenCacheStats
 from infrastructure.token_cache_helper import initialize_token_cached_rag
+from infrastructure.ap2_helpers import record_ap2_event
 
 logger = logging.getLogger(__name__)
 
@@ -360,6 +362,8 @@ class BusinessGenerationAgent:
             f"[BusinessGenAgent] Initialized with memory={self.enable_memory}, "
             f"multimodal={self.enable_multimodal}, token_caching={'enabled' if self.token_cached_rag else 'disabled'}"
         )
+        self.ap2_cost = float(os.getenv("AP2_BUSINESS_COST", "3.0"))
+        self.ap2_budget = 50.0  # $50 threshold per user requirement
 
     def _init_token_cache(self):
         """
@@ -732,6 +736,14 @@ class BusinessGenerationAgent:
             f"(score={idea.overall_score:.1f}, type={idea.business_type})"
         )
 
+        self._record_ap2_event(
+            action="generate_idea",
+            context={
+                "business_type": idea.business_type,
+                "score": f"{idea.overall_score:.1f}",
+            },
+        )
+
         return idea
 
     async def generate_batch_with_memory(
@@ -840,6 +852,12 @@ class BusinessGenerationAgent:
                 }
             )
 
+            self._record_ap2_event(
+                action="recall_templates",
+                context={"business_type": business_type},
+                cost=self.ap2_cost * 0.5,
+            )
+
             return {
                 "templates": result.get("response", ""),
                 "cache_hit": result.get("cache_hit", False),
@@ -865,6 +883,27 @@ class BusinessGenerationAgent:
                 "latency_ms": (time.time() - start_time) * 1000,
                 "cache_stats": None
             }
+
+    def _record_ap2_event(self, action: str, context: Dict[str, str], cost: Optional[float] = None):
+        from infrastructure.ap2_protocol import get_ap2_client
+
+        client = get_ap2_client()
+        actual_cost = cost or self.ap2_cost
+
+        # Check if spending would exceed $50 threshold
+        if client.spent + actual_cost > self.ap2_budget:
+            logger.warning(
+                f"[BusinessGenerationAgent] AP2 spending would exceed ${self.ap2_budget} threshold. "
+                f"Current: ${client.spent:.2f}, Requested: ${actual_cost:.2f}. "
+                f"USER APPROVAL REQUIRED before proceeding."
+            )
+
+        record_ap2_event(
+            agent="BusinessGenerationAgent",
+            action=action,
+            cost=actual_cost,
+            context=context,
+        )
 
 
 # Singleton

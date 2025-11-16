@@ -1,0 +1,14 @@
+# AgentEvolver Production Configuration
+
+experience_buffer:
+  max_size: 10000
+  min_quality: 90.0
+  storage_path: "data/agentevolver/experiences"
+
+hybrid_policy:
+  exploit_ratio: 0.8
+  quality_threshold: 80.0
+
+ap2:
+  budget_per_agent: 50.0
+  alert_threshold_pct: 80

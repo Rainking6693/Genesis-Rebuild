@@ -241,6 +241,20 @@ class TestBusinessGenerationAgentTokenCaching:
         assert latency1 >= 0
         assert latency2 >= 0
 
+    @pytest.mark.asyncio
+    async def test_business_generation_records_ap2_event(self, business_agent, ap2_event_spy):
+        """Ensure AP2 metadata is emitted during idea generation."""
+        await business_agent.generate_idea_with_memory(
+            business_type="ap2_test",
+            min_revenue_score=30.0,
+            user_id="ap2_user"
+        )
+
+        assert ap2_event_spy, "AP2 event should be recorded during idea generation"
+        last_event = ap2_event_spy[-1]
+        assert last_event["agent"] == "BusinessGenerationAgent"
+        assert "generate_idea" in last_event["action"]
+
 
 class TestBusinessGenerationAgentIntegration:
     """Integration tests for Business Generation Agent token caching."""
@@ -383,7 +397,6 @@ class TestBusinessGenerationAgentTokenCacheIntegration:
 
         # Both agents should be separate instances
         assert agent1.business_id != agent2.business_id
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

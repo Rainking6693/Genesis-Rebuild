@@ -28,6 +28,7 @@ Performance Targets:
 
 import json
 import logging
+import os
 import time
 import asyncio
 from datetime import datetime, timezone
@@ -35,6 +36,7 @@ from typing import Dict, List, Any, Optional, Tuple
 
 # Import vLLM Agent-Lightning token caching for 75-85% latency reduction (NEW: Token Cache Optimization)
 from infrastructure.token_cached_rag import TokenCachedRAG, TokenCacheStats
+from infrastructure.ap2_helpers import record_ap2_event
 from infrastructure.token_cache_helper import initialize_token_cached_rag
 
 logger = logging.getLogger(__name__)
@@ -67,6 +69,10 @@ class DocumentationAgent:
         self.token_cached_rag: Optional[TokenCachedRAG] = None
         if self.enable_memory:
             self._init_token_cache()
+
+        # AP2 Protocol cost configuration
+        self.ap2_cost = float(os.getenv("AP2_DOC_COST", "0.5"))
+        self.ap2_budget = 50.0  # $50 threshold per user requirement
 
         # Documentation storage
         self.documentation: Dict[str, Dict[str, Any]] = {}
@@ -135,6 +141,11 @@ class DocumentationAgent:
         if not self.token_cached_rag:
             # Fallback to non-cached documentation lookup
             logger.warning("[DocumentationAgent] TokenCachedRAG not available, using non-cached lookup")
+            self._emit_ap2_event(
+                action="lookup_documentation_fallback",
+                context={"query": query[:60], "section": section or "all", "reason": "cache_unavailable"},
+                cost=self.ap2_cost * 0.5,
+            )
             return {
                 "documentation": "",
                 "cache_hit": False,
@@ -173,6 +184,11 @@ class DocumentationAgent:
                 }
             )
 
+            self._emit_ap2_event(
+                action="lookup_documentation",
+                context={"query": query[:60], "section": section or "all"},
+            )
+
             return {
                 "documentation": result.get("response", ""),
                 "cache_hit": result.get("cache_hit", False),
@@ -190,6 +206,11 @@ class DocumentationAgent:
                 extra={"query": query[:50], "error": str(e)}
             )
             # Graceful degradation - return non-cached response
+
+            self._emit_ap2_event(
+                action="lookup_documentation_fallback",
+                context={"query": query[:60], "section": section or "all"},
+            )
             return {
                 "documentation": "",
                 "cache_hit": False,
@@ -233,6 +254,13 @@ class DocumentationAgent:
 
             logger.info(f"[DocumentationAgent] Generated {doc_type} documentation for {topic}")
 
+            # Emit AP2 event for documentation generation
+            self._emit_ap2_event(
+                action="generate_documentation",
+                context={"topic": topic, "doc_type": doc_type},
+                cost=self.ap2_cost
+            )
+
             return {
                 "doc_id": doc_id,
                 "documentation": generated_doc,
@@ -241,6 +269,11 @@ class DocumentationAgent:
 
         except Exception as e:
             logger.error(f"[DocumentationAgent] Failed to generate documentation: {e}")
+            self._emit_ap2_event(
+                action="generate_documentation_failed",
+                context={"topic": topic, "doc_type": doc_type, "error": str(e)[:100]},
+                cost=self.ap2_cost * 0.25
+            )
             return {
                 "success": False,
                 "error": str(e)
@@ -337,6 +370,27 @@ class DocumentationAgent:
         except Exception as e:
             logger.error(f"[DocumentationAgent] Search failed: {e}")
             return []
+
+    def _emit_ap2_event(self, action: str, context: Dict[str, str], cost: Optional[float] = None):
+        from infrastructure.ap2_protocol import get_ap2_client
+
+        client = get_ap2_client()
+        actual_cost = cost or getattr(self, "ap2_cost", 0.5)
+
+        # Check if spending would exceed $50 threshold
+        if client.spent + actual_cost > self.ap2_budget:
+            logger.warning(
+                f"[DocumentationAgent] AP2 spending would exceed ${self.ap2_budget} threshold. "
+                f"Current: ${client.spent:.2f}, Requested: ${actual_cost:.2f}. "
+                f"USER APPROVAL REQUIRED before proceeding."
+            )
+
+        record_ap2_event(
+            agent="DocumentationAgent",
+            action=action,
+            cost=actual_cost,
+            context=context,
+        )
 
     def get_cache_stats(self) -> Optional[Dict[str, Any]]:
         """

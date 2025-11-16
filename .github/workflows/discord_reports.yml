@@ -1,0 +1,59 @@
+name: Discord Daily/Weekly Reports
+
+on:
+  schedule:
+    - cron: '0 9 * * *'
+    - cron: '0 10 * * 1'
+  workflow_dispatch:
+    inputs:
+      period:
+        description: 'Report period'
+        required: true
+        default: 'daily'
+        type: choice
+        options:
+          - daily
+          - weekly
+
+jobs:
+  send-discord-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Determine report period
+        id: period
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "period=${{ inputs.period }}" >> $GITHUB_OUTPUT
+          elif [ "$(date +%u)" = "1" ] && [ "$(date +%H)" = "10" ]; then
+            echo "period=weekly" >> $GITHUB_OUTPUT
+          else
+            echo "period=daily" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run daily Discord report
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python scripts/daily_discord_report.py --period ${{ steps.period.outputs.period }}
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: discord-report-logs
+          path: logs/discord_reports.log
+          retention-days: 7

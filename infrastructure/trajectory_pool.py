@@ -112,6 +112,7 @@ class Trajectory:
     code_changes: str = ""
     problem_diagnosis: str = ""
     proposed_strategy: str = ""
+    agent_response: Optional[str] = None  # Agent's raw response (used by DreamGym verification)
 
     # ISSUE 6 FIX: Missing schema fields for trajectory evolution
     code_after: Optional[str] = None  # Final code after execution

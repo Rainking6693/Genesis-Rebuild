@@ -12,13 +12,16 @@ import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional, Tuple, TYPE_CHECKING
 from dataclasses import dataclass, field
 
 from infrastructure.halo_router import HALORouter
 from infrastructure.local_llm_client import get_local_llm_client
 from infrastructure.task_dag import TaskDAG, Task
 from infrastructure.component_library import COMPONENT_LIBRARY
+from infrastructure.payments.agent_base import PaymentAgentBase
+from infrastructure.payment_intent_manager import PaymentIntentManager
+from infrastructure.payment_intent_manager import PaymentIntentManager
 
 # Try to import prompts, provide fallbacks if not available
 try:
@@ -43,9 +46,14 @@ Generate the complete component code:"""
     def get_generic_typescript_prompt() -> str:
         return """Generate clean, production-ready TypeScript/React code following best practices."""
 
+from collections import defaultdict
+
 from infrastructure.code_extractor import extract_and_validate
 from infrastructure.business_monitor import get_monitor
 from infrastructure.workspace_state_manager import WorkspaceStateManager
+
+if TYPE_CHECKING:
+    from infrastructure.genesis_discord import GenesisDiscord
 
 try:
     from agents.reflection_agent import get_reflection_agent  # type: ignore
@@ -150,6 +158,8 @@ COMPONENT_KEYWORD_AGENT_MAP = {
     "service": "backend_agent",
 }
 
+SPEND_SUMMARY_LOG = Path("data/a2a-x402/spend_summaries.jsonl")
+
 AGENT_COMPONENT_REQUIREMENTS = {
     "frontend_agent": "dashboard_ui",
     "backend_agent": "rest_api",
@@ -171,11 +181,19 @@ AGENT_COMPONENT_REQUIREMENTS = {
 }
 
 class GenesisMetaAgent:
-    def __init__(self, use_local_llm: bool = True, enable_modular_prompts: bool = True, enable_memory: bool = True):
+    def __init__(
+        self,
+        use_local_llm: bool = True,
+        enable_modular_prompts: bool = True,
+        enable_memory: bool = True,
+        discord_client: Optional["GenesisDiscord"] = None,
+    ):
         self.use_local_llm = use_local_llm
         self.router = HALORouter.create_with_integrations()  # ✅ Policy Cards + Capability Maps enabled
         self.llm_client = get_local_llm_client() if use_local_llm else None
         self.business_templates = self._load_business_templates()
+        self.discord = discord_client
+        self.payment_manager = PaymentIntentManager()
 
         # Modular Prompts Integration
         self.enable_modular_prompts = enable_modular_prompts
@@ -230,6 +248,10 @@ class GenesisMetaAgent:
         self._darwin_enabled = os.getenv("ENABLE_DARWIN_WRAP", "true").lower() != "false"
         self._current_team_agents: List[str] = []
         self._current_spec: Optional[BusinessSpec] = None
+        self.payment_base = PaymentAgentBase("genesis_meta_agent", cost_map={
+            "call_premium_llm": 1.5,
+            "optimize_prompt": 0.4
+        })
 
         logger.info("Genesis Meta-Agent initialized")
 
@@ -444,6 +466,9 @@ class GenesisMetaAgent:
         if self._current_team_agents is not None and agent not in self._current_team_agents:
             self._current_team_agents.append(agent)
         return agent
+
+    def _component_vendor(self, agent_name: str) -> str:
+        return f"payments:{agent_name}"
 
     def _ensure_agent_coverage(
         self,
@@ -765,6 +790,9 @@ vercel deploy --prod
         dag = self._decompose_business_to_tasks(spec)
         component_list = [task.description.replace("Build ", "") for task in dag.get_all_tasks() if task.task_id != "root"]
         business_id = monitor.start_business(spec.name, spec.business_type, component_list)
+        spec.metadata.setdefault("business_id", business_id)
+        if self.discord:
+            await self.discord.business_build_started(business_id, spec.name, spec.description)
         workspace_manager = self._create_workspace_manager(business_id, spec)
         tasks_completed = 0
         tasks_failed = 0
@@ -780,14 +808,43 @@ vercel deploy --prod
             component_name = task.description.replace("Build ", "")
             component_agent = self._select_agent_for_component(component_name)
             monitor.record_component_start(business_id, component_name, component_agent)
-            
-            result = await self._execute_task_with_llm(task, component_agent)
+
+            if self.discord:
+                await self.discord.agent_started(business_id, component_agent, component_name)
+
+            try:
+                result = await self._execute_task_with_llm(task, component_agent)
+            except Exception as exc:
+                if self.discord:
+                    await self.discord.agent_error(business_id, component_agent, str(exc))
+                raise
             task_results[task.task_id] = result
             
             success = result.get("success")
-            cost = result.get("cost", 0.0)
+            cost = float(result.get("cost", 0.0))
             latency_ms = result.get("latency_ms") or result.get("latency")
+            intent = None
             if success:
+                metadata = {
+                    **self._current_spec.metadata,
+                    "target_agent": component_agent,
+                    "component": component_name,
+                    "vendor": self._component_vendor(component_agent),
+                }
+                intent = self.payment_manager.evaluate(
+                    component_agent,
+                    component_name,
+                    cost,
+                    metadata=metadata,
+                )
+                if not intent.approved:
+                    tasks_failed += 1
+                    error_msg = f"Payment denied: {intent.reason}"
+                    errors.append(error_msg)
+                    monitor.record_component_failed(business_id, component_name, error_msg)
+                    if self.discord:
+                        await self.discord.agent_error(business_id, component_agent, error_msg)
+                    continue
                 tasks_completed += 1
                 components_generated.append(task.task_id)
                 total_cost += cost
@@ -805,6 +862,13 @@ vercel deploy --prod
                 error_msg = result.get('error', 'Unknown error')
                 errors.append(f"Task {task.task_id} failed: {error_msg}")
                 monitor.record_component_failed(business_id, component_name, error_msg)
+                if self.discord:
+                    await self.discord.agent_error(business_id, component_agent, error_msg)
+
+            if success and intent and intent.approved and self.discord:
+                summary = result.get("summary") or result.get("result", "")
+                summary = summary[:280] if summary else "Component completed."
+                await self.discord.agent_completed(business_id, component_agent, summary)
 
             event_payload = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -819,6 +883,7 @@ vercel deploy --prod
                 "tasks_failed": tasks_failed,
                 "total_cost": total_cost,
                 "notes": result.get("notes"),
+                "payment_intent": intent.to_dict() if intent else None,
             }
             await workspace_manager.record_event(event_payload)
             
@@ -847,6 +912,8 @@ vercel deploy --prod
         monitor.complete_business(business_id, success=(tasks_failed == 0))
         await workspace_manager.finalize()
         monitor.write_dashboard_snapshot()
+
+        await self._summarize_business_spend(business_id, spec, total_cost)
         
         self._current_team_agents = []
 
@@ -858,7 +925,72 @@ vercel deploy --prod
             errors=errors, metrics={"cost_usd": total_cost}
         )
         self._current_spec = None
+
+        if self.discord:
+            build_metrics = {
+                "name": spec.name,
+                "quality_score": spec.metadata.get("quality_score", 0),
+                "build_time": f"{result_obj.generation_time_seconds:.1f}s",
+            }
+            deployment_url = spec.metadata.get("deployment_url", "Deployment pending")
+            await self.discord.business_build_completed(business_id, deployment_url, build_metrics)
+
         return result_obj
+
+    async def _summarize_business_spend(self, business_id: str, spec: BusinessSpec, total_cost: float):
+        intents = self.payment_manager.get_business_intents(business_id)
+        vendor_breakdown: Dict[str, float] = defaultdict(float)
+        agent_breakdown: Dict[str, float] = defaultdict(float)
+        approved = 0
+        denied = 0
+        for intent in intents:
+            vendor = intent.metadata.get("vendor") or intent.component
+            vendor_breakdown[vendor] += intent.cost_usd
+            agent_breakdown[intent.agent] += intent.cost_usd
+            if intent.approved:
+                approved += 1
+            else:
+                denied += 1
+        projected_revenue = float(spec.metadata.get("projected_revenue") or spec.metadata.get("target_revenue") or 0.0)
+        ratio = round((total_cost / projected_revenue), 3) if projected_revenue else None
+        summary = {
+            "business_id": business_id,
+            "business_name": spec.name,
+            "total_spent": round(total_cost, 2),
+            "approved_intents": approved,
+            "denied_intents": denied,
+            "vendor_breakdown": vendor_breakdown,
+            "agent_breakdown": agent_breakdown,
+            "projected_revenue": projected_revenue,
+            "spend_to_revenue_ratio": ratio,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        self._write_spend_summary(summary)
+        if self.discord:
+            await self.discord.payment_business_summary(summary)
+
+    def _write_spend_summary(self, summary: Dict[str, Any]) -> None:
+        SPEND_SUMMARY_LOG.parent.mkdir(parents=True, exist_ok=True)
+        with SPEND_SUMMARY_LOG.open("a", encoding="utf-8") as fd:
+            fd.write(json.dumps(summary) + "\n")
+
+    async def call_premium_llm(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
+        response = await self.payment_base._pay(
+            "post",
+            "https://llm-api.genesis.com/completions",
+            self.payment_base.get_cost("call_premium_llm", 1.5),
+            json={"model": "gpt-4.5-turbo", "messages": messages},
+        )
+        return response.json()
+
+    async def optimize_prompt(self, prompt: str) -> Dict[str, Any]:
+        response = await self.payment_base._pay(
+            "post",
+            "https://prompt-optimizer.genesis.com/optimize",
+            self.payment_base.get_cost("optimize_prompt", 0.4),
+            json={"base_prompt": prompt, "optimization_goal": "reduce_tokens"},
+        )
+        return response.json()
 
     def _create_workspace_manager(self, business_id: str, spec: BusinessSpec) -> WorkspaceStateManager:
         """Initialize workspace synthesis manager for the current run."""

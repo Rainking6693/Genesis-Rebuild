@@ -147,6 +147,22 @@ def add(a: int, b: int) -> int:
         assert "issues" in result
 
     @pytest.mark.asyncio
+    async def test_code_review_records_ap2_event(self, review_agent, ap2_event_spy):
+        """Ensure AP2 metadata is emitted when fallback review occurs."""
+        review_agent.token_cached_rag = None
+
+        await review_agent.review_code_cached(
+            code="def ap2(): pass",
+            file_path="ap2.py",
+            review_type="comprehensive"
+        )
+
+        assert ap2_event_spy, "AP2 event should be emitted for fallback review"
+        last_event = ap2_event_spy[-1]
+        assert last_event["agent"] == "CodeReviewAgent"
+        assert "code_review" in last_event["action"]
+
+    @pytest.mark.asyncio
     async def test_severity_breakdown(self, review_agent):
         """Test severity breakdown in review results."""
         if not review_agent.token_cached_rag:

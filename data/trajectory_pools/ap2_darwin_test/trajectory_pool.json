@@ -1,0 +1,10 @@
+{
+  "agent_name": "ap2_darwin_test",
+  "max_trajectories": 50,
+  "success_threshold": 0.7,
+  "failure_threshold": 0.3,
+  "total_added": 0,
+  "total_pruned": 0,
+  "trajectories": {},
+  "saved_at": "2025-11-15T18:48:28.053236+00:00"
+}

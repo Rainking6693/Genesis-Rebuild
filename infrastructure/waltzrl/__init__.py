@@ -57,3 +57,23 @@ def __getattr__(name: str) -> Any:  # pragma: no cover - exercised during import
 
 def __dir__() -> list[str]:  # pragma: no cover - cosmetic helper
     return sorted(list(__all__) + list(globals().keys()))
+
+
+def get_waltzrl_safety(enable_blocking: bool = False, feedback_only_mode: bool = True, stage: int = 1):
+    """
+    Get WaltzRL safety wrapper for Genesis agents.
+
+    Args:
+        enable_blocking: Whether to block unsafe responses (default: False for development)
+        feedback_only_mode: Only provide feedback without blocking (default: True)
+        stage: Training stage (1 = feedback agent only, 2 = joint training)
+
+    Returns:
+        WaltzRLSafetyWrapper instance
+    """
+    from infrastructure.waltzrl.safety_wrapper import WaltzRLSafetyWrapper
+    return WaltzRLSafetyWrapper(
+        enable_blocking=enable_blocking,
+        feedback_only_mode=feedback_only_mode,
+        stage=stage
+    )

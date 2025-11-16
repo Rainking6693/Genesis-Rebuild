@@ -7,8 +7,9 @@ Handles email campaigns, automation, and deliverability.
 
 import json
 import logging
-from datetime import datetime
-from typing import List, Dict
+import os
+from datetime import datetime, timezone
+from typing import List, Dict, Optional, Any
 from agent_framework import ChatAgent
 from agent_framework.azure import AzureAIAgentClient
 from agent_framework.observability import setup_observability
@@ -22,6 +23,11 @@ from infrastructure.tumix_termination import (
     RefinementResult,
     TerminationDecision
 )
+
+# Import AP2 event recording for budget tracking
+from infrastructure.ap2_helpers import record_ap2_event
+from infrastructure.ap2_protocol import get_ap2_client
+from infrastructure.payments.agent_base import PaymentAgentBase
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +52,16 @@ class EmailAgent:
         # Track refinement sessions for metrics
         self.refinement_history: List[List[RefinementResult]] = []
 
-        logger.info(f"{{agent_name}} v4.0 initialized with DAAO + TUMIX for business: {{business_id}}")
+        # Initialize AP2 cost tracking for email operations
+        self.ap2_cost = float(os.getenv("AP2_EMAIL_COST", "1.0"))  # $1.0 per operation
+        self.ap2_budget = 50.0  # $50 threshold per user requirement
+
+        logger.info(f"{{agent_name}} v4.0 initialized with DAAO + TUMIX + AP2 for business: {{business_id}}")
+        self.payment_base = PaymentAgentBase("email_agent", cost_map={
+            "send_transactional_email": 0.15,
+            "validate_email": 0.05
+        })
+        self.payment_contexts: List[Dict[str, str]] = []
 
     async def initialize(self):
         cred = AzureCliCredential()
@@ -72,6 +87,13 @@ class EmailAgent:
             "ab_test_enabled": True,
             "created_at": datetime.now().isoformat()
         }
+
+        # Emit AP2 event for cost tracking
+        self._emit_ap2_event(
+            action="create_campaign",
+            context={"campaign_name": campaign_name, "segment": target_segment}
+        )
+
         return json.dumps(result, indent=2)
 
     def send_email(self, campaign_id: str, recipients: List[str], send_immediately: bool) -> str:
@@ -86,6 +108,13 @@ class EmailAgent:
             "status": "sending" if send_immediately else "scheduled",
             "sent_at": datetime.now().isoformat()
         }
+
+        # Emit AP2 event for cost tracking
+        self._emit_ap2_event(
+            action="send_email",
+            context={"campaign_id": campaign_id, "recipients_count": str(len(recipients)), "immediate": str(send_immediately)}
+        )
+
         return json.dumps(result, indent=2)
 
     def segment_audience(self, criteria: Dict[str, str], segment_name: str) -> str:
@@ -99,6 +128,13 @@ class EmailAgent:
             "avg_engagement_score": 7.8,
             "created_at": datetime.now().isoformat()
         }
+
+        # Emit AP2 event for cost tracking
+        self._emit_ap2_event(
+            action="segment_audience",
+            context={"segment_name": segment_name, "criteria_count": str(len(criteria))}
+        )
+
         return json.dumps(result, indent=2)
 
     def track_campaign_metrics(self, campaign_id: str) -> str:
@@ -122,6 +158,13 @@ class EmailAgent:
             "revenue_generated": 12456.78,
             "tracked_at": datetime.now().isoformat()
         }
+
+        # Emit AP2 event for cost tracking
+        self._emit_ap2_event(
+            action="track_campaign_metrics",
+            context={"campaign_id": campaign_id, "metrics_tracked": str(len(result["metrics"]))}
+        )
+
         return json.dumps(result, indent=2)
 
     def optimize_deliverability(self, domain: str) -> str:
@@ -146,7 +189,44 @@ class EmailAgent:
             "blacklist_status": "clean",
             "analyzed_at": datetime.now().isoformat()
         }
+
+        # Emit AP2 event for cost tracking
+        self._emit_ap2_event(
+            action="optimize_deliverability",
+            context={"domain": domain, "recommendations_count": str(len(result["recommendations"]))}
+        )
+
         return json.dumps(result, indent=2)
+
+    async def send_transactional_email(self, email_data: Dict[str, Any]) -> dict:
+        response = await self.payment_base._pay(
+            "post",
+            "https://email-api.genesis.com/send",
+            self.payment_base.get_cost("send_transactional_email", 0.15),
+            json=email_data,
+        )
+        return response.json()
+
+    async def validate_email(self, email: str) -> dict:
+        response = await self.payment_base._pay(
+            "post",
+            "https://email-validation.genesis.com/verify",
+            self.payment_base.get_cost("validate_email", 0.05),
+            json={"email": email, "check_smtp": True},
+        )
+        return response.json()
+
+    async def validate_bulk_emails(self, emails: List[str]) -> dict:
+        response = await self.payment_base._pay(
+            "post",
+            "https://email-validation.genesis.com/bulk",
+            0.2,
+            json={"emails": emails}
+        )
+        self._record_payment_context("validate_bulk_emails", {
+            "emails_count": str(len(emails))
+        })
+        return response.json()
 
 
     def route_task(self, task_description: str, priority: float = 0.5) -> RoutingDecision:
@@ -209,6 +289,39 @@ class EmailAgent:
             'daao_info': 'DAAO routing automatically applied to all tasks'
         }
 
+    def _emit_ap2_event(self, action: str, context: Dict, cost: Optional[float] = None):
+        """
+        Emit AP2 event with budget tracking and $50 threshold enforcement.
+
+        Args:
+            action: Action name (method being executed)
+            context: Action context (relevant parameters)
+            cost: Optional custom cost; defaults to self.ap2_cost
+        """
+        client = get_ap2_client()
+        actual_cost = cost or self.ap2_cost
+
+        # Check if spending would exceed $50 threshold
+        if client.spent + actual_cost > self.ap2_budget:
+            logger.warning(
+                f"[EmailAgent] AP2 spending would exceed ${self.ap2_budget} threshold. "
+                f"Current: ${client.spent:.2f}, Requested: ${actual_cost:.2f}. "
+                f"USER APPROVAL REQUIRED before proceeding."
+            )
+
+        record_ap2_event(
+            agent="EmailAgent",
+            action=action,
+            cost=actual_cost,
+            context=context
+        )
+
+    def _record_payment_context(self, action: str, context: Dict[str, str]) -> None:
+        self.payment_contexts.append({
+            "action": action,
+            "context": context,
+            "recorded_at": datetime.now(timezone.utc).isoformat()
+        })
 
 
 async def get_email_agent(business_id: str = "default") -> EmailAgent:

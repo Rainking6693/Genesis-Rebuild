@@ -190,9 +190,9 @@ class RevenuePotentialScorer:
     
     def _score_monetization(self, model: str) -> float:
         """Score monetization model viability."""
-        if not model:
+        if not model or not isinstance(model, str):
             return 50
-        
+
         model_lower = model.lower()
         
         if "subscription" in model_lower or "recurring" in model_lower:
@@ -220,8 +220,12 @@ class RevenuePotentialScorer:
         
         # Bonus for high-value features
         high_value_keywords = ["ai", "automation", "analytics", "payment", "api", "integration"]
-        value_bonus = sum(5 for f in features if any(kw in f.lower() for kw in high_value_keywords))
-        
+        # Type guard: ensure features are strings
+        value_bonus = sum(
+            5 for f in features
+            if isinstance(f, str) and any(kw in f.lower() for kw in high_value_keywords)
+        )
+
         return min(feature_count_score + value_bonus, 100)
     
     def _score_tech_stack(self, tech_stack: List[str]) -> float:
@@ -240,8 +244,13 @@ class RevenuePotentialScorer:
             "supabase": 85,
             "postgresql": 80
         }
-        
-        scores = [preferred_tech.get(tech.lower(), 60) for tech in tech_stack]
+
+        # Type guard: ensure tech_stack items are strings
+        scores = [
+            preferred_tech.get(tech.lower(), 60)
+            for tech in tech_stack
+            if isinstance(tech, str)
+        ]
         return sum(scores) / len(scores) if scores else 60
 
 

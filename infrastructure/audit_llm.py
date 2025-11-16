@@ -15,7 +15,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,12 @@ class AuditLLMAgent:
             keywords=["compliance check", "audit review", "legal review"],
             min_count=1,
             description="Record that compliance or legal review occurred.",
+        ),
+        AuditRequirement(
+            name="AP2 budget trace",
+            keywords=["ap2 budget", "ap2 event", "record_ap2_event", "budget alert"],
+            min_count=1,
+            description="Ensure AP2 spend and alerts are recorded for auditing.",
         ),
     ]
 
@@ -140,13 +146,13 @@ class AuditLLMAgent:
     def _write_policy_alert(self, agent: str, outcome: AuditOutcome) -> None:
         out_path = Path("reports/audit_policy_alerts.jsonl")
         out_path.parent.mkdir(parents=True, exist_ok=True)
-            payload = {
-                "agent": agent,
-                "requirement": outcome.requirement,
-                "satisfied": outcome.satisfied,
-                "count": outcome.count,
-                "details": outcome.details,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
+        payload = {
+            "agent": agent,
+            "requirement": outcome.requirement,
+            "satisfied": outcome.satisfied,
+            "count": outcome.count,
+            "details": outcome.details,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
         with out_path.open("a", encoding="utf-8") as fd:
             fd.write(json.dumps(payload) + "\n")

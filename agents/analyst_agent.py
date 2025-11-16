@@ -8,10 +8,13 @@ Enhanced with:
 - TUMIX early termination (56% cost reduction on iterative analysis)
 """
 
+import asyncio
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Optional, Any
+from infrastructure.ap2_helpers import record_ap2_event
+from infrastructure.payments import get_payment_manager
 from agent_framework import ChatAgent
 from agent_framework.azure import AzureAIAgentClient
 from agent_framework.observability import setup_observability
@@ -120,6 +123,12 @@ class AnalystAgent:
             self.edr_config = None
             self.edr_master = None
             self.edr_search = None
+        self.cost_map = {
+            "run_funnel_analysis": 0.5,
+            "query_data_warehouse": 0.4
+        }
+        self.payment_manager = get_payment_manager()
+        self.payment_contexts: List[Dict[str, str]] = []
 
         # Initialize MemoryOS MongoDB adapter for persistent memory (NEW: 49% F1 improvement)
         # Enables market analysis memory, research query patterns, historical insights
@@ -140,6 +149,9 @@ class AnalystAgent:
             f"Analyst Agent v4.0 initialized with DAAO + TUMIX + Context Profiles + EDR + MemoryOS + WebVoyager "
             f"for business: {business_id}"
         )
+
+    def get_cost(self, resource: str, default: float) -> float:
+        return self.cost_map.get(resource, default)
 
     async def initialize(self):
         cred = AzureCliCredential()
@@ -666,6 +678,40 @@ class AnalystAgent:
             'savings_percent': savings_percent
         }
 
+    async def export_insights(self, dataset: str, export_format: str) -> dict:
+        response = await asyncio.to_thread(
+            self.payment_manager.pay,
+            "analyst_agent",
+            "https://analytics-export.genesis.com/export",
+            0.7,
+            metadata={"dataset": dataset, "format": export_format}
+        )
+        payload = {
+            "transaction_id": response.transaction_id,
+            "status": response.status,
+            "metadata": response.metadata,
+        }
+        self._record_payment_context(
+            "export_insights",
+            {"dataset": dataset, "format": export_format}
+        )
+        return payload
+
+    def _emit_ap2_event(self, action: str, context: Dict[str, Any], cost: Optional[float] = None):
+        record_ap2_event(
+            agent="AnalystAgent",
+            action=action,
+            cost=cost or 0.0,
+            context=context
+        )
+
+    def _record_payment_context(self, action: str, context: Dict[str, str]) -> None:
+        self.payment_contexts.append({
+            "action": action,
+            "context": context,
+            "recorded_at": datetime.now(timezone.utc).isoformat()
+        })
+
     async def deep_research(
         self,
         topic: str,
@@ -1031,6 +1077,26 @@ class AnalystAgent:
                 "error": str(e),
                 "status": "failed"
             }, indent=2)
+
+    async def run_funnel_analysis(self, funnel_config: Dict[str, Any]) -> dict:
+        response = await asyncio.to_thread(
+            self.payment_manager.pay,
+            "analyst_agent",
+            "https://analytics-pro.genesis.com/funnel-analysis",
+            self.get_cost("run_funnel_analysis", 0.5),
+            metadata={"funnel_config": funnel_config}
+        )
+        return {"transaction_id": response.transaction_id, "status": response.status}
+
+    async def query_data_warehouse(self, sql: str) -> dict:
+        response = await asyncio.to_thread(
+            self.payment_manager.pay,
+            "analyst_agent",
+            "https://data-warehouse.genesis.com/query",
+            self.get_cost("query_data_warehouse", 0.4),
+            metadata={"sql": sql}
+        )
+        return {"transaction_id": response.transaction_id, "status": response.status}
 
     def get_cost_metrics(self) -> Dict:
         """Get cumulative cost savings from DAAO and TUMIX"""

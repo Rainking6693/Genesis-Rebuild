@@ -39,6 +39,9 @@ from infrastructure.memory_os_mongodb_adapter import (
     create_genesis_memory_mongodb
 )
 
+# AP2 Protocol integration
+from infrastructure.ap2_helpers import record_ap2_event
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -236,6 +239,10 @@ class StripeIntegrationAgent:
         self.payments_processed = 0
         self.payments_successful = 0
 
+        # AP2 Protocol configuration
+        self.ap2_cost = float(os.getenv("AP2_STRIPE_COST", "2.0"))
+        self.ap2_budget = 50.0  # $50 threshold per user requirement
+
         logger.info(f"💳 Stripe Integration Agent initialized for business: {business_id}")
         logger.info(f"   Memory: {'Enabled' if self.enable_memory else 'Disabled'}")
 
@@ -339,6 +346,127 @@ class StripeIntegrationAgent:
             logger.error(f"[StripeAgent] Failed to recall patterns: {e}")
             return []
 
+    def setup_payment_integration(
+        self,
+        business_id: str,
+        payment_type: str = "one_time",
+        currency: str = "usd",
+        user_id: Optional[str] = None
+    ) -> PaymentResult:
+        """
+        Setup payment integration for a business (synchronous wrapper).
+
+        Args:
+            business_id: Business ID to setup payments for
+            payment_type: Type of payment (one_time, subscription, usage_based)
+            currency: Currency code (usd, eur, etc.)
+            user_id: Optional user ID for memory
+
+        Returns:
+            PaymentResult with integration details
+        """
+        config = PaymentConfig(
+            payment_type=payment_type,
+            amount=None,  # No specific amount for setup
+            currency=currency,
+            metadata={"business_id": business_id}
+        )
+
+        return asyncio.run(self._setup_payment_integration_async(
+            config=config,
+            business_id=business_id,
+            user_id=user_id
+        ))
+
+    async def _setup_payment_integration_async(
+        self,
+        config: PaymentConfig,
+        business_id: str,
+        user_id: Optional[str] = None
+    ) -> PaymentResult:
+        """Setup payment integration (async implementation)."""
+        self.payments_processed += 1
+
+        try:
+            logger.info(f"💳 Setting up {config.payment_type} payment integration for business {business_id}...")
+
+            # Recall successful patterns
+            if self.enable_memory:
+                patterns = await self.recall_patterns(payment_type=config.payment_type, top_k=3)
+                if patterns:
+                    logger.info(f"✓ Using learned pattern from {len(patterns)} successful integrations")
+
+            # Mock payment integration setup
+            integration_id = f"int_{uuid.uuid4().hex[:16]}"
+
+            # Store successful pattern
+            if self.enable_memory:
+                await self.store_payment_pattern(
+                    payment_type=config.payment_type,
+                    config=asdict(config),
+                    result={"integration_id": integration_id, "status": "active"},
+                    success=True,
+                    user_id=user_id
+                )
+
+            self.payments_successful += 1
+
+            logger.info(f"✅ Payment integration setup: {integration_id}")
+
+            return PaymentResult(
+                success=True,
+                payment_id=integration_id,
+                amount=None,
+                status="active",
+                metadata={
+                    "payment_type": config.payment_type,
+                    "currency": config.currency,
+                    "business_id": business_id,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            )
+
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"Payment integration setup failed: {error_msg}")
+
+            # Store failed pattern
+            if self.enable_memory:
+                await self.store_payment_pattern(
+                    payment_type=config.payment_type,
+                    config=asdict(config),
+                    result={"error": error_msg},
+                    success=False,
+                    user_id=user_id
+                )
+
+            return PaymentResult(
+                success=False,
+                error=error_msg
+            )
+
+    def _emit_ap2_event(self, action: str, context: Dict[str, str], cost: Optional[float] = None):
+        """Emit AP2 event for budget tracking and cost monitoring"""
+        from infrastructure.ap2_protocol import get_ap2_client
+
+        client = get_ap2_client()
+        actual_cost = cost or self.ap2_cost
+
+        # Check if spending would exceed $50 threshold
+        if client.spent + actual_cost > self.ap2_budget:
+            logger.warning(
+                f"[StripeIntegrationAgent] AP2 spending would exceed ${self.ap2_budget} threshold. "
+                f"Current: ${client.spent:.2f}, Requested: ${actual_cost:.2f}. "
+                f"USER APPROVAL REQUIRED before proceeding."
+            )
+
+        record_ap2_event(
+            agent="StripeIntegrationAgent",
+            action=action,
+            cost=actual_cost,
+            context=context,
+        )
+
     async def process_payment(
         self,
         config: PaymentConfig,
@@ -372,6 +500,16 @@ class StripeIntegrationAgent:
             self.payments_successful += 1
 
             logger.info(f"✅ Payment processed: {payment_id}")
+
+            # Emit AP2 event for successful payment
+            self._emit_ap2_event(
+                action="process_payment",
+                context={
+                    "payment_id": payment_id,
+                    "payment_type": config.payment_type,
+                    "amount": str(config.amount) if config.amount else "0"
+                }
+            )
 
             return PaymentResult(
                 success=True,

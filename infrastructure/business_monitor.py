@@ -8,11 +8,13 @@ Provides real-time metrics, logs, and dashboard data.
 import json
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field, asdict
 from collections import defaultdict
+
+from monitoring.payment_metrics import record_payment_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +33,14 @@ class BusinessGenerationMetrics:
     files_generated: int = 0
     lines_of_code: int = 0
     cost_usd: float = 0.0
+    quality_score: float = 0.0
+    total_revenue: float = 0.0
     errors: List[str] = field(default_factory=list)
     agent_calls: int = 0
     vertex_ai_calls: int = 0
     local_llm_calls: int = 0
     retry_count: int = 0
+    payments: List[Dict[str, Any]] = field(default_factory=list)
     
     @property
     def duration_seconds(self) -> float:
@@ -88,6 +93,8 @@ class BusinessMonitor:
         
         # Agent usage tracking
         self.agent_usage = defaultdict(int)
+        self.payments: List[Dict[str, Any]] = []
+        self.payment_records: List[Dict[str, Any]] = []
         
         logger.info(f"Business monitor initialized (log_dir={self.log_dir})")
     
@@ -184,15 +191,27 @@ class BusinessMonitor:
         """Record a retry attempt."""
         if business_id not in self.businesses:
             return
-        
+
         self.businesses[business_id].retry_count += 1
-        
+
         self._write_event("component_retry", {
             "business_id": business_id,
             "component": component_name,
             "attempt": attempt
         })
-    
+
+    def record_quality_score(self, business_id: str, quality_score: float):
+        """Record quality score from deployment verification."""
+        if business_id not in self.businesses:
+            return
+
+        self.businesses[business_id].quality_score = max(0.0, min(100.0, quality_score))
+
+        self._write_event("quality_score_recorded", {
+            "business_id": business_id,
+            "quality_score": self.businesses[business_id].quality_score
+        })
+
     def complete_business(self, business_id: str, success: bool):
         """Mark a business as completed."""
         if business_id not in self.businesses:
@@ -229,6 +248,118 @@ class BusinessMonitor:
         alerts_path = self.log_dir / "rubric_alerts.jsonl"
         with alerts_path.open("a", encoding="utf-8") as fd:
             fd.write(json.dumps({"business_id": business_id, "report": report}) + "\n")
+
+    def record_ap2_event(self, event: Dict[str, Any]):
+        """Record an AP2 event for dashboards, metrics, and compliance reporting."""
+        self._write_event("ap2_event", event)
+
+        ap2_dir = Path("logs/ap2")
+        ap2_dir.mkdir(parents=True, exist_ok=True)
+
+        metrics_path = ap2_dir / "ap2_metrics.json"
+        metrics_payload = {
+            "timestamp": time.time(),
+            "agent": event.get("agent"),
+            "action": event.get("action"),
+            "cost_usd": event.get("cost_usd", 0.0),
+            "budget_usd": event.get("budget_usd", 0.0),
+            "context": event.get("context", {}),
+        }
+        with metrics_path.open("a", encoding="utf-8") as fd:
+            fd.write(json.dumps(metrics_payload) + "\n")
+
+        compliance_path = Path("reports/ap2_compliance.jsonl")
+        compliance_path.parent.mkdir(parents=True, exist_ok=True)
+        cost = float(event.get("cost_usd", 0.0))
+        budget = float(event.get("budget_usd", 0.0)) if event.get("budget_usd") else None
+        ratio = (cost / budget) if budget and budget > 0 else None
+        compliance_payload = {
+            "timestamp": event.get("timestamp") or datetime.now(timezone.utc).isoformat(),
+            "agent": event.get("agent"),
+            "action": event.get("action"),
+            "cost_usd": cost,
+            "budget_usd": budget,
+            "usage_ratio": round(ratio, 3) if ratio is not None else None,
+            "context": event.get("context", {}),
+        }
+        with compliance_path.open("a", encoding="utf-8") as fd:
+            fd.write(json.dumps(compliance_payload) + "\n")
+
+    def log_payment(
+        self,
+        agent_name: str,
+        payment_type: str,
+        amount_usd: float,
+        transaction_hash: Optional[str] = None,
+        resource: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        mandate_id: Optional[str] = None
+    ) -> None:
+        """Log a payment (x402 or AP2) for auditing."""
+        metadata = metadata or {}
+        record = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "agent": agent_name,
+            "payment_type": payment_type,
+            "amount_usd": amount_usd,
+            "resource": resource,
+            "transaction_hash": transaction_hash,
+            "mandate_id": mandate_id,
+            "metadata": metadata,
+        }
+        self.payments.append(record)
+        payments_path = self.log_dir / "payments.jsonl"
+        with payments_path.open("a", encoding="utf-8") as fd:
+            fd.write(json.dumps(record) + "\n")
+        if payment_type and payment_type.lower() == "media":
+            self.payment_records.append(record)
+            try:
+                record_payment_metrics(
+                    agent_name,
+                    metadata.get("vendor") or "unknown",
+                    metadata.get("chain") or record.get("metadata", {}).get("chain", "base"),
+                    metadata.get("status") or record.get("metadata", {}).get("status", "success"),
+                    amount_usd,
+                )
+            except Exception:
+                logger.debug("record_payment_metrics failed", exc_info=True)
+
+        transactions_path = Path("data/x402/transactions.jsonl")
+        transactions_path.parent.mkdir(parents=True, exist_ok=True)
+        transaction_record = {
+            **record,
+            "status": metadata.get("status") or record.get("metadata", {}).get("status") or "success"
+        }
+        with transactions_path.open("a", encoding="utf-8") as fd:
+            fd.write(json.dumps(transaction_record) + "\n")
+
+    def get_payment_metrics(self) -> Dict[str, Any]:
+        """Return aggregated payment information."""
+        total_payments = len(self.payment_records)
+        total_amount = sum(float(p.get("amount_usd", p.get("amount", 0.0))) for p in self.payment_records)
+        agent_breakdown: Dict[str, float] = {}
+        for record in self.payment_records:
+            agent = record.get("agent") or "unknown"
+            agent_breakdown[agent] = agent_breakdown.get(agent, 0.0) + float(record.get("amount_usd", record.get("amount", 0.0)))
+
+        recent = [
+            {
+                "agent": entry.get("agent"),
+                "amount_usd": float(entry.get("amount_usd", entry.get("amount", 0.0))),
+                "resource": entry.get("resource"),
+                "timestamp": entry.get("timestamp")
+            }
+            for entry in self.payment_records[-10:]
+        ]
+
+        average_payment = total_amount / total_payments if total_payments else 0.0
+        return {
+            "total_payments": total_payments,
+            "total_amount_usd": total_amount,
+            "average_payment": average_payment,
+            "agent_breakdown": agent_breakdown,
+            "recent_payments": recent
+        }
     
     def get_business_metrics(self, business_id: str) -> Optional[Dict[str, Any]]:
         """Get metrics for a specific business."""
@@ -296,13 +427,15 @@ class BusinessMonitor:
                     reverse=True
                 )[:10]
                 if biz.status in ["completed", "failed"]
-            ]
+            ],
+            "x402_metrics": self.get_x402_metrics()
         }
     
     def _write_event(self, event_type: str, data: Dict[str, Any]):
         """Write an event to the log file."""
+        from datetime import timezone
         event = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "event_type": event_type,
             "data": data
         }

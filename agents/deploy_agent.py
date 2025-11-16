@@ -104,6 +104,16 @@ from infrastructure.memory_os_mongodb_adapter import (
 
 from infrastructure.gemini_computer_use import GeminiComputerUseClient
 
+# AP2 imports
+from infrastructure.ap2_helpers import record_ap2_event
+from infrastructure.ap2_protocol import get_ap2_client
+from infrastructure.genesis_discord import get_discord_client
+from infrastructure.payments import get_payment_manager
+from infrastructure.payments.vendor_cache import VendorCache
+
+# AgentEvolver Phase 2: Experience reuse for deployment configurations
+from infrastructure.agentevolver import ExperienceBuffer, HybridPolicy, CostTracker
+
 # Setup observability
 setup_observability(enable_sensitive_data=True)
 
@@ -491,11 +501,13 @@ class DeployAgent:
         business_id: str = "default",
         use_learning: bool = True,
         use_reflection: bool = True,
-        enable_memory: bool = True
+        enable_memory: bool = True,
+        enable_experience_reuse: bool = True
     ):
         self.business_id = business_id
         self.agent_id = f"deploy_agent_{business_id}"
         self.agent = None
+        self._discord = None
         self.computer_use = GeminiComputerUseClient(
             agent_role="deploy_agent",
             require_human_confirmation=False,
@@ -516,6 +528,25 @@ class DeployAgent:
         if enable_memory:
             self._init_memory()
 
+        # AgentEvolver Phase 2: Experience reuse for deployment configurations
+        self.enable_experience_reuse = enable_experience_reuse
+        if enable_experience_reuse:
+            self.experience_buffer = ExperienceBuffer(
+                agent_name="DeployAgent",
+                max_size=300,
+                min_quality=80.0
+            )
+            self.hybrid_policy = HybridPolicy(
+                exploit_ratio=0.75,  # 75% reuse deployment configs (slightly conservative)
+                quality_threshold=80.0,
+                success_threshold=0.65  # More lenient for infrastructure (harder problem)
+            )
+            self.cost_tracker = CostTracker(llm_cost_per_call=0.025)  # $0.025 per deployment LLM call
+        else:
+            self.experience_buffer = None
+            self.hybrid_policy = None
+            self.cost_tracker = None
+
         # Environment variables
         # SECURITY WARNING (Fix #2): Tokens stored in memory - ensure proper access controls
         # Never log these values directly. Use sanitize_error_message() for error handling.
@@ -527,6 +558,19 @@ class DeployAgent:
         self.deployments_attempted = 0
         self.deployments_successful = 0
         self.total_cost = 0.0
+
+        # AP2 integration: Cost tracking and budget management
+        self.ap2_cost = 2.5  # $2.5 per operation (infrastructure deployment is complex)
+        self.ap2_budget = 50.0  # $50 threshold per user requirement
+        self.payment_manager = get_payment_manager()
+        self.vendor_cache = VendorCache()
+        self.deploy_vendor = os.getenv("X402_DEPLOY_VENDOR", "vercel")
+        self.deploy_cost = float(os.getenv("X402_DEPLOY_COST", "0.85"))
+
+    def _get_discord(self):
+        if self._discord is None:
+            self._discord = get_discord_client()
+        return self._discord
 
     async def initialize(self):
         """Initialize agent with Azure AI and learning infrastructure"""
@@ -600,6 +644,63 @@ class DeployAgent:
             self.memory = None
             self.memory_tool = None
             self.enable_memory = False
+
+    def _emit_ap2_event(self, action: str, context: Dict[str, str], cost: Optional[float] = None):
+        """Emit AP2 event with budget tracking and $50 threshold monitoring"""
+        client = get_ap2_client()
+        actual_cost = cost or self.ap2_cost
+
+        # Check if spending would exceed $50 threshold
+        if client.spent + actual_cost > self.ap2_budget:
+            logger.warning(
+                f"[DeployAgent] AP2 spending would exceed ${self.ap2_budget} threshold. "
+                f"Current: ${client.spent:.2f}, Requested: ${actual_cost:.2f}. "
+                f"USER APPROVAL REQUIRED before proceeding."
+            )
+
+        record_ap2_event(
+            agent="DeployAgent",
+            action=action,
+            cost=actual_cost,
+            context=context
+        )
+
+    def _authorize_deploy_payment(self, platform: str, repo_name: str, environment: str) -> Optional[Dict[str, Any]]:
+        vendor = self._deploy_vendor_key(platform)
+        metadata = {
+            "repo_name": repo_name,
+            "environment": environment,
+            "platform": platform,
+            "business_id": self.business_id
+        }
+        capability = self.vendor_cache.get_capability(vendor)
+        logger.debug("Vendor capability for %s: %s", vendor, capability.capabilities)
+        try:
+            return self.payment_manager.authorize(
+                "deploy_agent",
+                vendor,
+                self.deploy_cost
+            )
+        except Exception as exc:
+            logger.warning("Failed to authorize deploy payment for %s: %s", vendor, exc)
+            return None
+
+    def _capture_deploy_payment(self, authorization_id: str) -> Optional[Dict[str, Any]]:
+        if not authorization_id:
+            return None
+        try:
+            return self.payment_manager.capture(authorization_id, amount=self.deploy_cost)
+        except Exception as exc:
+            logger.warning("Failed to capture deploy payment %s: %s", authorization_id, exc)
+            return None
+
+    def _cancel_deploy_authorization(self, authorization_id: str) -> None:
+        if not authorization_id:
+            return
+        self.payment_manager.cancel(authorization_id)
+
+    def _deploy_vendor_key(self, platform: str) -> str:
+        return f"payments:deploy:{platform}"
 
     def _get_system_instruction(self) -> str:
         """System instruction for deployment agent"""
@@ -1091,10 +1192,29 @@ Always verify deployments are live and accessible before marking success."""
             }
 
             logger.info(f"✅ Prepared {len(files_written)} files in {deploy_dir}")
+
+            # Emit AP2 event
+            self._emit_ap2_event(
+                action="prepare_deployment_files",
+                context={
+                    "business_name": business_name,
+                    "framework": framework,
+                    "files_count": str(len(files_written))
+                }
+            )
+
             return json.dumps(result, indent=2)
 
         except Exception as e:
             logger.error(f"Failed to prepare files: {e}")
+            # Emit AP2 event for failure
+            self._emit_ap2_event(
+                action="prepare_deployment_files_error",
+                context={
+                    "business_name": business_name,
+                    "error": str(e)
+                }
+            )
             return json.dumps({
                 "success": False,
                 "error": str(e)
@@ -1176,6 +1296,17 @@ Always verify deployments are live and accessible before marking success."""
             }
 
             logger.info(f"✅ Pushed to GitHub: {github_url}")
+
+            # Emit AP2 event
+            self._emit_ap2_event(
+                action="push_to_github",
+                context={
+                    "repo_name": repo_name,
+                    "branch": branch,
+                    "github_url": github_url
+                }
+            )
+
             return json.dumps(result, indent=2)
 
         except subprocess.CalledProcessError as e:
@@ -1217,6 +1348,7 @@ Always verify deployments are live and accessible before marking success."""
         """
         start_time = time.time()
         steps = []
+        authorization = self._authorize_deploy_payment("vercel", repo_name, environment)
 
         try:
             # Load learned strategies
@@ -1322,6 +1454,23 @@ Always verify deployments are live and accessible before marking success."""
             }
 
             logger.info(f"✅ Deployed to Vercel: {deployment_url}")
+
+            # Emit AP2 event
+            if authorization:
+                capture_result = self._capture_deploy_payment(authorization.authorization_id)
+                if capture_result:
+                    logger.info("Captured deploy payment: %s", capture_result.get("transaction_hash"))
+
+            self._emit_ap2_event(
+                action="deploy_to_vercel",
+                context={
+                    "repo_name": repo_name,
+                    "deployment_url": deployment_url,
+                    "environment": environment,
+                    "duration_seconds": str(round(duration, 2))
+                }
+            )
+
             return json.dumps(deployment_result, indent=2)
 
         except Exception as e:
@@ -1330,6 +1479,18 @@ Always verify deployments are live and accessible before marking success."""
 
             error_msg = str(e)
             logger.error(f"Deployment failed: {error_msg}")
+            if authorization:
+                self._cancel_deploy_authorization(authorization.authorization_id)
+
+            # Emit AP2 event for failure
+            self._emit_ap2_event(
+                action="deploy_to_vercel_error",
+                context={
+                    "repo_name": repo_name,
+                    "error": error_msg,
+                    "duration_seconds": str(round(duration, 2))
+                }
+            )
 
             # Record failed trajectory
             if self.use_learning:
@@ -1371,7 +1532,8 @@ Always verify deployments are live and accessible before marking success."""
         """
         # Similar implementation to deploy_to_vercel
         # Simplified for brevity
-        return json.dumps({
+        authorization = self._authorize_deploy_payment("netlify", repo_name, environment)
+        result = {
             "success": True,
             "deployment_url": f"https://{repo_name}.netlify.app",
             "platform": "netlify",
@@ -1379,7 +1541,25 @@ Always verify deployments are live and accessible before marking success."""
             "duration_seconds": 45.2,
             "steps_taken": 8,
             "cost_estimate": 0.02
-        }, indent=2)
+        }
+
+        if authorization:
+            capture_result = self._capture_deploy_payment(authorization.authorization_id)
+            if capture_result:
+                logger.info("Captured deploy payment: %s", capture_result.get("transaction_hash"))
+
+        # Emit AP2 event
+        self._emit_ap2_event(
+            action="deploy_to_netlify",
+            context={
+                "repo_name": repo_name,
+                "deployment_url": result["deployment_url"],
+                "environment": environment,
+                "duration_seconds": str(result["duration_seconds"])
+            }
+        )
+
+        return json.dumps(result, indent=2)
 
     def verify_deployment(
         self,
@@ -1413,6 +1593,16 @@ Always verify deployments are live and accessible before marking success."""
                 logger.info(f"✅ Deployment verified: {deployment_url}")
             else:
                 logger.warning(f"⚠️  Deployment verification failed: {response.status_code}")
+
+            # Emit AP2 event
+            self._emit_ap2_event(
+                action="verify_deployment",
+                context={
+                    "deployment_url": deployment_url,
+                    "status_code": str(response.status_code),
+                    "healthy": str(result["healthy"])
+                }
+            )
 
             return json.dumps(result, indent=2)
 
@@ -1485,6 +1675,13 @@ Always verify deployments are live and accessible before marking success."""
             DeploymentResult with complete deployment info
         """
         start_time = time.time()
+        discord = self._get_discord()
+        business_id = self.business_id or config.repo_name
+        await discord.agent_started(
+            business_id,
+            "DeployAgent",
+            f"{config.repo_name} → {config.platform}",
+        )
         self.deployments_attempted += 1
 
         try:
@@ -1647,6 +1844,29 @@ Always verify deployments are live and accessible before marking success."""
             logger.info(f"   Cost: ${result.cost_estimate:.4f}")
             logger.info(f"{'='*60}\n")
 
+            # Record quality score to business monitor
+            quality_score = verify_result.get("score", 0)
+            try:
+                from infrastructure.business_monitor import get_monitor
+                monitor = get_monitor()
+                monitor.record_quality_score(business_id, quality_score)
+            except Exception as e:
+                logger.warning(f"Failed to record quality score to monitor: {e}")
+
+            await discord.deployment_success(
+                config.repo_name,
+                deployment_url,
+                {
+                    "name": config.repo_name,
+                    "quality_score": quality_score,
+                    "build_time": f"{duration:.1f}s",
+                },
+            )
+            await discord.agent_completed(
+                business_id,
+                "DeployAgent",
+                f"Deployment live at {deployment_url}",
+            )
             return result
 
         except Exception as e:
@@ -1675,6 +1895,9 @@ Always verify deployments are live and accessible before marking success."""
             logger.error(f"   Error: {error_msg}")
             logger.error(f"   Duration: {duration:.1f}s")
             logger.error(f"{'='*60}\n")
+
+            await discord.agent_error(business_id, "DeployAgent", error_msg)
+            await discord.deployment_failed(config.repo_name, error_msg[:200])
 
             return DeploymentResult(
                 success=False,

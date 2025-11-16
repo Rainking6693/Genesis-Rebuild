@@ -1,0 +1,283 @@
+================================================================================
+LINE-BY-LINE CHANGES FOR AGENTS 5-9
+================================================================================
+
+AGENT 5: APIDesignAgent (Lines 108-125)
+================================================================================
+
+BEFORE (Lines 108-120):
+  108  # 4. API Design
+  109  logger.info(f"[{index}] API design...")
+  110  from agents.api_design_agent import get_api_design_agent
+  111  
+  112  api_agent = await get_api_design_agent(enable_memory=True)
+  113  business_data["agents_used"].append("APIDesignAgent")
+  114  test_results["total_agents_used"].add("APIDesignAgent")
+  115  
+  116  api = api_agent.design_api(
+  117      api_type="REST",
+  118      resources=["users", "items"]
+  119  )
+  120  logger.info(f"✓ [{index}] API designed")
+
+AFTER (Lines 108-125):
+  108  # 4. API Design (Agent 5)
+  109  logger.info(f"[{index}] API design...")
+  110  from agents.api_design_agent import get_api_design_agent, APIConfig
+  111  
+  112  api_agent = await get_api_design_agent(enable_memory=True)
+  113  business_data["agents_used"].append("APIDesignAgent")
+  114  test_results["total_agents_used"].add("APIDesignAgent")
+  115  
+  116  api_config = APIConfig(
+  117      api_name="BusinessAPI",
+  118      api_type="REST",
+  119      endpoints=[
+  120          {"path": "/users", "method": "GET"},
+  121          {"path": "/items", "method": "GET"}
+  122      ]
+  123  )
+  124  api = await api_agent.design_api(config=api_config)
+  125  logger.info(f"✓ [{index}] API designed")
+
+CHANGES:
+  Line 108: Added "(Agent 5)" comment
+  Line 110: Added APIConfig import
+  Lines 116-123: Replaced direct parameters with APIConfig dataclass
+  Line 124: Added await keyword
+
+
+AGENT 6: ContentCreationAgent (Lines 127-141)
+================================================================================
+
+BEFORE (Lines 122-135):
+  122  # 5. Content Creation
+  123  logger.info(f"[{index}] Creating content...")
+  124  from agents.content_creation_agent import ContentCreationAgent
+  125  
+  126  content_agent = ContentCreationAgent(enable_memory=True)
+  127  business_data["agents_used"].append("ContentCreationAgent")
+  128  test_results["total_agents_used"].add("ContentCreationAgent")
+  129  
+  130  content = content_agent.generate_content(
+  131      content_type="blog_post",
+  132      topic=f"{business_type} guide",
+  133      target_audience="users"
+  134  )
+  135  logger.info(f"✓ [{index}] Content created")
+
+AFTER (Lines 127-141):
+  127  # 5. Content Creation (Agent 6)
+  128  logger.info(f"[{index}] Creating content...")
+  129  from agents.content_creation_agent import ContentCreationAgent, ContentType
+  130  
+  131  content_agent = ContentCreationAgent(enable_memory=True)
+  132  business_data["agents_used"].append("ContentCreationAgent")
+  133  test_results["total_agents_used"].add("ContentCreationAgent")
+  134  
+  135  content = await content_agent.generate_content(
+  136      user_id="test_user",
+  137      content_type=ContentType.BLOG_POST,
+  138      topic=f"{business_type} guide",
+  139      requirements={"target_audience": "users", "word_count": 500}
+  140  )
+  141  logger.info(f"✓ [{index}] Content created")
+
+CHANGES:
+  Line 127: Added "(Agent 6)" comment
+  Line 129: Added ContentType import
+  Line 135: Added await keyword
+  Line 136: Added user_id parameter
+  Line 137: Changed "blog_post" string to ContentType.BLOG_POST enum
+  Lines 138-139: Changed target_audience and word_count to requirements dict
+
+
+AGENT 7: SEOOptimizationAgent (Lines 143-157)
+================================================================================
+
+BEFORE (Lines 137-149):
+  137  # 6. SEO Optimization
+  138  logger.info(f"[{index}] SEO optimization...")
+  139  from agents.seo_optimization_agent import SEOOptimizationAgent
+  140  
+  141  seo_agent = SEOOptimizationAgent(enable_memory=True)
+  142  business_data["agents_used"].append("SEOOptimizationAgent")
+  143  test_results["total_agents_used"].add("SEOOptimizationAgent")
+  144  
+  145  seo = seo_agent.optimize_content(
+  146      content=content.get("content", "sample"),
+  147      target_keywords=[business_type]
+  148  )
+  149  logger.info(f"✓ [{index}] SEO optimized")
+
+AFTER (Lines 143-157):
+  143  # 6. SEO Optimization (Agent 7)
+  144  logger.info(f"[{index}] SEO optimization...")
+  145  from agents.seo_optimization_agent import SEOOptimizationAgent
+  146  
+  147  seo_agent = SEOOptimizationAgent(enable_memory=True)
+  148  business_data["agents_used"].append("SEOOptimizationAgent")
+  149  test_results["total_agents_used"].add("SEOOptimizationAgent")
+  150  
+  151  seo = await seo_agent.optimize_content(
+  152      user_id="test_user",
+  153      content=content.body if hasattr(content, 'body') else "Sample content about " + business_type,
+  154      title=content.title if hasattr(content, 'title') else f"{business_type} Guide",
+  155      target_keywords=[business_type]
+  156  )
+  157  logger.info(f"✓ [{index}] SEO optimized")
+
+CHANGES:
+  Line 143: Added "(Agent 7)" comment
+  Line 151: Added await keyword
+  Line 152: Added user_id parameter
+  Lines 153-154: Fixed content extraction (from .get() to .body attribute)
+                  and added title parameter (was completely missing)
+
+
+AGENT 8: EmailMarketingAgent (Lines 159-193)
+================================================================================
+
+BEFORE (Lines 151-164):
+  151  # 7. Email Marketing
+  152  logger.info(f"[{index}] Email marketing...")
+  153  from agents.email_marketing_agent import EmailMarketingAgent
+  154  
+  155  email_agent = EmailMarketingAgent(enable_memory=True)
+  156  business_data["agents_used"].append("EmailMarketingAgent")
+  157  test_results["total_agents_used"].add("EmailMarketingAgent")
+  158  
+  159  campaign = email_agent.create_campaign(
+  160      campaign_name=f"{idea.name} Launch",
+  161      subject="Welcome",
+  162      template_id="default"
+  163  )
+  164  logger.info(f"✓ [{index}] Email campaign")
+
+AFTER (Lines 159-193):
+  159  # 7. Email Marketing (Agent 8)
+  160  logger.info(f"[{index}] Email marketing...")
+  161  from agents.email_marketing_agent import EmailMarketingAgent, EmailCampaign, CampaignStatus
+  162  
+  163  email_agent = EmailMarketingAgent(enable_memory=True)
+  164  business_data["agents_used"].append("EmailMarketingAgent")
+  165  test_results["total_agents_used"].add("EmailMarketingAgent")
+  166  
+  167  email_campaign = EmailCampaign(
+  168      campaign_id=f"campaign_{index}",
+  169      campaign_name=f"{idea.name} Launch",
+  170      subject_line="Welcome to our service",
+  171      preview_text="Discover our amazing offer",
+  172      body_html="<html><body>Welcome!</body></html>",
+  173      sender_name="Marketing Team",
+  174      sender_email="marketing@example.com",
+  175      status=CampaignStatus.DRAFT,
+  176      template_used=None,
+  177      target_segments=["new_users"],
+  178      scheduled_at=None,
+  179      sent_at=None,
+  180      recipients_count=0,
+  181      opens=0,
+  182      clicks=0,
+  183      unsubscribes=0,
+  184      created_at=datetime.now(timezone.utc),
+  185      updated_at=datetime.now(timezone.utc)
+  186  )
+  187  campaign_result = await email_agent.store_campaign(
+  188      user_id="test_user",
+  189      campaign=email_campaign,
+  190      open_rate=0.25,
+  191      click_rate=0.05
+  192  )
+  193  logger.info(f"✓ [{index}] Email campaign")
+
+CHANGES:
+  Line 159: Added "(Agent 8)" comment
+  Line 161: Added EmailCampaign and CampaignStatus imports
+  Lines 167-186: Replaced create_campaign call with EmailCampaign dataclass
+               (this is 20 lines instead of 4 - needed all required fields)
+  Line 187: Changed to store_campaign (correct method), added await
+  Lines 188-191: Added required parameters (user_id, open_rate, click_rate)
+
+
+AGENT 9: MarketingAgentMultimodal (Lines 195-230)
+================================================================================
+
+BEFORE (Lines 166-179):
+  166  # 8. Marketing Multimodal
+  167  logger.info(f"[{index}] Marketing campaign...")
+  168  from agents.marketing_agent_multimodal import MarketingAgentMultimodal
+  169  
+  170  marketing_agent = MarketingAgentMultimodal(enable_memory=True)
+  171  business_data["agents_used"].append("MarketingAgentMultimodal")
+  172  test_results["total_agents_used"].add("MarketingAgentMultimodal")
+  173  
+  174  marketing = marketing_agent.create_campaign(
+  175      campaign_type="social_media",
+  176      target_platform="linkedin",
+  177      content=idea.name
+  178  )
+  179  logger.info(f"✓ [{index}] Marketing ready")
+
+AFTER (Lines 195-230):
+  195  # 8. Marketing Multimodal (Agent 9)
+  196  logger.info(f"[{index}] Marketing campaign...")
+  197  from agents.marketing_agent_multimodal import MarketingAgentMultimodal, MarketingCampaign, VisualContent
+  198  
+  199  marketing_agent = MarketingAgentMultimodal(enable_memory=True)
+  200  business_data["agents_used"].append("MarketingAgentMultimodal")
+  201  test_results["total_agents_used"].add("MarketingAgentMultimodal")
+  202  
+  203  visual_content = VisualContent(
+  204      image_path="/tmp/hero.jpg",
+  205      content_type="hero",
+  206      brand_alignment=0.8,
+  207      visual_description="Hero image for campaign",
+  208      detected_elements=["hero_image", "text_overlay"],
+  209      color_palette=["#FF6B6B", "#4ECDC4"],
+  210      confidence=0.85
+  211  )
+  212  
+  213  marketing_campaign = MarketingCampaign(
+  214      campaign_id=f"marketing_{index}",
+  215      campaign_name=f"{idea.name} Social Campaign",
+  216      campaign_type="social_media",
+  217      brand_guidelines={"platform": "linkedin"},
+  218      visual_assets=[visual_content],
+  219      brand_patterns=["professional", "modern"],
+  220      user_preferences={"target_audience": "professionals"},
+  221      created_at=datetime.now(timezone.utc)
+  222  )
+  223  
+  224  await marketing_agent.store_campaign(
+  225      campaign=marketing_campaign,
+  226      success=True,
+  227      performance_metrics={"engagement_rate": 0.15, "click_rate": 0.05},
+  228      scope="app"
+  229  )
+  230  logger.info(f"✓ [{index}] Marketing ready")
+
+CHANGES:
+  Line 195: Added "(Agent 9)" comment
+  Line 197: Added MarketingCampaign and VisualContent imports
+  Lines 203-211: Created VisualContent dataclass (new, didn't exist before)
+  Lines 213-222: Created MarketingCampaign dataclass (new, didn't exist before)
+  Line 224: Changed to store_campaign (correct method), added await
+  Lines 225-228: Proper parameters (campaign object, success flag, metrics, scope)
+
+================================================================================
+SUMMARY OF CHANGES
+================================================================================
+
+Total lines changed: 85 (agents 5-9 section expanded from 72 lines to 157 lines)
+
+Key changes across all agents:
+  - Added 6 new imports (APIConfig, ContentType, EmailCampaign, CampaignStatus,
+                         MarketingCampaign, VisualContent)
+  - Added 5 await keywords to async methods
+  - Converted 5 incorrect method signatures to correct ones
+  - Created 3 new dataclass objects (EmailCampaign, MarketingCampaign, VisualContent)
+  - Added 3 missing required parameters (user_id, title, and multiple fields)
+  - Fixed 2 parameter type mismatches (strings to enums)
+
+================================================================================

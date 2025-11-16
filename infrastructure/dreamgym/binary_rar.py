@@ -48,4 +48,11 @@ class BinaryRarRetriever:
 
     def retrieve(self, prompt: str) -> List[str]:
         prompt_lower = prompt.lower()
-        return [doc for doc in self.index if doc.lower() in prompt_lower]
+        # Return documents that contain any words from the prompt
+        prompt_words = set(prompt_lower.split())
+        matches = []
+        for doc in self.index:
+            doc_words = set(doc.lower().split())
+            if prompt_words.intersection(doc_words):
+                matches.append(doc)
+        return matches

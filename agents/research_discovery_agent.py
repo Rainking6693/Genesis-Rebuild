@@ -35,6 +35,9 @@ from infrastructure.llm_client import LLMFactory, LLMProvider
 
 # MemoryOS for persistent storage
 from infrastructure.memory_os import GenesisMemoryOS, create_genesis_memory
+from infrastructure.load_env import load_genesis_env
+from infrastructure.genesis_discord import get_discord_client, close_discord_client
+from infrastructure.payments.research_helper import ResearchPaymentAdvisor
 
 logger = logging.getLogger(__name__)
 
@@ -715,48 +718,58 @@ async def get_research_discovery_agent() -> ResearchDiscoveryAgent:
 
 # Example usage / testing
 if __name__ == "__main__":
-    import os
-    from dotenv import load_dotenv
-
-    load_dotenv()
+    load_genesis_env()
 
     async def main():
-        # Initialize agent
-        agent = await get_research_discovery_agent()
+        discord = get_discord_client()
+        business_id = "research_discovery"
+        try:
+            agent = await get_research_discovery_agent()
+            await discord.agent_started(business_id, "ResearchDiscoveryAgent", "Weekly discovery cycle")
 
-        # Run discovery cycle
-        summary = await agent.run_discovery_cycle(
-            days_back=7,
-            max_papers=50,
-            min_relevance_score=0.7
-        )
+            summary = await agent.run_discovery_cycle(
+                days_back=7,
+                max_papers=50,
+                min_relevance_score=0.7
+            )
 
-        # Print summary
-        print("\n" + "="*80)
-        print("RESEARCH DISCOVERY SUMMARY")
-        print("="*80)
-        print(f"Run ID: {summary['discovery_run_id']}")
-        print(f"Timestamp: {summary['timestamp']}")
-        print(f"Total Fetched: {summary['total_fetched']}")
-        print(f"Relevant: {summary['total_relevant']}")
-        print(f"Analyzed: {summary['total_analyzed']}")
-        print("\nArea Breakdown:")
-        for area, count in summary['area_breakdown'].items():
-            print(f"  {area}: {count}")
+            await discord.agent_completed(
+                business_id,
+                "ResearchDiscoveryAgent",
+                f"Discovered {summary['total_relevant']} relevant papers",  # noqa: WPS210
+            )
 
-        print("\n" + "-"*80)
-        print("TOP 5 DISCOVERIES:")
-        print("-"*80)
+            # Print summary
+            print("\n" + "="*80)
+            print("RESEARCH DISCOVERY SUMMARY")
+            print("="*80)
+            print(f"Run ID: {summary['discovery_run_id']}")
+            print(f"Timestamp: {summary['timestamp']}")
+            print(f"Total Fetched: {summary['total_fetched']}")
+            print(f"Relevant: {summary['total_relevant']}")
+            print(f"Analyzed: {summary['total_analyzed']}")
+            print("\nArea Breakdown:")
+            for area, count in summary['area_breakdown'].items():
+                print(f"  {area}: {count}")
 
-        for idx, paper in enumerate(summary['top_5_papers'], 1):
-            print(f"\n{idx}. {paper['title']}")
-            print(f"   ArXiv: {paper['arxiv_id']} | Relevance: {paper['relevance_score']:.2f}")
-            print(f"   Areas: {', '.join(paper['research_areas'])}")
-            print(f"   Summary: {paper['summary']}")
-            print(f"   Insights:")
-            for insight in paper['key_insights']:
-                print(f"     - {insight}")
-            print(f"   URL: {paper['url']}")
+            print("\n" + "-"*80)
+            print("TOP 5 DISCOVERIES:")
+            print("-"*80)
 
-    # Run
+            for idx, paper in enumerate(summary['top_5_papers'], 1):
+                print(f"\n{idx}. {paper['title']}")
+                print(f"   ArXiv: {paper['arxiv_id']} | Relevance: {paper['relevance_score']:.2f}")
+                print(f"   Areas: {', '.join(paper['research_areas'])}")
+                print(f"   Summary: {paper['summary']}")
+                print(f"   Insights:")
+                for insight in paper['key_insights']:
+                    print(f"     - {insight}")
+                print(f"   URL: {paper['url']}")
+
+        except Exception as exc:  # pragma: no cover
+            await discord.agent_error(business_id, "ResearchDiscoveryAgent", str(exc))
+            raise
+        finally:
+            await close_discord_client()
+
     asyncio.run(main())
