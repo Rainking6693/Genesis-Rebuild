@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Optional
 
 from infrastructure.payments import get_payment_manager
@@ -84,7 +84,7 @@ class X402Client:
             chain=self.chain,
             vendor=vendor or self.agent_name,
             metadata=payload,
-            created_at=datetime.utcnow().isoformat()
+            created_at=datetime.now(timezone.utc).isoformat()
         )
 
     def capture_payment(self, authorization_id: str, amount: Optional[float] = None) -> Dict[str, object]:

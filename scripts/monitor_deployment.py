@@ -13,7 +13,7 @@ import argparse
 import sys
 import time
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional, Tuple
 from pathlib import Path
 
@@ -70,7 +70,7 @@ class DeploymentMonitor:
             raise ValueError(f"Unknown stage: {stage}. Choose from: {list(STAGE_CONFIG.keys())}")
 
         self.consecutive_violations = 0
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(timezone.utc)
 
         logger.info(f"Initialized deployment monitor for stage: {stage}")
         logger.info(f"Configuration: {self.config}")
@@ -99,11 +99,11 @@ class DeploymentMonitor:
         logger.info(f"Starting deployment monitoring for stage: {self.stage}")
         logger.info("=" * 80)
 
-        while datetime.utcnow() < end_time:
+        while datetime.now(timezone.utc) < end_time:
             healthy, metrics = self.check_metrics()
             logger.info(f"Metrics: {metrics}")
             
-            time_remaining = (end_time - datetime.utcnow()).total_seconds()
+            time_remaining = (end_time - datetime.now(timezone.utc)).total_seconds()
             if time_remaining > 0:
                 sleep_duration = min(check_interval, time_remaining)
                 time.sleep(sleep_duration)

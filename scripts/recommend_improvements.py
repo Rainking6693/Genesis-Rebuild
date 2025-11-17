@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import argparse
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import sys
 
@@ -172,7 +172,7 @@ def build_recommendations(
     report_lines = [
         "# Training Data Improvement Recommendations",
         "",
-        f"**Date:** {datetime.utcnow():%Y-%m-%d %H:%M UTC}",
+        f"**Date:** {datetime.now(timezone.utc):%Y-%m-%d %H:%M UTC}",
         "",
         "## Priority Actions (Week 2)",
     ]

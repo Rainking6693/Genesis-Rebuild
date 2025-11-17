@@ -24,7 +24,7 @@ import os
 import json
 import logging
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Optional, Any, Set
 from dataclasses import dataclass, asdict
 from enum import Enum
@@ -204,7 +204,7 @@ class ArxivCrawler:
     @staticmethod
     def _load_sample_papers() -> List[Dict[str, Any]]:
         """Provide offline sample papers when the network is unavailable."""
-        now = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         return [
             {
                 "arxiv_id": "2501.01234",

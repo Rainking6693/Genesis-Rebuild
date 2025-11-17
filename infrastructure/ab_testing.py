@@ -11,7 +11,7 @@ import hashlib
 import logging
 from typing import Dict, Optional, List, Any
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 
@@ -158,7 +158,7 @@ class ABTestController:
         db_path.parent.mkdir(parents=True, exist_ok=True)
         
         entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_id": user_id,
             "agent_name": agent_name,
             "variant": variant,

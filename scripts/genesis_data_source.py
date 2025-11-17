@@ -11,7 +11,7 @@ import json
 import os
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
@@ -37,7 +37,7 @@ def _load_events(hours: float) -> List[Dict[str, object]]:
     if not EVENTS_LOG.exists():
         return []
 
-    cutoff = datetime.utcnow() - timedelta(hours=hours)
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
     events: List[Dict[str, object]] = []
 
     with EVENTS_LOG.open("r", encoding="utf-8") as handle:
@@ -116,7 +116,7 @@ def _agent_success(events: Iterable[Dict[str, object]]) -> Dict[str, Dict[str, f
         key = (business_id, component)
 
         if event_type == "component_started":
-            started_at = event["timestamp"] if isinstance(event.get("timestamp"), datetime) else datetime.utcnow()
+            started_at = event["timestamp"] if isinstance(event.get("timestamp"), datetime) else datetime.now(timezone.utc)
             active[key] = ComponentRecord(
                 business_id=business_id,
                 component=component,
@@ -235,7 +235,7 @@ def query_prom(query: str, default: float = 0.0, time_window: str = "24h") -> fl
         if metrics["businesses_started"]:
             earliest = min(metrics["businesses_started"].values())
             return earliest.timestamp()
-        return datetime.utcnow().timestamp()
+        return datetime.now(timezone.utc).timestamp()
 
     return default
 

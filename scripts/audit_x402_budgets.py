@@ -6,7 +6,7 @@ import argparse
 import json
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -32,7 +32,7 @@ def audit_ledger_vs_budget(
     - Accuracy of daily/monthly rollups
     """
     audit_results = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "checks": {},
         "issues": [],
         "warnings": []
@@ -102,8 +102,8 @@ def audit_ledger_vs_budget(
     # Check 3: Verify daily/monthly rollups are accurate
     logger.info("Checking daily/monthly rollups...")
 
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    month = datetime.utcnow().strftime("%Y-%m")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    month = datetime.now(timezone.utc).strftime("%Y-%m")
 
     today_total = ledger.get_daily_total(today)
     month_total = ledger.get_monthly_total(month)
@@ -156,7 +156,7 @@ def audit_ledger_vs_budget(
     # Check 5: Compare to previous day's spend (anomaly detection)
     logger.info("Checking for spending anomalies...")
 
-    yesterday = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
+    yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     yesterday_total = ledger.get_daily_total(yesterday)
     today_total = ledger.get_daily_total(today)
 
@@ -239,7 +239,7 @@ def save_report(report: Dict[str, object]) -> Path:
     """Save audit report to file."""
     AUDIT_REPORTS.mkdir(parents=True, exist_ok=True)
 
-    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     report_path = AUDIT_REPORTS / f"audit_{timestamp}.json"
 
     with report_path.open("w") as fd:

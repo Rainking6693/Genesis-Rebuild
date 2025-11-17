@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -52,8 +52,8 @@ class BudgetTracker:
             json.dump(self._state, fd, indent=2)
 
     def _reset_if_needed(self, agent: str) -> None:
-        today = datetime.utcnow().strftime("%Y-%m-%d")
-        month = datetime.utcnow().strftime("%Y-%m")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        month = datetime.now(timezone.utc).strftime("%Y-%m")
         agent_state = self._state.setdefault(agent, {})
         if agent_state.get("last_daily", "") != today:
             agent_state["daily_spent"] = 0.0

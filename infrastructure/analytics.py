@@ -7,7 +7,7 @@ Tracks variant performance metrics and generates comparison reports.
 import json
 import logging
 from typing import Dict, List, Optional, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from collections import defaultdict
 
@@ -68,7 +68,7 @@ class AnalyticsTracker:
             metadata: Optional additional metadata
         """
         entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_id": user_id,
             "agent_name": agent_name,
             "variant": variant,
@@ -84,7 +84,7 @@ class AnalyticsTracker:
             self.recent_requests.pop(0)
         
         # Write to file
-        log_file = self.storage_path / f"analytics_{datetime.utcnow().strftime('%Y%m%d')}.jsonl"
+        log_file = self.storage_path / f"analytics_{datetime.now(timezone.utc).strftime('%Y%m%d')}.jsonl"
         with open(log_file, "a") as f:
             f.write(json.dumps(entry) + "\n")
     
@@ -113,7 +113,7 @@ class AnalyticsTracker:
             metadata: Optional additional metadata
         """
         entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_id": user_id,
             "execution_type": "gap_planner",
             "query": query[:200],  # Truncate long queries
@@ -131,7 +131,7 @@ class AnalyticsTracker:
             self.recent_requests.pop(0)
         
         # Write to file
-        log_file = self.storage_path / f"analytics_{datetime.utcnow().strftime('%Y%m%d')}.jsonl"
+        log_file = self.storage_path / f"analytics_{datetime.now(timezone.utc).strftime('%Y%m%d')}.jsonl"
         with open(log_file, "a") as f:
             f.write(json.dumps(entry) + "\n")
         
@@ -211,7 +211,7 @@ class AnalyticsTracker:
         
         # Determine which files to load
         if time_window_hours:
-            cutoff_time = datetime.utcnow() - timedelta(hours=time_window_hours)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=time_window_hours)
         else:
             cutoff_time = None
         
@@ -286,7 +286,7 @@ class AnalyticsTracker:
         
         report = f"""# A/B Testing Analytics Report
 
-Generated: {datetime.utcnow().isoformat()}
+Generated: {datetime.now(timezone.utc).isoformat()}
 
 ## Summary
 

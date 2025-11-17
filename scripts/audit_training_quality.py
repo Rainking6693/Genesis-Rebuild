@@ -21,7 +21,7 @@ import argparse
 import collections
 import statistics
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import sys
 
@@ -398,7 +398,7 @@ class TrainingDataAuditor:
         lines = [
             "# Training Data Quality Audit Report",
             "",
-            f"**Date:** {datetime.utcnow():%Y-%m-%d %H:%M UTC}",
+            f"**Date:** {datetime.now(timezone.utc):%Y-%m-%d %H:%M UTC}",
             f"**Dataset Size:** {total_examples:,} examples",
             f"**Checks Run:** {', '.join(sorted(self.checks))}",
             "",

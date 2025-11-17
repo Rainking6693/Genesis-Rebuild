@@ -9,7 +9,7 @@ import sys
 import time
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from datetime import datetime
+from datetime import datetime, timezone
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -405,7 +405,7 @@ class UnifiedDashboardHandler(BaseHTTPRequestHandler):
                     'operational': operational_systems,
                     'by_layer': systems_by_layer
                 },
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             }
             
             self.send_response(200)

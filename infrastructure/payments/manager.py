@@ -1,7 +1,7 @@
 """High-level payment manager tying budgets, ledger, and A2A service together."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import lru_cache
 from typing import Any, Dict, Optional
 
@@ -27,7 +27,7 @@ class PaymentManager:
     def _record(self, agent_id: str, url: str, response: A2APaymentResponse, status: str) -> None:
         record = PaymentRecord(
             transaction_id=response.transaction_id,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             agent_id=agent_id,
             service_url=url,
             price_usdc=response.amount,

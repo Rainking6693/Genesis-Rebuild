@@ -100,7 +100,7 @@ class BootstrapPipeline:
             "output": summary,
             "reasoning": reasoning,
             "source": seed.get("source", "solver_agent"),
-            "solved_at": datetime.utcnow().isoformat(),
+            "solved_at": datetime.now(timezone.utc).isoformat(),
         }
     
     def teacher_agent(self, example: Dict[str, Any]) -> List[Dict[str, Any]]:

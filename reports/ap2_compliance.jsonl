@@ -1314,3 +1314,4 @@
 {"timestamp": "2025-11-17T14:18:23.272525+00:00", "agent": "SupportAgent", "action": "escalate_ticket", "cost_usd": 0.65, "budget_usd": 100.0, "usage_ratio": 0.007, "context": {"ticket_id": "ticket-1", "escalation_team": "Tier-2"}}
 {"timestamp": "2025-11-17T14:18:33.810647+00:00", "agent": "SupportAgent", "action": "escalate_ticket", "cost_usd": 0.65, "budget_usd": 100.0, "usage_ratio": 0.007, "context": {"ticket_id": "ticket-1", "escalation_team": "Tier-2"}}
 {"timestamp": "2025-11-17T14:19:03.509351+00:00", "agent": "SupportAgent", "action": "escalate_ticket", "cost_usd": 0.65, "budget_usd": 100.0, "usage_ratio": 0.007, "context": {"ticket_id": "ticket-1", "escalation_team": "Tier-2"}}
+{"timestamp": "2025-11-17T14:21:39.116740+00:00", "agent": "SupportAgent", "action": "escalate_ticket", "cost_usd": 0.65, "budget_usd": 100.0, "usage_ratio": 0.007, "context": {"ticket_id": "ticket-1", "escalation_team": "Tier-2"}}

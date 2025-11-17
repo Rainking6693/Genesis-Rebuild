@@ -27,7 +27,7 @@ import argparse
 import logging
 import os
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 import json
 
@@ -80,7 +80,7 @@ class AutonomousBusinessLoop:
         Returns:
             Dict with business result and metrics
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         
         # Step 1: Agent invents a business idea
         logger.info("🧠 Agent inventing business idea...")
@@ -153,7 +153,7 @@ class AutonomousBusinessLoop:
                 "output_dir": result.output_directory
             },
             "deployment_url": deployment_url,
-            "duration_seconds": (datetime.utcnow() - start_time).total_seconds()
+            "duration_seconds": (datetime.now(timezone.utc) - start_time).total_seconds()
         }
     
     async def run_loop(self, count: int, continuous: bool = False):
@@ -267,7 +267,7 @@ class AutonomousBusinessLoop:
         learning_data = {
             "successful_ideas": self.successful_ideas,
             "failed_ideas": self.failed_ideas,
-            "last_updated": datetime.utcnow().isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
             "total_successful": len(self.successful_ideas),
             "total_failed": len(self.failed_ideas)
         }

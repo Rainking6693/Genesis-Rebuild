@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import sys
 
@@ -156,7 +156,7 @@ def build_report(
     lines = [
         "# Bias Analysis Report",
         "",
-        f"**Date:** {datetime.utcnow():%Y-%m-%d %H:%M UTC}",
+        f"**Date:** {datetime.now(timezone.utc):%Y-%m-%d %H:%M UTC}",
         f"**Dataset Size:** {total_examples:,} examples",
         "",
         "## Agent Specialization Analysis",

@@ -564,8 +564,9 @@ class DeployAgent:
         self.ap2_budget = 50.0  # $50 threshold per user requirement
         self.payment_manager = get_payment_manager()
         self.vendor_cache = VendorCache()
-        self.deploy_vendor = os.getenv("X402_DEPLOY_VENDOR", "vercel")
-        self.deploy_cost = float(os.getenv("X402_DEPLOY_COST", "0.85"))
+        # Use A2A-x402 environment variable naming convention
+        self.deploy_vendor = os.getenv("A2A_X402_DEPLOY_VENDOR", "vercel")
+        self.deploy_cost = float(os.getenv("A2A_X402_DEPLOY_COST", "0.85"))
 
     def _get_discord(self):
         if self._discord is None:

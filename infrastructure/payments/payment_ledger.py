@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
@@ -54,11 +54,11 @@ class PaymentLedger:
         return [tx for tx in self.read_transactions() if tx.get("agent_id") == agent_id]
 
     def get_daily_total(self, date: Optional[str] = None) -> float:
-        date = date or datetime.utcnow().strftime("%Y-%m-%d")
+        date = date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
         return sum(tx.get("price_usdc", 0.0) for tx in self.read_transactions() if tx.get("timestamp", "").startswith(date))
 
     def get_monthly_total(self, month: Optional[str] = None) -> float:
-        month = month or datetime.utcnow().strftime("%Y-%m")
+        month = month or datetime.now(timezone.utc).strftime("%Y-%m")
         return sum(tx.get("price_usdc", 0.0) for tx in self.read_transactions() if tx.get("timestamp", "").startswith(month))
 
     def reconcile_blockchain(self) -> List[Dict[str, object]]:

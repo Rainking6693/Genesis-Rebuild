@@ -16,7 +16,7 @@ import sys
 import json
 import time
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Any
 from pathlib import Path
 
@@ -53,7 +53,7 @@ class BaselineMonitor:
 
     def log_metric(self, metric: Dict[str, Any]):
         """Log metric to JSONL file"""
-        metric['timestamp'] = datetime.utcnow().isoformat()
+        metric['timestamp'] = datetime.now(timezone.utc).isoformat()
         with open(self.output_file, 'a') as f:
             f.write(json.dumps(metric) + '\n')
 

@@ -6,7 +6,7 @@ import argparse
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -113,7 +113,7 @@ def generate_reconciliation_report(
     medium_severity = sum(1 for d in discrepancies if d.get("severity") == "medium")
 
     report = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "summary": {
             "total_transactions": total_transactions,
             "total_amount_usdc": round(total_amount, 2),
@@ -147,7 +147,7 @@ def save_report(report: Dict[str, object]) -> Path:
     """Save reconciliation report to file."""
     RECONCILIATION_REPORT.mkdir(parents=True, exist_ok=True)
 
-    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     report_path = RECONCILIATION_REPORT / f"reconciliation_{timestamp}.json"
 
     with report_path.open("w") as fd:

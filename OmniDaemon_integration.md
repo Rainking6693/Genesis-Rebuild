@@ -457,88 +457,17 @@ Transform Genesis from synchronous HTTP (A2A FastAPI) to event-driven architectu
 
 ### Agent 1: Business Idea Generator
 
-- [ ] **Create callback `_business_idea_callback()`**
+- [x] **Create callback `_business_idea_callback()`**
 
-  ```python
+  Implemented inside `infrastructure/omnidaemon_bridge.py::OmniDaemonBridge.register_business_idea_generator()` which generates business ideas and returns idea metadata.
 
-  async def _business_idea_callback(self, message: dict) -> dict:
+- [x] **Register with OmniDaemon**
 
-      from infrastructure.business_idea_generator import get_idea_generator
+  The bridge registers topic `genesis.idea.generate` with `OmniDaemonSDK.register_agent()` when `register_business_idea_generator()` runs.
 
- 
+- [x] **Test async execution**
 
-      generator = get_idea_generator()
-
-      idea = await generator.generate_idea(
-
-          business_type=message['content'].get('business_type', 'saas'),
-
-          min_score=message['content'].get('min_score', 70.0)
-
-      )
-
- 
-
-      return {
-
-          "status": "success",
-
-          "idea": idea.to_dict(),
-
-          "score": idea.quality_score
-
-      }
-
-  ```
-
-
-- [ ] **Register with OmniDaemon**
-
-  ```python
-
-  await self.sdk.register_agent(
-
-      AgentConfig(
-
-          topic="genesis.idea.generate",
-
-          callback=self._business_idea_callback,
-
-          max_retries=3,
-
-          timeout_seconds=300
-
-      )
-
-  )
-
-  ```
-
- 
-
-- [ ] **Test async execution**
-
-  ```bash
-
-  # Publish event
-
-  omnidaemon task publish --topic genesis.idea.generate --payload '{"business_type":"saas"}'
-
- 
-
-  # Monitor processing
-
-  omnidaemon metrics --topic genesis.idea.generate
-
- 
-
-  # Check result
-
-  omnidaemon task result TASK_ID
-
-  ```
-
- 
+  Covered by `scripts/test_omnidaemon_basic.py`, which publishes to `genesis.idea.generate` and asserts the callback result.
 
 ### Agent 2: Builder Agent
 

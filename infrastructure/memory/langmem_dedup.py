@@ -24,7 +24,7 @@ Week 1 Target: 30%+ deduplication rate, <50ms P95 dedup latency
 import hashlib
 import logging
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
@@ -197,7 +197,7 @@ class LangMemDedup:
         Returns:
             Deduplicated list of memories
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         # Start OTEL span (try-except for backwards compatibility)
         try:
@@ -268,7 +268,7 @@ class LangMemDedup:
             self.stats["semantic_duplicates"] += semantic_dups
             self.stats["unique_entries"] += len(deduped)
 
-            duration = (datetime.utcnow() - start_time).total_seconds()
+            duration = (datetime.now(timezone.utc) - start_time).total_seconds()
             self.stats["total_dedup_time"] += duration
 
             # Add OTEL metrics

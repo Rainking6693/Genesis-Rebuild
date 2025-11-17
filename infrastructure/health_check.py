@@ -19,7 +19,7 @@ import os
 import re
 import sys
 from collections import Counter
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from urllib import request, error as urlerror
@@ -458,7 +458,7 @@ class HealthCheckService:
 
         return {
             "status": overall,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             "checks": checks,
         }
 
@@ -488,7 +488,7 @@ class HealthCheckService:
             MONTHLY_BUDGET_GAUGE.set(self._get_monthly_budget())
 
         return {
-            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "generated_at": datetime.now(timezone.utc).isoformat() + "Z",
             "executive_overview": executive,
             "agent_performance": agent_perf,
             "orchestration": orchestration,
@@ -727,7 +727,7 @@ class HealthCheckService:
         )
         return {
             "agents": agents,
-            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "generated_at": datetime.now(timezone.utc).isoformat() + "Z",
             "summary": {
                 "avg_latency_seconds": avg_latency,
                 "cost_per_task_usd": AVERAGE_COMPONENT_COST,
@@ -1112,7 +1112,7 @@ class HealthCheckService:
             }
 
         latest_event_time = max(event["timestamp"] for event in events)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         time_since_last = now - latest_event_time
         status = "ok" if time_since_last <= self.recent_activity_window else "warn"
 
@@ -1177,7 +1177,7 @@ class HealthCheckService:
         if active:
             oldest_start = min(active.values())
             oldest_active_minutes = round(
-                (datetime.utcnow() - oldest_start).total_seconds() / 60, 2
+                (datetime.now(timezone.utc) - oldest_start).total_seconds() / 60, 2
             )
 
         status = "ok" if not active else "warn"
@@ -1196,7 +1196,7 @@ class HealthCheckService:
             return []
 
         events: List[Dict[str, object]] = []
-        cutoff = datetime.utcnow() - timedelta(hours=24)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
 
         try:
             with self.events_path.open("r") as handle:
@@ -1528,7 +1528,7 @@ async def root_index() -> str:
     </body>
     </html>
     """
-    return template.replace("__YEAR__", str(datetime.utcnow().year))
+    return template.replace("__YEAR__", str(datetime.now(timezone.utc).year))
 
 
 @app.api_route("/health", methods=["GET", "HEAD", "OPTIONS"])
@@ -1558,7 +1558,7 @@ async def a2a_stub_health() -> JSONResponse:
         content={
             "status": "ok",
             "service": "a2a-connector",
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
         },
         status_code=200,
     )

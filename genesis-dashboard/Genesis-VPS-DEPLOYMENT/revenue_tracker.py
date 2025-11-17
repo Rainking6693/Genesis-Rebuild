@@ -7,7 +7,7 @@ Add this file to: genesis-dashboard/backend/revenue_tracker.py
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 import json
@@ -101,14 +101,14 @@ class RevenueTracker:
         """Create empty database structure."""
         return {
             "businesses": {},
-            "last_updated": datetime.utcnow().isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
             "version": "1.0"
         }
 
     def _save_data(self):
         """Save revenue database to JSON file."""
         try:
-            self.data["last_updated"] = datetime.utcnow().isoformat()
+            self.data["last_updated"] = datetime.now(timezone.utc).isoformat()
             with open(self.db_file, 'w') as f:
                 json.dump(self.data, f, indent=2)
             logger.info("Revenue data saved successfully")
@@ -128,7 +128,7 @@ class RevenueTracker:
             business_id=registration.business_id,
             name=registration.name,
             type=registration.type,
-            created_at=datetime.utcnow().isoformat(),
+            created_at=datetime.now(timezone.utc).isoformat(),
             status="active",
             revenue_monthly=0.0,
             costs_monthly=registration.estimated_costs,
@@ -158,7 +158,7 @@ class RevenueTracker:
         business = self.data["businesses"][business_id]
         business["revenue_monthly"] = update.revenue
         business["profit_monthly"] = update.revenue - business["costs_monthly"]
-        business["last_revenue_update"] = datetime.utcnow().isoformat()
+        business["last_revenue_update"] = datetime.now(timezone.utc).isoformat()
 
         self._save_data()
 
@@ -234,7 +234,7 @@ class RevenueTracker:
             success_rate=success_rate,
             avg_quality_score=avg_quality,
             businesses=[BusinessMetrics(**b) for b in active],
-            last_updated=datetime.utcnow().isoformat()
+            last_updated=datetime.now(timezone.utc).isoformat()
         )
 
     def get_revenue_history(
@@ -339,6 +339,6 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "revenue-tracker",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "total_businesses": len(tracker.data["businesses"])
     }

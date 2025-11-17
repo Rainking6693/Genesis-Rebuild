@@ -16,7 +16,7 @@ import httpx
 import numpy as np
 from typing import List, Dict, Any, Optional, Union
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class EmbeddingMetrics:
         self.total_embeddings += num_embeddings
         self.total_tokens += tokens
         self.total_latency_ms += latency_ms
-        self.last_request_time = datetime.utcnow()
+        self.last_request_time = datetime.now(timezone.utc)
         if error:
             self.errors += 1
     
