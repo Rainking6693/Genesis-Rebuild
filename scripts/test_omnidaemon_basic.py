@@ -16,6 +16,7 @@ try:
     from omnidaemon import OmniDaemonSDK, AgentConfig
     from omnidaemon.event_bus import RedisStreamEventBus
     from omnidaemon.storage import RedisStore
+    from omnidaemon.schemas import EventEnvelope, PayloadBase
 except ImportError as e:
     print(f"❌ Import error: {e}")
     sys.exit(1)
@@ -82,13 +83,18 @@ async def main():
 
     # Publish test message
     try:
-        task_id = await sdk.publish_event(
+        import json
+        payload_content = json.dumps({"message": "Hello OmniDaemon!"})
+        envelope = EventEnvelope(
             topic="genesis.test",
-            payload={"content": {"message": "Hello OmniDaemon!"}},
+            payload=PayloadBase(content=payload_content),
         )
+        task_id = await sdk.publish_task(envelope)
         print(f"✅ Published task: {task_id}")
     except Exception as e:
-        print(f"❌ Failed to publish event: {e}")
+        print(f"❌ Failed to publish task: {e}")
+        import traceback
+        traceback.print_exc()
         return
 
     # Wait for processing
@@ -97,7 +103,7 @@ async def main():
 
     # Get result
     try:
-        result = await sdk.get_task_result(task_id)
+        result = await sdk.get_result(task_id)
         if result:
             print(f"✅ Task result: {result}")
         else:
@@ -109,13 +115,13 @@ async def main():
     print("\n📊 Redis Streams Status:")
     try:
         redis_client = redis.from_url(redis_url)
-        streams = redis_client.execute_command("XINFO", "STREAMS")
-        if streams and len(streams) > 0:
-            print(f"✅ Active streams found: {len(streams) // 2} streams")
-            for i in range(0, len(streams), 2):
-                print(f"   - {streams[i]}")
-                else:
-                    print("⚠️  No streams found yet")
+        # List all stream keys
+        stream_keys = redis_client.keys("*")
+        if stream_keys:
+            print(f"✅ Active Redis keys found: {len(stream_keys)} keys")
+            for key in stream_keys[:5]:  # Show first 5
+                key_str = key if isinstance(key, str) else key.decode()
+                print(f"   - {key_str}")
         else:
             print("⚠️  No streams found")
     except Exception as e:

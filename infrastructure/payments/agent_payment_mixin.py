@@ -68,7 +68,7 @@ class AgentPaymentMixin:
             vendor or self.agent_id,
             metadata or {},
         )
-        self.budget.record_spend(self.agent_id, cost_estimate_usdc)
+        self.budget.record_spend(self.agent_id, cost_estimate_usdc, url, metadata or {})
         return response
 
     def reload_budget_settings(self) -> None:

@@ -6,9 +6,21 @@
     "last_monthly": "2025-11"
   },
   "builder_agent": {
-    "daily_spent": 10.5,
+    "daily_spent": 15.5,
     "last_daily": "2025-11-17",
-    "monthly_spent": 18.0,
+    "monthly_spent": 23.0,
+    "last_monthly": "2025-11"
+  },
+  "deploy_agent": {
+    "daily_spent": 1.7,
+    "last_daily": "2025-11-17",
+    "monthly_spent": 1.7,
+    "last_monthly": "2025-11"
+  },
+  "qa_agent": {
+    "daily_spent": 0.8,
+    "last_daily": "2025-11-17",
+    "monthly_spent": 0.8,
     "last_monthly": "2025-11"
   }
 }

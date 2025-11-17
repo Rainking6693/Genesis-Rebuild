@@ -1,0 +1,11 @@
+event_bus:
+  type: ${EVENT_BUS_TYPE:-redis_stream}
+  redis_url: ${REDIS_URL:-redis://localhost:6379}
+storage:
+  backend: ${STORAGE_BACKEND:-redis}
+logging:
+  level: ${LOG_LEVEL:-INFO}
+workers:
+  default_timeout: 600
+  heartbeat_interval: 10
+  restart_on_failure: true

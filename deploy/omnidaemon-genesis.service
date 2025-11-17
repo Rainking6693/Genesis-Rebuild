@@ -1,0 +1,13 @@
+[Unit]
+Description=OmniDaemon Workers for Genesis
+After=network.target
+
+[Service]
+Type=forking
+User=genesis
+WorkingDirectory=/home/genesis/genesis-rebuild
+ExecStart=/home/genesis/genesis-rebuild/scripts/start_omnidaemon_workers.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

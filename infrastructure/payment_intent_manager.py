@@ -49,6 +49,8 @@ class PaymentIntentManager:
         component: str,
         cost_usd: float,
         metadata: Optional[Dict[str, Any]] = None,
+        override_approved: Optional[bool] = None,
+        override_reason: Optional[str] = None,
     ) -> PaymentIntent:
         metadata = metadata or {}
         strategy = metadata.get("budget_strategy", "balanced")
@@ -61,6 +63,9 @@ class PaymentIntentManager:
             if approved
             else f"Projected spend {projected:.2f} exceeds budget cap {budget_usd * buffer:.2f} (strategy={strategy})"
         )
+        if override_approved is not None:
+            approved = override_approved
+            reason = override_reason or reason
         intent = PaymentIntent(
             agent=agent_name,
             component=component,

@@ -85,6 +85,7 @@ class BusinessMonitor:
             "total_files": 0,
             "total_lines_of_code": 0,
             "total_cost_usd": 0.0,
+            "monitor_events": 0,
             "start_time": time.time()
         }
         
@@ -456,6 +457,11 @@ class BusinessMonitor:
         snapshot_file = self.log_dir / "dashboard_snapshot.json"
         with open(snapshot_file, "w") as f:
             json.dump(self.get_dashboard_data(), f, indent=2)
+
+    def record_monitor_event(self, topic: str, payload: Dict[str, Any]) -> None:
+        """Log arbitrary OmniDaemon monitoring events."""
+        self.global_stats["monitor_events"] += 1
+        self._write_event(topic, payload)
 
 
 # Global monitor instance

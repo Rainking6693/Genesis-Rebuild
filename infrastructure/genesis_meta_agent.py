@@ -10,7 +10,7 @@ import json
 import os
 import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple, TYPE_CHECKING
 from dataclasses import dataclass, field
@@ -20,7 +20,6 @@ from infrastructure.local_llm_client import get_local_llm_client
 from infrastructure.task_dag import TaskDAG, Task
 from infrastructure.component_library import COMPONENT_LIBRARY
 from infrastructure.payments.agent_base import PaymentAgentBase
-from infrastructure.payment_intent_manager import PaymentIntentManager
 from infrastructure.payment_intent_manager import PaymentIntentManager
 
 # Try to import prompts, provide fallbacks if not available
@@ -47,6 +46,7 @@ Generate the complete component code:"""
         return """Generate clean, production-ready TypeScript/React code following best practices."""
 
 from collections import defaultdict
+from uuid import uuid4
 
 from infrastructure.code_extractor import extract_and_validate
 from infrastructure.business_monitor import get_monitor
@@ -159,6 +159,32 @@ COMPONENT_KEYWORD_AGENT_MAP = {
 }
 
 SPEND_SUMMARY_LOG = Path("data/a2a-x402/spend_summaries.jsonl")
+DEFAULT_DAILY_BUDGET_USD = float(os.getenv("META_AGENT_DEFAULT_DAILY_BUDGET", "500.0"))
+AGENT_DAILY_BUDGETS: Dict[str, float] = {
+    "builder_agent": 600.0,
+    "deploy_agent": 400.0,
+    "qa_agent": 250.0,
+    "marketing_agent": 300.0,
+    "support_agent": 250.0,
+    "finance_agent": 350.0,
+    "research_agent": 280.0,
+    "billing_agent": 320.0,
+    "analyst_agent": 280.0,
+    "monitoring_agent": 220.0,
+}
+VENDOR_WHITELIST = {
+    "payments:builder_agent",
+    "payments:deploy_agent",
+    "payments:qa_agent",
+    "payments:marketing_agent",
+    "payments:support_agent",
+    "payments:finance_agent",
+    "payments:research_agent",
+    "payments:billing_agent",
+    "payments:analyst_agent",
+    "payments:monitoring_agent",
+}
+FRAUD_PATTERNS = ["urgent transfer", "wire request", "override budget", "suspicious vendor"]
 
 AGENT_COMPONENT_REQUIREMENTS = {
     "frontend_agent": "dashboard_ui",
@@ -248,10 +274,20 @@ class GenesisMetaAgent:
         self._darwin_enabled = os.getenv("ENABLE_DARWIN_WRAP", "true").lower() != "false"
         self._current_team_agents: List[str] = []
         self._current_spec: Optional[BusinessSpec] = None
+        self._current_business_id: Optional[str] = None
         self.payment_base = PaymentAgentBase("genesis_meta_agent", cost_map={
             "call_premium_llm": 1.5,
             "optimize_prompt": 0.4
         })
+        self._daily_spend: Dict[str, Dict[str, Any]] = {}
+        self._daily_budget_limits: Dict[str, float] = self._load_daily_budget_limits()
+        self._flagged_mandates = {
+            mandate.strip()
+            for mandate in os.getenv("META_AGENT_FLAGGED_MANDATES", "").split(",")
+            if mandate.strip()
+        }
+        self._vendor_whitelist = {vendor.lower() for vendor in VENDOR_WHITELIST}
+        self._fraud_patterns = FRAUD_PATTERNS
 
         logger.info("Genesis Meta-Agent initialized")
 
@@ -264,6 +300,65 @@ class GenesisMetaAgent:
             "content": {"components": ["blog_system", "newsletter", "seo_optimization", "social_media"]},
             "saas": {"components": ["dashboard_ui", "rest_api", "user_auth", "stripe_billing", "docs"]}
         }
+
+    def _load_daily_budget_limits(self) -> Dict[str, float]:
+        limits = dict(AGENT_DAILY_BUDGETS)
+        env_value = os.getenv("META_AGENT_DAILY_LIMITS", "")
+        if env_value:
+            for token in env_value.split(","):
+                if "=" not in token:
+                    continue
+                agent_name, limit_value = token.split("=", 1)
+                try:
+                    limits[agent_name.strip()] = float(limit_value.strip())
+                except ValueError:
+                    logger.warning(f"Ignoring invalid budget limit for {agent_name}: {limit_value}")
+        return limits
+
+    def _ensure_daily_record(self, agent_id: str) -> Dict[str, Any]:
+        today = datetime.now(timezone.utc).date()
+        record = self._daily_spend.get(agent_id)
+        if not record or record.get("date") != today:
+            record = {"date": today, "spent": 0.0}
+            self._daily_spend[agent_id] = record
+        return record
+
+    def _is_fraudulent(self, reason: str, mandate_id: str) -> bool:
+        lower_reason = (reason or "").lower()
+        if mandate_id and mandate_id in self._flagged_mandates:
+            return True
+        return any(pattern in lower_reason for pattern in self._fraud_patterns)
+
+    def _record_daily_spend(self, agent_id: str, amount_usd: float) -> None:
+        record = self._ensure_daily_record(agent_id)
+        record["spent"] += amount_usd
+
+    async def approve_payment_intent(
+        self,
+        agent_id: str,
+        vendor: str,
+        amount_cents: int,
+        reason: str,
+        mandate_id: str,
+    ) -> Tuple[bool, str]:
+        amount_usd = amount_cents / 100.0
+        vendor_key = (vendor or "").lower()
+        record = self._ensure_daily_record(agent_id)
+        daily_limit = self._daily_budget_limits.get(agent_id, DEFAULT_DAILY_BUDGET_USD)
+
+        if amount_usd < 10.0:
+            return True, "Auto-approved (amount below $10 threshold)"
+
+        if vendor_key and vendor_key not in self._vendor_whitelist:
+            return False, f"Vendor {vendor_key} is not whitelisted"
+
+        if self._is_fraudulent(reason, mandate_id):
+            return False, "Denied: fraud pattern detected"
+
+        if record["spent"] + amount_usd > daily_limit:
+            return False, f"Daily budget ${daily_limit:.2f} exceeded"
+
+        return True, "Approved within Meta Agent policy"
 
     def _decompose_business_to_tasks(self, spec: BusinessSpec):
         dag = TaskDAG()
@@ -791,6 +886,7 @@ vercel deploy --prod
         component_list = [task.description.replace("Build ", "") for task in dag.get_all_tasks() if task.task_id != "root"]
         business_id = monitor.start_business(spec.name, spec.business_type, component_list)
         spec.metadata.setdefault("business_id", business_id)
+        self._current_business_id = business_id
         if self.discord:
             await self.discord.business_build_started(business_id, spec.name, spec.description)
         workspace_manager = self._create_workspace_manager(business_id, spec)
@@ -831,11 +927,25 @@ vercel deploy --prod
                     "component": component_name,
                     "vendor": self._component_vendor(component_agent),
                 }
+                metadata.setdefault("business_id", business_id)
+                metadata.setdefault("mandate_id", f"{business_id}-{component_name}")
+                amount_cents = int(cost * 100)
+                mandate_id = metadata.get("mandate_id")
+                approved, approval_reason = await self.approve_payment_intent(
+                    component_agent,
+                    metadata.get("vendor", ""),
+                    amount_cents,
+                    reason="Component generation complete",
+                    mandate_id=mandate_id or f"{business_id}-{component_name}",
+                )
+                metadata["approval_reason"] = approval_reason
                 intent = self.payment_manager.evaluate(
                     component_agent,
                     component_name,
                     cost,
                     metadata=metadata,
+                    override_approved=approved,
+                    override_reason=approval_reason,
                 )
                 if not intent.approved:
                     tasks_failed += 1
@@ -857,6 +967,7 @@ vercel deploy --prod
                     business_id, component_name, estimated_lines, cost,
                     used_vertex=self.router.use_vertex_ai
                 )
+                self._record_daily_spend(component_agent, cost)
             else:
                 tasks_failed += 1
                 error_msg = result.get('error', 'Unknown error')
@@ -925,6 +1036,7 @@ vercel deploy --prod
             errors=errors, metrics={"cost_usd": total_cost}
         )
         self._current_spec = None
+        self._current_business_id = None
 
         if self.discord:
             build_metrics = {
@@ -953,6 +1065,7 @@ vercel deploy --prod
                 denied += 1
         projected_revenue = float(spec.metadata.get("projected_revenue") or spec.metadata.get("target_revenue") or 0.0)
         ratio = round((total_cost / projected_revenue), 3) if projected_revenue else None
+        roi = round((projected_revenue / total_cost), 3) if total_cost and projected_revenue else None
         summary = {
             "business_id": business_id,
             "business_name": spec.name,
@@ -963,17 +1076,63 @@ vercel deploy --prod
             "agent_breakdown": agent_breakdown,
             "projected_revenue": projected_revenue,
             "spend_to_revenue_ratio": ratio,
+            "roi": roi,
+            "dashboard_url": spec.metadata.get("deployment_url") or spec.metadata.get("dashboard_url"),
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         self._write_spend_summary(summary)
-        if self.discord:
-            await self.discord.payment_business_summary(summary)
+        await self.post_business_spend_summary(summary)
 
     def _write_spend_summary(self, summary: Dict[str, Any]) -> None:
         SPEND_SUMMARY_LOG.parent.mkdir(parents=True, exist_ok=True)
         with SPEND_SUMMARY_LOG.open("a", encoding="utf-8") as fd:
             fd.write(json.dumps(summary) + "\n")
 
+    async def post_business_spend_summary(self, summary: Dict[str, Any]) -> None:
+        message = self._format_spend_summary_message(summary)
+        await self._send_discord_message("dashboard", message, business_id=summary.get("business_id"))
+        if self.discord:
+            await self.discord.payment_business_summary(summary)
+
+    async def _send_discord_message(
+        self,
+        channel: str,
+        message: str,
+        business_id: Optional[str] = None,
+    ) -> None:
+        if not self.discord:
+            return
+        target_business = business_id or self._current_business_id or "meta-agent"
+        if channel == "dashboard":
+            await self.discord.agent_progress(target_business, "Meta Agent Summary", message)
+        else:
+            await self.discord.agent_error(target_business, "Meta Agent Summary", message)
+
+    def _format_spend_summary_message(self, summary: Dict[str, Any]) -> str:
+        lines = [
+            f"💰 Total Spent: ${summary.get('total_spent', 0.0):.2f}",
+            f"📈 Projected Revenue: ${summary.get('projected_revenue', 0.0):.2f}",
+        ]
+        roi = summary.get("roi")
+        if roi is not None:
+            lines.append(f"💹 ROI: {roi:.2f}x")
+        ratio = summary.get("spend_to_revenue_ratio")
+        if ratio is not None:
+            lines.append(f"🔄 Spend/Revenue Ratio: {ratio:.2f}")
+        lines.append(f"✅ Approved intents: {summary.get('approved_intents', 0)}")
+        lines.append(f"🚫 Denied intents: {summary.get('denied_intents', 0)}")
+        vendor_breakdown = summary.get("vendor_breakdown", {})
+        agent_breakdown = summary.get("agent_breakdown", {})
+        if vendor_breakdown:
+            vendor_lines = ", ".join(f"{vendor}: ${amount:.2f}" for vendor, amount in vendor_breakdown.items())
+            lines.append(f"Vendors: {vendor_lines}")
+        if agent_breakdown:
+            agent_lines = ", ".join(f"{agent}: ${amount:.2f}" for agent, amount in agent_breakdown.items())
+            lines.append(f"Agents: {agent_lines}")
+        dashboard_url = summary.get("dashboard_url")
+        if dashboard_url:
+            lines.append(f"🔗 Dashboard: {dashboard_url}")
+        return "\n".join(lines)
     async def call_premium_llm(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
         response = await self.payment_base._pay(
             "post",
