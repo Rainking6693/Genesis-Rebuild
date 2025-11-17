@@ -23,20 +23,39 @@ async def _worker(
     queue: asyncio.Queue[int],
     processed: List[int],
     fail_task: int | None = None,
+    max_retries: int = 3,
 ) -> None:
     while True:
         try:
             task_id = queue.get_nowait()
         except asyncio.QueueEmpty:
             return
+
+        retries = 0
+        task_succeeded = False
         try:
-            await _simulate_task(task_id, fail=task_id == fail_task)
-            processed.append(task_id)
-            logger.info("[%s] Completed task %s", name, task_id)
-        except ConnectionError as exc:
-            logger.warning("[%s] Redis failure while processing %s: %s", name, task_id, exc)
-            await asyncio.sleep(0.05)
-            await queue.put(task_id)
+            while retries < max_retries:
+                try:
+                    await _simulate_task(task_id, fail=task_id == fail_task)
+                    processed.append(task_id)
+                    logger.info("[%s] Completed task %s", name, task_id)
+                    task_succeeded = True
+                    break
+                except ConnectionError as exc:
+                    retries += 1
+                    if retries < max_retries:
+                        logger.warning(
+                            "[%s] Redis failure (attempt %d/%d) while processing %s: %s",
+                            name, retries, max_retries, task_id, exc
+                        )
+                        await asyncio.sleep(0.05 * retries)  # Exponential backoff
+                    else:
+                        logger.error(
+                            "[%s] Exhausted retries (%d) for task %s, moving to DLQ",
+                            name, max_retries, task_id
+                        )
+            if not task_succeeded and retries >= max_retries:
+                logger.error("[%s] Task %s failed permanently", name, task_id)
         finally:
             queue.task_done()
 
