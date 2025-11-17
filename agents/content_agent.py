@@ -59,6 +59,7 @@ from infrastructure.agentevolver import (
 )
 
 import os
+from pathlib import Path
 from infrastructure.payments.media_helper import CreativeAssetRegistry, MediaPaymentHelper
 from infrastructure.payments.budget_enforcer import BudgetExceeded
 
@@ -157,7 +158,7 @@ class ContentAgent:
         self.ap2_cost = float(os.getenv("AP2_CONTENT_COST", "2.0"))  # $2.0 per operation
         self.ap2_budget = 50.0  # $50 threshold per user requirement
         self.media_helper = MediaPaymentHelper("content_agent", vendor_name="content_media_api")
-        self.asset_registry = CreativeAssetRegistry()
+        self.asset_registry = CreativeAssetRegistry(Path("data/creative_assets_registry.json"))
 
         logger.info(
             f"Content Agent v4.1 initialized with DAAO + TUMIX + MemoryOS + WebVoyager + AgentEvolver + AP2 "
@@ -630,18 +631,16 @@ class ContentAgent:
             f"AP2 Budget remaining: ${remaining_budget:.2f}"
         )
 
-        # Step 1: Generate self-questions (novelty-driven tasks)
+        # Step 1: Generate self-questions for exploration frontier update
         tasks = await self.self_questioning_engine.generate_tasks(num_tasks=num_tasks)
-        logger.info(
-            f"[ContentAgent] Generated {len(tasks)} self-questions. "
-            f"Top priority: {tasks[0].description} (priority={tasks[0].overall_priority:.1f})"
-        )
 
-        # Step 2: Execute tasks and track metrics
-        metrics = await self.curiosity_trainer.execute_training_tasks(
-            tasks=tasks,
+        # Step 2: Execute training epoch (train_epoch regenerates tasks internally for execution)
+        metrics, session = await self.curiosity_trainer.train_epoch(
+            num_tasks=num_tasks,
+            agent_type="content",
             ap2_budget_remaining=remaining_budget,
-            cost_per_task=0.4  # $0.4 per training task (cheaper than marketing)
+            cost_per_task=0.4,  # $0.4 per training task (cheaper than marketing)
+            self_questioning_engine=self.self_questioning_engine
         )
 
         # Step 3: Emit AP2 events for training

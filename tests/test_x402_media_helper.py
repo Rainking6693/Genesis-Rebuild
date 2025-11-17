@@ -54,16 +54,25 @@ def test_purchase_records_payment(monkeypatch):
         lambda: DummyMonitor(),
     )
 
-    helper = MediaPaymentHelper("marketing_agent", vendor_name="test_vendor")
-    result = helper.purchase("campaign_assets", 0.75)
+    # Mock the HTTP request to avoid real network calls
+    from unittest.mock import MagicMock, patch
 
-    assert isinstance(result, MediaPurchaseResult)
-    assert result.amount_usd == 0.75
-    assert captured
-    entry = captured[0]
-    assert entry["agent"] == "marketing_agent"
-    assert entry["resource"] == "campaign_assets"
-    assert entry["type"] == "media"
+    with patch("httpx.Client") as mock_client:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"success": True, "tx_hash": "0xmocked"}
+        mock_client.return_value.post.return_value = mock_response
+
+        helper = MediaPaymentHelper("marketing_agent", vendor_name="test_vendor")
+        result = helper.purchase("campaign_assets", 0.75)
+
+        assert isinstance(result, MediaPurchaseResult)
+        assert result.amount_usd == 0.75
+        assert captured
+        entry = captured[0]
+        assert entry["agent"] == "marketing_agent"
+        assert entry["resource"] == "campaign_assets"
+        assert entry["type"] == "media"
 
 
 def test_purchase_raises_when_budget_blocked():

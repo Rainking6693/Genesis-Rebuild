@@ -19,4 +19,4 @@ def test_detect_failure_streaks():
         make_event("payment_error", "vendorA"),
     ]
     results = detect_failure_streaks(events, threshold=3)
-    assert results["vendora"] >= 3
+    assert results["vendorA"] >= 3

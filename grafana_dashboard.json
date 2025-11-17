@@ -1,0 +1,104 @@
+{
+  "dashboard": {
+    "title": "Genesis x402 Payment Metrics",
+    "tags": ["genesis", "x402", "payments"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "type": "graph",
+        "title": "Total Payments (24h)",
+        "targets": [{
+          "expr": "sum(increase(payments_total[24h]))",
+          "legendFormat": "Total Payments"
+        }]
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "type": "graph",
+        "title": "Spend by Agent",
+        "targets": [{
+          "expr": "sum by (agent_id) (payment_spend_usd)",
+          "legendFormat": "{{agent_id}}"
+        }]
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+        "type": "gauge",
+        "title": "Wallet Balance (USDC)",
+        "targets": [{
+          "expr": "payment_wallet_balance",
+          "legendFormat": "Balance"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 50, "color": "yellow"},
+                {"value": 200, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+        "type": "stat",
+        "title": "Payment Success Rate (%)",
+        "targets": [{
+          "expr": "100 * sum(rate(payments_total{status=\"completed\"}[5m])) / sum(rate(payments_total[5m]))",
+          "legendFormat": "Success Rate"
+        }]
+      },
+      {
+        "id": 5,
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
+        "type": "stat",
+        "title": "Stale Authorizations",
+        "targets": [{
+          "expr": "payment_stale_authorizations",
+          "legendFormat": "Stale Payments"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 1, "color": "yellow"},
+                {"value": 5, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "type": "graph",
+        "title": "Vendor Failure Streaks",
+        "targets": [{
+          "expr": "payment_vendor_failure_streak",
+          "legendFormat": "{{vendor}}"
+        }]
+      },
+      {
+        "id": 7,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "type": "table",
+        "title": "Budget Utilization",
+        "targets": [{
+          "expr": "sum by (agent_id) (payment_spend_usd)",
+          "format": "table"
+        }]
+      }
+    ],
+    "refresh": "30s",
+    "schemaVersion": 16,
+    "version": 0
+  }
+}

@@ -48,6 +48,8 @@ plotly==6.4.0
 altair==5.5.0
 filelock==3.19.1
 huggingface-hub==0.36.0
+omnidaemon>=0.1.0
+redis>=5.0.0
 tokenizers==0.22.1
 sentencepiece==0.2.1
 psutil==7.1.3

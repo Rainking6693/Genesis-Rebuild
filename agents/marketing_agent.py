@@ -48,6 +48,7 @@ from infrastructure.ocr.ocr_agent_tool import marketing_agent_visual_analyzer
 # Import AP2
 from infrastructure.ap2_helpers import record_ap2_event
 from infrastructure.ap2_protocol import get_ap2_client
+from pathlib import Path
 from infrastructure.payments.media_helper import CreativeAssetRegistry, MediaPaymentHelper
 from infrastructure.payments.budget_enforcer import BudgetExceeded
 
@@ -155,7 +156,7 @@ class MarketingAgent:
         self.ap2_cost = 3.0  # $3.0 per operation (expensive due to content generation)
         self.ap2_budget = 50.0  # $50 threshold per user requirement
         self.media_helper = MediaPaymentHelper("marketing_agent", vendor_name="marketing_media_api")
-        self.asset_registry = CreativeAssetRegistry()
+        self.asset_registry = CreativeAssetRegistry(Path("data/creative_assets_registry.json"))
 
         logger.info(
             f"Marketing Agent v4.1 initialized with DAAO + TUMIX + AgentEvolver for business: {business_id} "
@@ -862,18 +863,16 @@ Always return structured JSON responses."""
             f"AP2 Budget remaining: ${remaining_budget:.2f}"
         )
 
-        # Step 1: Generate self-questions (novelty-driven tasks)
+        # Step 1: Generate self-questions for exploration frontier update
         tasks = await self.self_questioning_engine.generate_tasks(num_tasks=num_tasks)
-        logger.info(
-            f"[MarketingAgent] Generated {len(tasks)} self-questions. "
-            f"Top priority: {tasks[0].description} (priority={tasks[0].overall_priority:.1f})"
-        )
 
-        # Step 2: Execute tasks and track metrics
-        metrics = await self.curiosity_trainer.execute_training_tasks(
-            tasks=tasks,
+        # Step 2: Execute training epoch (train_epoch regenerates tasks internally for execution)
+        metrics, session = await self.curiosity_trainer.train_epoch(
+            num_tasks=num_tasks,
+            agent_type="marketing",
             ap2_budget_remaining=remaining_budget,
-            cost_per_task=0.5  # $0.5 per training task
+            cost_per_task=0.5,  # $0.5 per training task
+            self_questioning_engine=self.self_questioning_engine
         )
 
         # Step 3: Emit AP2 events for training
