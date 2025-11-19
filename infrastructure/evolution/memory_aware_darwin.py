@@ -35,7 +35,9 @@ import time
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple, Set
+from typing import Any, Dict, List, Optional, Tuple, Set
+from pathlib import Path
+import json
 
 from infrastructure import get_logger
 from infrastructure.langgraph_store import GenesisLangGraphStore, get_store
@@ -44,6 +46,12 @@ from infrastructure.trajectory_pool import (
     TrajectoryPool,
     TrajectoryStatus,
     OperatorType,
+)
+from infrastructure.agentevolver.ingestion import (
+    scenario_to_trajectory,
+    scenario_quality_ok,
+    validate_scenario_schema,
+    ScenarioValidationError,
 )
 
 # Import SE-Darwin components (will be imported from agents/se_darwin_agent.py)
@@ -178,7 +186,9 @@ class MemoryAwareDarwin:
         se_darwin_agent: Optional[Any] = None,  # SEDarwinAgent instance
         capability_tags: Optional[List[str]] = None,
         max_memory_patterns: int = 5,
-        pattern_success_threshold: float = 0.7
+        pattern_success_threshold: float = 0.7,
+        scenario_dir: Optional[Path] = None,
+        scenario_limit: int = 50,
     ):
         """
         Initialize Memory-Aware Darwin.
@@ -197,6 +207,8 @@ class MemoryAwareDarwin:
         self.capability_tags = capability_tags or []
         self.max_memory_patterns = max_memory_patterns
         self.pattern_success_threshold = pattern_success_threshold
+        self.scenario_dir = scenario_dir or Path("data/agentevolver/scenarios")
+        self.scenario_limit = scenario_limit
 
         # SE-Darwin instance (will be created if not provided)
         self.se_darwin = se_darwin_agent
@@ -336,6 +348,8 @@ class MemoryAwareDarwin:
                 pattern.to_trajectory(generation=0, agent_name=self.agent_type)
                 for pattern in memory_patterns
             ]
+            scenario_trajectories = self._load_agent_evolver_scenarios()
+            memory_trajectories.extend(scenario_trajectories)
 
             # Step 6: Run SE-Darwin evolution with memory trajectories
             try:
@@ -678,7 +692,7 @@ class MemoryAwareDarwin:
                     namespace=("consensus", "capabilities"),
                     key=f"{capability}_{pattern.pattern_id}",
                     value=pattern.to_dict()
-                )
+        )
 
         logger.info(
             f"Stored evolution pattern {pattern.pattern_id}",
@@ -688,6 +702,29 @@ class MemoryAwareDarwin:
                 "stored_to_consensus": result.final_score >= self.CONSENSUS_THRESHOLD
             }
         )
+
+    def _load_agent_evolver_scenarios(self) -> List[Trajectory]:
+        """Load AgentEvolver scenarios collected on disk and convert them to trajectories."""
+        trajectories: List[Trajectory] = []
+        if not self.scenario_dir.exists():
+            return trajectories
+
+        files = sorted(self.scenario_dir.glob("*.json"))[:self.scenario_limit]
+        for path in files:
+            try:
+                scenario = json.loads(path.read_text())
+                validate_scenario_schema(scenario)
+                if not scenario_quality_ok(
+                    scenario,
+                    novelty_threshold=70.0,
+                    difficulty_range=(30.0, 90.0)
+                ):
+                    continue
+                traj = scenario_to_trajectory(scenario, agent_name=self.agent_type, generation=0)
+                trajectories.append(traj)
+            except (json.JSONDecodeError, ScenarioValidationError) as exc:
+                logger.debug("Skipping scenario %s: %s", path.name, exc)
+        return trajectories
 
 
 # Export public API

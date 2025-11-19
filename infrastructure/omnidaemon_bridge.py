@@ -189,6 +189,21 @@ class OmniDaemonBridge:
         for topic, timeout in topics.items():
             await self._register(topic, lambda msg, t=topic: handler.handle_event(t, msg), timeout_seconds=timeout)
 
+    async def register_all_agents(self) -> None:
+        """Register all Genesis agents with OmniDaemon"""
+        logger.info("Registering all Genesis agents with OmniDaemon...")
+        await self.register_business_idea_generator()
+        await self.register_builder_agent()
+        await self.register_deploy_agent()
+        await self.register_qa_agent()
+        await self.register_research_agent()
+        await self.register_core_development_agents()
+        await self.register_business_marketing_agents()
+        await self.register_finance_special_agents()
+        await self.register_meta_agent()
+        await self.register_monitoring_agents()
+        logger.info(f"✅ Successfully registered {len(self.registered)} agents")
+
 
 _bridge_instance: Optional[OmniDaemonBridge] = None
 

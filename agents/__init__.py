@@ -51,14 +51,45 @@ from .data_juicer_agent import DataJuicerAgent, create_data_juicer_agent
 from .react_training_agent import ReActTrainingAgent, create_react_training_agent
 from .agentscope_runtime_agent import AgentScopeRuntimeAgent, create_runtime_agent
 from .llm_judge_rl_agent import LLMJudgeRLAgent, create_judge_rl_agent
+
+# Import agents 9-17 with factory functions
+from .marketing_agent import MarketingAgent, get_marketing_agent  # Agent 9
+from .qa_agent import QAAgent, get_qa_agent  # Agent 10
+from .research_discovery_agent import ResearchDiscoveryAgent, get_research_discovery_agent  # Agent 11
+from .se_darwin_agent import SEDarwinAgent, get_se_darwin_agent  # Agent 12
+from .seo_agent import SEOAgent, get_seo_agent  # Agent 13
+from .stripe_integration_agent import StripeIntegrationAgent, get_stripe_integration_agent  # Agent 14
+from .support_agent import SupportAgent, get_support_agent  # Agent 15
+from .commerce_agent import CommerceAgent, get_commerce_agent  # Agent 16
+from .domain_agent import DomainAgent, get_domain_agent  # Agent 17
+
 # Tier 2 - Final Batch (NEW)
-from .content_creation_agent import ContentCreationAgent, create_content_creation_agent
-from .seo_optimization_agent import SEOOptimizationAgent, create_seo_optimization_agent
-from .email_marketing_agent import EmailMarketingAgent, create_email_marketing_agent
-from .analytics_agent import AnalyticsAgent, create_analytics_agent
+try:
+    from .content_creation_agent import ContentCreationAgent, create_content_creation_agent
+except ImportError:
+    ContentCreationAgent = None
+    create_content_creation_agent = None
+
+try:
+    from .seo_optimization_agent import SEOOptimizationAgent, create_seo_optimization_agent
+except ImportError:
+    SEOOptimizationAgent = None
+    create_seo_optimization_agent = None
+
+try:
+    from .email_marketing_agent import EmailMarketingAgent, create_email_marketing_agent
+except ImportError:
+    EmailMarketingAgent = None
+    create_email_marketing_agent = None
+
+try:
+    from .analytics_agent import AnalyticsAgent, create_analytics_agent
+except ImportError:
+    AnalyticsAgent = None
+    create_analytics_agent = None
 
 __all__ = [
-    # Agent Classes
+    # Agent Classes (Tier 1)
     "MarketingAgent",
     "BuilderAgent",
     "ContentAgent",
@@ -75,6 +106,13 @@ __all__ = [
     "OnboardingAgent",
     "SpecAgent",
     "BusinessGenerationAgent",
+    # Agents 9-17
+    "ResearchDiscoveryAgent",
+    "SEDarwinAgent",
+    "StripeIntegrationAgent",
+    "CommerceAgent",
+    "DomainAgent",
+    # Tier 2
     "DataJuicerAgent",
     "ReActTrainingAgent",
     "AgentScopeRuntimeAgent",
@@ -100,6 +138,13 @@ __all__ = [
     "get_onboarding_agent",
     "get_spec_agent",
     "get_business_generation_agent",
+    "get_research_discovery_agent",
+    "get_se_darwin_agent",
+    "get_seo_agent",
+    "get_stripe_integration_agent",
+    "get_support_agent",
+    "get_commerce_agent",
+    "get_domain_agent",
     "create_data_juicer_agent",
     "create_react_training_agent",
     "create_runtime_agent",

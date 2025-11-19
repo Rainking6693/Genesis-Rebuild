@@ -1,0 +1,20 @@
+{
+  "trajectory_id": "8c379e65-58a5-4e0e-8e44-0d716393973b",
+  "name": "Test Scenario",
+  "description": "desc",
+  "business_type": "ecommerce",
+  "mvp_features": [
+    "a",
+    "b"
+  ],
+  "novelty_score": 92,
+  "question": "q",
+  "coverage": {
+    "business_types": 50,
+    "domains": 30
+  },
+  "domains": [
+    "retail"
+  ],
+  "generated_at": "2025-11-17T00:00:00Z"
+}

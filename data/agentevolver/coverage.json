@@ -1,0 +1,23 @@
+{
+  "business_types": {
+    "ecommerce": 534,
+    "saas": 402,
+    "marketplace": 261,
+    "fintech": 611,
+    "content": 230
+  },
+  "domains": {
+    "enterprise": 1139,
+    "sustainability": 623,
+    "education": 445,
+    "general": 364,
+    "agriculture": 41,
+    "energy": 82,
+    "developer": 41,
+    "creator": 94,
+    "media": 166,
+    "retail": 43,
+    "security": 10
+  },
+  "complexities": {}
+}

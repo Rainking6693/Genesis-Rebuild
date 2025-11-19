@@ -1,24 +1,32 @@
 """
 ANALYST AGENT - Microsoft Agent Framework Version
-Version: 4.0 (Enhanced with DAAO + TUMIX)
+Version: 5.0 (Enhanced with ALL High-Value Integrations)
 
 Handles analytics, insights, and data-driven decision making.
-Enhanced with:
-- DAAO routing (48% cost reduction on varied complexity tasks)
-- TUMIX early termination (56% cost reduction on iterative analysis)
+Enhanced with 25+ integrations:
+- DAAO routing (20-30% cost reduction)
+- TUMIX early termination (50-60% cost savings)
+- DeepEyes tool reliability tracking
+- VOIX declarative browser automation (10-25x faster)
+- Gemini Computer Use (GUI automation)
+- Cost Profiler (detailed cost analysis)
+- Benchmark Runner (quality monitoring)
+- Multiple LLM providers (Gemini, DeepSeek, Mistral)
 """
 
-import asyncio
 import json
 import logging
-from datetime import datetime, timezone
+import time
+import asyncio
+from datetime import datetime
 from typing import List, Dict, Optional, Any
-from infrastructure.ap2_helpers import record_ap2_event
-from infrastructure.payments import get_payment_manager
 from agent_framework import ChatAgent
 from agent_framework.azure import AzureAIAgentClient
 from agent_framework.observability import setup_observability
 from azure.identity.aio import AzureCliCredential
+
+# Import StandardIntegrationMixin for all 283 integrations
+from infrastructure.standard_integration_mixin import StandardIntegrationMixin
 
 # Import DAAO and TUMIX
 from infrastructure.daao_router import get_daao_router, RoutingDecision
@@ -27,6 +35,109 @@ from infrastructure.tumix_termination import (
     RefinementResult,
     TerminationDecision
 )
+
+# Import MemoryOS MongoDB adapter for persistent memory (NEW: 49% F1 improvement)
+from infrastructure.memory_os_mongodb_adapter import (
+    GenesisMemoryOSMongoDB,
+    create_genesis_memory_mongodb
+)
+
+# Import WebVoyager for web navigation and research (optional - graceful fallback)
+try:
+    from infrastructure.webvoyager_client import get_webvoyager_client
+    WEBVOYAGER_AVAILABLE = True
+except ImportError:
+    print("[WARNING] WebVoyager not available. Web navigation features will be disabled.")
+    WEBVOYAGER_AVAILABLE = False
+    get_webvoyager_client = None
+
+# Import DeepEyes tool reliability tracking (NEW: High-value integration)
+try:
+    from infrastructure.deepeyesv2.tool_reliability import ToolReliabilityMiddleware
+    from infrastructure.deepeyesv2.multimodal_tools import MultimodalToolRegistry
+    from infrastructure.deepeyesv2.tool_chain_tracker import ToolChainTracker
+    DEEPEYES_AVAILABLE = True
+except ImportError:
+    print("[WARNING] DeepEyes not available. Tool reliability tracking disabled.")
+    DEEPEYES_AVAILABLE = False
+    ToolReliabilityMiddleware = None
+    MultimodalToolRegistry = None
+    ToolChainTracker = None
+
+# Import VOIX declarative browser automation (NEW: Integration #74)
+try:
+    from infrastructure.browser_automation.voix_detector import VoixDetector
+    from infrastructure.browser_automation.voix_executor import VoixExecutor
+    VOIX_AVAILABLE = True
+except ImportError:
+    print("[WARNING] VOIX not available. Declarative browser automation disabled.")
+    VOIX_AVAILABLE = False
+    VoixDetector = None
+    VoixExecutor = None
+
+# Import Gemini Computer Use (NEW: GUI automation)
+try:
+    from infrastructure.computer_use_client import ComputerUseClient
+    COMPUTER_USE_AVAILABLE = True
+except ImportError:
+    print("[WARNING] Gemini Computer Use not available. GUI automation disabled.")
+    COMPUTER_USE_AVAILABLE = False
+    ComputerUseClient = None
+
+# Import Cost Profiler (NEW: Detailed cost analysis)
+try:
+    from infrastructure.cost_profiler import CostProfiler
+    COST_PROFILER_AVAILABLE = True
+except ImportError:
+    print("[WARNING] Cost Profiler not available. Detailed cost analysis disabled.")
+    COST_PROFILER_AVAILABLE = False
+    CostProfiler = None
+
+# Import Benchmark Runner (NEW: Quality monitoring)
+try:
+    from infrastructure.benchmark_runner import BenchmarkRunner
+    from infrastructure.ci_eval_harness import CIEvalHarness
+    BENCHMARK_RUNNER_AVAILABLE = True
+except ImportError:
+    print("[WARNING] Benchmark Runner not available. Quality monitoring disabled.")
+    BENCHMARK_RUNNER_AVAILABLE = False
+    BenchmarkRunner = None
+    CIEvalHarness = None
+
+# Import additional LLM providers (NEW: More routing options)
+try:
+    from infrastructure.gemini_client import get_gemini_client
+    from infrastructure.deepseek_client import get_deepseek_client
+    from infrastructure.mistral_client import get_mistral_client
+    ADDITIONAL_LLMS_AVAILABLE = True
+except ImportError:
+    print("[WARNING] Additional LLM providers not available. Using default providers only.")
+    ADDITIONAL_LLMS_AVAILABLE = False
+    get_gemini_client = None
+    get_deepseek_client = None
+    get_mistral_client = None
+
+# Import AP2 event recording for budget tracking
+from infrastructure.ap2_helpers import record_ap2_event
+from infrastructure.ap2_protocol import get_ap2_client
+
+# Import AgentEvolver Phase 2
+from infrastructure.agentevolver import ExperienceBuffer, HybridPolicy, CostTracker
+
+# Import AgentEvolver Phase 1: Self-Questioning & Curiosity Training
+from infrastructure.agentevolver import SelfQuestioningEngine, CuriosityDrivenTrainer, TrainingMetrics
+
+# Import AgentEvolver Phase 3: Self-Attributing (Contribution-Based Rewards)
+from infrastructure.agentevolver import (
+    ContributionTracker, AttributionEngine, RewardShaper,
+    RewardStrategy
+)
+
+import os
+from pathlib import Path
+from infrastructure.payments.media_helper import CreativeAssetRegistry, MediaPaymentHelper
+from infrastructure.payments.budget_enforcer import BudgetExceeded
+from infrastructure.payments import get_payment_manager
 
 # Import OCR capability
 from infrastructure.ocr.ocr_agent_tool import analyst_agent_chart_data_extractor
@@ -78,18 +189,21 @@ setup_observability(enable_sensitive_data=True)
 logger = logging.getLogger(__name__)
 
 
-class AnalystAgent:
+class AnalystAgent(StandardIntegrationMixin):
     """
     Analytics and business insights agent
 
     Enhanced with:
+    - StandardIntegrationMixin: 283 integrations (50-100 active per agent)
     - DAAO: Routes simple metrics queries to cheap models, complex predictions to premium
     - TUMIX: Stops iterative analysis when quality plateaus (saves 56% on refinement)
     """
 
     def __init__(self, business_id: str = "default"):
+        super().__init__()  # Initialize all 283 integrations via StandardIntegrationMixin
         self.business_id = business_id
         self.agent = None
+        self.agent_type = "analyst"
 
         # Initialize DAAO router for cost optimization
         self.router = get_daao_router()
@@ -1123,6 +1237,74 @@ class AnalystAgent:
             'tumix_savings_percent': tumix_savings['savings_percent'],
             'tumix_total_saved': tumix_savings['savings'],
             'daao_info': 'DAAO routing automatically applied to all tasks'
+        }
+
+
+
+    def get_integration_status(self) -> Dict:
+        """
+        Get detailed status of all integrations from StandardIntegrationMixin.
+
+        Returns comprehensive report of all 283 available integrations
+        with active status and integration details.
+        """
+        # Top 100 high-value integrations to track
+        top_100_integrations = [
+            # Core Orchestration
+            'daao_router', 'halo_router', 'htdag_planner', 'aop_validator', 'policy_cards',
+            # Memory Systems
+            'casebank', 'reasoning_bank', 'memento_agent', 'hybrid_rag_retriever', 'langgraph_store',
+            # Evolution & Learning
+            'trajectory_pool', 'se_darwin', 'spice_challenger', 'spice_reasoner', 'socratic_zero',
+            # Safety Systems
+            'waltzrl_safety', 'trism_framework', 'circuit_breaker',
+            # LLM Providers
+            'vertex_router', 'sglang_inference', 'vllm_cache', 'local_llm_client',
+            # Advanced Features
+            'computer_use', 'webvoyager', 'agent_s_backend', 'pipelex_workflows', 'hgm_oracle',
+            # AgentEvolver
+            'agentevolver_self_questioning', 'agentevolver_experience_buffer', 'agentevolver_attribution_engine',
+            # OmniDaemon
+            'omnidaemon_bridge',
+            # DeepEyes
+            'deepeyes_tool_reliability', 'deepeyes_multimodal', 'deepeyes_tool_chain_tracker',
+            # VOIX
+            'voix_detector', 'voix_executor',
+            # Observability
+            'otel_tracing', 'prometheus_metrics', 'grafana_dashboard', 'business_monitor',
+            # Payments
+            'ap2_service', 'x402_client',
+            # Additional high-value integrations
+            'tumix_termination', 'multi_agent_evolve', 'agent_git', 'slice_linter', 'tensor_logic',
+            'modular_prompts', 'recombination_operator', 'refinement_operator', 'revision_operator',
+            'tei_client', 'mdp_document_ingester', 'mape_k_loop', 'toolrm_scoring',
+            'flowmesh_routing', 'cpu_offload', 'agentscope_alias', 'data_juicer_agent',
+            'react_training', 'agentscope_runtime', 'llm_judge_rl', 'adp_pipeline',
+            'capability_maps', 'sica', 'agent_as_judge', 'deepseek_ocr', 'genesis_discord',
+            'inclusive_fitness_swarm', 'pso_optimizer', 'openenv_wrapper'
+        ]
+
+        active_integrations = []
+        integration_details = {}
+
+        for integration_name in top_100_integrations:
+            integration = getattr(self, integration_name, None)
+            if integration is not None:
+                active_integrations.append(integration_name)
+                integration_details[integration_name] = "active"
+            else:
+                integration_details[integration_name] = "unavailable"
+
+        return {
+            "agent": self.agent_type,
+            "version": "6.0 (StandardIntegrationMixin)",
+            "total_available": 283,
+            "top_100_tracked": len(top_100_integrations),
+            "active_integrations": len(active_integrations),
+            "coverage_percent": round(len(active_integrations) / 283 * 100, 1),
+            "top_100_coverage": round(len(active_integrations) / len(top_100_integrations) * 100, 1),
+            "integrations": active_integrations,
+            "details": integration_details
         }
 
 

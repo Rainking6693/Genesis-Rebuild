@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOIX Sample Website - Reference Implementation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>VOIX Sample Website</h1>
+    <p>This is a reference implementation demonstrating all VOIX tool and context tag types.</p>
+
+    <!-- Section 1: Product Submission Form -->
+    <div class="section">
+        <h2>Product Submission</h2>
+        <form id="product-form">
+            <input type="text" name="name" placeholder="Product Name" required />
+            <input type="url" name="url" placeholder="Product URL" required />
+            <textarea name="description" placeholder="Description" required></textarea>
+            <button type="submit">Submit Product</button>
+        </form>
+
+        <!-- VOIX Tool: Submit Product -->
+        <tool
+            name="submit_product"
+            description="Submit product to directory"
+            endpoint="/api/submit"
+            method="POST"
+            selector="#product-form"
+            parameters='{
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Product name"},
+                    "url": {"type": "string", "format": "uri", "description": "Product URL"},
+                    "description": {"type": "string", "description": "Product description"}
+                },
+                "required": ["name", "url", "description"]
+            }'
+        />
+    </div>
+
+    <!-- Section 2: Deployment Platform -->
+    <div class="section">
+        <h2>Deploy Repository</h2>
+        <div id="deploy-section">
+            <input type="text" id="repo-url" placeholder="GitHub URL" />
+            <select id="environment">
+                <option value="production">Production</option>
+                <option value="staging">Staging</option>
+            </select>
+            <button id="deploy-btn">Deploy</button>
+        </div>
+
+        <!-- VOIX Tool: Deploy Repository -->
+        <tool
+            name="deploy_repository"
+            description="Deploy GitHub repository"
+            endpoint="/api/deploy"
+            method="POST"
+            auth="bearer"
+            selector="#deploy-section"
+            parameters='{
+                "type": "object",
+                "properties": {
+                    "github_url": {"type": "string", "format": "uri"},
+                    "environment": {"type": "string", "enum": ["production", "staging"]}
+                },
+                "required": ["github_url"]
+            }'
+        />
+    </div>
+
+    <!-- Section 3: E-commerce Product Page -->
+    <div class="section">
+        <h2>Product Information</h2>
+        <div class="product">
+            <h3>Amazing Product</h3>
+            <p class="price">$29.99</p>
+            <p class="availability">In Stock</p>
+            <p class="rating">4.5 stars</p>
+        </div>
+
+        <!-- VOIX Context Tags -->
+        <context name="product_price" value="29.99" scope="page" />
+        <context name="product_availability" value="in_stock" scope="page" />
+        <context name="product_name" value="Amazing Product" scope="page" />
+        <context name="product_rating" value="4.5" scope="page" />
+    </div>
+
+    <!-- Section 4: User Session Context -->
+    <div class="section">
+        <h2>User Session</h2>
+        <p>User ID: <span id="user-id">12345</span></p>
+        <p>Plan: <span id="user-plan">Pro</span></p>
+
+        <!-- VOIX Context: Session Data -->
+        <context name="user_id" value="12345" scope="session" ttl="3600" />
+        <context name="user_plan" value="Pro" scope="session" ttl="3600" />
+        <context name="api_usage" value='{"requests": 1500, "limit": 10000}' scope="session" ttl="1800" />
+    </div>
+
+    <!-- Section 5: Dynamic Tool Addition -->
+    <div class="section">
+        <h2>Dynamic Tools</h2>
+        <button onclick="addDynamicTool()">Add Dynamic Tool</button>
+        <div id="dynamic-tools"></div>
+    </div>
+
+    <script>
+        // Demonstrate dynamic tool addition
+        function addDynamicTool() {
+            const tool = document.createElement('tool');
+            tool.setAttribute('name', 'dynamic_tool_' + Date.now());
+            tool.setAttribute('description', 'Dynamically added tool');
+            tool.setAttribute('endpoint', '/api/dynamic');
+            tool.setAttribute('method', 'POST');
+            document.body.appendChild(tool);
+            alert('Dynamic tool added! VOIX will detect it automatically.');
+        }
+
+        // Form submission handlers (for demo)
+        document.getElementById('product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Product submitted! (In real implementation, this would call the VOIX endpoint)');
+        });
+
+        document.getElementById('deploy-btn').addEventListener('click', function() {
+            const url = document.getElementById('repo-url').value;
+            const env = document.getElementById('environment').value;
+            alert(`Deploying ${url} to ${env}! (In real implementation, this would call the VOIX endpoint)`);
+        });
+    </script>
+
+    <!-- Inject VOIX Discovery Script -->
+    <script src="../../infrastructure/browser_automation/voix_discovery.js"></script>
+</body>
+</html>
+

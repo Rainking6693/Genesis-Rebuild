@@ -38,6 +38,7 @@ from infrastructure.memory_os_mongodb_adapter import (
     GenesisMemoryOSMongoDB,
     create_genesis_memory_mongodb
 )
+from infrastructure.standard_integration_mixin import StandardIntegrationMixin
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -95,6 +96,7 @@ class MemoryTool:
     """MemoryTool wrapper for Monitoring Agent alert pattern memory."""
 
     def __init__(self, backend: GenesisMemoryOSMongoDB, agent_id: str = "monitoring_agent"):
+        StandardIntegrationMixin.__init__(self)
         self.backend = backend
         self.agent_id = agent_id
 
@@ -213,7 +215,7 @@ class MemoryTool:
         return filtered
 
 
-class MonitoringAgent:
+class MonitoringAgent(StandardIntegrationMixin):
     """Monitoring Agent - Monitors systems with memory learning."""
 
     def __init__(

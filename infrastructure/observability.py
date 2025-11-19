@@ -68,7 +68,11 @@ class SafeConsoleSpanExporter(ConsoleSpanExporter):
             return SpanExportResult.SUCCESS
 
 
-trace.set_tracer_provider(TracerProvider())
+# Only set tracer provider if not already set
+if not hasattr(trace.get_tracer_provider(), '_initialized'):
+    trace.set_tracer_provider(TracerProvider())
+    trace.get_tracer_provider()._initialized = True
+
 tracer = trace.get_tracer(__name__)
 
 # Add console exporter for development visibility

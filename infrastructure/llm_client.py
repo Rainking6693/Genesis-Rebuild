@@ -1118,6 +1118,15 @@ class LLMFactory:
             raise ValueError(f"Unsupported LLM provider: {provider}")
 
     @staticmethod
+    def get_client(
+        provider: LLMProvider,
+        api_key: Optional[str] = None,
+        **kwargs
+    ) -> LLMClient:
+        """Alias for create() kept for backwards compatibility"""
+        return LLMFactory.create(provider, api_key=api_key, **kwargs)
+
+    @staticmethod
     def create_mock(mock_responses: Optional[Dict[str, Any]] = None) -> MockLLMClient:
         """
         Create mock LLM client for testing
@@ -1524,4 +1533,3 @@ class RoutedLLMClient(LLMClient):
             max_tokens,
             temperature
         )
-

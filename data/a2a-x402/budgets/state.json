@@ -1,26 +1,32 @@
 {
   "marketing_agent": {
-    "daily_spent": 4.5,
-    "last_daily": "2025-11-17",
-    "monthly_spent": 9.75,
+    "daily_spent": 2.5,
+    "last_daily": "2025-11-18",
+    "monthly_spent": 12.25,
     "last_monthly": "2025-11"
   },
   "builder_agent": {
-    "daily_spent": 18.0,
+    "daily_spent": 20.5,
     "last_daily": "2025-11-17",
-    "monthly_spent": 25.5,
+    "monthly_spent": 28.0,
     "last_monthly": "2025-11"
   },
   "deploy_agent": {
-    "daily_spent": 2.55,
+    "daily_spent": 3.4,
     "last_daily": "2025-11-17",
-    "monthly_spent": 2.55,
+    "monthly_spent": 3.4,
     "last_monthly": "2025-11"
   },
   "qa_agent": {
-    "daily_spent": 1.2000000000000002,
+    "daily_spent": 1.6,
     "last_daily": "2025-11-17",
-    "monthly_spent": 1.2000000000000002,
+    "monthly_spent": 1.6,
+    "last_monthly": "2025-11"
+  },
+  "content_agent": {
+    "daily_spent": 4.25,
+    "last_daily": "2025-11-18",
+    "monthly_spent": 4.25,
     "last_monthly": "2025-11"
   }
 }

@@ -97,6 +97,38 @@ try:
         "Projected monthly profit in USD",
         registry=REGISTRY,
     )
+    # VOIX metrics
+    VOIX_DETECTION_RATE = Gauge(
+        "genesis_voix_detection_rate",
+        "Percentage of sites with VOIX tags detected",
+        registry=REGISTRY,
+    )
+    VOIX_INVOCATION_SUCCESS_RATE = Gauge(
+        "genesis_voix_invocation_success_rate",
+        "Percentage of successful VOIX tool invocations",
+        registry=REGISTRY,
+    )
+    VOIX_DISCOVERY_TIME_MS = Gauge(
+        "genesis_voix_discovery_time_ms",
+        "Average VOIX discovery time in milliseconds",
+        registry=REGISTRY,
+    )
+    VOIX_FALLBACK_RATE = Gauge(
+        "genesis_voix_fallback_rate",
+        "Percentage of requests using fallback automation",
+        registry=REGISTRY,
+    )
+    VOIX_EXECUTION_TIME_MS = Gauge(
+        "genesis_voix_execution_time_ms",
+        "Average VOIX execution time in milliseconds",
+        registry=REGISTRY,
+    )
+    VOIX_FALLBACK_EXECUTION_TIME_MS = Gauge(
+        "genesis_voix_fallback_execution_time_ms",
+        "Average fallback execution time in milliseconds",
+        registry=REGISTRY,
+    )
+
     DASHBOARD_TASKS_COMPLETED_30D = Gauge(
         "genesis_tasks_completed_30d",
         "Tasks completed over the last 30 days",

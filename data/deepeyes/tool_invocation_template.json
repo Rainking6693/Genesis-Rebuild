@@ -1,0 +1,8 @@
+{
+  "timestamp": "2025-11-18T22:20:30.555162",
+  "tool_name": "example_tool",
+  "success": true,
+  "latency_ms": 150,
+  "error": null,
+  "metadata": {}
+}

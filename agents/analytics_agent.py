@@ -59,6 +59,7 @@ from infrastructure.memory_os_mongodb_adapter import (
     GenesisMemoryOSMongoDB,
     create_genesis_memory_mongodb
 )
+from infrastructure.standard_integration_mixin import StandardIntegrationMixin
 
 # MemoryTool for structured memory operations
 from infrastructure.memory.orchestrator_memory_tool import MemoryTool
@@ -176,7 +177,7 @@ class Report:
     period_end: datetime
 
 
-class AnalyticsAgent:
+class AnalyticsAgent(StandardIntegrationMixin):
     """Analytics agent with multimodal chart analysis and persistent memory"""
 
     def __init__(
@@ -193,6 +194,7 @@ class AnalyticsAgent:
             enable_memory: Enable persistent memory integration
             mongodb_uri: Optional MongoDB connection string
         """
+        StandardIntegrationMixin.__init__(self)
         self.business_id = business_id
         self.agent = None
         self.enable_memory = enable_memory

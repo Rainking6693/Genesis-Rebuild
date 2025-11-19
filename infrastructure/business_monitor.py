@@ -5,6 +5,7 @@ Tracks and monitors agent activity for generating 100s of businesses.
 Provides real-time metrics, logs, and dashboard data.
 """
 
+import asyncio
 import json
 import time
 import logging
@@ -15,6 +16,7 @@ from dataclasses import dataclass, field, asdict
 from collections import defaultdict
 
 from monitoring.payment_metrics import record_payment_metrics
+from infrastructure.agentevolver.self_attributing import ContributionTracker
 
 logger = logging.getLogger(__name__)
 
@@ -91,9 +93,22 @@ class BusinessMonitor:
         
         # Component tracking by type
         self.component_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: {"attempted": 0, "succeeded": 0, "failed": 0})
+        self.attribution_tracker = ContributionTracker()
+        self._component_quality_baseline: Dict[str, float] = {}
         
         # Agent usage tracking
         self.agent_usage = defaultdict(int)
+        
+        # VOIX metrics tracking
+        self.voix_metrics = {
+            "voix_detections": 0,
+            "voix_executions": 0,
+            "fallback_executions": 0,
+            "voix_enabled_submissions": 0,
+            "non_voix_submissions": 0,
+            "voix_performance_improvements": [],  # List of (voix_time, fallback_time) tuples
+            "cost_savings_usd": 0.0,
+        }
         self.payments: List[Dict[str, Any]] = []
         self.payment_records: List[Dict[str, Any]] = []
         
@@ -141,7 +156,9 @@ class BusinessMonitor:
         })
     
     def record_component_complete(self, business_id: str, component_name: str, 
-                                 lines_of_code: int, cost: float, used_vertex: bool):
+                                 lines_of_code: int, cost: float, used_vertex: bool,
+                                 agent_name: str, quality_score: Optional[float] = None,
+                                 problem_description: Optional[str] = None):
         """Record successful component generation."""
         if business_id not in self.businesses:
             return
@@ -152,6 +169,7 @@ class BusinessMonitor:
         biz.lines_of_code += lines_of_code
         biz.cost_usd += cost
         
+        quality_score = quality_score or max(75.0, biz.quality_score)
         if used_vertex:
             biz.vertex_ai_calls += 1
         else:
@@ -162,6 +180,14 @@ class BusinessMonitor:
         self.global_stats["total_files"] += 1
         self.global_stats["total_lines_of_code"] += lines_of_code
         self.global_stats["total_cost_usd"] += cost
+        self.record_component_attribution(
+            business_id=business_id,
+            component_name=component_name,
+            agent_name=component_name,
+            quality_score=quality_score,
+            quality_before=biz.quality_score,
+            problem_description=problem_description,
+        )
         
         self._write_event("component_completed", {
             "business_id": business_id,
@@ -170,7 +196,72 @@ class BusinessMonitor:
             "cost": cost,
             "vertex_ai": used_vertex
         })
-    
+
+    def record_component_attribution(
+        self,
+        business_id: str,
+        component_name: str,
+        agent_name: str,
+        quality_score: float,
+        quality_before: Optional[float] = None,
+        problem_description: Optional[str] = None,
+    ) -> None:
+        """Record contribution metrics for an agent after component completion."""
+        if business_id not in self.businesses:
+            return
+
+        biz = self.businesses[business_id]
+        baseline = quality_before if quality_before is not None else biz.quality_score
+        key = f"{business_id}:{component_name}"
+        biz.quality_score = max(biz.quality_score, quality_score)
+        self._component_quality_baseline[key] = baseline
+
+        delta = quality_score - baseline
+
+        payload = {
+            "business_id": business_id,
+            "component": component_name,
+            "agent": agent_name,
+            "quality_score": quality_score,
+            "baseline": baseline,
+            "delta": delta,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        if problem_description:
+            payload["task_description"] = problem_description
+        self._write_event("component_attribution", payload)
+
+        if not self.attribution_tracker:
+            return
+
+        coroutine = self.attribution_tracker.record_contribution(
+            agent_id=agent_name,
+            task_id=key,
+            quality_before=baseline,
+            quality_after=quality_score,
+            effort_ratio=1.0,
+            impact_multiplier=1.0,
+        )
+        self._run_async(coroutine)
+
+        self._write_contribution_entry({
+            "business_id": business_id,
+            "component": component_name,
+            "agent": agent_name,
+            "quality_score": quality_score,
+            "delta": delta,
+            "task_description": problem_description or "",
+            "timestamp": payload["timestamp"],
+        })
+
+    def _run_async(self, coroutine):
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(coroutine)
+        else:
+            loop.create_task(coroutine)
+
     def record_component_failed(self, business_id: str, component_name: str, error: str):
         """Record failed component generation."""
         if business_id not in self.businesses:
@@ -440,11 +531,18 @@ class BusinessMonitor:
             "event_type": event_type,
             "data": data
         }
-        
+
         # Write to events log (JSONL format)
         events_file = self.log_dir / "events.jsonl"
         with open(events_file, "a") as f:
             f.write(json.dumps(event) + "\n")
+
+    def _write_contribution_entry(self, entry: Dict[str, Any]) -> None:
+        """Append attribution entry to contribution log."""
+        contributions_file = self.log_dir / "contributions.jsonl"
+        contributions_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(contributions_file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
     
     def _write_business_summary(self, business_id: str, metrics: BusinessGenerationMetrics):
         """Write a summary file for a completed business."""
@@ -457,6 +555,57 @@ class BusinessMonitor:
         snapshot_file = self.log_dir / "dashboard_snapshot.json"
         with open(snapshot_file, "w") as f:
             json.dump(self.get_dashboard_data(), f, indent=2)
+
+    def record_voix_metrics(
+        self,
+        method: str,
+        execution_time_ms: float,
+        discovery_time_ms: float = 0.0,
+        fallback_time_ms: Optional[float] = None,
+    ) -> None:
+        """
+        Record VOIX automation metrics
+        
+        Args:
+            method: "voix" or "fallback"
+            execution_time_ms: Execution time in milliseconds
+            discovery_time_ms: Discovery time in milliseconds
+            fallback_time_ms: Fallback execution time for comparison (optional)
+        """
+        if method == "voix":
+            self.voix_metrics["voix_executions"] += 1
+            self.voix_metrics["voix_detections"] += 1
+            if fallback_time_ms:
+                improvement = fallback_time_ms - execution_time_ms
+                self.voix_metrics["voix_performance_improvements"].append((execution_time_ms, fallback_time_ms))
+                # Estimate cost savings (assuming $0.001 per 100ms of compute)
+                cost_savings = (improvement / 1000) * 0.001
+                self.voix_metrics["cost_savings_usd"] += cost_savings
+        else:
+            self.voix_metrics["fallback_executions"] += 1
+
+    def get_voix_metrics(self) -> Dict[str, Any]:
+        """Get VOIX performance metrics"""
+        total_executions = self.voix_metrics["voix_executions"] + self.voix_metrics["fallback_executions"]
+        avg_improvement = 0.0
+        if self.voix_metrics["voix_performance_improvements"]:
+            improvements = [
+                fallback - voix
+                for voix, fallback in self.voix_metrics["voix_performance_improvements"]
+            ]
+            avg_improvement = sum(improvements) / len(improvements) if improvements else 0.0
+
+        return {
+            **self.voix_metrics,
+            "total_executions": total_executions,
+            "voix_adoption_rate": (
+                self.voix_metrics["voix_executions"] / total_executions * 100
+                if total_executions > 0
+                else 0
+            ),
+            "avg_performance_improvement_ms": avg_improvement,
+            "total_cost_savings_usd": self.voix_metrics["cost_savings_usd"],
+        }
 
     def record_monitor_event(self, topic: str, payload: Dict[str, Any]) -> None:
         """Log arbitrary OmniDaemon monitoring events."""

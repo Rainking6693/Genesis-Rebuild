@@ -52,6 +52,7 @@ from infrastructure.reflection_harness import (
     FallbackBehavior,
     HarnessResult
 )
+from infrastructure.standard_integration_mixin import StandardIntegrationMixin
 
 setup_observability(enable_sensitive_data=True)
 
@@ -99,7 +100,7 @@ class VulnerabilityPattern:
     times_detected: int = 0
 
 
-class EnhancedSecurityAgent:
+class EnhancedSecurityAgent(StandardIntegrationMixin):
     """
     Enhanced Security Agent with Learning Capabilities
 
@@ -135,6 +136,7 @@ class EnhancedSecurityAgent:
     ]
 
     def __init__(self, business_id: str = "default"):
+        StandardIntegrationMixin.__init__(self)
         """
         Initialize Enhanced Security Agent
 

@@ -2,10 +2,12 @@
 from datetime import datetime
 
 from infrastructure.payments.agent_base import PaymentAgentBase
+from infrastructure.standard_integration_mixin import StandardIntegrationMixin
 
 
-class PricingAgent(PaymentAgentBase):
+class PricingAgent(StandardIntegrationMixin, PaymentAgentBase):
     def __init__(self):
+        StandardIntegrationMixin.__init__(self)
         super().__init__("pricing_agent", cost_map={
             "get_competitive_pricing": 0.25,
             "run_pricing_experiment": 0.5

@@ -79,13 +79,15 @@ class GenesisDiscord:
         await self._send_webhook(self.webhook_dashboard, embed, level=2)
 
     async def business_build_started(self, business_id: str, business_name: str, idea: str) -> None:
-        embed = self._build_embed(
-            title=f"🏗️ Build Started: {business_name}",
-            description=f"**Business ID:** {business_id}\n**Idea:** {idea}",
-            color=COLOR_PROGRESS,
-            footer="Genesis Meta Agent",
-        )
-        await self._send_webhook(self.webhook_dashboard, embed, level=3)
+        # DISABLED: Level 3 verbose notification - too high volume for production
+        # embed = self._build_embed(
+        #     title=f"🏗️ Build Started: {business_name}",
+        #     description=f"**Business ID:** {business_id}\n**Idea:** {idea}",
+        #     color=COLOR_PROGRESS,
+        #     footer="Genesis Meta Agent",
+        # )
+        # await self._send_webhook(self.webhook_dashboard, embed, level=3)
+        pass
 
     async def business_build_completed(self, business_id: str, url: str, metrics: Dict[str, Any]) -> None:
         quality = metrics.get("quality_score", "n/a")
@@ -100,31 +102,37 @@ class GenesisDiscord:
         await self._send_webhook(self.webhook_deployments, embed, level=2)
 
     async def agent_started(self, business_id: str, agent_name: str, task: str) -> None:
-        embed = self._build_embed(
-            title=f"🤖 {agent_name} Started",
-            description=f"**Task:** {task}",
-            color=COLOR_INFO,
-            footer=f"Business: {business_id}",
-        )
-        await self._send_webhook(self.webhook_dashboard, embed, level=3)
+        # DISABLED: Level 3 verbose notification - too high volume for production
+        # embed = self._build_embed(
+        #     title=f"🤖 {agent_name} Started",
+        #     description=f"**Task:** {task}",
+        #     color=COLOR_INFO,
+        #     footer=f"Business: {business_id}",
+        # )
+        # await self._send_webhook(self.webhook_dashboard, embed, level=3)
+        pass
 
     async def agent_progress(self, business_id: str, agent_name: str, message: str) -> None:
-        embed = self._build_embed(
-            title=f"📝 {agent_name} Progress",
-            description=message,
-            color=COLOR_PROGRESS,
-            footer=f"Business: {business_id}",
-        )
-        await self._send_webhook(self.webhook_dashboard, embed, level=3)
+        # DISABLED: Level 3 verbose notification - too high volume for production
+        # embed = self._build_embed(
+        #     title=f"📝 {agent_name} Progress",
+        #     description=message,
+        #     color=COLOR_PROGRESS,
+        #     footer=f"Business: {business_id}",
+        # )
+        # await self._send_webhook(self.webhook_dashboard, embed, level=3)
+        pass
 
     async def agent_completed(self, business_id: str, agent_name: str, result: str) -> None:
-        embed = self._build_embed(
-            title=f"✅ {agent_name} Complete",
-            description=f"**Result:** {result}",
-            color=COLOR_SUCCESS,
-            footer=f"Business: {business_id}",
-        )
-        await self._send_webhook(self.webhook_dashboard, embed, level=3)
+        # DISABLED: Level 3 verbose notification - too high volume for production
+        # embed = self._build_embed(
+        #     title=f"✅ {agent_name} Complete",
+        #     description=f"**Result:** {result}",
+        #     color=COLOR_SUCCESS,
+        #     footer=f"Business: {business_id}",
+        # )
+        # await self._send_webhook(self.webhook_dashboard, embed, level=3)
+        pass
 
     async def agent_error(self, business_id: str, agent_name: str, error_message: str) -> None:
         embed = self._build_embed(

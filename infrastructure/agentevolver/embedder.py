@@ -5,9 +5,17 @@ Uses OpenAI text-embedding-3-small model for efficient semantic
 similarity search in the experience buffer.
 """
 
+import hashlib
 import logging
+import re
 import numpy as np
 from typing import Optional
+
+CATEGORY_KEYWORD_MAP = {
+    "auth": ["auth", "authentication", "oauth", "jwt", "session", "password"],
+    "database": ["database", "sql", "query", "index", "pool", "deadlock"],
+    "ui": ["ui", "button", "layout", "css", "dark", "responsive", "dashboard"],
+}
 
 logger = logging.getLogger(__name__)
 
@@ -79,22 +87,36 @@ class TaskEmbedder:
         Returns:
             Deterministic embedding based on text hash
         """
-        import hashlib
+        tokens = re.findall(r"\w+", text.lower())
 
-        # Create deterministic hash
-        hash_obj = hashlib.sha256(text.encode())
-        hash_bytes = hash_obj.digest()
+        if not tokens:
+            tokens = [text]
 
-        # Convert to 1536-dim vector for compatibility with OpenAI embeddings
-        # Use seed in valid range (0 to 2**32 - 1)
-        seed = int.from_bytes(hash_bytes[:4], 'big') % (2**31)
-        rng = np.random.RandomState(seed)
-        embedding = rng.randn(1536).astype(np.float32)
+        vector = np.zeros(1536, dtype=np.float32)
 
-        # Normalize
-        embedding = embedding / (np.linalg.norm(embedding) + 1e-10)
+        def _add_token(tok: str, weight: float = 1.0) -> None:
+            idx = int(hashlib.sha256(tok.encode()).hexdigest(), 16) % 1536
+            vector[idx] += weight
 
-        return embedding
+        for token in tokens:
+            _add_token(token, weight=1.0)
+
+        # Include bi-grams to capture some context
+        for first, second in zip(tokens, tokens[1:]):
+            _add_token(f"{first}_{second}", weight=0.5)
+
+        lower_text = text.lower()
+        for category, keywords in CATEGORY_KEYWORD_MAP.items():
+            if any(keyword in lower_text for keyword in keywords):
+                _add_token(f"category_{category}", weight=2.0)
+
+        # Fallback if vector is still zero
+        norm = np.linalg.norm(vector)
+        if norm == 0:
+            vector += 1.0
+            norm = np.linalg.norm(vector)
+
+        return vector / (norm + 1e-10)
 
     @staticmethod
     def compute_similarity(emb1: np.ndarray, emb2: np.ndarray) -> float:

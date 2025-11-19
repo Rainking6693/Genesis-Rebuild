@@ -10,14 +10,17 @@ Autonomously generates creative, profitable business ideas using:
 This enables Genesis to create 100s of businesses without human input.
 """
 
-import os
+import asyncio
 import json
 import logging
-import asyncio
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
+import os
 import random
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
+from infrastructure.agentevolver.self_questioning import SelfQuestioningEngine
+from infrastructure.htdag_planner import HTDAGPlanner
 
 logger = logging.getLogger(__name__)
 
@@ -269,6 +272,7 @@ class BusinessIdeaGenerator:
         """Initialize idea generator."""
         self.trend_analyzer = MarketTrendAnalyzer()
         self.revenue_scorer = RevenuePotentialScorer()
+        self.self_questioning = SelfQuestioningEngine()
 
         # LLM for creative idea generation (cost-optimized fallback chain)
         self.use_gemini = os.getenv('GOOGLE_API_KEY', '') != '' or os.getenv('GEMINI_API_KEY', '') != ''
@@ -277,12 +281,14 @@ class BusinessIdeaGenerator:
         self.use_mistral = os.getenv('MISTRAL_API_KEY', '') != ''
 
         logger.info(f"BusinessIdeaGenerator initialized (Gemini={self.use_gemini}, Gemini2={self.use_gemini2}, DeepSeek={self.use_deepseek}, Mistral={self.use_mistral})")
+        self.self_questioning = SelfQuestioningEngine()
     
     async def generate_idea(
         self,
         business_type: Optional[str] = None,
         min_revenue_score: float = 70.0,
-        max_attempts: int = 5
+        max_attempts: int = 5,
+        curiosity_hint: Optional[str] = None
     ) -> BusinessIdea:
         """
         Generate a single high-quality business idea.
@@ -309,7 +315,7 @@ class BusinessIdeaGenerator:
                 business_type = random.choice(["ecommerce", "saas", "content"])
 
             # Step 3: Generate creative idea using LLM
-            idea_data = await self._generate_creative_idea(business_type, trends)
+            idea_data = await self._generate_creative_idea(business_type, trends, curiosity_hint=curiosity_hint)
 
             # Step 4: Analyze market competition
             market_data = await self.trend_analyzer.analyze_competition(idea_data["description"])
@@ -337,6 +343,7 @@ class BusinessIdeaGenerator:
                 overall_score=overall_score,
                 generated_at=datetime.now(timezone.utc).isoformat()
             )
+            self._register_curiosity_metadata(idea, curiosity_hint)
             last_idea = idea
 
             if overall_score >= min_revenue_score:
@@ -386,7 +393,12 @@ class BusinessIdeaGenerator:
         logger.info(f"Generated {len(ideas_sorted)} ideas, scores: {[f'{i.overall_score:.1f}' for i in ideas_sorted[:5]]}")
         return ideas_sorted
     
-    async def _generate_creative_idea(self, business_type: str, trends: List[str]) -> Dict[str, Any]:
+    async def _generate_creative_idea(
+        self,
+        business_type: str,
+        trends: List[str],
+        curiosity_hint: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Use LLM to generate a creative business idea.
         
@@ -447,6 +459,8 @@ OUTPUT FORMAT (JSON):
 }}
 
 Generate a creative, profitable business idea now:"""
+        if curiosity_hint:
+            prompt += f"\nCURIOUS INSIGHT: {curiosity_hint}\n\n"
         
         try:
             # Cost-optimized fallback chain: Gemini → Gemini2 → DeepSeek → Mistral
@@ -592,6 +606,89 @@ Generate a creative, profitable business idea now:"""
             content = content.split("```")[1].split("```")[0].strip()
 
         return content
+
+    def _register_curiosity_metadata(self, idea: BusinessIdea, curiosity_hint: Optional[str]) -> None:
+        if not self.self_questioning:
+            return
+        text = f"{idea.name} {idea.description}"
+        score = self.self_questioning.score_novelty(text, curiosity_hint or "")
+        domains = self.self_questioning.extract_domains(idea)
+        self.self_questioning.register_idea(
+            idea.name,
+            idea.description,
+            idea.business_type,
+            domains,
+            score,
+        )
+
+    async def _validate_with_htdag(self, idea: BusinessIdea) -> bool:
+        planner = HTDAGPlanner()
+        try:
+            result = await planner.plan_task(
+                f"Build business idea '{idea.name}'",
+                context={"business_type": idea.business_type},
+            )
+            dag = getattr(result, "final_dag", None)
+            return bool(dag and len(dag.tasks) > 1)
+        except Exception as exc:
+            logger.warning("HTDAG validation failed for '%s': %s", idea.name, exc)
+            return False
+
+    async def generate_curiosity_ideas(
+        self,
+        count: int = 10,
+        min_revenue_score: float = 65.0,
+    ) -> List[Dict[str, Any]]:
+        """
+        Generate curiosity-driven business ideas.
+        """
+        logger.info("Generating %s curiosity-driven ideas", count)
+        results = []
+        for _ in range(count):
+            attempts = 0
+            difficulty = 0.0
+            complexity_label = "low"
+            while True:
+                target_complexity = self.self_questioning.desired_complexity_level()
+                question, business_type, domain = self.self_questioning.generate_question(
+                    complexity_target=target_complexity
+                )
+                idea = await self.generate_idea(
+                    business_type=business_type,
+                    min_revenue_score=min_revenue_score,
+                    curiosity_hint=question,
+                )
+                difficulty = min(100.0, max(20.0, len(idea.mvp_features) * 10 + len(idea.description) / 25))
+                complexity_label = self.self_questioning.complexity_label_for_score(difficulty)
+                if (
+                    self.self_questioning.is_complexity_allowed(complexity_label)
+                    or attempts >= 2
+                ):
+                    break
+                logger.info(
+                    "Complexity %s too high for current budget (%s); retrying with new seed",
+                    complexity_label,
+                    target_complexity,
+                )
+                attempts += 1
+            self.self_questioning.register_complexity_level(complexity_label)
+            feasible = await self._validate_with_htdag(idea)
+            novel_score = self.self_questioning.score_novelty(
+                f"{idea.name} {idea.description}", question
+            )
+            coverage = self.self_questioning.coverage_percent()
+            results.append({
+                "idea": idea,
+                "question": question,
+                "domain": domain,
+                "novelty_score": novel_score,
+                "feasible": feasible,
+                "coverage": {"business_types": coverage[0], "domains": coverage[1]},
+                "difficulty_score": difficulty,
+                "complexity_label": complexity_label,
+                "coverage_targets_met": self.self_questioning.coverage_target_met(),
+            })
+        return results
     
     def _generate_template_idea(self, business_type: str, trends: List[str]) -> Dict[str, Any]:
         """Fallback template-based idea generation."""
@@ -732,4 +829,3 @@ if __name__ == "__main__":
             print(f"     {idea.description[:100]}...")
     
     asyncio.run(test())
-

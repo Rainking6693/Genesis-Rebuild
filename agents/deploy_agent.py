@@ -60,6 +60,9 @@ from agent_framework.azure import AzureAIAgentClient
 from agent_framework.observability import setup_observability
 from azure.identity.aio import AzureCliCredential
 
+# StandardIntegrationMixin import
+from infrastructure.standard_integration_mixin import StandardIntegrationMixin
+
 # Learning infrastructure imports
 try:
     from infrastructure.reasoning_bank import (
@@ -95,6 +98,9 @@ try:
 except ImportError:
     REFLECTION_HARNESS_AVAILABLE = False
     logging.warning("ReflectionHarness not available - quality verification disabled")
+
+# Import VOIX browser automation
+from infrastructure.browser_automation.hybrid_automation import HybridAutomation
 
 # MemoryOS MongoDB adapter for persistent deployment memory (NEW: 49% F1 improvement)
 from infrastructure.memory_os_mongodb_adapter import (
@@ -251,6 +257,7 @@ class MemoryTool:
     """
 
     def __init__(self, backend: GenesisMemoryOSMongoDB, agent_id: str = "deploy_agent"):
+        StandardIntegrationMixin.__init__(self)
         """
         Initialize MemoryTool for Deployment Agent.
 
@@ -476,7 +483,7 @@ class DeploymentResult:
             self.metadata = {}
 
 
-class DeployAgent:
+class DeployAgent(StandardIntegrationMixin):
     """
     Production-ready deployment agent with self-improvement capabilities
 
@@ -508,18 +515,20 @@ class DeployAgent:
         self.agent_id = f"deploy_agent_{business_id}"
         self.agent = None
         self._discord = None
-        self.computer_use = GeminiComputerUseClient(
+        # Use local computer use client (renamed to avoid conflict with StandardIntegrationMixin property)
+        self._deploy_computer_use = GeminiComputerUseClient(
             agent_role="deploy_agent",
             require_human_confirmation=False,
         )
 
         # Learning infrastructure (legacy)
-        self.use_learning = use_learning and (REASONING_BANK_AVAILABLE and REPLAY_BUFFER_AVAILABLE)
-        self.use_reflection = use_reflection and REFLECTION_HARNESS_AVAILABLE
+        self._use_learning = use_learning and (REASONING_BANK_AVAILABLE and REPLAY_BUFFER_AVAILABLE)
+        self._use_reflection = use_reflection and REFLECTION_HARNESS_AVAILABLE
 
-        self.reasoning_bank = None
-        self.replay_buffer = None
-        self.reflection_harness = None
+        # Local learning infrastructure (renamed to avoid StandardIntegrationMixin conflicts)
+        self._deploy_reasoning_bank = None
+        self._deploy_replay_buffer = None
+        self._deploy_reflection_harness = None
 
         # MemoryTool integration (NEW: Tier 1 - Critical)
         self.enable_memory = enable_memory
@@ -568,6 +577,9 @@ class DeployAgent:
         self.deploy_vendor = os.getenv("A2A_X402_DEPLOY_VENDOR", "vercel")
         self.deploy_cost = float(os.getenv("A2A_X402_DEPLOY_COST", "0.85"))
 
+        # Initialize VOIX hybrid automation
+        self.voix_automation = HybridAutomation(agent_role="deploy_agent", use_llm_selection=True)
+
     def _get_discord(self):
         if self._discord is None:
             self._discord = get_discord_client()
@@ -595,19 +607,19 @@ class DeployAgent:
         )
 
         # Initialize learning infrastructure
-        if self.use_learning:
+        if self._use_learning:
             try:
-                self.reasoning_bank = get_reasoning_bank()
-                self.replay_buffer = get_replay_buffer()
+                self._deploy_reasoning_bank = get_reasoning_bank()
+                self._deploy_replay_buffer = get_replay_buffer()
                 logger.info("✅ Learning infrastructure initialized")
             except Exception as e:
                 logger.warning(f"Learning infrastructure initialization failed: {e}")
-                self.use_learning = False
+                self._use_learning = False
 
         # Initialize reflection harness
-        if self.use_reflection:
+        if self._use_reflection:
             try:
-                self.reflection_harness = ReflectionHarness(
+                self._deploy_reflection_harness = ReflectionHarness(
                     max_attempts=2,
                     quality_threshold=0.75,
                     fallback_behavior=FallbackBehavior.WARN
@@ -615,12 +627,12 @@ class DeployAgent:
                 logger.info("✅ Reflection harness initialized")
             except Exception as e:
                 logger.warning(f"Reflection harness initialization failed: {e}")
-                self.use_reflection = False
+                self._use_reflection = False
 
         logger.info(f"🚀 Deploy Agent initialized for business: {self.business_id}")
         logger.info("   Model: Gemini 2.5 Flash (372 tokens/sec)")
-        logger.info(f"   Learning: {'Enabled' if self.use_learning else 'Disabled'}")
-        logger.info(f"   Reflection: {'Enabled' if self.use_reflection else 'Disabled'}")
+        logger.info(f"   Learning: {'Enabled' if self._use_learning else 'Disabled'}")
+        logger.info(f"   Reflection: {'Enabled' if self._use_reflection else 'Disabled'}")
         logger.info(f"   Memory: {'Enabled' if self.enable_memory else 'Disabled'}")
         logger.info("")
 
@@ -729,12 +741,12 @@ Always verify deployments are live and accessible before marking success."""
 
     async def _load_deployment_strategies(self, platform: str) -> List[Dict[str, Any]]:
         """Load successful deployment strategies from ReasoningBank"""
-        if not self.use_learning or not self.reasoning_bank:
+        if not self._use_learning or not self._deploy_reasoning_bank:
             return []
 
         try:
             context = f"deploy to {platform}"
-            strategies = self.reasoning_bank.search_strategies(
+            strategies = self._deploy_reasoning_bank.search_strategies(
                 task_context=context,
                 top_n=3,
                 min_win_rate=0.5
@@ -758,11 +770,11 @@ Always verify deployments are live and accessible before marking success."""
 
     async def _load_anti_patterns(self, platform: str) -> List[Dict[str, Any]]:
         """Load anti-patterns (failed approaches) from Replay Buffer"""
-        if not self.use_learning or not self.replay_buffer:
+        if not self._use_learning or not self._deploy_replay_buffer:
             return []
 
         try:
-            anti_patterns = self.replay_buffer.query_anti_patterns(
+            anti_patterns = self._deploy_replay_buffer.query_anti_patterns(
                 task_type=f"deploy to {platform}",
                 top_n=5
             )
@@ -789,7 +801,7 @@ Always verify deployments are live and accessible before marking success."""
         fix_applied: Optional[str] = None
     ) -> str:
         """Record deployment trajectory in Replay Buffer"""
-        if not self.use_learning or not self.replay_buffer:
+        if not self._use_learning or not self._deploy_replay_buffer:
             return ""
 
         try:
@@ -809,7 +821,7 @@ Always verify deployments are live and accessible before marking success."""
                 fix_applied=fix_applied
             )
 
-            trajectory_id = self.replay_buffer.store_trajectory(trajectory)
+            trajectory_id = self._deploy_replay_buffer.store_trajectory(trajectory)
             logger.info(f"📝 Recorded trajectory: {trajectory_id}")
             return trajectory_id
         except Exception as e:
@@ -824,11 +836,11 @@ Always verify deployments are live and accessible before marking success."""
         metadata: Dict[str, Any]
     ):
         """Store successful deployment strategy in ReasoningBank (legacy)"""
-        if not self.use_learning or not self.reasoning_bank:
+        if not self._use_learning or not self._deploy_reasoning_bank:
             return
 
         try:
-            strategy_id = self.reasoning_bank.store_strategy(
+            strategy_id = self._deploy_reasoning_bank.store_strategy(
                 description=description,
                 context=context,
                 task_metadata=metadata,
@@ -1357,7 +1369,7 @@ Always verify deployments are live and accessible before marking success."""
             anti_patterns = await self._load_anti_patterns("vercel")
 
             # Start browser
-            await self.computer_use.start_browser(headless=True)
+            await self._deploy_computer_use.start_browser(headless=True)
             steps.append(ActionStep(
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 tool_name="start_browser",
@@ -1367,8 +1379,8 @@ Always verify deployments are live and accessible before marking success."""
             ))
 
             # Navigate to Vercel
-            await self.computer_use.navigate('https://vercel.com/new')
-            await self.computer_use.wait(2000)
+            await self._deploy_computer_use.navigate('https://vercel.com/new')
+            await self._deploy_computer_use.wait(2000)
             steps.append(ActionStep(
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 tool_name="navigate",
@@ -1378,7 +1390,7 @@ Always verify deployments are live and accessible before marking success."""
             ))
 
             # Take screenshot
-            screenshot = await self.computer_use.take_screenshot()
+            screenshot = await self._deploy_computer_use.take_screenshot()
 
             # Execute autonomous deployment task
             task_description = f"""
@@ -1400,7 +1412,7 @@ Always verify deployments are live and accessible before marking success."""
             Stop when deployment URL is visible.
             """
 
-            result = await self.computer_use.autonomous_task(
+            result = await self._deploy_computer_use.autonomous_task(
                 task_description,
                 max_steps=30
             )
@@ -1416,12 +1428,12 @@ Always verify deployments are live and accessible before marking success."""
             # Extract deployment URL
             deployment_url = f"https://{repo_name}.vercel.app"
 
-            await self.computer_use.stop_browser()
+            await self._deploy_computer_use.stop_browser()
 
             duration = time.time() - start_time
 
             # Record successful trajectory
-            if self.use_learning:
+            if self._use_learning:
                 await self._record_trajectory(
                     task_description=f"Deploy to Vercel: {repo_name}",
                     initial_state={"platform": "vercel", "repo": repo_name},
@@ -1475,7 +1487,7 @@ Always verify deployments are live and accessible before marking success."""
             return json.dumps(deployment_result, indent=2)
 
         except Exception as e:
-            await self.computer_use.stop_browser()
+            await self._deploy_computer_use.stop_browser()
             duration = time.time() - start_time
 
             error_msg = str(e)
@@ -1494,7 +1506,7 @@ Always verify deployments are live and accessible before marking success."""
             )
 
             # Record failed trajectory
-            if self.use_learning:
+            if self._use_learning:
                 await self._record_trajectory(
                     task_description=f"Deploy to Vercel: {repo_name} (FAILED)",
                     initial_state={"platform": "vercel", "repo": repo_name},
@@ -1614,6 +1626,110 @@ Always verify deployments are live and accessible before marking success."""
                 "error": str(e),
                 "deployment_url": deployment_url
             })
+
+    async def deploy_via_voix(
+        self,
+        platform: str,
+        repo_name: str,
+        github_url: str,
+        environment: str = "production",
+    ) -> str:
+        """
+        Deploy to platform using VOIX (with fallback to Gemini Computer Use)
+
+        Supports Railway, Render, and other VOIX-enabled platforms.
+
+        Args:
+            platform: Platform name (railway, render, etc.)
+            repo_name: Name of the repository
+            github_url: GitHub repository URL
+            environment: Deployment environment
+
+        Returns:
+            JSON string with deployment result
+        """
+        start_time = time.time()
+        platform_urls = {
+            "railway": "https://railway.app/new",
+            "render": "https://dashboard.render.com/new",
+        }
+
+        if platform not in platform_urls:
+            return json.dumps({
+                "success": False,
+                "error": f"Platform {platform} not supported for VOIX deployment",
+                "platform": platform,
+            })
+
+        parameters = {
+            "repo_name": repo_name,
+            "github_url": github_url,
+            "environment": environment,
+        }
+
+        action_description = f"Deploy {repo_name} to {platform} from {github_url}"
+
+        try:
+            result = await self.voix_automation.navigate_and_act(
+                url=platform_urls[platform],
+                action_description=action_description,
+                parameters=parameters,
+            )
+
+            execution_time = time.time() - start_time
+
+            # Log performance comparison
+            if result.method == "voix":
+                logger.info(
+                    f"[DeployAgent] VOIX deployment successful: {result.execution_time_ms:.1f}ms "
+                    f"(vs fallback avg: {self.voix_automation.metrics.get('avg_execution_time_ms', 0):.1f}ms)"
+                )
+            else:
+                logger.info(
+                    f"[DeployAgent] Fallback deployment used: {result.execution_time_ms:.1f}ms "
+                    f"(VOIX not available on {platform})"
+                )
+
+            deployment_url = result.result.get("url") if isinstance(result.result, dict) else None
+
+            return json.dumps({
+                "success": result.success,
+                "method": result.method,
+                "platform": platform,
+                "deployment_url": deployment_url,
+                "execution_time_ms": result.execution_time_ms,
+                "discovery_time_ms": result.discovery_time_ms,
+                "tools_used": result.tools_used,
+                "error": result.error,
+            })
+
+        except Exception as e:
+            logger.exception(f"[DeployAgent] VOIX deployment failed: {e}")
+            return json.dumps({
+                "success": False,
+                "method": "error",
+                "platform": platform,
+                "error": sanitize_error_message(str(e)),
+                "execution_time_ms": (time.time() - start_time) * 1000,
+            })
+
+    async def deploy_to_railway_voix(
+        self,
+        repo_name: str,
+        github_url: str,
+        environment: str = "production",
+    ) -> str:
+        """Deploy to Railway via VOIX"""
+        return await self.deploy_via_voix("railway", repo_name, github_url, environment)
+
+    async def deploy_to_render_voix(
+        self,
+        repo_name: str,
+        github_url: str,
+        environment: str = "production",
+    ) -> str:
+        """Deploy to Render via VOIX"""
+        return await self.deploy_via_voix("render", repo_name, github_url, environment)
 
     def rollback_deployment(
         self,
@@ -1790,7 +1906,7 @@ Always verify deployments are live and accessible before marking success."""
                 logger.warning(f"⚠️  Deployment verification issues: {verify_result}")
 
             # Step 5: Reflection (optional)
-            if self.use_reflection:
+            if self._use_reflection:
                 logger.info("🔬 Step 5/5: Reflecting on deployment quality...")
                 # In production, use reflection harness to verify deployment quality
                 logger.info("✅ Reflection passed")
@@ -1960,8 +2076,8 @@ Always verify deployments are live and accessible before marking success."""
             "deployments_successful": self.deployments_successful,
             "success_rate": success_rate,
             "total_cost": self.total_cost,
-            "learning_enabled": self.use_learning,
-            "reflection_enabled": self.use_reflection
+            "learning_enabled": self._use_learning,
+            "reflection_enabled": self._use_reflection
         }
 
 

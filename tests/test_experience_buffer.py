@@ -23,20 +23,23 @@ from infrastructure.agentevolver import ExperienceBuffer, TaskEmbedder, Experien
 
 @pytest.fixture
 def mock_embedder():
-    """Create a mock TaskEmbedder for testing."""
-    embedder = AsyncMock(spec=TaskEmbedder)
-    
-    # Return consistent embeddings for testing
-    async def mock_embed(text: str) -> np.ndarray:
-        # Deterministic embeddings based on text hash
-        np.random.seed(hash(text) % 2**32)
-        return np.random.randn(1536).astype(np.float32)
-    
-    embedder.embed = mock_embed
-    embedder.compute_similarity_batch = TaskEmbedder.compute_similarity_batch
-    embedder.get_embedding_dimension.return_value = 1536
-    
-    return embedder
+    """Create a TaskEmbedder wrapper for testing (local vector only)."""
+    delegate = TaskEmbedder(use_local=True)
+
+    class LocalEmbedder:
+        def __init__(self, delegate):
+            self._delegate = delegate
+
+        async def embed(self, text: str) -> np.ndarray:
+            return await self._delegate.embed(text)
+
+        def compute_similarity_batch(self, query_embedding, embeddings):
+            return TaskEmbedder.compute_similarity_batch(query_embedding, embeddings)
+
+        def get_embedding_dimension(self):
+            return self._delegate.get_embedding_dimension()
+
+    return LocalEmbedder(delegate)
 
 
 @pytest.fixture
@@ -225,6 +228,67 @@ class TestExperienceBufferRetrieval:
         
         assert elapsed_ms < 100, f"Retrieval took {elapsed_ms:.1f}ms (target: <100ms)"
         assert len(results) <= 5
+
+    async def test_semantic_search_accuracy_over_80_percent(self, experience_buffer):
+        """Test semantic search retrieves relevant experiences with >80% accuracy."""
+        # Store experiences with clear semantic categories
+        auth_tasks = [
+            ("Fix authentication bug in login", "auth_1"),
+            ("Implement OAuth2 authentication", "auth_2"),
+            ("Add JWT token validation", "auth_3"),
+            ("Fix session management", "auth_4"),
+            ("Implement password reset", "auth_5"),
+        ]
+        
+        database_tasks = [
+            ("Optimize database query performance", "db_1"),
+            ("Fix slow SQL query", "db_2"),
+            ("Add database indexing", "db_3"),
+            ("Optimize connection pooling", "db_4"),
+            ("Fix database deadlock", "db_5"),
+        ]
+        
+        ui_tasks = [
+            ("Design responsive dashboard", "ui_1"),
+            ("Fix mobile layout issues", "ui_2"),
+            ("Improve button styling", "ui_3"),
+            ("Add dark mode support", "ui_4"),
+            ("Fix CSS grid layout", "ui_5"),
+        ]
+        
+        # Store all experiences
+        all_tasks = auth_tasks + database_tasks + ui_tasks
+        for desc, traj_id in all_tasks:
+            traj = create_test_trajectory(traj_id, success_score=95.0)
+            await experience_buffer.store_experience(traj, 95.0, desc)
+        
+        # Test queries for each category
+        test_queries = [
+            ("Fix login authentication issue", "auth", auth_tasks),
+            ("Optimize slow database queries", "database", database_tasks),
+            ("Improve UI responsiveness", "ui", ui_tasks),
+        ]
+        
+        correct_retrievals = 0
+        total_queries = 0
+        
+        for query_text, category, expected_tasks in test_queries:
+            results = await experience_buffer.get_similar_experiences(
+                query_text, top_k=3
+            )
+            total_queries += 1
+            
+            # Check if at least 2 of top 3 results are from correct category
+            retrieved_ids = [r[0].trajectory_id for r in results]
+            expected_ids = [tid for _, tid in expected_tasks]
+            matches = sum(1 for rid in retrieved_ids if rid in expected_ids)
+            
+            if matches >= 2:  # At least 2/3 correct = 67%, but we want >80% overall
+                correct_retrievals += 1
+        
+        accuracy = correct_retrievals / total_queries if total_queries > 0 else 0.0
+        assert accuracy >= 0.80, \
+            f"Semantic search accuracy {accuracy:.1%} below target 80% (got {correct_retrievals}/{total_queries} correct)"
 
 
 @pytest.mark.asyncio

@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import logging
 import random
 import time
-from typing import List
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Dict, List, Optional
 
 from agents.se_darwin_agent import SEDarwinAgent
 from infrastructure.omnidaemon_bridge import get_bridge
@@ -33,11 +36,102 @@ def _select_problem_descriptions(pool, limit: int) -> List[str]:
     return [candidate for candidate in candidates if candidate][:limit]
 
 
+DEFAULT_LOG_DIR = Path("logs/business_generation")
+
+
+def _contributions_log_path(log_dir: Path) -> Path:
+    log_dir.mkdir(parents=True, exist_ok=True)
+    return log_dir / "contributions.jsonl"
+
+
+def _load_contribution_scores(log_dir: Path) -> Dict[str, Dict[str, float]]:
+    path = _contributions_log_path(log_dir)
+    if not path.exists():
+        return {}
+
+    aggregated: Dict[str, Dict[str, float]] = {}
+    with path.open("r", encoding="utf-8") as fd:
+        for line in fd:
+            if not line.strip():
+                continue
+            payload = json.loads(line)
+            business_id = payload.get("business_id")
+            if not business_id:
+                continue
+
+            record = aggregated.setdefault(business_id, {
+                "score": 0.0,
+                "components": set(),
+                "task_description": payload.get("task_description") or "",
+            })
+            delta = max(0.0, float(payload.get("delta", 0.0)))
+            record["score"] += delta
+            record["components"].add(payload.get("component"))
+            if not record["task_description"] and payload.get("task_description"):
+                record["task_description"] = payload.get("task_description")
+
+    return {
+        k: {
+            "score": v["score"],
+            "task_description": v["task_description"],
+            "components": len(v["components"]),
+        }
+        for k, v in aggregated.items()
+    }
+
+
+def _select_problem_descriptions_by_contributions(
+    log_dir: Path,
+    limit: int,
+) -> List[str]:
+    scores = _load_contribution_scores(log_dir)
+    if not scores:
+        return []
+
+    sorted_entries = sorted(scores.items(), key=lambda kv: kv[1]["score"], reverse=True)
+    selections = []
+    seen: set[str] = set()
+    for _, data in sorted_entries:
+        if len(selections) >= limit:
+            break
+        task = data.get("task_description")
+        if not task:
+            continue
+        if task in seen:
+            continue
+        selections.append(task)
+        seen.add(task)
+    return selections[:limit]
+
+
+def _log_es_selection(log_dir: Path, method: str, descriptions: List[str]):
+    selection_file = log_dir / "es_training_selection.jsonl"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    entry = {
+        "method": method,
+        "selected": descriptions,
+        "count": len(descriptions),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    with selection_file.open("a", encoding="utf-8") as fd:
+        fd.write(json.dumps(entry) + "\n")
+
+
 async def _run_scheduler(iterations: int, delay_seconds: int) -> None:
     agent = SEDarwinAgent(agent_name="es_training_scheduler")
     pool = get_trajectory_pool(agent_name="es_training_scheduler")
-    descriptions = _select_problem_descriptions(pool, iterations)
     bridge = get_bridge()
+    log_dir = DEFAULT_LOG_DIR
+
+    descriptions = _select_problem_descriptions_by_contributions(log_dir, iterations)
+    if descriptions:
+        selection_method = "contribution_heuristics"
+    else:
+        descriptions = _select_problem_descriptions(pool, iterations)
+        selection_method = "trajectory_pool"
+
+    if descriptions:
+        _log_es_selection(log_dir, selection_method, descriptions)
 
     for idx, problem in enumerate(descriptions, start=1):
         logger.info("ES scheduler iteration %s for problem: %s", idx, problem[:80])

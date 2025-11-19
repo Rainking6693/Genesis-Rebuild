@@ -30,66 +30,37 @@ Author: Thon (Python Expert)
 Date: November 15, 2025
 """
 
-from infrastructure.agentevolver.embedder import TaskEmbedder
+from infrastructure.agentevolver.self_questioning import SelfQuestioningEngine
+from infrastructure.agentevolver.experience_manager import ExperienceManager
 from infrastructure.agentevolver.experience_buffer import (
     ExperienceBuffer,
-    ExperienceMetadata
+    ExperienceMetadata,
 )
-from infrastructure.agentevolver.self_questioning import (
-    SelfQuestioningEngine,
-    GeneratedTask,
-)
-from infrastructure.agentevolver.curiosity_trainer import (
-    CuriosityDrivenTrainer,
-    TrainingMetrics,
-)
-from infrastructure.agentevolver.hybrid_policy import HybridPolicy, PolicyDecision
+from infrastructure.agentevolver.embedder import TaskEmbedder
+from infrastructure.agentevolver.hybrid_policy import HybridPolicy
 from infrastructure.agentevolver.cost_tracker import CostTracker
-from infrastructure.agentevolver.experience_transfer import (
-    ExperienceTransfer,
-    Experience,
-    ExperienceType,
-    ExperienceBuffer as ExperienceBufferNew
-)
-from infrastructure.agentevolver.agent_mixin import (
-    ExperienceReuseMixin,
-    ExperienceReuseMixinAsync
-)
+from infrastructure.agentevolver.curiosity_trainer import CuriosityDrivenTrainer, TrainingMetrics
 from infrastructure.agentevolver.self_attributing import (
     ContributionTracker,
-    RewardShaper,
     AttributionEngine,
-    AgentContribution,
-    AttributionReport,
+    RewardShaper,
     RewardStrategy,
-    create_attribution_engine,
 )
+from infrastructure.agentevolver.ingestion import ScenarioIngestionPipeline
 
 __all__ = [
-    # Phase 1: Self-Questioning & Curiosity-Driven Training
     "SelfQuestioningEngine",
-    "GeneratedTask",
-    "CuriosityDrivenTrainer",
-    "TrainingMetrics",
-    # Core embedder
-    "TaskEmbedder",
-    # Phase 2: Experience Reuse
+    "ExperienceManager",
     "ExperienceBuffer",
     "ExperienceMetadata",
+    "TaskEmbedder",
     "HybridPolicy",
-    "PolicyDecision",
     "CostTracker",
-    "ExperienceTransfer",
-    "Experience",
-    "ExperienceType",
-    "ExperienceReuseMixin",
-    "ExperienceReuseMixinAsync",
-    # Phase 3: Self-Attributing Rewards
+    "CuriosityDrivenTrainer",
+    "TrainingMetrics",
     "ContributionTracker",
-    "RewardShaper",
     "AttributionEngine",
-    "AgentContribution",
-    "AttributionReport",
+    "RewardShaper",
     "RewardStrategy",
-    "create_attribution_engine",
+    "ScenarioIngestionPipeline",
 ]

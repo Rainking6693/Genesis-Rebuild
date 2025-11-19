@@ -25,6 +25,9 @@ from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
+from infrastructure.deepeyes.multimodal_tools import ScreenshotAnalyzer, ScreenAnalysis
+from infrastructure.deepeyes.tool_chain_tracker import ToolChainTracker
+
 try:
     from google import genai
     from google.genai.types import Part
@@ -73,6 +76,8 @@ class MultimodalMemoryPipeline:
         self.user_memory: Dict[str, List[ActionPattern]] = {}
         self.screenshot_cache: Dict[str, ScreenUnderstanding] = {}
         logger.info(f"MultimodalMemoryPipeline initialized with namespace: {namespace}")
+        self.screenshot_analyzer = ScreenshotAnalyzer()
+        self.tool_chain_tracker = ToolChainTracker()
 
     async def store_action_pattern(
         self,
@@ -148,6 +153,12 @@ class MultimodalMemoryPipeline:
         import hashlib
         return hashlib.md5(path.encode()).hexdigest()
 
+    async def analyze_and_store_screenshot(self, screenshot_path: str) -> ScreenAnalysis:
+        analysis = self.screenshot_analyzer.analyze(screenshot_path)
+        await self.store_screenshot_understanding(screenshot_path, analysis)
+        self.tool_chain_tracker.record_chain(["screenshot", "ocr", "analysis"])
+        return analysis
+
     def get_memory_stats(self) -> Dict[str, Any]:
         """Get memory pipeline statistics"""
         return {
@@ -158,6 +169,11 @@ class MultimodalMemoryPipeline:
             "app_memory_keys": list(self.app_memory.keys()),
             "user_memory_keys": list(self.user_memory.keys())
         }
+
+
+    async def ensure_tools(self):
+        self.screenshot_analyzer = ScreenshotAnalyzer()
+        self.tool_chain_tracker = ToolChainTracker()
 
 
 class GeminiComputerUseAgent:
