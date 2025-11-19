@@ -293,7 +293,7 @@ class MemoryTool:
         return filtered
 
 
-class StripeIntegrationAgent:
+class StripeIntegrationAgent(StandardIntegrationMixin):
     """
     Stripe Integration Agent - Manages payment integrations with memory.
 
@@ -309,6 +309,7 @@ class StripeIntegrationAgent:
         business_id: str = "default",
         enable_memory: bool = True
     ):
+        super().__init__()
         self.business_id = business_id
         self.agent_id = f"stripe_integration_agent_{business_id}"
 

@@ -206,7 +206,7 @@ class DomainSearchResult:
 # Domain Agent
 # ============================================================================
 
-class DomainAgent:
+class DomainAgent(StandardIntegrationMixin):
     """
     Domain Agent - Automated domain discovery and registration
 
@@ -249,6 +249,7 @@ class DomainAgent:
             enable_memory: Enable MemoryOS integration for learning
             agent_name: Agent identifier for memory storage
         """
+        super().__init__()
         self.agent_name = agent_name
         self.use_production = use_production
         self.enable_memory = enable_memory

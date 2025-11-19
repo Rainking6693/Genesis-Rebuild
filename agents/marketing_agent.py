@@ -145,7 +145,7 @@ setup_observability(enable_sensitive_data=True)
 logger = logging.getLogger(__name__)
 
 
-class MarketingAgent:
+class MarketingAgent(StandardIntegrationMixin):
     """
     Marketing Agent - Growth Specialist
 

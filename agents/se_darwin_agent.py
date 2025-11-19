@@ -1043,7 +1043,7 @@ class EvolutionIteration:
     operator_stats: Dict[str, int] = field(default_factory=dict)
 
 
-class SEDarwinAgent:
+class SEDarwinAgent(StandardIntegrationMixin):
     """
     Multi-Trajectory Evolution Agent
 
@@ -1088,6 +1088,7 @@ class SEDarwinAgent:
             success_threshold: Score threshold for success (0.7 = 70%)
             benchmark_type: Type of benchmark for validation
         """
+        super().__init__()
         self.agent_name = sanitize_agent_name(agent_name)
         self.llm_client = llm_client
         self.trajectories_per_iteration = min(5, max(1, trajectories_per_iteration))  # Clamp 1-5

@@ -523,7 +523,7 @@ Analyze this paper and respond with valid JSON ONLY (no markdown):
             }
 
 
-class ResearchDiscoveryAgent:
+class ResearchDiscoveryAgent(StandardIntegrationMixin):
     """
     Main agent for automatic research discovery
 
@@ -552,6 +552,7 @@ class ResearchDiscoveryAgent:
             anthropic_api_key: Anthropic API key (for filtering/analysis)
             data_storage_path: Path for MemoryOS storage
         """
+        super().__init__()
         # Initialize LLM clients
         self.haiku_client = LLMFactory.create(
             LLMProvider.CLAUDE_HAIKU_4_5,

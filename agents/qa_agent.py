@@ -367,7 +367,7 @@ class MemoryTool:
         return filtered
 
 
-class QAAgent:
+class QAAgent(StandardIntegrationMixin):
     """
     Quality assurance and testing agent
 
@@ -377,6 +377,7 @@ class QAAgent:
     """
 
     def __init__(self, business_id: str = "default", enable_memory: bool = True, enable_token_caching: bool = True):
+        super().__init__()
         self.business_id = business_id
         self.agent = None
         self.enable_memory = enable_memory

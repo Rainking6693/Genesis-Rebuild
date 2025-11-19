@@ -154,7 +154,7 @@ from infrastructure.standard_integration_mixin import StandardIntegrationMixin
 logger = logging.getLogger(__name__)
 
 
-class SupportAgent:
+class SupportAgent(StandardIntegrationMixin):
     """Customer support and ticket management agent"""
 
     def __init__(self, business_id: str = "default", enable_memory: bool = True):

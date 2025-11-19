@@ -130,7 +130,7 @@ from infrastructure.agentevolver import (
 logger = logging.getLogger(__name__)
 
 
-class SEOAgent:
+class SEOAgent(StandardIntegrationMixin):
     """SEO optimization and search ranking agent"""
 
 
