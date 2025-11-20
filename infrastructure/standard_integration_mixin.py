@@ -1,5 +1,5 @@
 """
-StandardIntegrationMixin - Provides access to ALL 455 Genesis integrations.
+StandardIntegrationMixin - Provides access to ALL 458 Genesis integrations.
 
 Any agent can inherit from this mixin to instantly get 100% integration coverage.
 Uses lazy initialization to avoid startup overhead.
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class StandardIntegrationMixin:
     """
-    Mixin providing lazy access to all 455 Genesis integrations.
+    Mixin providing lazy access to all 458 Genesis integrations.
 
     Inheriting from this class gives any agent instant access to:
     - Root Infrastructure (98 integrations)
@@ -6205,6 +6205,50 @@ class StandardIntegrationMixin:
                 self._integrations['x402_vendor_cache'] = None
         return self._integrations['x402_vendor_cache']
 
+
+    # ==================== NEW INTEGRATIONS FROM DAYDREAMS & M-GRPO ====================
+
+    # Integration #76: MCP Protocol Client (CRITICAL)
+    @property
+    def mcp_client(self):
+        """Integration #76: Model Context Protocol client for universal tool access"""
+        if 'mcp_client' not in self._integrations:
+            try:
+                from infrastructure.mcp_client import get_mcp_client
+                self._integrations['mcp_client'] = get_mcp_client()
+            except Exception as e:
+                logger.warning(f"mcp_client unavailable: {e}")
+                self._integration_failed['mcp_client'] = str(e)
+                self._integrations['mcp_client'] = None
+        return self._integrations['mcp_client']
+
+    # Integration #77: Type-Safe Action Schemas (HIGH)
+    @property
+    def action_schemas(self):
+        """Integration #77: Type-safe action schemas with Pydantic validation"""
+        if 'action_schemas' not in self._integrations:
+            try:
+                from infrastructure.action_schemas import get_schema_registry
+                self._integrations['action_schemas'] = get_schema_registry()
+            except Exception as e:
+                logger.warning(f"action_schemas unavailable: {e}")
+                self._integration_failed['action_schemas'] = str(e)
+                self._integrations['action_schemas'] = None
+        return self._integrations['action_schemas']
+
+    # Integration #78: Composable Context System (HIGH)
+    @property
+    def composable_context(self):
+        """Integration #78: Composable context system for isolated agent state"""
+        if 'composable_context' not in self._integrations:
+            try:
+                from infrastructure.composable_context import get_context_manager
+                self._integrations['composable_context'] = get_context_manager()
+            except Exception as e:
+                logger.warning(f"composable_context unavailable: {e}")
+                self._integration_failed['composable_context'] = str(e)
+                self._integrations['composable_context'] = None
+        return self._integrations['composable_context']
     # Utility method to get integration status
     def get_integration_status(self) -> Dict[str, Any]:
         """
@@ -6215,7 +6259,7 @@ class StandardIntegrationMixin:
         """
         total_loaded = len([v for v in self._integrations.values() if v is not None])
         total_failed = len(self._integration_failed)
-        total_possible = 455
+        total_possible = 458  # Updated: 455 + 3 new Daydreams/M-GRPO integrations
 
         return {
             "total_integrations": total_possible,
