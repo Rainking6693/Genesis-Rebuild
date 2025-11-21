@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genesis Real-Time Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Genesis Real-Time Dashboard</h1>
+            <div class="header-right">
+                <span id="last-updated">Loading...</span>
+                <button id="refresh-btn" onclick="loadMetrics()">🔄 Refresh</button>
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab active" data-section="executive">Executive Overview</button>
+            <button class="tab" data-section="agents">Agent Performance</button>
+            <button class="tab" data-section="orchestration">Orchestration</button>
+            <button class="tab" data-section="evolution">Evolution & Learning</button>
+            <button class="tab" data-section="safety">Safety & Governance</button>
+            <button class="tab" data-section="costs">Cost Optimization</button>
+        </nav>
+
+        <main id="content">
+            <!-- Content will be dynamically loaded -->
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

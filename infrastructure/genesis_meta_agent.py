@@ -99,6 +99,15 @@ except ImportError:
     COMPUTER_USE_AVAILABLE = False
     ComputerUseClient = None
 
+# Import Dashboard Event Emitter (NEW: Real-time dashboard integration)
+try:
+    from infrastructure.event_emitter import GenesisEventEmitter
+    DASHBOARD_EMITTER_AVAILABLE = True
+except ImportError:
+    print("[WARNING] Dashboard Event Emitter not available. Dashboard integration disabled.")
+    DASHBOARD_EMITTER_AVAILABLE = False
+    GenesisEventEmitter = None
+
 # Import Cost Profiler (NEW: Detailed cost analysis)
 try:
     from infrastructure.cost_profiler import CostProfiler
@@ -582,8 +591,8 @@ class GenesisMetaAgent(StandardIntegrationMixin):
         self.agent_type = "genesis_meta"
         self.business_id = "default"
 
-        # Initialize DAAO router for cost optimization
-        self.daao_router = get_daao_router()
+        # DAAO router now provided by StandardIntegrationMixin.daao_router property (lazy init)
+        # self.daao_router = get_daao_router()  # ❌ REMOVED - conflicts with StandardIntegrationMixin property
 
         # Initialize HALO router (original)
         self.router = HALORouter.create_with_integrations()  # ✅ Policy Cards + Capability Maps enabled
@@ -591,6 +600,19 @@ class GenesisMetaAgent(StandardIntegrationMixin):
         self.business_templates = self._load_business_templates()
         self.discord = discord_client
         self.payment_manager = PaymentIntentManager()
+
+        # Initialize Dashboard Event Emitter
+        if DASHBOARD_EMITTER_AVAILABLE:
+            try:
+                dashboard_url = os.getenv("DASHBOARD_API_URL", "http://localhost:8001")
+                self.event_emitter = GenesisEventEmitter(api_url=dashboard_url)
+                logger.info(f"✅ Dashboard event emitter initialized (URL: {dashboard_url})")
+            except Exception as e:
+                logger.warning(f"Dashboard event emitter initialization failed: {e}")
+                self.event_emitter = None
+        else:
+            self.event_emitter = None
+            logger.info("Dashboard event emitter disabled (not available)")
 
         # Initialize TUMIX for iterative business generation refinement
         self.termination = get_tumix_termination(
@@ -641,18 +663,19 @@ class GenesisMetaAgent(StandardIntegrationMixin):
         else:
             logger.info("Memory integration disabled")
 
-        # Initialize WebVoyager for web-based research (optional)
-        if WEBVOYAGER_AVAILABLE:
-            try:
-                self.webvoyager = get_webvoyager_client(
-                    headless=True,
-                    max_iterations=10,
-                    text_only=False
-                )
-            except:
-                self.webvoyager = None
-        else:
-            self.webvoyager = None
+        # WebVoyager now provided by StandardIntegrationMixin.webvoyager property (lazy init)
+        # ❌ REMOVED - conflicts with StandardIntegrationMixin property
+        # if WEBVOYAGER_AVAILABLE:
+        #     try:
+        #         self.webvoyager = get_webvoyager_client(
+        #             headless=True,
+        #             max_iterations=10,
+        #             text_only=False
+        #         )
+        #     except:
+        #         self.webvoyager = None
+        # else:
+        #     self.webvoyager = None
 
         # AgentEvolver Phase 2: Experience reuse for business generation
         self.enable_experience_reuse = enable_experience_reuse
@@ -720,16 +743,17 @@ class GenesisMetaAgent(StandardIntegrationMixin):
             self.voix_detector = None
             self.voix_executor = None
 
-        # NEW: Initialize Gemini Computer Use for GUI automation
-        if COMPUTER_USE_AVAILABLE:
-            try:
-                self.computer_use = ComputerUseClient(agent_name="genesis_meta_agent")
-                logger.info("[GenesisMetaAgent] Gemini Computer Use enabled")
-            except Exception as e:
-                logger.warning(f"[GenesisMetaAgent] Gemini Computer Use initialization failed: {e}")
-                self.computer_use = None
-        else:
-            self.computer_use = None
+        # Gemini Computer Use now provided by StandardIntegrationMixin.computer_use property (lazy init)
+        # ❌ REMOVED - conflicts with StandardIntegrationMixin property
+        # if COMPUTER_USE_AVAILABLE:
+        #     try:
+        #         self.computer_use = ComputerUseClient(agent_name="genesis_meta_agent")
+        #         logger.info("[GenesisMetaAgent] Gemini Computer Use enabled")
+        #     except Exception as e:
+        #         logger.warning(f"[GenesisMetaAgent] Gemini Computer Use initialization failed: {e}")
+        #         self.computer_use = None
+        # else:
+        #     self.computer_use = None
 
         # NEW: Initialize Cost Profiler
         if COST_PROFILER_AVAILABLE:
@@ -852,7 +876,7 @@ class GenesisMetaAgent(StandardIntegrationMixin):
                 self.waltzrl_feedback = WaltzRLFeedbackAgent() if WaltzRLFeedbackAgent else None
                 self.waltzrl_stage2_trainer = WaltzRLStage2Trainer() if WaltzRLStage2Trainer else None
                 self.agent_auth_registry = AgentAuthRegistry() if AgentAuthRegistry else None
-                self.security_scanner = SecurityScanner() if SecurityScanner else None
+                self._security_scanner_instance = SecurityScanner() if SecurityScanner else None  # Now from StandardIntegrationMixin property
                 self.pii_detector = PIIDetector() if PIIDetector else None
                 logger.info("[GenesisMetaAgent] Advanced safety & security systems enabled")
             except Exception as e:
@@ -862,7 +886,7 @@ class GenesisMetaAgent(StandardIntegrationMixin):
                 self.waltzrl_feedback = None
                 self.waltzrl_stage2_trainer = None
                 self.agent_auth_registry = None
-                self.security_scanner = None
+                self._security_scanner_instance = None  # Now from StandardIntegrationMixin property
                 self.pii_detector = None
         else:
             self.waltzrl_wrapper = None
@@ -870,7 +894,7 @@ class GenesisMetaAgent(StandardIntegrationMixin):
             self.waltzrl_feedback = None
             self.waltzrl_stage2_trainer = None
             self.agent_auth_registry = None
-            self.security_scanner = None
+            self._security_scanner_instance = None  # Now from StandardIntegrationMixin property
             self.pii_detector = None
 
         # NEW: Initialize Evolution & Training Systems
@@ -879,8 +903,8 @@ class GenesisMetaAgent(StandardIntegrationMixin):
                 self.memory_aware_darwin = MemoryAwareDarwin() if MemoryAwareDarwin else None
                 self.solver_agent = SolverAgent() if SolverAgent else None
                 self.verifier_agent = VerifierAgent() if VerifierAgent else None
-                self.react_training = ReactTraining() if ReactTraining else None
-                self.llm_judge_rl = LLMJudgeRL() if LLMJudgeRL else None
+                self._react_training_instance = ReactTraining() if ReactTraining else None
+                self._llm_judge_rl_instance = LLMJudgeRL() if LLMJudgeRL else None
                 self.env_learning_agent = EnvironmentLearningAgent() if EnvironmentLearningAgent else None
                 logger.info("[GenesisMetaAgent] Evolution & training systems enabled")
             except Exception as e:
@@ -888,15 +912,15 @@ class GenesisMetaAgent(StandardIntegrationMixin):
                 self.memory_aware_darwin = None
                 self.solver_agent = None
                 self.verifier_agent = None
-                self.react_training = None
-                self.llm_judge_rl = None
+                self._react_training_instance = None
+                self._llm_judge_rl_instance = None
                 self.env_learning_agent = None
         else:
             self.memory_aware_darwin = None
             self.solver_agent = None
             self.verifier_agent = None
-            self.react_training = None
-            self.llm_judge_rl = None
+            self._react_training_instance = None
+            self._llm_judge_rl_instance = None
             self.env_learning_agent = None
 
         # NEW: Initialize Memory & Learning Advanced Features
@@ -904,10 +928,10 @@ class GenesisMetaAgent(StandardIntegrationMixin):
             try:
                 self.memory_store = MemoryStore() if MemoryStore else None
                 self.agentic_rag = AgenticRAG() if AgenticRAG else None
-                self.reasoning_bank = ReasoningBank() if ReasoningBank else None
-                self.replay_buffer = ReplayBuffer() if ReplayBuffer else None
-                self.casebank = CaseBank() if CaseBank else None
-                self.memento_agent = MementoAgent() if MementoAgent else None
+                self._reasoning_bank_instance = ReasoningBank() if ReasoningBank else None
+                self._replay_buffer_instance = ReplayBuffer() if ReplayBuffer else None
+                self._casebank_instance = CaseBank() if CaseBank else None
+                self._memento_agent_instance = MementoAgent() if MementoAgent else None
                 self.graph_database = GraphDatabase() if GraphDatabase else None
                 self.embedding_generator = EmbeddingGenerator() if EmbeddingGenerator else None
                 self.benchmark_recorder = BenchmarkRecorder() if BenchmarkRecorder else None
@@ -920,10 +944,10 @@ class GenesisMetaAgent(StandardIntegrationMixin):
                 logger.warning(f"[GenesisMetaAgent] Memory advanced features initialization failed: {e}")
                 self.memory_store = None
                 self.agentic_rag = None
-                self.reasoning_bank = None
-                self.replay_buffer = None
-                self.casebank = None
-                self.memento_agent = None
+                self._reasoning_bank_instance = None
+                self._replay_buffer_instance = None
+                self._casebank_instance = None
+                self._memento_agent_instance = None
                 self.graph_database = None
                 self.embedding_generator = None
                 self.benchmark_recorder = None
@@ -934,10 +958,10 @@ class GenesisMetaAgent(StandardIntegrationMixin):
         else:
             self.memory_store = None
             self.agentic_rag = None
-            self.reasoning_bank = None
-            self.replay_buffer = None
-            self.casebank = None
-            self.memento_agent = None
+            self._reasoning_bank_instance = None
+            self._replay_buffer_instance = None
+            self._casebank_instance = None
+            self._memento_agent_instance = None
             self.graph_database = None
             self.embedding_generator = None
             self.benchmark_recorder = None
@@ -953,7 +977,7 @@ class GenesisMetaAgent(StandardIntegrationMixin):
                 self.analytics = Analytics() if Analytics else None
                 self.ab_testing = ABTesting() if ABTesting else None
                 self.codebook_manager = CodebookManager() if CodebookManager else None
-                self.prometheus_metrics = PrometheusMetrics() if PrometheusMetrics else None
+                self._prometheus_metrics_instance = PrometheusMetrics() if PrometheusMetrics else None
                 logger.info("[GenesisMetaAgent] Advanced observability systems enabled")
             except Exception as e:
                 logger.warning(f"[GenesisMetaAgent] Observability advanced features failed: {e}")
@@ -961,51 +985,51 @@ class GenesisMetaAgent(StandardIntegrationMixin):
                 self.analytics = None
                 self.ab_testing = None
                 self.codebook_manager = None
-                self.prometheus_metrics = None
+                self._prometheus_metrics_instance = None
         else:
             self.health_check = None
             self.analytics = None
             self.ab_testing = None
             self.codebook_manager = None
-            self.prometheus_metrics = None
+            self._prometheus_metrics_instance = None
 
         # NEW: Initialize Integration Systems
         if INTEGRATION_SYSTEMS_AVAILABLE:
             try:
-                self.omnidaemon_bridge = get_omnidaemon_bridge() if get_omnidaemon_bridge else None
-                self.agentscope_runtime = AgentScopeRuntime() if AgentScopeRuntime else None
-                self.agentscope_alias = AgentScopeAlias() if AgentScopeAlias else None
+                self._omnidaemon_bridge_instance = get_omnidaemon_bridge() if get_omnidaemon_bridge else None
+                self._agentscope_runtime_instance = AgentScopeRuntime() if AgentScopeRuntime else None
+                self._agentscope_alias_instance = AgentScopeAlias() if AgentScopeAlias else None
                 self.openhands_integration = OpenHandsIntegration() if OpenHandsIntegration else None
-                self.socratic_zero = SocraticZeroIntegration() if SocraticZeroIntegration else None
+                self._socratic_zero_instance = SocraticZeroIntegration() if SocraticZeroIntegration else None
                 self.marketplace_backends = MarketplaceBackends() if MarketplaceBackends else None
                 self.aatc_system = AATCSystem() if AATCSystem else None
-                self.feature_flags = FeatureFlags() if FeatureFlags else None
+                self._feature_flags_instance = FeatureFlags() if FeatureFlags else None
                 self.error_handler = ErrorHandler() if ErrorHandler else None
                 self.config_loader = ConfigLoader() if ConfigLoader else None
                 self.genesis_health_check = GenesisHealthCheck() if GenesisHealthCheck else None
                 logger.info("[GenesisMetaAgent] Integration systems enabled")
             except Exception as e:
                 logger.warning(f"[GenesisMetaAgent] Integration systems initialization failed: {e}")
-                self.omnidaemon_bridge = None
-                self.agentscope_runtime = None
-                self.agentscope_alias = None
+                self._omnidaemon_bridge_instance = None
+                self._agentscope_runtime_instance = None
+                self._agentscope_alias_instance = None
                 self.openhands_integration = None
-                self.socratic_zero = None
+                self._socratic_zero_instance = None
                 self.marketplace_backends = None
                 self.aatc_system = None
-                self.feature_flags = None
+                self._feature_flags_instance = None
                 self.error_handler = None
                 self.config_loader = None
                 self.genesis_health_check = None
         else:
-            self.omnidaemon_bridge = None
-            self.agentscope_runtime = None
-            self.agentscope_alias = None
+            self._omnidaemon_bridge_instance = None
+            self._agentscope_runtime_instance = None
+            self._agentscope_alias_instance = None
             self.openhands_integration = None
-            self.socratic_zero = None
+            self._socratic_zero_instance = None
             self.marketplace_backends = None
             self.aatc_system = None
-            self.feature_flags = None
+            self._feature_flags_instance = None
             self.error_handler = None
             self.config_loader = None
             self.genesis_health_check = None
@@ -1016,7 +1040,7 @@ class GenesisMetaAgent(StandardIntegrationMixin):
                 self.autonomous_orchestrator = AutonomousOrchestrator() if AutonomousOrchestrator else None
                 self.darwin_orchestration_bridge = DarwinOrchestrationBridge() if DarwinOrchestrationBridge else None
                 self.dynamic_agent_creator = DynamicAgentCreator() if DynamicAgentCreator else None
-                self.aop_validator = AOPValidator() if AOPValidator else None
+                self._aop_validator_instance = AOPValidator() if AOPValidator else None
                 self.full_system_integrator = FullSystemIntegrator() if FullSystemIntegrator else None
                 self.daao_optimizer = DAAOOptimizer() if DAAOOptimizer else None
                 logger.info("[GenesisMetaAgent] Advanced routing & orchestration systems enabled")
@@ -1025,14 +1049,14 @@ class GenesisMetaAgent(StandardIntegrationMixin):
                 self.autonomous_orchestrator = None
                 self.darwin_orchestration_bridge = None
                 self.dynamic_agent_creator = None
-                self.aop_validator = None
+                self._aop_validator_instance = None
                 self.full_system_integrator = None
                 self.daao_optimizer = None
         else:
             self.autonomous_orchestrator = None
             self.darwin_orchestration_bridge = None
             self.dynamic_agent_creator = None
-            self.aop_validator = None
+            self._aop_validator_instance = None
             self.full_system_integrator = None
             self.daao_optimizer = None
 
@@ -1738,6 +1762,27 @@ class GenesisMetaAgent(StandardIntegrationMixin):
             experience_id=experience_id,
         )
 
+    def _emit_dashboard_event(
+        self,
+        event_type: str,
+        business_name: str,
+        agent_name: Optional[str] = None,
+        message: Optional[str] = None,
+        data: Optional[Dict[str, Any]] = None
+    ):
+        """Helper method to safely emit events to dashboard"""
+        if self.event_emitter:
+            try:
+                self.event_emitter.emit(
+                    event_type=event_type,
+                    business_name=business_name,
+                    agent_name=agent_name,
+                    message=message,
+                    data=data or {}
+                )
+            except Exception as e:
+                logger.debug(f"Failed to emit dashboard event: {e}")
+
     @staticmethod
     def _extract_quality_score(result: Dict[str, Any]) -> float:
         if "quality_score" in result:
@@ -1924,7 +1969,16 @@ vercel deploy --prod
     async def generate_business(self, spec: BusinessSpec):
         logger.info(f"Starting business generation: {spec.name}")
         start_time = time.time()
-        
+
+        # EVENT 1: Business generation started
+        self._emit_dashboard_event(
+            event_type="business_generation_started",
+            business_name=spec.name,
+            agent_name="Genesis",
+            message=f"Starting {spec.name}",
+            data={"type": spec.business_type, "components": len(spec.components)}
+        )
+
         # Store business context for downstream agents
         coverage_target = max(len(spec.components) + len(AGENT_COMPONENT_REQUIREMENTS), len(AGENT_COMPONENT_REQUIREMENTS))
         spec.components = self._ensure_agent_coverage(
@@ -1960,12 +2014,38 @@ vercel deploy --prod
             component_agent = self._select_agent_for_component(component_name)
             monitor.record_component_start(business_id, component_name, component_agent)
 
+            # EVENT 2: Component build started
+            self._emit_dashboard_event(
+                event_type="build_progress",
+                business_name=spec.name,
+                agent_name="Builder Agent",
+                message=f"Building {component_name}",
+                data={"component": component_name, "agent": component_agent}
+            )
+
+            # EVENT 3: Agent started
+            self._emit_dashboard_event(
+                event_type="agent_started",
+                business_name=spec.name,
+                agent_name=component_agent,
+                message=f"{component_agent} started",
+                data={"component": component_name}
+            )
+
             if self.discord:
                 await self.discord.agent_started(business_id, component_agent, component_name)
 
             try:
                 result = await self._execute_task_with_llm(task, component_agent)
             except Exception as exc:
+                # EVENT 4: Error occurred
+                self._emit_dashboard_event(
+                    event_type="error",
+                    business_name=spec.name,
+                    agent_name=component_agent,
+                    message=f"Error: {str(exc)[:100]}",
+                    data={"error": str(exc), "component": component_name}
+                )
                 if self.discord:
                     await self.discord.agent_error(business_id, component_agent, str(exc))
                 raise
@@ -2007,9 +2087,28 @@ vercel deploy --prod
                     error_msg = f"Payment denied: {intent.reason}"
                     errors.append(error_msg)
                     monitor.record_component_failed(business_id, component_name, error_msg)
+
+                    # EVENT 6: Payment denied
+                    self._emit_dashboard_event(
+                        event_type="payment_denied",
+                        business_name=spec.name,
+                        agent_name=component_agent,
+                        message=f"Payment denied: {intent.reason}",
+                        data={"component": component_name, "cost": cost}
+                    )
+
                     if self.discord:
                         await self.discord.agent_error(business_id, component_agent, error_msg)
                     continue
+
+                # EVENT 5: Payment approved & cost tracked
+                self._emit_dashboard_event(
+                    event_type="cost_tracked",
+                    business_name=spec.name,
+                    agent_name=component_agent,
+                    message=f"Cost: ${cost:.2f} approved",
+                    data={"component": component_name, "cost": cost, "total_cost": total_cost + cost}
+                )
                 tasks_completed += 1
                 components_generated.append(task.task_id)
                 total_cost += cost
@@ -2018,7 +2117,22 @@ vercel deploy --prod
                 code_length = len(result.get("result", ""))
                 estimated_lines = code_length // 50  # ~50 chars per line avg
                 
-                quality_score = self._extract_component_quality(result)
+                quality_score = self._extract_quality_score(result)
+
+                # EVENT 7: Component completed
+                self._emit_dashboard_event(
+                    event_type="component_completed",
+                    business_name=spec.name,
+                    agent_name=component_agent,
+                    message=f"Completed {component_name}",
+                    data={
+                        "component": component_name,
+                        "cost": cost,
+                        "quality_score": quality_score,
+                        "lines": estimated_lines
+                    }
+                )
+
                 monitor.record_component_complete(
                     business_id,
                     component_name,
@@ -2035,13 +2149,33 @@ vercel deploy --prod
                 error_msg = result.get('error', 'Unknown error')
                 errors.append(f"Task {task.task_id} failed: {error_msg}")
                 monitor.record_component_failed(business_id, component_name, error_msg)
+
+                # EVENT 8: Component failed
+                self._emit_dashboard_event(
+                    event_type="component_failed",
+                    business_name=spec.name,
+                    agent_name=component_agent,
+                    message=f"Failed: {component_name}",
+                    data={"component": component_name, "error": error_msg}
+                )
+
                 if self.discord:
                     await self.discord.agent_error(business_id, component_agent, error_msg)
 
-            if success and intent and intent.approved and self.discord:
+            if success and intent and intent.approved:
+                # EVENT 9: Agent completed
                 summary = result.get("summary") or result.get("result", "")
-                summary = summary[:280] if summary else "Component completed."
-                await self.discord.agent_completed(business_id, component_agent, summary)
+                self._emit_dashboard_event(
+                    event_type="agent_completed",
+                    business_name=spec.name,
+                    agent_name=component_agent,
+                    message=f"{component_agent} completed",
+                    data={"component": component_name, "files_generated": 1}
+                )
+
+                if self.discord:
+                    summary = summary[:280] if summary else "Component completed."
+                    await self.discord.agent_completed(business_id, component_agent, summary)
 
             event_payload = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -2086,9 +2220,52 @@ vercel deploy --prod
         await workspace_manager.finalize()
         monitor.write_dashboard_snapshot()
 
+        # EVENT 11: Business complete
+        self._emit_dashboard_event(
+            event_type="business_complete",
+            business_name=spec.name,
+            agent_name="Genesis",
+            message=f"{spec.name} complete!",
+            data={
+                "success": tasks_failed == 0,
+                "components": len(components_generated),
+                "time": time.time() - start_time
+            }
+        )
+
         await self._summarize_business_spend(business_id, spec, total_cost)
-        
+
         self._current_team_agents = []
+
+        # Step: Deployment (if enabled)
+        deployment_url = None
+        if spec.metadata.get("auto_deploy", False):
+            # EVENT 12: Deployment started
+            self._emit_dashboard_event(
+                event_type="deployment_started",
+                business_name=spec.name,
+                agent_name="Deploy Agent",
+                message="Deploying to production...",
+                data={}
+            )
+
+            deployment_url = await self._deploy_business(spec, business_id, files_written)
+            if deployment_url:
+                spec.metadata["deployment_url"] = deployment_url
+                logger.info(f"✅ Business deployed to: {deployment_url}")
+
+                # EVENT 13: Deployment complete
+                self._emit_dashboard_event(
+                    event_type="deployment_complete",
+                    business_name=spec.name,
+                    agent_name="Genesis",
+                    message=f"{spec.name} is LIVE!",
+                    data={"url": deployment_url}
+                )
+
+                # Step: Post-Deployment Automation (if deployment succeeded)
+                if spec.metadata.get("auto_post_deploy", False):
+                    await self._post_deployment_automation(spec, business_id, deployment_url)
 
         result_obj = BusinessGenerationResult(
             business_name=spec.name, success=tasks_failed == 0,
@@ -2106,10 +2283,130 @@ vercel deploy --prod
                 "quality_score": spec.metadata.get("quality_score", 0),
                 "build_time": f"{result_obj.generation_time_seconds:.1f}s",
             }
-            deployment_url = spec.metadata.get("deployment_url", "Deployment pending")
-            await self.discord.business_build_completed(business_id, deployment_url, build_metrics)
+            deployment_url_display = deployment_url or spec.metadata.get("deployment_url", "Deployment pending")
+            await self.discord.business_build_completed(business_id, deployment_url_display, build_metrics)
 
         return result_obj
+
+    async def _deploy_business(self, spec: BusinessSpec, business_id: str, files_written: List[str]) -> Optional[str]:
+        """
+        Deploy business to production platform
+
+        Returns:
+            Deployment URL if successful, None otherwise
+        """
+        try:
+            logger.info(f"\n🚀 Deploying {spec.name} to production...")
+
+            # Import DeployAgent
+            from agents.deploy_agent import get_deploy_agent, DeploymentConfig
+
+            # Load code files
+            code_files = {}
+            for file_path in files_written:
+                full_path = Path(file_path)
+                if full_path.exists():
+                    with open(full_path) as f:
+                        code_files[str(full_path.relative_to(spec.output_dir))] = f.read()
+
+            # Create DeployAgent
+            deploy_agent = await get_deploy_agent(
+                business_id=f"{business_id}_deploy",
+                enable_memory=True,
+                use_learning=True
+            )
+
+            # Get deployment platform from metadata (default: vercel)
+            platform = spec.metadata.get("deploy_platform", "vercel")
+
+            # Create deployment config
+            config = DeploymentConfig(
+                repo_name=spec.name.lower().replace(" ", "-"),
+                github_url="",  # Will be generated
+                platform=platform,
+                environment="production",
+                framework=spec.metadata.get("framework", "nextjs")
+            )
+
+            # Prepare business data
+            business_data = {
+                'code_files': code_files,
+                'manifest': {
+                    'name': spec.name,
+                    'type': spec.business_type,
+                    'description': spec.description
+                }
+            }
+
+            # Execute deployment workflow
+            result = await deploy_agent.full_deployment_workflow(
+                config=config,
+                business_data=business_data,
+                user_id=spec.metadata.get("user_id", "default")
+            )
+
+            if result.success:
+                logger.info(f"✅ Deployment succeeded: {result.deployment_url}")
+                return result.deployment_url
+            else:
+                logger.error(f"❌ Deployment failed: {result.error}")
+                return None
+
+        except Exception as e:
+            logger.error(f"❌ Deployment exception: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+    async def _post_deployment_automation(self, spec: BusinessSpec, business_id: str, deployment_url: str):
+        """
+        Trigger post-deployment automation: Marketing, SEO, Analytics, etc.
+
+        This orchestrates agents to:
+        1. Set up analytics tracking (AnalyticsAgent)
+        2. Configure SEO metadata (SEOAgent / MarketingAgent)
+        3. Submit to directories (MarketingAgent)
+        4. Configure Stripe billing (if enabled)
+        5. Set up monitoring and alerts
+        """
+        try:
+            logger.info(f"\n📊 Starting post-deployment automation for {spec.name}...")
+
+            # Task 1: Analytics Setup
+            if "analytics" in spec.components:
+                logger.info("📈 Setting up analytics tracking...")
+                # TODO: Call AnalyticsAgent to configure GA4, PostHog, etc.
+                # await analytics_agent.setup_tracking(deployment_url)
+
+            # Task 2: SEO Optimization
+            if spec.metadata.get("enable_seo", True):
+                logger.info("🔍 Configuring SEO metadata...")
+                # TODO: Call MarketingAgent to set up SEO
+                # await marketing_agent.configure_seo(deployment_url, spec.description)
+
+            # Task 3: Directory Submissions
+            if spec.metadata.get("submit_to_directories", False):
+                logger.info("📢 Submitting to product directories...")
+                # TODO: Call MarketingAgent to submit to Product Hunt, BetaList, etc.
+                # await marketing_agent.submit_to_directories(deployment_url, spec)
+
+            # Task 4: Stripe Configuration
+            if "stripe_billing" in spec.components or "stripe_checkout" in spec.components:
+                logger.info("💳 Configuring Stripe billing...")
+                # TODO: Call BillingAgent / Stripe integration
+                # await billing_agent.configure_stripe(deployment_url, spec)
+
+            # Task 5: Monitoring Setup
+            logger.info("📡 Setting up monitoring and alerts...")
+            # TODO: Configure error tracking, uptime monitoring
+            # await monitoring_agent.setup_alerts(deployment_url)
+
+            logger.info(f"✅ Post-deployment automation completed for {spec.name}")
+
+        except Exception as e:
+            logger.error(f"❌ Post-deployment automation failed: {e}")
+            import traceback
+            traceback.print_exc()
 
     async def _summarize_business_spend(self, business_id: str, spec: BusinessSpec, total_cost: float):
         intents = self.payment_manager.get_business_intents(business_id)

@@ -607,6 +607,16 @@ class BusinessMonitor:
             "total_cost_savings_usd": self.voix_metrics["cost_savings_usd"],
         }
 
+    def get_x402_metrics(self) -> Dict[str, Any]:
+        """Get x402 payment authorization metrics - stub for now"""
+        return {
+            "total_authorizations": 0,
+            "approved_authorizations": 0,
+            "denied_authorizations": 0,
+            "total_spend_usd": 0.0,
+            "pending_authorizations": 0
+        }
+
     def record_monitor_event(self, topic: str, payload: Dict[str, Any]) -> None:
         """Log arbitrary OmniDaemon monitoring events."""
         self.global_stats["monitor_events"] += 1
